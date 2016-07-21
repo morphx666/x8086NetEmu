@@ -12,7 +12,7 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - Support for both Floppy and Hard Disk images
 - No BIOS hacks required
 - WinForms and Console samples included
-- Cross-platform support through Mono (the emulator has been tested under Windows, Linux and the RaspberryPi)
+- Cross-platform support through Mono (the emulator has been tested under Windows, [MacOS Linux and the RaspberryPi](https://whenimbored.xfx.net/2013/10/x8086netemu-linux-mac-os-x-raspberry-pi/))
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2012/09/debug.png)
 
