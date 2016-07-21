@@ -1,1 +1,0 @@
-void nvr_init();

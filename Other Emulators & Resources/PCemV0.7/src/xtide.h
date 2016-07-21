@@ -1,1 +1,0 @@
-void xtide_init();

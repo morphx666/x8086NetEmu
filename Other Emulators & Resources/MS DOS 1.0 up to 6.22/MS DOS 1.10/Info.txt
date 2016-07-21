@@ -1,4 +1,0 @@
-Imagen del MsDos 1.10 creada con WInImage. En la carpeta están la imagen hecha con el DIM bajo DOS y las instrucciones para grabar un disquette. El fichero "DOS 1.10.IMA" es una imagen creada siguiendo la operación.
-Testeado y funcionando ok!
-
-TWR Records, 15/12/05

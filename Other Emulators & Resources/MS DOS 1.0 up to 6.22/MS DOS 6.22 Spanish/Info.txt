@@ -1,4 +1,0 @@
-Hacer los disquettes mediante el winimage.
-Probado y correcto.
-
-TWR Records, 14/12/05

@@ -1,5 +1,0 @@
-El archivo "vfd" es una imagen del disco original. Para copiarla, y crear
-el disco, usar el Winimage, e indicarle dónde se encuentra la imagen. Verificado y funcionando. Ok!
-
-TWR Records, 27/09/01
-Reedición, 17/12/05

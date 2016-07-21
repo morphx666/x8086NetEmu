@@ -1,2 +1,0 @@
-void amstrad_init();
-

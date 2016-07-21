@@ -1,1 +1,0 @@
-void headland_init();
