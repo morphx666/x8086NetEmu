@@ -1,0 +1,38 @@
+; multi-segment executable file template.
+
+data SEGMENT
+; add your data here!
+pkey DB "press any key...$"
+ENDS
+
+stack SEGMENT
+DW   128  dup(0)
+ENDS
+
+code SEGMENT
+start:
+; set segment registers:
+MOV AX, data
+MOV DS, AX
+MOV ES, AX
+
+; add your code here
+
+org 200
+MOV [SI], 020h
+
+LEA DX, pkey
+MOV AH, 9
+INT 21h        ; output string at ds:dx
+
+; wait for any key....
+MOV AH, 1
+INT 21h
+
+MOV AX, 4c00h ; exit to operating system.
+INT 21h
+ENDS
+
+END start ; set entry point and stop the assembler.
+
+

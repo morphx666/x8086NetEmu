@@ -1,0 +1,96 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+pali.com_ -- emu8086 assembler version: 4.08  
+ 
+[ 5/25/2011  --  9:52:30 PM ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       ; this sample checks if string is a palindrome or not.
+[   2]        :                                       ; palindrome is a text that can be read backwards
+[   3]        :                                       ; and give the same meaning as if it was read forward.
+[   4]        :                                       ; for example: "abba" is polindrome.
+[   5]        :                                       ; note: this program is case sensitive, "abba" is not "abba".
+[   6]        :                                       
+[   7]        :                                       name "pali"
+[   8]        :                                       
+[   9]        :                                       org 100h
+[  10]        :                                       
+[  11]    0100: EB 1C                                 jmp start
+[  12]        :                                       
+[  13]    0102:                                       m1:
+[  14]    0102: 61 62 6C 65 20 77 61 73 20 65 72 65   s db 'able was ere ere saw elba'
+                20 65 72 65 20 73 61 77 20 65 6C 62 
+                61                                  
+[  15]    011B:                                       s_size = $ - m1
+[  16]    011B: 0D 0A 24                              db 0Dh,0Ah,'$'
+[  17]        :                                       
+[  18]    011E:                                       start:
+[  19]        :                                       
+[  20]        :                                       ; first let's print it:
+[  21]    011E: B4 09                                 mov ah, 9
+[  22]    0120: BA 02 01                              mov dx, offset s
+[  23]    0123: CD 21                                 int 21h
+[  24]        :                                       
+[  25]        :                                       
+[  26]    0125: BF 02 01                              lea di, s
+[  27]    0128: 8B F7                                 mov si, di
+[  28]    012A: 83 C6 19                              add si, s_size
+[  29]    012D: 4E                                    dec si  ; point to last char!
+[  30]        :                                       
+[  31]    012E: B9 19 00                              mov cx, s_size
+[  32]    0131: 83 F9 01                              cmp cx, 1
+[  33]    0134: 74 0E                                 je is_palindrome  ; single char is always palindrome!
+[  34]        :                                       
+[  35]    0136: D1 E9                                 shr cx, 1     ; divide by 2!
+[  36]        :                                       
+[  37]    0138:                                       next_char:
+[  38]    0138: 8A 05                                 mov al, [di]
+[  39]    013A: 8A 1C                                 mov bl, [si]
+[  40]    013C: 3A C3                                 cmp al, bl
+[  41]    013E: 75 0D                                 jne not_palindrome
+[  42]    0140: 47                                    inc di
+[  43]    0141: 4E                                    dec si
+[  44]    0142: E2 F4                                 loop next_char
+[  45]        :                                       
+[  46]        :                                       
+[  47]    0144:                                       is_palindrome:
+[  48]        :                                       ;  the string is "palindrome!"
+[  49]    0144: B4 09                                 mov ah, 9
+[  50]    0146: BA 59 01                              mov dx, offset msg1
+[  51]    0149: CD 21                                 int 21h
+[  52]    014B: EB 07                                 jmp stop
+[  53]        :                                       
+[  54]    014D:                                       not_palindrome:
+[  55]        :                                       ;  the string is "not palindrome!"
+[  56]    014D: B4 09                                 mov ah, 9
+[  57]    014F: BA 6F 01                              mov dx, offset msg2
+[  58]    0152: CD 21                                 int 21h
+[  59]    0154:                                       stop:
+[  60]        :                                       
+[  61]        :                                       
+[  62]        :                                       ; wait for any key press:
+[  63]    0154: B4 00                                 mov ah, 0
+[  64]    0156: CD 16                                 int 16h
+[  65]        :                                       
+[  66]        :                                       
+[  67]    0158: C3                                    ret
+[  68]        :                                       
+[  69]        :                                       
+[  70]    0159: 20 20 74 68 69 73 20 69 73 20 70 61   msg1 db "  this is palindrome!$"
+                6C 69 6E 64 72 6F 6D 65 21 24       
+[  71]    016F: 20 20 74 68 69 73 20 69 73 20 6E 6F   msg2 db "  this is not a palindrome!$"
+                74 20 61 20 70 61 6C 69 6E 64 72 6F 
+                6D 65 21 24                         
+[  72]        :                                       
+[  73]        :                                       
+ 
+===================================================================================================
+ 
+
+
+
+
+===================================================================================================

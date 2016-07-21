@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# convert cas files to wav
+#
+# castowav [file...]
+
+cas_to_wav ()
+{
+	local src=$1
+	local bas tmp dst
+
+	bas=${src%.*}
+	tmp="$bas-$$.raw"
+	dst=$bas.wav
+
+	castopcm -w < "$src" > "$tmp"
+	sox -c 1 -r 44100 -1 -s "$tmp" -c 2 -r 44100 -2 -s "$dst"
+
+	rm -f "$tmp"
+}
+
+while test $# -gt 0 ; do
+	case "$1" in
+	-*)
+		echo "$0: unknown option ($1)" >&2
+		exit 1
+		;;
+	*)
+		cas_to_wav "$1"
+		;;
+	esac
+
+	shift 1
+done

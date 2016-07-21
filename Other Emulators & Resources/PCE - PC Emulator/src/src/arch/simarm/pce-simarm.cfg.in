@@ -1,0 +1,88 @@
+# pce-simarm.cfg
+#
+# Example config file
+
+section simarm {
+	section cpu {
+		# This has no effect yet
+		model = "xscale"
+
+		# Set to 1 for a big endian system
+		bigendian = 0
+
+		# The processor ID
+		id = 0x69052000
+	}
+
+	# Multiple "ram" sections may be present
+	section ram {
+		# The linear base address
+		address = 0x00000000
+
+		# The size in bytes
+		size = 0x04000000
+
+		# The RAM image that is used to initialize the RAM (optional)
+		file = "linux.bin"
+	}
+
+	# Multiple "rom" sections may be present
+	section rom {
+		# The file from which the rom code is loaded (optional)
+		file = "simarm.rom"
+
+		# The linear base address
+		address = 0xffff0000
+
+		# The rom size in bytes
+		size = 65536
+	}
+
+	# load sections are processed after all ram and rom sections.
+	section load {
+		format = "ihex"
+		file   = "simarm.ihex"
+	}
+
+	section load {
+		format  = "binary"
+		file    = "rom.bin"
+		address = 0xffff0000
+	}
+
+	# interrupt controller
+	section intc {
+		address = 0xd6000000
+	}
+
+	# timer
+	section timer {
+		address = 0xc0020000
+	}
+
+	# serial port
+	section serial {
+		address = 0xc0030000
+		irq     = 2
+
+		# Up to multichar characters are sent or received
+		# without any transmission delay. For a real serial port
+		# this value is 1 but larger values can speed up
+		# transmission.
+		multichar = 1
+
+		# Not all character drivers are supported on
+		# all platforms.
+		#driver = "null"
+		driver = "stdio:file=uart0.out"
+		#driver = "tios:file=/dev/ttyS0"
+	}
+
+	section console {
+		serial = 0
+	}
+
+	section pci {
+		irq = 15
+	}
+}

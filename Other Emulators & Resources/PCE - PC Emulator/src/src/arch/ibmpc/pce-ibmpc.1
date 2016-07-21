@@ -1,0 +1,151 @@
+.TH PCE-IBMPC 1 "2008-11-28" "HH" "pce"
+\
+.SH NAME
+pce-ibmpc \- IBM PC 5150 emulator
+\
+.SH SYNOPSIS
+.BI pce-ibmpc " [options]"
+\
+.SH DESCRIPTION
+.BR pce-ibmpc (1)
+is an IBM PC hardware emulator. It emulates most of
+the hardware of an IBM PC 5150. The emulation is complete enough to
+boot DOS and run most DOS applications.
+\
+.SH OPTIONS
+.TP
+.BI "-b, --boot " drive
+Set the boot drive. The default is 128 (the first hard disk).
+Reasonable values are 128 and 0 (the first floppy disk).
+\
+.TP
+.BI "-c, --config " file
+Set the config file name.
+\
+.TP
+.BI "-d, --path " string
+Add a directory to the search path.
+
+The search path is used if an input file (such as a ROM
+image or a disk image) is specified with a relative file
+name. In that case the file is searched for in all
+directories of the search path. The current directory
+is always implicitly added to the end of the search path.
+
+The directory name can be prefixed by one of these characters:
+.RS
+.TP
+.B +
+Add the directory to the end of the search path
+.TP
+.B -
+Add the directory to the beginning of the search path
+.TP
+.B =
+Clear the search path before adding the directory
+.RE
+
+.IP
+The default is to add the directory to the end of the search path.
+\
+.TP
+.BI "-g, --video " string
+Set the video device. Possible devices are:
+.RS
+.TP
+.B mda
+Monochrome Display Adapter
+.TP
+.B cga
+Color/Graphics Adapter
+.TP
+.B hgc
+Hercules Graphics Card
+.TP
+.B plantronics
+Plantronics ColorPlus
+.TP
+.B ega
+Enhanced Graphics Adapter
+.TP
+.B vga
+Video Graphics Array
+.TP
+.B wy700
+Wyse 700
+.RE
+\
+.TP
+.BI "-l, --log " file
+Write log messages to the file specified instead of stdout.
+\
+.TP
+.BI "-p, --cpu " model
+Select the CPU model to be emulated, overriding the config file.
+Possible values for \fImodel\fR are:
+.RS
+.TP
+.B 8086
+Intel 8086
+.TP
+.B 8088
+Intel 8088
+.TP
+.B 8086+
+Behaves like an 8086 but with 80186 instructions enabled
+.TP
+.B 8088+
+Behaves like an 8088 but with 80186 instructions enabled
+.TP
+.B 80186
+Intel 80186
+.TP
+.B 80188
+Intel 80188
+.RE
+\
+.TP
+.B "-q, --quiet"
+Don't print anything to stdout or stderr.
+\
+.TP
+.B "-r, --run"
+Start running immediately.
+\
+.TP
+.B "-R, --no-monitor"
+Start running immediately and never fall back to the monitor.
+This is useful if stdout is not visible, for example because
+the emulator was started directly from a graphical user
+interface such as X or Windows.
+\
+.TP
+.BI "-s, --speed" factor
+Set the initial speed factor. This overrides a value specified
+in the configuration file.
+\
+.TP
+.BI "-t, --terminal " string
+Set the terminal device. Possible devices are
+.BR null ", "
+.BR x11 " and "
+.BR sdl "."
+\
+.TP
+.B "-v, --verbose"
+Verbose operation. This is highly recommended.
+\
+.TP
+.B --help
+Print usage information
+\
+.TP
+.B --version
+Print version information
+\
+.SH SEE ALSO
+.BR bochs "(1), "
+.BR mtools (1)
+\
+.SH AUTHOR
+Hampa Hug <hampa@hampa.ch>

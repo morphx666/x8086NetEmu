@@ -1,0 +1,21 @@
+1234 ; load to segment.
+0000 ; load to offset.
+12 ;   AL
+34 ;   AH
+78 ;   BL
+56 ;   BH
+BC ;   CL
+9A ;   CH
+F0 ;   DL
+DE ;   DH
+DDEE ;   DS
+ABCD ;   ES
+AAAA ;   SI
+CCCC ;   DI
+DDDD ;   BP
+1234 ;   CS
+0000 ;   IP
+3000 ;   SS
+FFFF ;   SP
+
+MEM=

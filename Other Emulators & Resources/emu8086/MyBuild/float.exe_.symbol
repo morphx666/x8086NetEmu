@@ -1,0 +1,60 @@
+< THE SYMBOL TABLE >  float.exe_  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+DSEG                     	00000     	-5        	SEGMENT   	(ITSELF)  
+MESS0                    	00000     	1         	VAR       	dseg      
+MESS1                    	0001C     	1         	VAR       	dseg      
+MESS2                    	00037     	1         	VAR       	dseg      
+MESS3                    	00054     	1         	VAR       	dseg      
+MESS4                    	0005E     	1         	VAR       	dseg      
+MESS5                    	00066     	1         	VAR       	dseg      
+MESS6                    	0006E     	1         	VAR       	dseg      
+MESS7                    	00080     	1         	VAR       	dseg      
+MESS8                    	00093     	1         	VAR       	dseg      
+ERROR                    	000B7     	1         	VAR       	dseg      
+TWICE_NL                 	000D7     	1         	VAR       	dseg      
+MAKE_MINUS               	000DD     	1         	VAR       	dseg      
+A                        	000DE     	2         	VAR       	dseg      
+B                        	000E0     	2         	VAR       	dseg      
+TEN                      	000E2     	2         	VAR       	dseg      
+FOUR                     	000E4     	2         	VAR       	dseg      
+SSEG                     	0000F     	-5        	SEGMENT   	(ITSELF)  
+CSEG                     	0002F     	-5        	SEGMENT   	(ITSELF)  
+START                    	00000     	-1        	FAR       	cseg      
+SOLUBLE                  	00059     	-1        	LABEL     	cseg      
+NOT_SINGNED              	00069     	-1        	LABEL     	cseg      
+NO_SOLUTION              	0007C     	-1        	LABEL     	cseg      
+INFINITE                 	00084     	-1        	LABEL     	cseg      
+END_PROG                 	0008A     	-1        	LABEL     	cseg      
+PRINT_FLOAT              	00095     	-1        	NEAR      	cseg      
+DIV_NOT_SIGNED           	0009E     	-1        	LABEL     	cseg      
+CHECKED                  	000AF     	-1        	LABEL     	cseg      
+DONE                     	000C4     	-1        	LABEL     	cseg      
+PRINT_FRACTION           	000C7     	-1        	NEAR      	cseg      
+NEXT_FRACTION            	000C9     	-1        	LABEL     	cseg      
+NOT_SIG1                 	000DF     	-1        	LABEL     	cseg      
+NOT_SIG2                 	000EF     	-1        	LABEL     	cseg      
+END_REM                  	000F8     	-1        	LABEL     	cseg      
+PRINT_NUM                	000FB     	-1        	NEAR      	cseg      
+NOT_ZERO                 	00109     	-1        	LABEL     	cseg      
+POSITIVE                 	00115     	-1        	LABEL     	cseg      
+PRINTED                  	00118     	-1        	LABEL     	cseg      
+PRINT_NUMX               	0011B     	-1        	NEAR      	cseg      
+BEGIN_PRINT              	00129     	-1        	LABEL     	cseg      
+CALC                     	00137     	-1        	LABEL     	cseg      
+SKIP                     	00149     	-1        	LABEL     	cseg      
+END_SHOW                 	00157     	-1        	LABEL     	cseg      
+PUTS                     	0015B     	-1        	NEAR      	cseg      
+READ_CHAR                	00162     	-1        	NEAR      	cseg      
+SCAN_NUM                 	00167     	-1        	NEAR      	cseg      
+NEXT_DIGIT               	00170     	-1        	LABEL     	cseg      
+SET_MINUS                	00194     	-1        	LABEL     	cseg      
+OUT_OF_RANGE             	0019B     	-1        	LABEL     	cseg      
+STOP_INPUT               	001A1     	-1        	LABEL     	cseg      
+NOT_MINUS                	001AA     	-1        	LABEL     	cseg      
+WRITE_CHAR               	001AD     	-1        	NEAR      	cseg      
+===================================================================================================
+[ 6/6/2011  --  1:47:26 AM ] 
+< END >
+ 

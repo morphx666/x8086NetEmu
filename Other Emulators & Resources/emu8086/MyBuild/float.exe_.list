@@ -1,0 +1,570 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+float.exe_ -- emu8086 assembler version: 4.08  
+ 
+[ 6/6/2011  --  1:47:26 AM ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       ; calculate equation with high precision without math coprocessor
+[   2]        :                                       
+[   3]        :                                       ; this program calculates linear equation: ax + b = 0
+[   4]        :                                       ; the result is printed with floating point.
+[   5]        :                                       
+[   6]        :                                       ; for example: a = 7, b = 2
+[   7]        :                                       ;              x = -0.28571428....
+[   8]        :                                       
+[   9]        :                                       name "float"
+[  10]        :                                       
+[  11]        :                                       precision = 30  ; max digits after the dot.
+[  12]        :                                       
+[  13]        :                                       
+[  14]        :                                       dseg    SEGMENT 'data'
+[  15]        :                                       cr              EQU     0Dh
+[  16]        :                                       lf              EQU     0Ah
+[  17]        :                                       new_line        EQU     0Dh,0Ah, '$'
+[  18]    0000: 63 61 6C 63 75 6C 61 74 69 6F 6E 20   mess0           DB      'calculation of ax + b = 0', new_line
+                6F 66 20 61 78 20 2B 20 62 20 3D 20 
+                30 0D 0A 24                         
+[  19]    001C: 65 6E 74 65 72 20 61 20 28 2D 33 32   mess1           DB      'enter a (-32768..32767)!', new_line
+                37 36 38 2E 2E 33 32 37 36 37 29 21 
+                0D 0A 24                            
+[  20]    0037: 0A 0D 65 6E 74 65 72 20 62 20 28 2D   mess2           DB      lf, cr, 'enter b (-32768..32767)!', new_line
+                33 32 37 36 38 2E 2E 33 32 37 36 37 
+                29 21 0D 0A 24                      
+[  21]    0054: 0D 0A 0D 0A 64 61 74 61 3A 24         mess3           DB      cr, lf, cr, lf, 'data:', '$'
+[  22]    005E: 0D 0A 20 61 20 3D 20 24               mess4           DB      cr, lf, ' a = ', '$'
+[  23]    0066: 0D 0A 20 62 20 3D 20 24               mess5           DB      cr, lf, ' b = ', '$'
+[  24]    006E: 0D 0A 72 65 73 75 6C 74 3A 20 0D 0A   mess6           DB      cr, lf, 'result: ', cr, lf, ' x = ', '$'
+                20 78 20 3D 20 24                   
+[  25]    0080: 0D 0A 0D 0A 6E 6F 20 73 6F 6C 75 74   mess7           DB      cr, lf, cr, lf, 'no solution!', new_line
+                69 6F 6E 21 0D 0A 24                
+[  26]    0093: 0D 0A 0D 0A 69 6E 66 69 6E 69 74 65   mess8           DB      cr, lf, cr, lf, 'infinite number of solutions!', new_line
+                20 6E 75 6D 62 65 72 20 6F 66 20 73 
+                6F 6C 75 74 69 6F 6E 73 21 0D 0A 24 
+                                                    
+[  27]    00B7: 0D 0A 74 68 65 20 6E 75 6D 62 65 72   error           DB      cr, lf, 'the number is out of range!', new_line
+                20 69 73 20 6F 75 74 20 6F 66 20 72 
+                61 6E 67 65 21 0D 0A 24             
+[  28]    00D7: 0D 0A 24 0D 0A 24                     twice_nl        DB      new_line, new_line
+[  29]    00DD: 00                                    make_minus      DB      ?       ; used as a flag in procedures.
+[  30]    00DE: 00 00                                 a               DW      ?
+[  31]    00E0: 00 00                                 b               DW      ?
+[  32]    00E2: 0A 00                                 ten             DW      10      ; used as multiplier.
+[  33]    00E4: 04 00                                 four            DW      4       ; used as divider.
+[  34]        :                                       dseg    ENDS
+[  35]        :                                       
+[  36]        :                                       sseg    SEGMENT stack   'stack'
+[  37]    00F0: 00 00 00 00 00 00 00 00 00 00 00 00   DW      100h    dup(?)
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00 00 00 00 00 
+                00 00 00 00 00 00 00 00             
+[  38]        :                                       sseg    ENDS
+[  39]        :                                       
+[  40]        :                                       cseg    SEGMENT 'code'
+[  41]        :                                       
+[  42]        :                                       ;*******************************************************************
+[  43]        :                                       
+[  44]    02F0:                                       start           PROC    far
+[  45]        :                                       
+[  46]        :                                       ; store return address to os:
+[  47]    02F0: 1E                                    PUSH    DS
+[  48]    02F1: 33 C0                                 XOR     AX, AX
+[  49]    02F3: 50                                    PUSH    AX
+[  50]        :                                       
+[  51]        :                                       ; set segment registers:
+[  52]    02F4: B8 00 00                              MOV     AX, dseg
+[  53]    02F7: 8E D8                                 MOV     DS, AX
+[  54]    02F9: 8E C0                                 MOV     ES, AX
+[  55]        :                                       
+[  56]        :                                       ; welcome message:
+[  57]    02FB: BA 00 00                              LEA     DX, mess0
+[  58]    02FE: E8 4A 01                              CALL    puts            ; display the message.
+[  59]        :                                       
+[  60]        :                                       ; ask for 'a' :
+[  61]    0301: BA 1C 00                              LEA     DX, mess1
+[  62]    0304: E8 44 01                              CALL    puts            ; display the message.
+[  63]    0307: E8 4D 01                              CALL    scan_num        ; input the number into cx.
+[  64]    030A: 89 0E DE 00                           MOV     a, CX
+[  65]        :                                       
+[  66]        :                                       ; ask for 'b' :
+[  67]    030E: BA 37 00                              LEA     DX, mess2
+[  68]    0311: E8 37 01                              CALL    puts            ; display the message.
+[  69]    0314: E8 40 01                              CALL    scan_num        ; input the number into cx.
+[  70]    0317: 89 0E E0 00                           MOV     b, CX
+[  71]        :                                       
+[  72]        :                                       ; print the data:
+[  73]    031B: BA 54 00                              LEA     DX, mess3
+[  74]    031E: E8 2A 01                              CALL    puts
+[  75]        :                                       
+[  76]    0321: BA 5E 00                              LEA     DX, mess4
+[  77]    0324: E8 24 01                              CALL    puts
+[  78]    0327: A1 DE 00                              MOV     AX, a
+[  79]    032A: E8 BE 00                              CALL    print_num               ; print ax.
+[  80]        :                                       
+[  81]    032D: BA 66 00                              LEA     DX, mess5
+[  82]    0330: E8 18 01                              CALL    puts
+[  83]    0333: A1 E0 00                              MOV     AX, b
+[  84]    0336: E8 B2 00                              CALL    print_num               ; print ax.
+[  85]        :                                       
+[  86]        :                                       
+[  87]        :                                       ; check data:
+[  88]    0339: 83 3E DE 00 00                        CMP     a, 0
+[  89]    033E: 75 09                                 JNE     soluble         ; jumps when a<>0.
+[  90]    0340: 83 3E E0 00 00                        CMP     b, 0
+[  91]    0345: 75 25                                 JNE     no_solution     ; jumps when a=0 and b<>0.
+[  92]    0347: EB 2B                                 JMP     infinite        ; jumps when a=0 and b=0.
+[  93]    0349:                                       soluble:
+[  94]        :                                       
+[  95]        :                                       ; calculate the solution:
+[  96]        :                                       ; ax + b = 0  ->  ax = -b  ->  x = -b/a
+[  97]        :                                       
+[  98]    0349: F7 1E E0 00                           NEG     b
+[  99]        :                                       
+[ 100]    034D: A1 E0 00                              MOV     AX, b
+[ 101]        :                                       
+[ 102]    0350: 33 D2                                 XOR     DX, DX
+[ 103]        :                                       
+[ 104]        :                                       ; check the sign, make dx:ax negative if ax is negative:
+[ 105]    0352: 3D 00 00                              CMP     AX, 0
+[ 106]    0355: 79 02                                 JNS     not_singned
+[ 107]    0357: F7 D2                                 NOT     DX
+[ 108]    0359:                                       not_singned:
+[ 109]    0359: 8B 1E DE 00                           MOV     BX, a   ; divider is in bx.
+[ 110]        :                                       
+[ 111]        :                                       ; '-b' is in dx:ax.
+[ 112]        :                                       ; 'a' is in bx.
+[ 113]        :                                       
+[ 114]    035D: F7 FB                                 IDIV    BX      ; ax = dx:ax / bx       (dx - remainder).
+[ 115]        :                                       
+[ 116]        :                                       ; 'x' is in ax.
+[ 117]        :                                       ; remainder is in dx.
+[ 118]        :                                       
+[ 119]    035F: 52                                    PUSH    DX      ; store the remainder.
+[ 120]        :                                       
+[ 121]    0360: BA 6E 00                              LEA     DX, mess6
+[ 122]    0363: E8 E5 00                              CALL    puts
+[ 123]        :                                       
+[ 124]    0366: 5A                                    POP     DX
+[ 125]        :                                       
+[ 126]        :                                       ; print 'x' as float:
+[ 127]        :                                       ; ax - whole part
+[ 128]        :                                       ; dx - remainder
+[ 129]        :                                       ; bx - divider
+[ 130]    0367: E8 1B 00                              CALL    print_float
+[ 131]        :                                       
+[ 132]    036A: EB 0E                                 JMP     end_prog
+[ 133]    036C:                                       no_solution:
+[ 134]    036C: BA 80 00                              LEA     DX, mess7
+[ 135]    036F: E8 D9 00                              CALL    puts
+[ 136]    0372: EB 06                                 JMP     end_prog
+[ 137]    0374:                                       infinite:
+[ 138]    0374: BA 93 00                              LEA     DX, mess8
+[ 139]    0377: E8 D1 00                              CALL    puts
+[ 140]    037A:                                       end_prog:
+[ 141]    037A: BA D7 00                              LEA     DX, twice_nl
+[ 142]    037D: E8 CB 00                              CALL    puts
+[ 143]        :                                       
+[ 144]        :                                       ; wait for any key....
+[ 145]    0380: B4 00                                 MOV     AH, 0
+[ 146]    0382: CD 16                                 INT     16h
+[ 147]        :                                       
+[ 148]        :                                       
+[ 149]    0384: CB                                    RET
+[ 150]        :                                       start          ENDP
+[ 151]        :                                       
+[ 152]        :                                       ;***************************************************************
+[ 153]        :                                       
+[ 154]        :                                       ; prints number in ax and it's fraction in dx.
+[ 155]        :                                       ; used to print remainder of 'div/idiv bx'.
+[ 156]        :                                       ; ax - whole part.
+[ 157]        :                                       ; dx - remainder.
+[ 158]        :                                       ; bx - the divider that was used to get the remainder from divident.
+[ 159]    0385:                                       print_float     PROC    near
+[ 160]    0385: 51                                    PUSH    CX
+[ 161]    0386: 52                                    PUSH    DX
+[ 162]        :                                       
+[ 163]        :                                       ; because the remainder takes the sign of divident
+[ 164]        :                                       ; its sign should be inverted when divider is negative
+[ 165]        :                                       ; (-) / (-) = (+)
+[ 166]        :                                       ; (+) / (-) = (-)
+[ 167]    0387: 83 FB 00                              CMP     BX, 0
+[ 168]    038A: 79 02                                 JNS     div_not_signed
+[ 169]    038C: F7 DA                                 NEG     DX              ; make remainder positive.
+[ 170]    038E:                                       div_not_signed:
+[ 171]        :                                       
+[ 172]        :                                       ; print_num procedure does not print the '-'
+[ 173]        :                                       ; when the whole part is '0' (even if the remainder is
+[ 174]        :                                       ; negative) this code fixes it:
+[ 175]    038E: 3D 00 00                              CMP     AX, 0
+[ 176]    0391: 75 0C                                 JNE     checked         ; ax<>0
+[ 177]    0393: 83 FA 00                              CMP     DX, 0
+[ 178]    0396: 79 07                                 JNS     checked         ; ax=0 and dx>=0
+[ 179]    0398: 52                                    PUSH    DX
+[ 180]    0399: B2 2D                                 MOV     DL, '-'
+[ 181]    039B: E8 FF 00                              CALL    write_char      ; print '-'
+[ 182]    039E: 5A                                    POP     DX
+[ 183]    039F:                                       checked:
+[ 184]        :                                       
+[ 185]        :                                       ; print whole part:
+[ 186]    039F: E8 49 00                              CALL    print_num
+[ 187]        :                                       
+[ 188]        :                                       ; if remainder=0, then no need to print it:
+[ 189]    03A2: 83 FA 00                              CMP     DX, 0
+[ 190]    03A5: 74 0D                                 JE      done
+[ 191]        :                                       
+[ 192]    03A7: 52                                    PUSH    DX
+[ 193]        :                                       ; print dot after the number:
+[ 194]    03A8: B2 2E                                 MOV     DL, '.'
+[ 195]    03AA: E8 F0 00                              CALL    write_char
+[ 196]    03AD: 5A                                    POP     DX
+[ 197]        :                                       
+[ 198]        :                                       ; print digits after the dot:
+[ 199]    03AE: B9 1E 00                              MOV     CX, precision
+[ 200]    03B1: E8 03 00                              CALL    print_fraction
+[ 201]    03B4:                                       done:
+[ 202]    03B4: 5A                                    POP     DX
+[ 203]    03B5: 59                                    POP     CX
+[ 204]    03B6: C3                                    RET
+[ 205]        :                                       print_float     ENDP
+[ 206]        :                                       
+[ 207]        :                                       ;***************************************************************
+[ 208]        :                                       
+[ 209]        :                                       ; prints dx as fraction of division by bx.
+[ 210]        :                                       ; dx - remainder.
+[ 211]        :                                       ; bx - divider.
+[ 212]        :                                       ; cx - maximum number of digits after the dot.
+[ 213]    03B7:                                       print_fraction  PROC    near
+[ 214]    03B7: 50                                    PUSH    AX
+[ 215]    03B8: 52                                    PUSH    DX
+[ 216]    03B9:                                       next_fraction:
+[ 217]        :                                       ; check if all digits are already printed:
+[ 218]    03B9: 83 F9 00                              CMP     CX, 0
+[ 219]    03BC: 74 2A                                 JZ      end_rem
+[ 220]    03BE: 49                                    DEC     CX      ; decrease digit counter.
+[ 221]        :                                       
+[ 222]        :                                       ; when remainder is '0' no need to continue:
+[ 223]    03BF: 83 FA 00                              CMP     DX, 0
+[ 224]    03C2: 74 24                                 JE      end_rem
+[ 225]        :                                       
+[ 226]    03C4: 8B C2                                 MOV     AX, DX
+[ 227]    03C6: 33 D2                                 XOR     DX, DX
+[ 228]    03C8: 3D 00 00                              CMP     AX, 0
+[ 229]    03CB: 79 02                                 JNS     not_sig1
+[ 230]    03CD: F7 D2                                 NOT     DX
+[ 231]    03CF:                                       not_sig1:
+[ 232]        :                                       
+[ 233]    03CF: F7 2E E2 00                           IMUL    ten             ; dx:ax = ax * 10
+[ 234]        :                                       
+[ 235]    03D3: F7 FB                                 IDIV    BX              ; ax = dx:ax / bx   (dx - remainder)
+[ 236]        :                                       
+[ 237]    03D5: 52                                    PUSH    DX              ; store remainder.
+[ 238]    03D6: 8B D0                                 MOV     DX, AX
+[ 239]    03D8: 83 FA 00                              CMP     DX, 0
+[ 240]    03DB: 79 02                                 JNS     not_sig2
+[ 241]    03DD: F7 DA                                 NEG     DX
+[ 242]    03DF:                                       not_sig2:
+[ 243]    03DF: 80 C2 30                              ADD     DL, 30h         ; convert to ascii code.
+[ 244]    03E2: E8 B8 00                              CALL    write_char      ; print dl.
+[ 245]    03E5: 5A                                    POP     DX
+[ 246]        :                                       
+[ 247]    03E6: EB D1                                 JMP     next_fraction
+[ 248]    03E8:                                       end_rem:
+[ 249]    03E8: 5A                                    POP     DX
+[ 250]    03E9: 58                                    POP     AX
+[ 251]    03EA: C3                                    RET
+[ 252]        :                                       print_fraction  ENDP
+[ 253]        :                                       
+[ 254]        :                                       ;***************************************************************
+[ 255]        :                                       
+[ 256]        :                                       ; this procedure prints number in ax,
+[ 257]        :                                       ; used with print_numx to print "0" and sign.
+[ 258]        :                                       ; this procedure also stores the original ax,
+[ 259]        :                                       ; that is modified by print_numx.
+[ 260]    03EB:                                       print_num       PROC    near
+[ 261]    03EB: 52                                    PUSH    DX
+[ 262]    03EC: 50                                    PUSH    AX
+[ 263]        :                                       
+[ 264]    03ED: 3D 00 00                              CMP     AX, 0
+[ 265]    03F0: 75 07                                 JNZ     not_zero
+[ 266]        :                                       
+[ 267]    03F2: B2 30                                 MOV     DL, '0'
+[ 268]    03F4: E8 A6 00                              CALL    write_char
+[ 269]    03F7: EB 0F                                 JMP     printed
+[ 270]        :                                       
+[ 271]    03F9:                                       not_zero:
+[ 272]        :                                       ; the check sign of ax,
+[ 273]        :                                       ; make absolute if it's negative:
+[ 274]    03F9: 3D 00 00                              CMP     AX, 0
+[ 275]    03FC: 79 07                                 JNS     positive
+[ 276]    03FE: F7 D8                                 NEG     AX
+[ 277]        :                                       
+[ 278]    0400: B2 2D                                 MOV     DL, '-'
+[ 279]    0402: E8 98 00                              CALL    write_char
+[ 280]    0405:                                       positive:
+[ 281]    0405: E8 03 00                              CALL    print_numx
+[ 282]    0408:                                       printed:
+[ 283]    0408: 58                                    POP     AX
+[ 284]    0409: 5A                                    POP     DX
+[ 285]    040A: C3                                    RET
+[ 286]        :                                       print_num       ENDP
+[ 287]        :                                       
+[ 288]        :                                       ;***************************************************************
+[ 289]        :                                       
+[ 290]        :                                       ; prints out a number in ax (not just a single digit)
+[ 291]        :                                       ; allowed values from 1 to 65535 (ffff)
+[ 292]        :                                       ; (result of /10000 should be the left digit or "0").
+[ 293]        :                                       ; modifies ax (after the procedure ax=0)
+[ 294]    040B:                                       print_numx      PROC    near
+[ 295]    040B: 53                                    PUSH    BX
+[ 296]    040C: 51                                    PUSH    CX
+[ 297]    040D: 52                                    PUSH    DX
+[ 298]        :                                       
+[ 299]        :                                       ; flag to prevent printing zeros before number:
+[ 300]    040E: B9 01 00                              MOV     CX, 1
+[ 301]        :                                       
+[ 302]    0411: BB 10 27                              MOV     BX, 10000       ; 2710h - divider.
+[ 303]        :                                       
+[ 304]        :                                       ; check if ax is zero, if zero go to end_show
+[ 305]    0414: 3D 00 00                              CMP     AX, 0
+[ 306]    0417: 74 2E                                 JZ      end_show
+[ 307]        :                                       
+[ 308]    0419:                                       begin_print:
+[ 309]        :                                       
+[ 310]        :                                       ; check divider (if zero go to end_show):
+[ 311]    0419: 83 FB 00                              CMP     BX,0
+[ 312]    041C: 74 29                                 JZ      end_show
+[ 313]        :                                       
+[ 314]        :                                       ; avoid printing zeros before number:
+[ 315]    041E: 83 F9 00                              CMP     CX, 0
+[ 316]    0421: 74 04                                 JE      calc
+[ 317]        :                                       ; if ax<bx then result of div will be zero:
+[ 318]    0423: 3B C3                                 CMP     AX, BX
+[ 319]    0425: 72 12                                 JB      skip
+[ 320]    0427:                                       calc:
+[ 321]    0427: 33 C9                                 XOR     CX, CX  ; set flag.
+[ 322]        :                                       
+[ 323]    0429: 33 D2                                 XOR     DX, DX
+[ 324]    042B: F7 F3                                 DIV     BX      ; ax = dx:ax / bx   (dx=remainder).
+[ 325]        :                                       
+[ 326]        :                                       ; print last digit
+[ 327]        :                                       ; ah is always zero, so it's ignored
+[ 328]    042D: 52                                    PUSH    DX
+[ 329]    042E: 8A D0                                 MOV     DL, AL
+[ 330]    0430: 80 C2 30                              ADD     DL, 30h    ; convert to ascii code.
+[ 331]    0433: E8 67 00                              CALL    write_char
+[ 332]    0436: 5A                                    POP     DX
+[ 333]        :                                       
+[ 334]    0437: 8B C2                                 MOV     AX, DX  ; get remainder from last div.
+[ 335]        :                                       
+[ 336]    0439:                                       skip:
+[ 337]        :                                       ; calculate bx=bx/10
+[ 338]    0439: 50                                    PUSH    AX
+[ 339]    043A: 33 D2                                 XOR     DX, DX
+[ 340]    043C: 8B C3                                 MOV     AX, BX
+[ 341]    043E: F7 36 E2 00                           DIV     ten     ; ax = dx:ax / 10   (dx=remainder).
+[ 342]    0442: 8B D8                                 MOV     BX, AX
+[ 343]    0444: 58                                    POP     AX
+[ 344]        :                                       
+[ 345]    0445: EB D2                                 JMP     begin_print
+[ 346]        :                                       
+[ 347]    0447:                                       end_show:
+[ 348]        :                                       
+[ 349]    0447: 5A                                    POP     DX
+[ 350]    0448: 59                                    POP     CX
+[ 351]    0449: 5B                                    POP     BX
+[ 352]    044A: C3                                    RET
+[ 353]        :                                       print_numx      ENDP
+[ 354]        :                                       
+[ 355]        :                                       ;***************************************************************
+[ 356]        :                                       
+[ 357]        :                                       ; displays the message (dx-address)
+[ 358]    044B:                                       puts    PROC    near
+[ 359]    044B: 50                                    PUSH    AX
+[ 360]    044C: B4 09                                 MOV     AH, 09h
+[ 361]    044E: CD 21                                 INT     21h
+[ 362]    0450: 58                                    POP     AX
+[ 363]    0451: C3                                    RET
+[ 364]        :                                       puts    ENDP
+[ 365]        :                                       
+[ 366]        :                                       ;*******************************************************************
+[ 367]        :                                       
+[ 368]        :                                       ; reads char from the keyboard into al
+[ 369]        :                                       ; (modifies ax!!!)
+[ 370]    0452:                                       read_char       PROC    near
+[ 371]    0452: B4 01                                 MOV     AH, 01h
+[ 372]    0454: CD 21                                 INT     21h
+[ 373]    0456: C3                                    RET
+[ 374]        :                                       read_char       ENDP
+[ 375]        :                                       
+[ 376]        :                                       ;***************************************************************
+[ 377]        :                                       
+[ 378]        :                                       ; gets the multi-digit signed number from the keyboard,
+[ 379]        :                                       ; result is stored in cx. backspace is not supported, for backspace
+[ 380]        :                                       ; enabled input function see c:\emu8086\inc\emu8086.inc
+[ 381]    0457:                                       scan_num        PROC    near
+[ 382]    0457: 52                                    PUSH    DX
+[ 383]    0458: 50                                    PUSH    AX
+[ 384]        :                                       
+[ 385]    0459: 33 C9                                 XOR     CX, CX
+[ 386]        :                                       
+[ 387]        :                                       ; reset flag:
+[ 388]    045B: C6 06 DD 00 00                        MOV     make_minus, 0
+[ 389]        :                                       
+[ 390]    0460:                                       next_digit:
+[ 391]        :                                       
+[ 392]    0460: E8 EF FF                              CALL    read_char
+[ 393]        :                                       
+[ 394]        :                                       ; check for minus:
+[ 395]    0463: 3C 2D                                 CMP     AL, '-'
+[ 396]    0465: 74 1D                                 JE      set_minus
+[ 397]        :                                       
+[ 398]        :                                       ; check for enter key:
+[ 399]    0467: 3C 0D                                 CMP     AL, cr
+[ 400]    0469: 74 26                                 JE      stop_input
+[ 401]        :                                       
+[ 402]        :                                       ; multiply cx by 10 (first time the result is zero)
+[ 403]    046B: 50                                    PUSH    AX
+[ 404]    046C: 8B C1                                 MOV     AX, CX
+[ 405]    046E: F7 26 E2 00                           MUL     ten                     ; dx:ax = ax*10
+[ 406]    0472: 8B C8                                 MOV     CX, AX
+[ 407]    0474: 58                                    POP     AX
+[ 408]        :                                       
+[ 409]        :                                       ; check if the number is too big
+[ 410]        :                                       ; (result should be 16 bits)
+[ 411]    0475: 83 FA 00                              CMP     DX, 0
+[ 412]    0478: 75 11                                 JNE     out_of_range
+[ 413]        :                                       
+[ 414]        :                                       ; convert from ascii code:
+[ 415]    047A: 2C 30                                 SUB     AL, 30h
+[ 416]        :                                       
+[ 417]        :                                       ; add al to cx:
+[ 418]    047C: 32 E4                                 XOR     AH, AH
+[ 419]    047E: 03 C8                                 ADD     CX, AX
+[ 420]    0480: 72 09                                 JC      out_of_range    ; jump if the number is too big.
+[ 421]        :                                       
+[ 422]    0482: EB DC                                 JMP     next_digit
+[ 423]        :                                       
+[ 424]    0484:                                       set_minus:
+[ 425]    0484: C6 06 DD 00 01                        MOV     make_minus, 1
+[ 426]    0489: EB D5                                 JMP     next_digit
+[ 427]        :                                       
+[ 428]    048B:                                       out_of_range:
+[ 429]    048B: BA B7 00                              LEA     DX, error
+[ 430]    048E: E8 BA FF                              CALL    puts
+[ 431]        :                                       
+[ 432]    0491:                                       stop_input:
+[ 433]        :                                       ; check flag:
+[ 434]    0491: 80 3E DD 00 00                        CMP     make_minus, 0
+[ 435]    0496: 74 02                                 JE      not_minus
+[ 436]    0498: F7 D9                                 NEG     CX
+[ 437]    049A:                                       not_minus:
+[ 438]        :                                       
+[ 439]    049A: 58                                    POP     AX
+[ 440]    049B: 5A                                    POP     DX
+[ 441]    049C: C3                                    RET
+[ 442]        :                                       scan_num        ENDP
+[ 443]        :                                       
+[ 444]        :                                       ;***************************************************************
+[ 445]        :                                       
+[ 446]        :                                       ; prints out single char (ascii code should be in dl)
+[ 447]    049D:                                       write_char      PROC    near
+[ 448]    049D: 50                                    PUSH    AX
+[ 449]    049E: B4 02                                 MOV     AH, 02h
+[ 450]    04A0: CD 21                                 INT     21h
+[ 451]    04A2: 58                                    POP     AX
+[ 452]    04A3: C3                                    RET
+[ 453]        :                                       write_char      ENDP
+[ 454]        :                                       
+[ 455]        :                                       ;***************************************************************
+[ 456]        :                                       
+[ 457]        :                                       cseg    ENDS
+[ 458]        :                                       END     start
+[ 459]        :                                       
+[ 460]        :                                       
+ 
+===================================================================================================
+ 
+EXE HEADER - bytes from 0000 to 01FF inclusive.
+
+0000: 4D      -   exe signature (M)
+0001: 5A      -   exe signature (Z)
+0002: A4      -   bytes on last page (l.byte)
+0003: 00      -   bytes on last page (h.byte)
+0004: 04      -   512 byte pages in file (l.byte)
+0005: 00      -   512 byte pages in file (h.byte)
+0006: 01      -   relocations (l.byte)
+0007: 00      -   relocations (h.byte)
+0008: 20      -   paragraphs in header (l.byte)
+0009: 00      -   paragraphs in header (h.byte)
+000A: 00      -   minimum memory (l.byte)
+000B: 00      -   minimum memory (h.byte)
+000C: FF      -   maximum memory (l.byte)
+000D: FF      -   maximum memory (h.byte)
+000E: 0F      -   SS - stack segment (l.byte)
+000F: 00      -   SS - stack segment (h.byte)
+0010: 00      -   SP - stack pointer (l.byte)
+0011: 02      -   SP - stack pointer (h.byte)
+0012: 60      -   check sum (l.byte)
+0013: 4D      -   check sum (h.byte)
+0014: 00      -   IP - instruction pointer (l.byte)
+0015: 00      -   IP - instruction pointer (h.byte)
+0016: 2F      -   CS - code segment (l.byte)
+0017: 00      -   CS - code segment (h.byte)
+0018: 1E      -   relocation table adress (l.byte)
+0019: 00      -   relocation table adress (h.byte)
+001A: 00      -   overlay number (l.byte)
+001B: 00      -   overlay number (h.byte)
+001C: 01      -   signature (l.byte)
+001D: 00      -   signature (h.byte)
+001E: 05      -   relocation table - offset inside segment (l.byte)
+001F: 00      -   relocation table - offset inside segment (h.byte)
+0020: 2F      -   relocation table - segment anchor (l.byte)
+0021: 00      -   relocation table - segment anchor (h.byte)
+0022 to 01FF  -   reserved relocation area  (00) 
+
+
+
+
+===================================================================================================

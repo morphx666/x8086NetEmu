@@ -1,0 +1,117 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+bintest.bin_ -- emu8086 assembler version: 4.08  
+ 
+[ 6/6/2011  --  1:43:57 AM ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       ; this is an example of how to make a ".bin" file.
+[   2]        :                                       
+[   3]        :                                       name "bintest"
+[   4]        :                                       
+[   5]        :                                       ; directive to create bin file:
+[   6]        :                                       #make_bin#
+[   7]        :                                       
+[   8]        :                                       ; where to load?
+[   9]        :                                       #load_segment=1234#
+[  10]        :                                       #load_offset=0000#
+[  11]        :                                       
+[  12]        :                                       ; set these values to registers on load:
+[  13]        :                                       #AL=12#
+[  14]        :                                       #AH=34#
+[  15]        :                                       #BH=56#
+[  16]        :                                       #BL=78#
+[  17]        :                                       #CH=9a#
+[  18]        :                                       #CL=bc#
+[  19]        :                                       #DH=de#
+[  20]        :                                       #DL=f0#
+[  21]        :                                       #DS=ddee#
+[  22]        :                                       #ES=abcd#
+[  23]        :                                       #SI=aaaa#
+[  24]        :                                       #DI=cccc#
+[  25]        :                                       #BP=dddd#
+[  26]        :                                       #CS=1234#
+[  27]        :                                       #ip=0000#
+[  28]        :                                       #SS=3000#
+[  29]        :                                       #SP=ffff#
+[  30]        :                                       
+[  31]        :                                       ; when loading "bintest.bin" file in emulator
+[  32]        :                                       ; it will look for a "bintest.binf" file,
+[  33]        :                                       ; and load ".bin" file to location specified
+[  34]        :                                       ; in that file, registers are also set using
+[  35]        :                                       ; information in that file (open this file
+[  36]        :                                       ; in a text editor to edit or investigate).
+[  37]        :                                       ;
+[  38]        :                                       ; ".binf" file is created automatically
+[  39]        :                                       ; by compiler when it processes the above
+[  40]        :                                       ; directives.
+[  41]        :                                       
+[  42]        :                                       
+[  43]        :                                       
+[  44]        :                                       ; this sample just prints out a part of
+[  45]        :                                       ; some ascii character set, in an eternal
+[  46]        :                                       ; loop, press [stop] or esc to terminate.
+[  47]        :                                       
+[  48]        :                                       
+[  49]    0000:                                       start:
+[  50]        :                                       
+[  51]    0000: B0 30                                 MOV     AL, '0'
+[  52]    0002: B4 0E                                 MOV     AH, 0eh
+[  53]        :                                       
+[  54]    0004:                                       print_more:
+[  55]        :                                       
+[  56]    0004: CD 10                                 INT     10h
+[  57]    0006: FE C0                                 INC     AL
+[  58]        :                                       
+[  59]        :                                       ; keep original ax:
+[  60]    0008: 8B C8                                 MOV     CX, AX
+[  61]        :                                       
+[  62]        :                                       ;============================
+[  63]        :                                       ; check for esc key to
+[  64]        :                                       ;    reboot:
+[  65]        :                                       
+[  66]        :                                       ; check for keystroke in
+[  67]        :                                       ; keyboard buffer:
+[  68]    000A: B4 01                                 MOV     AH, 1
+[  69]    000C: CD 16                                 INT     16h
+[  70]    000E: 74 09                                 JZ      key_processed
+[  71]        :                                       
+[  72]        :                                       ; get keystroke from keyboard:
+[  73]        :                                       ; (remove from the buffer)
+[  74]    0010: B4 00                                 MOV     AH, 0
+[  75]    0012: CD 16                                 INT     16h
+[  76]        :                                       
+[  77]        :                                       ; press 'esc' to exit:
+[  78]    0014: 3C 1B                                 CMP     AL, 27
+[  79]    0016: 75 01                                 JNZ     key_processed
+[  80]    0018: F4                                    HLT
+[  81]        :                                       
+[  82]    0019:                                       key_processed:
+[  83]        :                                       ;============================
+[  84]        :                                       
+[  85]        :                                       ; restore original ax:
+[  86]    0019: 8B C1                                 MOV     AX, CX
+[  87]        :                                       
+[  88]        :                                       
+[  89]    001B: 3C 7A                                 CMP     AL, 'z'
+[  90]    001D: 76 E5                                 JBE     print_more
+[  91]        :                                       
+[  92]    001F: B0 30                                 MOV     AL, '0'
+[  93]    0021: EB E1                                 JMP     print_more
+[  94]        :                                       
+[  95]        :                                       
+[  96]        :                                       
+[  97]        :                                       
+[  98]        :                                       
+[  99]        :                                       
+ 
+===================================================================================================
+ 
+
+
+
+
+===================================================================================================

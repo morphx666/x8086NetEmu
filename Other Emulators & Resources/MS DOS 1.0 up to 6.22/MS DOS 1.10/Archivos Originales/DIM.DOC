@@ -1,0 +1,362 @@
+============================================================================
+                       Disk IMage Archiver  V 1.4.A
+              Copyright (C) 1992, 1993 by Ray (Arsen) Arachelian
+                           All Rights Reserved
+
+----------------------------------------------------------------------------
+
+Warranty, License, and Documentation File:
+
+----------------------------------------------------------------------------
+
+Warranty:   Simply put, there ain't none.  There are no warranties, express
+            or implied, including, but not limited to the merchantability,
+            or fitness of this software.  Use it at your own risk.
+            At no time shall the author be liable for any lost profits or
+            savings or for any indirect, special, or consequential
+            damages arising out of the use, abuse or misuse of this software
+----------------------------------------------------------------------------
+
+License:    You, the user, may freely distribute this software without
+            modification, and with all the accompanying documentation and
+            files as you have yourself received it.
+
+            You may charge a small duplication fee for the disk on which
+            this software is stored, but the duplication fee is not to 
+            exceede five dollars ($5.00 USA Currency.)  This software may
+            be placed in an on-line archive system, such as bulletin
+            board systems, ftp sites, etc.
+
+            This software may be distributed by shareware distributors
+            on floppy disk or CD-ROM media provided that there is no
+            special price for obtaining the DIM program.  If DIM is to
+            be distributed as part of a CD-ROM archive, the CD-ROM may
+            be priced over $5.00, however the CD-ROM archive must
+            also contain other shareware programs. (IE: You can't sell
+            a CD with just DIM on it.)
+ 
+            You may use this software freely for a trial period of two weeks.
+            After this period, if you find the software useful, and wish to
+            continue using this software, you will register it by filling
+            out the registration form, and mailing it to the author (that's
+            me,) along with the proper registration fee which applies to you
+            or your company.
+
+            Should you decide not to register this software, you will not
+            use DIM for any purpose other than distributing it to others.
+            (IE: If you don't pay for it, you can give out copies to your
+            friends, but you're not allowed to use it yourself until you
+            send in the registration fee.)
+
+            Any other use or distribution of this software is prohibited.
+            Using this software without registration past the two week
+            trial period is prohibited.
+
+            By using DIM, you agree to abide by these terms.
+
+-----------------------------------------------------------------------------
+
+Documentation:
+
+  Usage:
+              DIM {command} {floppy_drive} {file_name} {options}
+
+
+Where command is:
+
+   -i         Display information about the DIM {file_name}
+
+   -m         Make an image of the disk in the {floppy_drive} and store
+              that image in the {file_name}
+
+   -r         Restore an image of the disk to the {floppy_Drive} from
+              the image in the {file_name}
+
+   -c         Copy diskettes in the {floppy_drive}, using the {file_name}
+              to store a temporary image of the diskettes.  You will be
+              prompted to insert diskettes.   After copying, the {file_name}
+              will be deleted unless the -nd option flag is used.
+
+   -rc        Restore to multiple copies.  Same as -c command, but
+              instead of asking for a source disk, it uses the {file_name}
+              image, and does not delete the {file_name.}  Useful for making
+              multiple copies of a disk from an existing image.
+
+   -d         Duplicate diskettes from one drive to another.  The format
+              of this command is:
+
+              DIM -d {source_drive} {target_drive} {options}
+
+              Note the order of the source and target drives.  No disk image
+              will be created.  Also note that this method is slower than
+              using the -c command, however it can be used to convert a
+              5.25" diskette in one drive to a formatted 3.5" diskette in
+              the target drive.
+
+   -e:{pwd}   Encrypt a diskette with a password.  The password may be upto
+              63 characters in size.  This command will either encrypt or
+              decrypt a diskette.  To encrypt a diskette use the -e:{pwd}
+              command once.  To decrypt a diskette use the -e:{pwd} command
+              again.  Note that if you enter a wrong password when you wish
+              to decrypt a diskette, you must first encrypt the diskette
+              with that same wrong password before you can attempt to
+              decrypt it with the correct one.
+
+Where floppy_drive is:
+
+              a physical floppy drive containing a formatted disk. Never
+              specify a hard drive for this parameter.  (Dim will not
+              format disks, make sure you have formatted your disks
+              before restoring, or copying to them.)
+
+
+Where file_name is:
+
+              any legal DOS file name.  The default extentsion to this file
+              is .DIM.  The default file name is $DISK.DIM. This file cannot
+              reside on the disk in the {floppy_drive}.  Since image files
+              will be slightly larger than the source disk capacity, it is
+              reccomended that you store images on a hard drive,  a network
+              drive, or at least a floppy drive of higher capacity than the
+              original floppy.
+
+
+Where options are:
+
+    -bat        Batch file mode.  This mode will suppress all keyboard
+                waits, and assume "Yes" for all conversion warnings. Use
+                this with care since it will not ask you to confirm that
+                you have the right disk in the drive.  Useful for automated
+                operations or when you don't wish to be bothered by
+                conversion warnings.
+
+    -v          Verify after writing tracks.  (slower)
+                Applies to the -r, -c, -rc, and -d commands.
+
+    -nd         Don't delete temporary file after copy operation (see -c 
+                command above.)  Applies only to the -c command.
+
+    -fs:{size}  Force Disk Size appropriate values are 160, 180, 320
+                360, 720, 1200, and 1440.  (Please Do not use -fs:360K
+                instead use only -fs:360, or DIM will ignore your 
+                request.)  If you already know the size of the source
+                disk to make an image from, this option can save 
+                you 5-15 seconds which would normally be used in 
+                analyzing a disk.  Also this option is useful when you
+                wish to extract a disk image from a disk on which you
+                restored an image of a different size. (ie: If you had 
+                a 360K image and restored it to a 1.44, then sometime 
+                later you lost the image file, but required it you 
+                would use the -fs:360 option.)
+                
+                WARNING: If you select the incorrect size, for this
+                option, the disk image will be partial, therefore
+                important data will be lost!  Be careful when using
+                this option.  It is far safer to let DIM analyze the
+                disk.
+
+
+    -fd:{trk}:{hds}:{sec}
+
+               Force Disk Parameters.  Same as -sf:{size} parameter,
+               however this option lets you specify the exact number of
+               tracks, heads, and sector you wish to make an image of
+               from the disk.
+
+   -e:{pwd}    Encrypt a disk image with a password.  The password may
+               be upto 63 characters in size.  This is identical to the
+               -e:{pwd} command, only this option can be attached to the
+               end of any DIM operation involving a disk. (ie: copying
+               disks, making / restoring images, etc.)
+
+
+---------------------------------------------------------------------------
+Make Self Extracting Disk Image:
+
+MKSFXDIM diskimagefile
+
+The MKFSXDIM program will take a disk image created by DIM and generate
+a self extracting program, which when run will let the user restore the
+disk image to a floppy.
+
+When a self extracting disk image program is executed without any parameters,
+it will return information on the disk image contained within it, and
+instructions on extracting the disk image.
+
+If you have a disk image file called "MYDISK.DIM", executing MKFSX
+
+*NOTE* MKFSXDIM will create a DIM extractor that is incapable of extracting
+an encrypted disk image!  Don't use MKFSXDIM on any encrypted images or you
+won't be able to distribute them without DIM.
+
+---------------------------------------------------------------------------
+
+Examples:
+
+
+To make an image of a diskette in drive A: and store that image in
+C:\MYDISK.DIM, type the following:
+
+    DIM -m a: c:\mydisk.dim
+
+To find out the type of disk you will need to restore an image stored
+in a file called C:\MYDISK.DIM, type the following:
+
+    DIM -i c:\mydisk.dim
+
+To restore an image file stored in c:\MYDISK.DIM to a formatted disk in
+drive B: type the following:
+
+    DIM -r b: c:\mydisk.dim
+
+To copy a diskette in drive A:, and keep the temporary file, and also
+verifying the diskettes as they are written, type the following:
+
+    DIM -c a: c:\mydisk.dim -nd -v
+
+To duplicate a disk in drive A: to a formatted diskette in drive B:, type
+the following:
+
+    DIM -d a: b:
+
+To make an image of a diskette in drive A: and store that image in
+C:\MYDISK.DIM, and also encrypt the image with "Hello" as the password, 
+type the following:
+
+    DIM -m a: c:\mydisk.dim -e:hello
+
+To restore the image with the password to another disk, type:
+
+    DIM -r a: c:\mydisk.dim -e:hello
+
+
+To encrypt a disk in drive A: with "Hello" as the password, type the
+following:
+
+    DIM -e:hello a:
+
+To decrypt the same disk, type in:
+
+    DIM -e:hello a:
+
+* Notice that the same command is used to both encrypt and decrypt a disk.
+See the encryption notes below.
+
+
+Conversions:
+
+You will be warned when converting between diskettes.  If the conversion
+is possible, then you will be asked if you wish to continue.  The following
+table shows the types of conversions possible.
+
+-------------------------------------------------|-------------|
+|Image |            Possible Storage             | Disk info:  |
+|File  |-----------Physical-Disk Size:-----------|-------------|
+|      |160K|180K|320K|360K|720K|1.2M|1.44M|2.88M||TRK|SEC|SIDE|
+|------|----|----|----|----|----|----|-----|-----||---|---|----|
+|160K  | Y  | Y  | Y  | Y  | Y  | Y  |  Y  |  Y  || 40| 8 | 1  |
+|180K  | N  | Y  | Y  | Y  | Y  | Y  |  Y  |  Y  || 40| 9 | 1  |
+|320K  | N  | N  | Y  | Y  | Y  | Y  |  Y  |  Y  || 40| 8 | 2  |
+|360K  | N  | N  | N  | Y  | Y  | Y  |  Y  |  Y  || 40| 9 | 2  |
+|720K  | N  | N  | N  | N  | Y  | Y  |  Y  |  Y  || 80| 9 | 2  |
+|1.2M  | N  | N  | N  | N  | N  | Y  |  Y  |  Y  || 80|15 | 2  |
+|1.44M | N  | N  | N  | N  | N  | N  |  Y  |  Y  || 80|18 | 2  |
+|2.88M | N  | N  | N  | N  | N  | N  |  N  |  Y  || 80|36 | 2  |
+---------------------------------------------------------------|
+
+The formula for finding out if you can store an image on to the disk
+is simple:
+
+ If the number of sides on the image is less than or equal to the disk's AND
+ If the number of tracks on the image is less than or equal to the disk's AND
+ If the number of sectors on the image is less than or equal to the disk's,
+
+ THEN the image may be stored on that diskette.  But it's a lot easier to
+just let DIM tell you if it can't be done.
+
+The physical format of the target disk will not change, however if you, lets 
+say, convert a 360K diskette image to a 1.44M diskette, the 1.44M diskette 
+will now have 360K of accessible space.  The rest will be unusable until the
+disk is reformatted.
+
+If you now make an image of this 1.44M disk, the image will be stored as 1.44
+although only 360K of that space will be useful.  It is reccomended that once
+you convert a disk to another sized disk, that you use the original image
+rather than making an image of the larger disk.  If you by chance have lost
+the original 360K image, running DIM on the 1.44M disk will result in a
+1.44M image!  To get the original 360K image off the disk, use the force
+disk size option for 360K ( -fs:360 )  Don't guess wrong, or else you'll
+wind up with a chopped up disk image that will be totally useless.
+
+Provided the diskette you are trying to get an image of, use 512 bytes per
+sector (all normal DOS diskettes use 512 bytes per sector,) DIM will be able
+to read it.  Provisions have even been made for oddities such as single
+sided 3.5" disks or whatever.
+
+At the begining of most tasks, you will see "Checking Disk."  At this point
+DIM is attempting to asses the type of diskette you are using by counting
+the number of sides, number of tracks, and the number of sectors per track
+on a diskette.  Provided that a floppy disk can be read and written to via
+INT 13h, DIM will work with it.
+
+DIM will atart checking from track 38 and walk up to track 255 (if one
+exists.)  This speeds up 360K disk analysis by 90% from previous versions
+of DIM, and all disks with 80 tracks by 50%.  (for more speed use the
+force size option.)
+
+If DIM cannot read at least 2 sectors on the first track, it will abort. If
+it encounters any errors while trying to read a track, it will assume that
+there are no more tracks after the bad track.  If the first sector of a
+disk's side is bad, DIM will assume that the side is not used.
+
+In other words, DIM will only work properly on disks that have no errors.
+
+Infact, DIM's analysis should provide the ability to work with disks that
+have upto 99 sectors per track, upto 99 heads (sides), and upto 255 tracks,
+so you can rest assured that if IBM wakes up tomorrow and introduces a new
+type of floppy media (as it did with the 2.88M disks,) DIM will most likely
+be compatible with it.
+
+I've used DIM to backup my Coherent 386 diskettes, and it worked.  I've
+even used DIM to generate an image of an old CP/M 86 diskette!  As long
+as the disk is formatted with 512 bytes per sector, and reasonable tracks
+and sectors, DIM will be able to make an image of the disk even when DOS
+will refuse to read the disk because they were formatted other operating 
+systems!
+
+As for memory requirements, DIM will require at least 256K of free
+conventional memory, and a 286 or better CPU.  If you wish to use DIM with
+an older 8086/8088 machine, please send a blank disk with your registration
+form, and I shall mail you a compatible version.
+
+Notes on the encryption employed by DIM:
+
+
+              The encrypt operation is a two way process, that is it can be
+              used to both encrypt and decrypt a diskette.  The encryption
+              used by DIM is a XOR type encryption with the password and the
+              position of the character within the track, and thus it is
+              not very secure, (not as secure as DES), however for most
+              usage, it will suffice.
+
+              The password to the encrypted disk is not stored anywhere,
+              so there is no way for me to recover disks which were encrypted.
+              Should you forget the password, you're out of luck.
+
+              The two way encryption method was chosen because of its added
+              security.  The only way to break the security is by brute
+              force, which will take a very very long time since each password
+              is upto 63 letters in length.
+
+              However, to use a brute method to break the encryption, you'd
+              have to first try a password by encrypting the disk, then you'd
+              have to decrypt the disk with that same password before trying
+              to guess again.  It'll be a very long time before you would
+              even come close to breaking it, so don't bother.
+
+              If however you're interested in adding more security to your
+              encrypted disk, encrypt the disk two or three times with
+              different passwords.
+              
+
+Enjoy, and don't forget to send in your registration fee!

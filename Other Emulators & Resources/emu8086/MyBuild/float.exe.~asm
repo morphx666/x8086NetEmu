@@ -1,0 +1,463 @@
+; calculate equation with high precision without math coprocessor
+
+; this program calculates linear equation: ax + b = 0
+; the result is printed with floating point.
+
+; for example: a = 7, b = 2
+;              x = -0.28571428....
+
+name "float"
+
+precision = 30  ; max digits after the dot.
+
+
+dseg    SEGMENT 'data'
+cr              EQU     0Dh
+lf              EQU     0Ah
+new_line        EQU     0Dh,0Ah, '$'
+mess0           DB      'calculation of ax + b = 0', new_line
+mess1           DB      'enter a (-32768..32767)!', new_line
+mess2           DB      lf, cr, 'enter b (-32768..32767)!', new_line
+mess3           DB      cr, lf, cr, lf, 'data:', '$'
+mess4           DB      cr, lf, ' a = ', '$'
+mess5           DB      cr, lf, ' b = ', '$'
+mess6           DB      cr, lf, 'result: ', cr, lf, ' x = ', '$'
+mess7           DB      cr, lf, cr, lf, 'no solution!', new_line
+mess8           DB      cr, lf, cr, lf, 'infinite number of solutions!', new_line
+error           DB      cr, lf, 'the number is out of range!', new_line
+twice_nl        DB      new_line, new_line
+make_minus      DB      ?       ; used as a flag in procedures.
+a               DW      ?
+b               DW      ?
+ten             DW      10      ; used as multiplier.
+four            DW      4       ; used as divider.
+dseg    ENDS
+
+sseg    SEGMENT stack   'stack'
+DW      100h    dup(?)
+sseg    ENDS
+
+cseg    SEGMENT 'code'
+
+;*******************************************************************
+
+start           PROC    far
+
+; store return address to os:
+PUSH    DS
+XOR     AX, AX
+PUSH    AX
+
+; set segment registers:
+MOV     AX, dseg
+MOV     DS, AX
+MOV     ES, AX
+
+; welcome message:
+LEA     DX, mess0
+CALL    puts            ; display the message.
+
+; ask for 'a' :
+LEA     DX, mess1
+CALL    puts            ; display the message.
+CALL    scan_num        ; input the number into cx.
+MOV     a, CX
+
+; ask for 'b' :
+LEA     DX, mess2
+CALL    puts            ; display the message.
+CALL    scan_num        ; input the number into cx.
+MOV     b, CX
+
+; print the data:
+LEA     DX, mess3
+CALL    puts
+
+LEA     DX, mess4
+CALL    puts
+MOV     AX, a
+CALL    print_num               ; print ax.
+
+LEA     DX, mess5
+CALL    puts
+MOV     AX, b
+CALL    print_num               ; print ax.
+
+
+; check data:
+CMP     a, 0
+JNE     soluble         ; jumps when a<>0.
+CMP     b, 0
+JNE     no_solution     ; jumps when a=0 and b<>0.
+JMP     infinite        ; jumps when a=0 and b=0.
+soluble:
+
+; calculate the solution:
+; ax + b = 0  ->  ax = -b  ->  x = -b/a
+
+NEG     b
+
+MOV     AX, b
+
+XOR     DX, DX
+
+; check the sign, make dx:ax negative if ax is negative:
+CMP     AX, 0
+JNS     not_singned
+NOT     DX
+not_singned:
+MOV     BX, a   ; divider is in bx.
+
+; '-b' is in dx:ax.
+; 'a' is in bx.
+
+IDIV    BX      ; ax = dx:ax / bx       (dx - remainder).
+
+; 'x' is in ax.
+; remainder is in dx.
+
+PUSH    DX      ; store the remainder.
+
+LEA     DX, mess6
+CALL    puts
+
+POP     DX
+
+; print 'x' as float:
+; ax - whole part
+; dx - remainder
+; bx - divider
+CALL    print_float
+
+JMP     end_prog
+no_solution:
+LEA     DX, mess7
+CALL    puts
+JMP     end_prog
+infinite:
+LEA     DX, mess8
+CALL    puts
+end_prog:
+LEA     DX, twice_nl
+CALL    puts
+
+; wait for any key....
+MOV     AH, 0
+INT     16h
+
+
+RET
+start          ENDP
+
+;***************************************************************
+
+; prints number in ax and it's fraction in dx.
+; used to print remainder of 'div/idiv bx'.
+; ax - whole part.
+; dx - remainder.
+; bx - the divider that was used to get the remainder from divident.
+print_float     PROC    near
+PUSH    CX
+PUSH    DX
+
+; because the remainder takes the sign of divident
+; its sign should be inverted when divider is negative
+; (-) / (-) = (+)
+; (+) / (-) = (-)
+CMP     BX, 0
+JNS     div_not_signed
+NEG     DX              ; make remainder positive.
+div_not_signed:
+
+; print_num procedure does not print the '-'
+; when the whole part is '0' (even if the remainder is
+; negative) this code fixes it:
+CMP     AX, 0
+JNE     checked         ; ax<>0
+CMP     DX, 0
+JNS     checked         ; ax=0 and dx>=0
+PUSH    DX
+MOV     DL, '-'
+CALL    write_char      ; print '-'
+POP     DX
+checked:
+
+; print whole part:
+CALL    print_num
+
+; if remainder=0, then no need to print it:
+CMP     DX, 0
+JE      done
+
+PUSH    DX
+; print dot after the number:
+MOV     DL, '.'
+CALL    write_char
+POP     DX
+
+; print digits after the dot:
+MOV     CX, precision
+CALL    print_fraction
+done:
+POP     DX
+POP     CX
+RET
+print_float     ENDP
+
+;***************************************************************
+
+; prints dx as fraction of division by bx.
+; dx - remainder.
+; bx - divider.
+; cx - maximum number of digits after the dot.
+print_fraction  PROC    near
+PUSH    AX
+PUSH    DX
+next_fraction:
+; check if all digits are already printed:
+CMP     CX, 0
+JZ      end_rem
+DEC     CX      ; decrease digit counter.
+
+; when remainder is '0' no need to continue:
+CMP     DX, 0
+JE      end_rem
+
+MOV     AX, DX
+XOR     DX, DX
+CMP     AX, 0
+JNS     not_sig1
+NOT     DX
+not_sig1:
+
+IMUL    ten             ; dx:ax = ax * 10
+
+IDIV    BX              ; ax = dx:ax / bx   (dx - remainder)
+
+PUSH    DX              ; store remainder.
+MOV     DX, AX
+CMP     DX, 0
+JNS     not_sig2
+NEG     DX
+not_sig2:
+ADD     DL, 30h         ; convert to ascii code.
+CALL    write_char      ; print dl.
+POP     DX
+
+JMP     next_fraction
+end_rem:
+POP     DX
+POP     AX
+RET
+print_fraction  ENDP
+
+;***************************************************************
+
+; this procedure prints number in ax,
+; used with print_numx to print "0" and sign.
+; this procedure also stores the original ax,
+; that is modified by print_numx.
+print_num       PROC    near
+PUSH    DX
+PUSH    AX
+
+CMP     AX, 0
+JNZ     not_zero
+
+MOV     DL, '0'
+CALL    write_char
+JMP     printed
+
+not_zero:
+; the check sign of ax,
+; make absolute if it's negative:
+CMP     AX, 0
+JNS     positive
+NEG     AX
+
+MOV     DL, '-'
+CALL    write_char
+positive:
+CALL    print_numx
+printed:
+POP     AX
+POP     DX
+RET
+print_num       ENDP
+
+;***************************************************************
+
+; prints out a number in ax (not just a single digit)
+; allowed values from 1 to 65535 (ffff)
+; (result of /10000 should be the left digit or "0").
+; modifies ax (after the procedure ax=0)
+print_numx      PROC    near
+PUSH    BX
+PUSH    CX
+PUSH    DX
+
+; flag to prevent printing zeros before number:
+MOV     CX, 1
+
+MOV     BX, 10000       ; 2710h - divider.
+
+; check if ax is zero, if zero go to end_show
+CMP     AX, 0
+JZ      end_show
+
+begin_print:
+
+; check divider (if zero go to end_show):
+CMP     BX,0
+JZ      end_show
+
+; avoid printing zeros before number:
+CMP     CX, 0
+JE      calc
+; if ax<bx then result of div will be zero:
+CMP     AX, BX
+JB      skip
+calc:
+XOR     CX, CX  ; set flag.
+
+XOR     DX, DX
+DIV     BX      ; ax = dx:ax / bx   (dx=remainder).
+
+; print last digit
+; ah is always zero, so it's ignored
+PUSH    DX
+MOV     DL, AL
+ADD     DL, 30h    ; convert to ascii code.
+CALL    write_char
+POP     DX
+
+MOV     AX, DX  ; get remainder from last div.
+
+skip:
+; calculate bx=bx/10
+PUSH    AX
+XOR     DX, DX
+MOV     AX, BX
+DIV     ten     ; ax = dx:ax / 10   (dx=remainder).
+MOV     BX, AX
+POP     AX
+
+JMP     begin_print
+
+end_show:
+
+POP     DX
+POP     CX
+POP     BX
+RET
+print_numx      ENDP
+
+;***************************************************************
+
+; displays the message (dx-address)
+puts    PROC    near
+PUSH    AX
+MOV     AH, 09h
+INT     21h
+POP     AX
+RET
+puts    ENDP
+
+;*******************************************************************
+
+; reads char from the keyboard into al
+; (modifies ax!!!)
+read_char       PROC    near
+MOV     AH, 01h
+INT     21h
+RET
+read_char       ENDP
+
+;***************************************************************
+
+; gets the multi-digit signed number from the keyboard,
+; result is stored in cx. backspace is not supported, for backspace
+; enabled input function see c:\emu8086\inc\emu8086.inc
+scan_num        PROC    near
+PUSH    DX
+PUSH    AX
+
+XOR     CX, CX
+
+; reset flag:
+MOV     make_minus, 0
+
+next_digit:
+
+CALL    read_char
+
+; check for minus:
+CMP     AL, '-'
+JE      set_minus
+
+; check for enter key:
+CMP     AL, cr
+JE      stop_input
+
+; multiply cx by 10 (first time the result is zero)
+PUSH    AX
+MOV     AX, CX
+MUL     ten                     ; dx:ax = ax*10
+MOV     CX, AX
+POP     AX
+
+; check if the number is too big
+; (result should be 16 bits)
+CMP     DX, 0
+JNE     out_of_range
+
+; convert from ascii code:
+SUB     AL, 30h
+
+; add al to cx:
+XOR     AH, AH
+ADD     CX, AX
+JC      out_of_range    ; jump if the number is too big.
+
+JMP     next_digit
+
+set_minus:
+MOV     make_minus, 1
+JMP     next_digit
+
+out_of_range:
+LEA     DX, error
+CALL    puts
+
+stop_input:
+; check flag:
+CMP     make_minus, 0
+JE      not_minus
+NEG     CX
+not_minus:
+
+POP     AX
+POP     DX
+RET
+scan_num        ENDP
+
+;***************************************************************
+
+; prints out single char (ascii code should be in dl)
+write_char      PROC    near
+PUSH    AX
+MOV     AH, 02h
+INT     21h
+POP     AX
+RET
+write_char      ENDP
+
+;***************************************************************
+
+cseg    ENDS
+END     start
+
+
+
+
+; [SOURCE]: C:\emu8086\examples\float.asm

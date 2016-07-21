@@ -1,0 +1,99 @@
+.TH SREC 1 "2005-03-28" "HH" "misc-utils"
+
+.SH NAME
+srec \- Convert Motorola S-Record hex files to and from binary
+
+.SH SYNOPSIS
+.BI "srec -e" " [options] [input...]"
+
+.BI "srec -d" " [options] [input [output]]"
+
+.B srec --help
+
+.B srec --version
+
+.SH DESCRIPTION
+.BR srec (1)
+converts binary files to Motorola S-Record hex files and vice versa.
+
+.SH OPTIONS
+
+.TP
+.B -e, --encode
+Convert a binary stream to a srec file. This is the default if neither
+.B -e
+nor
+.B -d
+is specified.
+\
+.TP
+.B -d, --decode
+Convert a srec file to a binary stream.
+\
+.TP
+.BI "-i " string
+Set the input file name. Default is stdin. When encoding, this
+option can be used multiple times to combine several binary
+files into one srec file.
+\
+.TP
+.BI "-o " string
+Set the output file name. Default is stdout. When decoding each
+occurance of '#' will be replaced by a hex digit of the base
+address of the chunk contained in that file. When encoding, this
+option must precede the first
+.B -i
+option on the command line.
+\
+.TP
+.BI "-c " string
+Set an input file for encoding and assume that the file is
+an srec file. This does a simple pass through conversion
+(file consistency is not checked but checksums are recalculated).
+This option is invalid when decoding. For encoding it can be
+used mutliple times to merge multiple srec files into one.
+\
+.TP
+.BI "-f " "address filename"
+Encode the file
+.I filename
+at address
+.I adress.
+This option is shorthand for a
+.B -a
+option followed by a
+.B -i
+option. When decoding the address is ignored (making the option
+equivalent to the
+.B -i
+option).
+\
+.TP
+.BI "-a, --address " int
+Set the base address for the next input file when encoding.
+\
+.TP
+.BI "-m, --module-name " string
+Set the module name to be encoded in the header record.
+\
+.TP
+.BI "-n, --record-size " int
+Set the maximum record size for encoding.
+\
+.TP
+.BI "-p, --start-address " int
+Set the starting execution address when encoding.
+\
+.TP
+.B --help
+Print usage information
+\
+.TP
+.B --version
+Print version information
+
+.SH SEE ALSO
+.BR ihex (1)
+
+.SH AUTHOR
+Hampa Hug <hampa@hampa.ch>

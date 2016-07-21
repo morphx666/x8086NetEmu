@@ -1,0 +1,92 @@
+Todo items:
+
+- implement disabling video output signal
+- fix intense background
+- implement blinking text
+- rework disk image support: distinguish between drive parameters and disk parameters, support run-time ejecting/swapping floppies.
+- implement int 13 in bios code instead of trapping to Java
+- CGA / INT10 BIOS : serious black-box testing (many code paths are currently completely untested)
+- floppy controller / dma controller : serious testing
+- make it work with free Java
+- fix issues with original BIOS image (301 error on soft reboot)
+- figure out why CheckIt does not recognize the floppy drive
+- hard disk controller
+- pc speaker
+- serial port
+- EGA/VGA
+- networking
+
+
+Known issues (maybe bugs, maybe not):
+
+* Program:  FreeDOS kernel version 2035w from FreeDOS Beta0.9sr2:
+  Symptom:  "IO error: cylinder >1023" while booting and crashes.
+  Analysis: Not understood, later releases of FreeDOS work properly.
+
+* Symptom:  We miss keyboard events in certain cases under X.
+  Symptom:  Key '5' on numeric pad without NumLock is ignored under X.
+  Analysis: Most Java implementation (including many versions of the Sun JRE)
+            have utterly flawed keyboard handling under X.
+
+* Symptom:  Keyboard mapping is problematic if the host system uses
+            certain non-English keyboard maps.
+  Analysis: There is not much we can do about this within the current
+            approach; Retro explicitly emulates a US PC/XT keyboard,
+            and even the Java keyboard model is strongly US-based.
+  Reported: Eric Auer
+
+* Symptom:  Old PC floppy (J-BIRD.IMG) hangs after switching to graphics mode
+  Reported: Michael 2007-09-08
+
+
+Old bugs (fixed):
+
+* Program:  FreeDOS command.com 0.82pl3:
+  Symptom:  "dir /p" pauses after every line
+  Analysis: Program depends on nr of text rows at 0040:0084
+  Fix:      2006-11-30 implemented 0040:0084 in rombios
+
+* Symptom:  Exception when switching to graphics mode on Windows 98
+            in certain video modes.
+  Analysis: The preferred color model is ComponentColorModel, which
+            does not work with our image mapping algorithm.
+  Reported: Michel Beauchage <michel.beauchage@tiscali.fr>
+  Fix:      Detect ComponentColorModel and create an IndexColorModel instead.
+
+* Symptom:  "NO ROM BASIC, SYSTEM HALTED" after floppy read from head=128
+  Analysis: Unsupported floppy image size not properly reported to the user,
+            and additionally a bug in the BIOS code for booting from hard disk.
+  Reported: Michael 2007-08-03
+  Fix:      2007-08-24
+
+* Symptom:  Colors 1 and 2 are swapped in CGA 320x200 graphics mode
+  Reported: Michael 2007-08-26
+  Fix:      2007-08-27
+
+* Symptom:  Crash on invalid instruction with old PC floppy (BUCKROG.IMG)
+  Analysis: Boot sector expects stack at 0030:0100, not at 0000:7C00.
+  Reported: Michael 2007-09-08
+  Fix:      2007-09-08 call bootsector with stack at 0030:0100
+
+* Symptom:  Crash on invalid instruction with old PC floppy (J-BIRD.IMG)
+  Analysis: Anti-debugging code uses single stepping and does not expect
+            a trap on the first instruction after the POPF that enables TF.
+  Reported: Michael 2007-09-08
+  Fix:      2007-09-08 skip single step trap on first instruction after POPF
+
+* Symptom:  Booting ELKS gives error on execve("/bin/init")
+  Analysis: Multiple bugs in INT13/AH=08 emulation.
+  Reported: Sebastian Rosenkiewicz 2007-09-28
+  Fix:      2007-09-29 fix int13/ah=08 in Retro.java
+
+
+Tested runtime platforms:
+- Java 1.4.2 on Win2000
+- Java 1.5 in Internet Explorer 6.0 on Win2000
+- Java 1.4.2 on Linux i386
+- Java 1.4.2 in FireFox 1.0 on Linux i386
+- Java 1.5 on Linux x86-64
+- Java 1.4.2 on MacOSX 10.3 PPC
+- Java 1.4.2 in FireFox 1.5 on MacOSX 10.3 PPC
+- Java 1.4.2 in Safari on MacOSX 10.3 PPC
+

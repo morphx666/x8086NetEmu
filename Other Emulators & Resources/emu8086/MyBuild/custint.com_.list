@@ -1,0 +1,113 @@
+EMU8086 GENERATED LISTING. MACHINE CODE <- SOURCE.
+ 
+custint.com_ -- emu8086 assembler version: 4.08  
+ 
+[ 5/26/2011  --  2:01:58 AM ] 
+ 
+===================================================================================================
+[LINE]     LOC: MACHINE CODE                          SOURCE
+===================================================================================================
+ 
+[   1]        :                                       
+[   2]        :                                       ; interrupt vector (memory from 00000h to 00400h)
+[   3]        :                                       ; keeps addresses of all interrupts (from 00h to 0ffh).
+[   4]        :                                       ; you can add new interrupt or modify existing interrupts.
+[   5]        :                                       ; address of interrupt M is stored in vector at offset M * 4,
+[   6]        :                                       ; for example: interrupt 10h is stored at offset 10h * 4.
+[   7]        :                                       ; first goes the offset, then segment (total of 2 bytes).
+[   8]        :                                       
+[   9]        :                                       ; for more information refer to "global memory table" in c:\emu8086\documentation.
+[  10]        :                                       
+[  11]        :                                       ; note: this is simplified example, it is not recommended to make changes to it
+[  12]        :                                       ; and run it on the real computer, especially it is not recommended to replace disk
+[  13]        :                                       ; processing interrupts because this may cause data loss and other instability problems.
+[  14]        :                                       
+[  15]        :                                       
+[  16]        :                                       name "custint"
+[  17]        :                                       
+[  18]        :                                       
+[  19]        :                                       org 100h
+[  20]        :                                       
+[  21]    0100:                                       start:
+[  22]        :                                       
+[  23]        :                                       ; set video mode to 3 - 16 color 80x25
+[  24]    0100: B4 00                                 mov ah, 0
+[  25]    0102: B0 03                                 mov al, 3
+[  26]    0104: CD 10                                 int 10h
+[  27]        :                                       
+[  28]        :                                       
+[  29]        :                                       ; set es to "0000":
+[  30]    0106: B8 00 00                              mov ax, 0
+[  31]    0109: 8E C0                                 mov es, ax
+[  32]        :                                       ; calculate vector address for interrupt 90h:
+[  33]    010B: B0 90                                 mov al, 90h
+[  34]        :                                       ; multiply 90h by 4, store result in ax:
+[  35]    010D: B3 04                                 mov bl, 4h
+[  36]    010F: F6 E3                                 mul bl
+[  37]    0111: 8B D8                                 mov bx, ax
+[  38]        :                                       ; copy offset into interrupt vector:
+[  39]    0113: BE 29 01                              mov si, offset [test1]
+[  40]    0116: 26 89 37                              mov es:[bx], si
+[  41]    0119: 83 C3 02                              add bx, 2
+[  42]        :                                       ; copy segment into interrupt vector:
+[  43]    011C: 8C C8                                 mov ax, cs
+[  44]    011E: 26 89 07                              mov es:[bx], ax
+[  45]        :                                       
+[  46]        :                                       
+[  47]    0121: CD 90                                 int 90h    ; test newly created interrupt.
+[  48]        :                                       
+[  49]        :                                       ; wait for any key press:
+[  50]    0123: B4 00                                 mov ah, 0
+[  51]    0125: CD 16                                 int 16h
+[  52]        :                                       
+[  53]        :                                       
+[  54]    0127: CD 20                                 int 20h     ; halt execution.
+[  55]        :                                       
+[  56]        :                                       
+[  57]        :                                       
+[  58]        :                                       
+[  59]        :                                       
+[  60]        :                                       ; interrupt 90h starts here:
+[  61]    0129: 60                                    test1: pusha  ; store all registers.
+[  62]        :                                       
+[  63]        :                                       ; make sure data segment is code segment:
+[  64]    012A: 0E                                    push cs
+[  65]    012B: 1F                                    pop ds
+[  66]        :                                       
+[  67]        :                                       ; set segment register to video memory:
+[  68]    012C: B8 00 B8                              mov     ax, 0b800h
+[  69]    012F: 8E C0                                 mov     es, ax
+[  70]        :                                       
+[  71]        :                                       ; print message, each character is written as
+[  72]        :                                       ; a word, high byte is color and low byte is
+[  73]        :                                       ; ascii code:
+[  74]    0131: BE 4B 01                              lea si, msg      ; load offset of msg to si.
+[  75]    0134: BF 00 00                              mov di, 0        ; point to start of the screen.
+[  76]    0137:                                       print:
+[  77]    0137: 80 3C 00                              cmp [si], 0      ; if "0" then stop.
+[  78]    013A: 74 0D                                 je stop
+[  79]    013C: 8A 1C                                 mov bl,  [si]    ; read ascii code from msg.
+[  80]    013E: B7 F1                                 mov bh, 0f1h     ; set colors: white background, blue text.
+[  81]    0140: 26 89 1D                              mov es:[di], bx  ; write to video memory.
+[  82]    0143: 83 C7 02                              add di, 2        ; go to next position on screen.
+[  83]    0146: 46                                    inc si           ; next char.
+[  84]    0147: EB EE                                 jmp print
+[  85]    0149:                                       stop:
+[  86]    0149: 61                                    popa  ; re-store all registers.
+[  87]    014A: CF                                    iret  ; return from interrupt.
+[  88]        :                                       
+[  89]    014B: 74 65 73 74 20 6F 66 20 63 75 73 74   msg db "test of custom interrupt!", 0
+                6F 6D 20 69 6E 74 65 72 72 75 70 74 
+                21 00                               
+[  90]        :                                       
+[  91]        :                                       
+[  92]        :                                       
+[  93]        :                                       
+ 
+===================================================================================================
+ 
+
+
+
+
+===================================================================================================
