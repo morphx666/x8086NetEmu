@@ -21,7 +21,6 @@
 bld/
 [Bb]in/
 [Oo]bj/
-Other Emulators & Resources/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -191,6 +190,7 @@ ClientBin/
 *.publishsettings
 node_modules/
 orleans.codegen.cs
+Other Emulators & Resources/
 
 # RIA/Silverlight projects
 Generated_Code/
