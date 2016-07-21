@@ -22,4 +22,4 @@ Quite probably, this is the same bug that also prevents it from properly running
 
 Portions of the code in the emulator were adapted from 'fake86' and 'retro'.
 
-Precompiled binaries, including various book disks, are available at https://whenimbored.xfx.net/2012/10/x8086netemu-an-8086-emulator-in-vb-net/
+Precompiled binaries, including various boot disks, are available at https://whenimbored.xfx.net/2012/10/x8086netemu-an-8086-emulator-in-vb-net/
