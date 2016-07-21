@@ -16,9 +16,9 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2012/09/debug.png)
 
-I have temporarily suspended its development due to a breaking bug (or bugs) which prevent the emulator from working properly.
+Development is currently stalled due to a breaking bug (or bugs) which prevent the emulator from working properly.
 The bug can be reproduced by booting into DOS 6.x and running EDIT, QBASIC, DEFRAG or MEMMAKER.
-Quite probably, this is the same bug that also prevents it from properly running Windows 1.01
+Quite probably, this is the same bug that also prevents it from running Windows 1.01
 
 Portions of the code in the emulator were adapted from '[fake86](https://github.com/rubbermallet/fake86)' and '[retro](http://jorisvr.nl/article/retro)'.
 
