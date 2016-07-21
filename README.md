@@ -20,6 +20,6 @@ I have temporarily suspended its development due to a breaking bug (or bugs) whi
 The bug can be reproduced by booting into DOS 6.x and running EDIT, QBASIC, DEFRAG or MEMMAKER.
 Quite probably, this is the same bug that also prevents it from properly running Windows 1.01
 
-Portions of the code in the emulator were adapted from 'fake86' and 'retro'.
+Portions of the code in the emulator were adapted from '[fake86](https://github.com/rubbermallet/fake86)' and '[retro](http://jorisvr.nl/article/retro)'.
 
 Precompiled binaries, including various boot disks, are available at https://whenimbored.xfx.net/2012/10/x8086netemu-an-8086-emulator-in-vb-net/
