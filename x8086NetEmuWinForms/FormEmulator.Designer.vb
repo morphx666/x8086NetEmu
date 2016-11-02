@@ -103,7 +103,7 @@ Partial Class FormEmulator
         '
         Me.CPUClockToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MHz0477ToolStripMenuItem, Me.MHz0954ToolStripMenuItem, Me.MHz1908ToolStripMenuItem, Me.MHz3816ToolStripMenuItem, Me.MHz4770ToolStripMenuItem4})
         Me.CPUClockToolStripMenuItem.Name = "CPUClockToolStripMenuItem"
-        Me.CPUClockToolStripMenuItem.Size = New System.Drawing.Size(220, 22)
+        Me.CPUClockToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
         Me.CPUClockToolStripMenuItem.Text = "CPU Clock"
         '
         'MHz0477ToolStripMenuItem
@@ -140,7 +140,7 @@ Partial Class FormEmulator
         '
         Me.EmulationSpeedToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripMenuItemSpeed25, Me.ToolStripMenuItemSpeed50, Me.ToolStripMenuItemSpeed100, Me.ToolStripMenuItemSpeed150, Me.ToolStripMenuItemSpeed200, Me.ToolStripMenuItemSpeed400, Me.ToolStripMenuItemSpeed800, Me.ToolStripMenuItemSpeed1000})
         Me.EmulationSpeedToolStripMenuItem.Name = "EmulationSpeedToolStripMenuItem"
-        Me.EmulationSpeedToolStripMenuItem.Size = New System.Drawing.Size(220, 22)
+        Me.EmulationSpeedToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
         Me.EmulationSpeedToolStripMenuItem.Text = "Emulation Speed"
         '
         'ToolStripMenuItemSpeed25
@@ -196,46 +196,46 @@ Partial Class FormEmulator
         'ToolStripMenuItem1
         '
         Me.ToolStripMenuItem1.Name = "ToolStripMenuItem1"
-        Me.ToolStripMenuItem1.Size = New System.Drawing.Size(217, 6)
+        Me.ToolStripMenuItem1.Size = New System.Drawing.Size(216, 6)
         '
         'SoftResetToolStripMenuItem
         '
         Me.SoftResetToolStripMenuItem.Name = "SoftResetToolStripMenuItem"
-        Me.SoftResetToolStripMenuItem.Size = New System.Drawing.Size(220, 22)
+        Me.SoftResetToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
         Me.SoftResetToolStripMenuItem.Text = "Soft Reset (CTRL+ALT+INS)"
         '
         'HardResetToolStripMenuItem
         '
         Me.HardResetToolStripMenuItem.Name = "HardResetToolStripMenuItem"
-        Me.HardResetToolStripMenuItem.Size = New System.Drawing.Size(220, 22)
+        Me.HardResetToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
         Me.HardResetToolStripMenuItem.Text = "Hard Reset"
         '
         'ToolStripMenuItem2
         '
         Me.ToolStripMenuItem2.Name = "ToolStripMenuItem2"
-        Me.ToolStripMenuItem2.Size = New System.Drawing.Size(217, 6)
+        Me.ToolStripMenuItem2.Size = New System.Drawing.Size(216, 6)
         '
         'LoadStateToolStripMenuItem
         '
         Me.LoadStateToolStripMenuItem.Name = "LoadStateToolStripMenuItem"
-        Me.LoadStateToolStripMenuItem.Size = New System.Drawing.Size(220, 22)
+        Me.LoadStateToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
         Me.LoadStateToolStripMenuItem.Text = "Load State..."
         '
         'SaveStateToolStripMenuItem
         '
         Me.SaveStateToolStripMenuItem.Name = "SaveStateToolStripMenuItem"
-        Me.SaveStateToolStripMenuItem.Size = New System.Drawing.Size(220, 22)
+        Me.SaveStateToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
         Me.SaveStateToolStripMenuItem.Text = "Save State..."
         '
         'ToolStripMenuItem3
         '
         Me.ToolStripMenuItem3.Name = "ToolStripMenuItem3"
-        Me.ToolStripMenuItem3.Size = New System.Drawing.Size(217, 6)
+        Me.ToolStripMenuItem3.Size = New System.Drawing.Size(216, 6)
         '
         'ExitToolStripMenuItem
         '
         Me.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem"
-        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(220, 22)
+        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
         Me.ExitToolStripMenuItem.Text = "Exit"
         '
         'MediaToolStripMenuItem

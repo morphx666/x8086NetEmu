@@ -55,10 +55,10 @@ Public Class FormEmulator
                                                                End Using
                                                            End Sub
 
-        AddHandler cpu.EmulationHalted, Sub()
-                                            MsgBox(String.Format("System Halted at {0:X4}:{1:X4}", cpu.Registers.CS, cpu.Registers.IP),
-                                                   MsgBoxStyle.Critical, "Emulation Stopped")
-                                        End Sub
+        'AddHandler cpu.EmulationHalted, Sub()
+        '                                    MsgBox(String.Format("System Halted at {0:X4}:{1:X4}", cpu.Registers.CS, cpu.Registers.IP),
+        '                                           MsgBoxStyle.Critical, "Emulation Stopped")
+        '                                End Sub
 
 #If Win32 Then
         AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
@@ -258,6 +258,9 @@ Public Class FormEmulator
             If Boolean.Parse(xml.<extras>.<monitorVisible>.Value) Then ShowMonitor()
         Catch
         End Try
+
+        Me.Left = (My.Computer.Screen.WorkingArea.Width - Me.Width) / 2
+        Me.Top = (My.Computer.Screen.WorkingArea.Height - Me.Height) / 2
     End Sub
 
     Private Sub SetCPUClockSpeed(value As Double)

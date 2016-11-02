@@ -75,11 +75,13 @@
     Private Sub SetRegister1Alt(data As Byte)
         addrMode.Register1 = (data And &H7) Or shl3
         If addrMode.Register1 >= GPRegisters.RegistersTypes.ES Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
+        addrMode.Size = DataSize.Word
     End Sub
 
     Private Sub SetRegister2Alt(data As Byte)
         ' WTF was I smoking???
         addrMode.Register2 = (((data And &H38) >> 3) + GPRegisters.RegistersTypes.ES) Mod GPRegisters.RegistersTypes.DI
+        addrMode.Size = DataSize.Word
     End Sub
 
     Private Sub SetAddressing(Optional forceSize As DataSize = DataSize.UseAddressingMode)
@@ -165,14 +167,6 @@
         End If
     End Function
 
-    Private Function FixByteSign(v As UInteger) As UInteger
-        If addrMode.Size = DataSize.Byte Then
-            Return To16bitsWithSign(v)
-        Else
-            Return To32bitsWithSign(v)
-        End If
-    End Function
-
     Private Function To32bitsWithSign(v As UInteger) As UInteger
         If (v And &H8000) <> 0 Then
             Return &HFFFF0000L Or v
@@ -180,6 +174,14 @@
             Return v
         End If
     End Function
+
+    'Private Function FixByteSign(v As UInteger) As UInteger
+    '    If addrMode.Size = DataSize.Byte Then
+    '        Return To16bitsWithSign(v)
+    '    Else
+    '        Return To32bitsWithSign(v)
+    '    End If
+    'End Function
 
     Private Sub SendToPort(portAddress As UInteger, value As UInteger)
         FlushCycles()
@@ -301,7 +303,8 @@
                 SetAddSubFlags(result, v1, v2, size, False)
 
             Case Operation.AddWithCarry
-                result = v1 + v2 + mFlags.CF
+                v2 += mFlags.CF
+                result = v1 + v2 '+ mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, False)
 
             Case Operation.Substract, Operation.Compare
@@ -309,7 +312,8 @@
                 SetAddSubFlags(result, v1, v2, size, True)
 
             Case Operation.SubstractWithCarry
-                result = v1 - v2 - mFlags.CF
+                v2 += mFlags.CF
+                result = v1 - v2 '- mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, True)
 
             Case Operation.LogicOr

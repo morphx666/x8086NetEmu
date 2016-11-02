@@ -53,7 +53,6 @@
 
     Private Sub SystemHalted()
         ThrowException("System Halted")
-        Debug.WriteLine("SYSTEM HALTED!")
         mIsHalted = True
 
         RaiseEvent EmulationHalted()
@@ -75,6 +74,7 @@
     End Sub
 
     Private Sub ThrowException(message As String)
+        Debug.WriteLine(message)
         If mEnableExceptions Then
             Throw New Exception(message)
         Else

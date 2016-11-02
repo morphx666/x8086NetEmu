@@ -77,6 +77,7 @@ Public Class x8086
     Private debugWaiter As AutoResetEvent
 
     Private trapEnabled As Boolean
+    Private ignoreINTs As Boolean
 
     Public Sched As Scheduler
     Public DMA As DMAI8237
@@ -179,6 +180,7 @@ Public Class x8086
         mIsExecuting = False
         isDecoding = False
         trapEnabled = False
+        ignoreINTs = False
         repeLoopMode = REPLoopModes.None
         IPAddrOff = 0
         useIPAddrOff = False
@@ -416,23 +418,6 @@ Public Class x8086
         Sched.SetSynchronization(True, Scheduler.CLOCKRATE * syncQuantum, Scheduler.CLOCKRATE * mSimulationMultiplier / 1000)
     End Sub
 
-    Private Sub ExecPendingInterrupt()
-        If mFlags.IF = 1 AndAlso
-                trapEnabled = False AndAlso
-                repeLoopMode = REPLoopModes.None AndAlso
-                mRegisters.ActiveSegmentChanged = False AndAlso
-                picIsAvailable Then
-
-            ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
-
-            Dim intNum As Integer = PIC.GetPendingInterrupt()
-            If intNum >= 0 Then
-                mIsHalted = False
-                HandleHardwareInterrupt(intNum)
-            End If
-        End If
-    End Sub
-
     Public Sub PreExecute()
         If mIsExecuting OrElse isDecoding OrElse mIsPaused Then Exit Sub
 
@@ -456,7 +441,7 @@ Public Class x8086
                 RaiseEvent InstructionDecoded()
             End While
         Else
-            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule) OrElse repeLoopMode <> REPLoopModes.None
+            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso Not mDebugMode) OrElse repeLoopMode <> REPLoopModes.None
                 Execute()
                 instrucionsCounter += 1
             End While
@@ -468,9 +453,15 @@ Public Class x8086
     Public Sub Execute()
         mIsExecuting = True
 
-        If trapEnabled Then HandleInterrupt(1, False)
-        trapEnabled = (mFlags.TF = 1)
-        ExecPendingInterrupt()
+        If ignoreINTs Then
+            ' Lesson 4
+            ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+            ignoreINTs = False
+        Else
+            If trapEnabled Then HandleInterrupt(1, False)
+            trapEnabled = (mFlags.TF = 1)
+            HandlerPendingInterrupt()
+        End If
 
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
@@ -587,6 +578,7 @@ Public Class x8086
 
             Case &H17 ' pop ss
                 mRegisters.SS = PopFromStack()
+                ignoreINTs = True
                 clkCyc += 8
 
             Case &H18 To &H1B ' sbb
@@ -1099,6 +1091,9 @@ Public Class x8086
 
             Case &H88 To &H8C ' mov ind <-> reg8/reg16
                 SetAddressing()
+
+                ignoreINTs = (opCode = &H8E)
+
                 If opCode = &H8C Then
                     If (addrMode.Register1 And &H4) = &H4 Then
                         addrMode.Register1 = addrMode.Register1 And (Not shl2)
@@ -1112,6 +1107,7 @@ Public Class x8086
                     End If
                 End If
 
+                addrMode.Size = If(addrMode.Register1 < GPRegisters.RegistersTypes.AX, DataSize.Byte, DataSize.Word)
                 If addrMode.IsDirect Then
                     If addrMode.Direction = 0 Then
                         mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
@@ -1121,11 +1117,7 @@ Public Class x8086
                     clkCyc += 2
                 Else
                     If addrMode.Direction = 0 Then
-                        If addrMode.Register1 < GPRegisters.RegistersTypes.AX Then
-                            RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = mRegisters.Val(addrMode.Register1)
-                        Else
-                            RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = mRegisters.Val(addrMode.Register1)
-                        End If
+                        RAMn = mRegisters.Val(addrMode.Register1)
                         clkCyc += 9
                     Else
                         mRegisters.Val(addrMode.Register1) = addrMode.IndMem
@@ -1373,7 +1365,9 @@ Public Class x8086
 
                 'FPU.Execute(opCode)
 
+                ' Lesson 2
                 ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+
                 'HandleInterrupt(7, False)
 
                 'OpCodeNotImplemented(opCode, "FPU Not Available")
@@ -1484,8 +1478,8 @@ Public Class x8086
 
             Case &HF4 ' hlt
                 clkCyc += 2
-                mIsHalted = True
-                'If Not mIsHalted Then SystemHalted()
+                'mIsHalted = True
+                If Not mIsHalted Then SystemHalted()
                 IncIP(-1)
 
             Case &HF5 ' cmc
@@ -1508,6 +1502,7 @@ Public Class x8086
 
             Case &HFB ' sti
                 mFlags.IF = 1
+                ignoreINTs = True
                 clkCyc += 2
 
             Case &HFC ' cld
@@ -1966,7 +1961,8 @@ Public Class x8086
                     RAMn = result
                     clkCyc += 16
                 End If
-            'mFlags.CF = If(result = 0, 0, 1)
+                'mFlags.CF = If(result And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF) <> 0, 1, 0)
+                mFlags.CF = If(result <> 0, 1, 0)
 
             Case 4 ' 100    --  mul
                 Dim result As ULong
@@ -1997,13 +1993,14 @@ Public Class x8086
 
                 ' This prevents an overflow error in C:\GAMES\SW.EXE
                 'SetSZPFlags(result And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF), addrMode.Size)
+                ' Apparently, this is no longer required(?)
 
-                If If(addrMode.Size = DataSize.Byte, mRegisters.AH, mRegisters.DX) = 0 Then
-                    mFlags.CF = 0
-                    mFlags.OF = 0
-                Else
+                If If(addrMode.Size = DataSize.Byte, mRegisters.AH, mRegisters.DX) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
+                Else
+                    mFlags.CF = 0
+                    mFlags.OF = 0
                 End If
                 If Not mVic20 Then mFlags.ZF = 0 ' This is the test the BIOS uses to detect a VIC20 (80186)
 
@@ -2054,12 +2051,12 @@ Public Class x8086
                     End If
                 End If
 
-                If If(addrMode.Size = DataSize.Byte, mRegisters.AH, mRegisters.DX) = 0 Then
-                    mFlags.CF = 0
-                    mFlags.OF = 0
-                Else
+                If If(addrMode.Size = DataSize.Byte, mRegisters.AH, mRegisters.DX) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
+                Else
+                    mFlags.CF = 0
+                    mFlags.OF = 0
                 End If
                 If Not mVic20 Then mFlags.ZF = 0
 
@@ -2121,42 +2118,44 @@ Public Class x8086
                 Dim sign As Boolean
 
                 If addrMode.IsDirect Then
-                    'div = FixByteSign(mRegisters.Val(addrMode.Register2))
                     div = mRegisters.Val(addrMode.Register2)
                     If addrMode.Size = DataSize.Byte Then
-                        clkCyc += 80
                         num = mRegisters.AX
 
                         sign = ((num Xor div) And &H8000) <> 0
                         num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
                         div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
+
+                        clkCyc += 80
                     Else
-                        clkCyc += 144
                         num = (mRegisters.DX << 16) Or mRegisters.AX
 
                         div = If((div And &H8000) <> 0, (div Or &HFFFF0000L), div)
                         sign = ((num Xor div) And &H80000000L) <> 0
                         num = If(num < &H80000000L, num, ((Not num) + 1) And &HFFFFFFFFL)
                         div = If(div < &H80000000L, div, ((Not div) + 1) And &HFFFFFFFFL)
+
+                        clkCyc += 144
                     End If
                 Else
-                    'div = FixByteSign(addrMode.IndMem)
                     div = addrMode.IndMem
                     If addrMode.Size = DataSize.Byte Then
-                        clkCyc += 86
                         num = mRegisters.AX
 
                         sign = ((num Xor div) And &H8000) <> 0
                         num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
                         div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
+
+                        clkCyc += 86
                     Else
-                        clkCyc += 150
                         num = (mRegisters.DX << 16) Or mRegisters.AX
 
                         div = If((div And &H8000) <> 0, (div Or &HFFFF0000L), div)
                         sign = ((num Xor div) And &H80000000L) <> 0
                         num = If(num < &H80000000L, num, ((Not num) + 1) And &HFFFFFFFFL)
                         div = If(div < &H80000000L, div, ((Not div) + 1) And &HFFFFFFFFL)
+
+                        clkCyc += 150
                     End If
                 End If
 
@@ -2276,26 +2275,16 @@ Public Class x8086
             If mRegisters.CX = 0 Then
                 repeLoopMode = REPLoopModes.None
             Else
-                mRegisters.CX = AddValues(mRegisters.CX, -1, DataSize.Word)
-                If ExecStringOpCode() Then
-                    If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
-                       (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
-                        repeLoopMode = REPLoopModes.None
-                        Exit Sub
+                While mRegisters.CX > 0 AndAlso Not mDebugMode
+                    mRegisters.CX = AddValues(mRegisters.CX, -1, DataSize.Word)
+                    If ExecStringOpCode() Then
+                        If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
+                           (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
+                            repeLoopMode = REPLoopModes.None
+                            Exit Sub
+                        End If
                     End If
-                    'Select Case repeLoopMode
-                    '    Case REPLoopModes.REPE
-                    '        If mFlags.ZF = 0 Then
-                    '            repeLoopMode = REPLoopModes.None
-                    '            Exit Sub
-                    '        End If
-                    '    Case REPLoopModes.REPENE
-                    '        If mFlags.ZF = 1 Then
-                    '            repeLoopMode = REPLoopModes.None
-                    '            Exit Sub
-                    '        End If
-                    'End Select
-                End If
+                End While
                 IncIP(-opCodeSize)
             End If
         End If

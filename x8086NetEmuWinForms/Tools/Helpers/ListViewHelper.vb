@@ -142,15 +142,15 @@ Public Class ListViewHelper
     End Function
 
     <DllImport("user32.dll", SetLastError:=True, CharSet:=CharSet.Auto)>
-    Private Shared Function PostMessage(ByVal hWnd As IntPtr, ByVal Msg As UInteger, ByVal wParam As IntPtr, ByVal lParam As IntPtr) As Boolean
+    Private Shared Function PostMessage(ByVal hWnd As IntPtr, ByVal Msg As Integer, ByVal wParam As IntPtr, ByVal lParam As IntPtr) As Boolean
     End Function
 
     Private Structure SCROLLINFO
-        Public cbSize As UInteger
-        Public fMask As UInteger
+        Public cbSize As Integer
+        Public fMask As Integer
         Public nMin As Integer
         Public nMax As Integer
-        Public nPage As UInteger
+        Public nPage As Integer
         Public nPos As Integer
         Public nTrackPos As Integer
     End Structure

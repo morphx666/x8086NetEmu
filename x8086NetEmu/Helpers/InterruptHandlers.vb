@@ -14,6 +14,23 @@ Partial Public Class x8086
         mRegisters.IP = IPAddrOff
     End Sub
 
+    Private Sub HandlerPendingInterrupt()
+        ' Lesson 5
+        ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+
+        If mFlags.IF = 1 AndAlso
+           trapEnabled = False AndAlso
+           mRegisters.ActiveSegmentChanged = False AndAlso
+           picIsAvailable Then
+
+            Dim intNum As Integer = PIC.GetPendingInterrupt()
+            If intNum >= 0 Then
+                mIsHalted = False
+                HandleHardwareInterrupt(intNum)
+            End If
+        End If
+    End Sub
+
     Private Sub HandleInterrupt(intNum As Byte, isHard As Boolean)
         FlushCycles()
 
@@ -99,6 +116,7 @@ Partial Public Class x8086
 
                 Dim buf(bufSize - 1) As Byte
                 ret = dskImg.Read(offset, buf)
+
                 If ret = DiskImage.EIO Then
                     x8086.Notify("Read Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)
 
@@ -107,7 +125,7 @@ Partial Public Class x8086
                 ElseIf ret = DiskImage.EOF Then
                     x8086.Notify("Read Sectors: Drive {0} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
 
-                    ret = &H04 ' sector not found
+                    ret = &H4 ' sector not found
                     Exit Select
                 End If
                 CopyToRAM(buf, address)
@@ -124,7 +142,7 @@ Partial Public Class x8086
                 If dskImg.IsReadOnly Then
                     x8086.Notify("Write Sectors: Drive {0} Failed / Read Only", NotificationReasons.Warn, mRegisters.DL)
 
-                    ret = &H03 ' write protected
+                    ret = &H3 ' write protected
                     Exit Select
                 End If
 
@@ -159,7 +177,7 @@ Partial Public Class x8086
                 ElseIf ret = DiskImage.EOF Then
                     x8086.Notify("Write Sectors: Drive {0} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
 
-                    ret = &H04 ' sector not found
+                    ret = &H4 ' sector not found
                     Exit Select
                 End If
                 'ret = mRegisters.AL
@@ -182,7 +200,7 @@ Partial Public Class x8086
                 Else
                     mRegisters.CH = (dskImg.Cylinders - 1) And &HFF
                     mRegisters.CL = (dskImg.Sectors And 63)
-                    mRegisters.CL += (dskImg.Cylinders / 256) * 64
+                    mRegisters.CL += (dskImg.Cylinders \ 256) * 64
                     mRegisters.DH = dskImg.Heads - 1
 
                     If mRegisters.DL < &H80 Then
@@ -213,7 +231,7 @@ Partial Public Class x8086
                     End If
                 Else
                     Dim n As Integer = dskImg.Sectors
-                    mRegisters.CX = n / 256
+                    mRegisters.CX = n \ 256
                     mRegisters.DX = n And &HFF
                     ret = &H12C
                 End If
@@ -254,7 +272,7 @@ Partial Public Class x8086
         End Select
 
         ' Store return status
-        'RAM8(&H40, &H41) = ret And &HFF
+        RAM8(&H40, &H41) = ret And &HFF
         mRegisters.AX = ret << 8
         mFlags.CF = If(ret <> 0, 1, 0)
 

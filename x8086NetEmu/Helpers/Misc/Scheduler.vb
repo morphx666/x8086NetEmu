@@ -395,18 +395,18 @@ Public Class Scheduler
                 ' Run the first pending task
                 tsk.Start()
             Else
-                ' Run the Cpu simulation for a bit
+                ' Run the CPU simulation for a bit
                 Try
                     mCPU.PreExecute()
                 Catch ex As Exception
-                    x8086.Notify("Shit Happens at {0}:{1}: {2}", x8086.NotificationReasons.Fck,
-                                                                 mCPU.Registers.CS.ToHex(x8086.DataSize.Word).Replace("h", ""),
-                                                                 mCPU.Registers.IP.ToHex(x8086.DataSize.Word).Replace("h", ""),
+                    x8086.Notify("Shit happens at {0}:{1}: {2}", x8086.NotificationReasons.Fck,
+                                                                 mCPU.Registers.CS.ToHex(x8086.DataSize.Word, ""),
+                                                                 mCPU.Registers.IP.ToHex(x8086.DataSize.Word, ""),
                                                                  ex.Message)
                 End Try
 
                 If mCPU.IsHalted() Then
-                    ' The Cpu is halted, skip immediately to the next event
+                    ' The CPU is halted, skip immediately to the next event
                     SkipToNextEvent()
                 End If
             End If

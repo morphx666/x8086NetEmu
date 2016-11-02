@@ -4,7 +4,7 @@ Public MustInherit Class CGAAdapter
     Inherits Adapter
 
     Public Const VERTSYNC = 60
-    Public Const HORIZSYNC = 15750
+    Public Const HORIZSYNC = VERTSYNC * 262.5
 
     Private ht As Long = Scheduler.CLOCKRATE \ HORIZSYNC
     Private vt As Long = (Scheduler.CLOCKRATE \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
