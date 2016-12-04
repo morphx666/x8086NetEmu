@@ -397,7 +397,8 @@
     Public Property RAM(address As UInteger) As Byte
         Get
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
-            Return Memory(address And &HFFFFF) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
+            Return FromPreftch(address)
+            'Return Memory(address And &HFFFFF) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
         End Get
         Set(value As Byte)
             address = address And &HFFFFF

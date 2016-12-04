@@ -187,6 +187,7 @@
     <Compile Include="Chipset\IIOPortHandler.vb" />
     <Compile Include="Chipset\IOPortHandler.vb" />
     <Compile Include="Chipset\IOPorts.vb" />
+    <Compile Include="Helpers\Prefetch.vb" />
     <Compile Include="Helpers\Properties.vb" />
     <Compile Include="Helpers\Helpers.vb" />
     <Compile Include="Adapters\Keyboard\Keyboard.vb" />

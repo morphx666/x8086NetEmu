@@ -29,9 +29,6 @@ Public Class x8086
     Private opCode As Byte
     Private opCodeSize As UInteger = 0
 
-    Private ignoreIntsOpCodes() As Byte = {&HF, &H70, &H71, &H72, &H73, &H74, &H74, &H75, &H76, &H77, &H78, &H79, &H7A, &H7B, &H7C, &H7D, &H7C, &H7F, &H9A, &HC2, &HC3,
-                                           &HCA, &HCB, &HCC, &HCD, &HCF, &HE8, &HE9, &HEA, &HEB, &H9A}
-
     Private addrMode As AddressingMode
     Private mIsExecuting As Boolean = False
 
@@ -466,6 +463,7 @@ Public Class x8086
             HandlerPendingInterrupt()
         End If
 
+        Prefetch()
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
 
@@ -1237,7 +1235,7 @@ Public Class x8086
                     ExecuteGroup2()
                 End If
 
-            Case &HC2 ' ret within segment adding imm to sp
+            Case &HC2 ' ret (ret n) within segment adding imm to sp
                 IPAddrOff = PopFromStack()
                 mRegisters.SP = AddValues(mRegisters.SP, Param(SelPrmIndex.First, , DataSize.Word), DataSize.Word)
                 clkCyc += 20
@@ -1536,8 +1534,6 @@ Public Class x8086
             IncIP(opCodeSize)
         End If
         clkCyc += opCodeSize * 4
-
-        If Not ignoreINTs Then ignoreINTs = ignoreIntsOpCodes.Contains(opCode)
 
         If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
             Select Case opCode
