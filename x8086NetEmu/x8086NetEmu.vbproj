@@ -55,6 +55,7 @@
     <WarningsAsErrors>
     </WarningsAsErrors>
     <Prefer32Bit>false</Prefer32Bit>
+    <RemoveIntegerChecks>true</RemoveIntegerChecks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -186,6 +187,7 @@
     <Compile Include="Chipset\IIOPortHandler.vb" />
     <Compile Include="Chipset\IOPortHandler.vb" />
     <Compile Include="Chipset\IOPorts.vb" />
+    <Compile Include="Helpers\Prefetch.vb" />
     <Compile Include="Helpers\Properties.vb" />
     <Compile Include="Helpers\Helpers.vb" />
     <Compile Include="Adapters\Keyboard\Keyboard.vb" />
@@ -265,7 +267,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
+      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

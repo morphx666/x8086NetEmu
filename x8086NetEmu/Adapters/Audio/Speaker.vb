@@ -35,7 +35,7 @@ Public Class SpeakerAdpater
     Private audioWriteBufferPosition As Integer
     Private Const sampleRate As Integer = 44100
 
-    Private mCpu As x8086
+    Private mCPU As x8086
     Private mEnabled As Boolean
     Private playbackThread As Thread
     Private cancelAllThreads As Boolean
@@ -74,8 +74,8 @@ Public Class SpeakerAdpater
     End Structure
 
     Public Sub New(cpu As x8086)
-        mCpu = cpu
-        If mCpu.PIT IsNot Nothing Then mCpu.PIT.Speaker = Me
+        mCPU = cpu
+        If mCPU.PIT IsNot Nothing Then mCPU.PIT.Speaker = Me
     End Sub
 
     Public Property Frequency As Double

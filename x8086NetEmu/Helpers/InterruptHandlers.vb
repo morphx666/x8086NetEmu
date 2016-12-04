@@ -15,11 +15,12 @@ Partial Public Class x8086
     End Sub
 
     Private Sub HandlerPendingInterrupt()
-        ' Lesson 5
+        ' Lesson 5 (mRegisters.ActiveSegmentChanged = False)
         ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
         If mFlags.IF = 1 AndAlso
-           trapEnabled = False AndAlso
+           Not ignoreINTs AndAlso
+           Not trapEnabled AndAlso
            mRegisters.ActiveSegmentChanged = False AndAlso
            picIsAvailable Then
 
