@@ -2,7 +2,6 @@
     Private Const Size As Integer = 6
 
     Private mBuffer(Size - 1) As Byte
-
     Private mAddress As Integer
 
     Public Sub Prefetch()
