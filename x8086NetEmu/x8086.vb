@@ -1183,19 +1183,19 @@ Public Class x8086
                 clkCyc += 4
 
             Case &H9C ' pushf
-                PushIntoStack(mFlags.EFlags Or &HF800)
+                PushIntoStack((mFlags.EFlags And &HFD5) Or &HF002)
                 clkCyc += 10
 
             Case &H9D ' popf
-                mFlags.EFlags = PopFromStack()
+                mFlags.EFlags = (PopFromStack() And &HFD5) Or &HF002
                 clkCyc += 8
 
             Case &H9E ' sahf
-                mFlags.EFlags = (mFlags.EFlags And &HFF00) Or mRegisters.AH
+                mFlags.EFlags = (mFlags.EFlags And &HFF00) Or (mRegisters.AH And &HD5) Or 2
                 clkCyc += 4
 
             Case &H9F ' lahf
-                mRegisters.AH = mFlags.EFlags And &HFF
+                mRegisters.AH = (mFlags.EFlags And &HD5) Or 2
                 clkCyc += 4
 
             Case &HA0 To &HA3 ' mov mem to acc | mov acc to mem
