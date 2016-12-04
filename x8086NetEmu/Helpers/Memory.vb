@@ -73,6 +73,7 @@
 
         Private mActiveSegmentRegister As GPRegisters.RegistersTypes = RegistersTypes.DS
         Private mActiveSegmentChanged As Boolean = False
+        Private mSS As UInteger
 
         Public Property Val(reg As RegistersTypes) As UInteger
             Get
@@ -199,6 +200,14 @@
         Public Property IP As UInteger
 
         Public Property SS As UInteger
+            Get
+                Return mSS
+            End Get
+            Set(value As UInteger)
+                mSS = value
+                ignoreINTs = True ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
+            End Set
+        End Property
         Public Property SP As UInteger
 
         Public Property DS As UInteger
@@ -421,8 +430,8 @@
     Public Property RAM16(segment As UInteger, offset As UInteger, Optional inc As Integer = 0) As UShort
         Get
             Dim address As UInteger = SegOffToAbs(segment, offset + inc)
-            Return RAM(address + 1) * 256 + RAM(address)
-            'Return CUShort(RAM(address + 1)) << 8 Or RAM(address)
+            'Return RAM(address + 1) * 256 + RAM(address)
+            Return CUShort(RAM(address + 1)) << 8 Or RAM(address)
         End Get
         Set(value As UShort)
             Dim address As UInteger = SegOffToAbs(segment, offset + inc)

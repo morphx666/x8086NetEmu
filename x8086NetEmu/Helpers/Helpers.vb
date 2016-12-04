@@ -163,7 +163,7 @@
         If (v And &H80) <> 0 Then
             Return &HFF00 Or v
         Else
-            Return v
+            Return v And &HFF
         End If
     End Function
 
@@ -303,8 +303,7 @@
                 SetAddSubFlags(result, v1, v2, size, False)
 
             Case Operation.AddWithCarry
-                v2 += mFlags.CF
-                result = v1 + v2 '+ mFlags.CF
+                result = v1 + v2 + mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, False)
 
             Case Operation.Substract, Operation.Compare
@@ -312,8 +311,7 @@
                 SetAddSubFlags(result, v1, v2, size, True)
 
             Case Operation.SubstractWithCarry
-                v2 += mFlags.CF
-                result = v1 - v2 '- mFlags.CF
+                result = v1 - v2 - mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, True)
 
             Case Operation.LogicOr
@@ -381,6 +379,11 @@
 
     Private Sub SetAddSubFlags(result As Integer, v1 As UInteger, v2 As Integer, size As DataSize, isSubstraction As Boolean)
         SetSZPFlags(result, size)
+
+        If v2 < 0 Then
+            If Not isSubstraction Then Stop
+            isSubstraction = True
+        End If
 
         If size = DataSize.Byte Then
             mFlags.CF = If((result And &HFF00) = 0, 0, 1)
