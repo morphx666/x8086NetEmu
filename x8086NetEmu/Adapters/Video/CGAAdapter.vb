@@ -535,6 +535,7 @@ Public MustInherit Class CGAAdapter
             Dim colors() As Color = Nothing
             Dim cgaModeReg As Integer = x8086.BitsArrayToWord(CGAModeControlRegister)
             Dim cgaColorReg As Integer = x8086.BitsArrayToWord(CGAPaletteRegister)
+            mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) <> 0
 
             'Dim burts As Boolean = (cgaModeReg And &H4) <> 0
             'Dim pal As Boolean = (cgaColorReg And &H20) <> 0
