@@ -132,7 +132,7 @@
     End Function
 
     ' Binds a device to a DMA channel.
-    ' @param channr DMA channel to use (0 ... 3)
+    ' @param change DMA channel to use (0 ... 3)
     ' @param dev    device object to use for callbacks on this channel
     ' @return the DmaChannel object
     Public Function BindChannel(channelNumber As Integer, dev As IDMADevice) As IDMAChannel
@@ -144,7 +144,7 @@
     End Function
 
     ' Changes the DREQ trigger period for channel 0.
-    ' @param period tregger period in nanoseconds, or 0 to disable
+    '@param period trigger period in nanoseconds, or 0 to disable
     Public Sub SetCh0Period(period As Long)
         UpdateCh0()
         ch0TriggerPeriod = period
