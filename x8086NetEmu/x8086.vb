@@ -2178,35 +2178,9 @@ Public Class x8086
                 If sign1 Then remain = ((Not remain) + 1) And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)
 
                 If addrMode.Size = DataSize.Byte Then
-                    If sign1 <> sign2 Then
-                        If result > &H80 Then
-                            HandleInterrupt(0, False)
-                            Exit Select
-                        End If
-                        result = ((Not result) + 1) And &HFF
-                    ElseIf result > &H7F Then
-                        HandleInterrupt(0, False)
-                        Exit Select
-                    End If
-
-                    If sign1 Then remain = ((Not remain) + 1) And &HFF
-
                     mRegisters.AL = result And &HFF
                     mRegisters.AH = remain And &HFF
                 Else
-                    If sign1 <> sign2 Then
-                        If result > &H8000 Then
-                            HandleInterrupt(0, False)
-                            Exit Select
-                        End If
-                        result = ((Not result) + 1) And &HFFFF
-                    ElseIf result > &H7FFF Then
-                        HandleInterrupt(0, False)
-                        Exit Select
-                    End If
-
-                    If sign1 Then remain = ((Not remain) + 1) And &HFFFF
-
                     mRegisters.AX = result And &HFFFF
                     mRegisters.DX = remain And &HFFFF
                 End If
