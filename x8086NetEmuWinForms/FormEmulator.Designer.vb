@@ -62,12 +62,15 @@ Partial Class FormEmulator
         Me.Zoom150ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.Zoom200ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.Zoom400ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ToolStripMenuItem4 = New System.Windows.Forms.ToolStripSeparator()
+        Me.CopyTextToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.PasteTextToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ContextMenuStripMain.SuspendLayout()
         Me.SuspendLayout()
         '
         'ViewToolStripMenuItem
         '
-        Me.ViewToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MonitorToolStripMenuItem, Me.ConsoleToolStripMenuItem})
+        Me.ViewToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MonitorToolStripMenuItem, Me.ConsoleToolStripMenuItem, Me.ToolStripMenuItem4, Me.CopyTextToolStripMenuItem, Me.PasteTextToolStripMenuItem})
         Me.ViewToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.tools_icon
         Me.ViewToolStripMenuItem.Name = "ViewToolStripMenuItem"
         Me.ViewToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
@@ -76,13 +79,13 @@ Partial Class FormEmulator
         'MonitorToolStripMenuItem
         '
         Me.MonitorToolStripMenuItem.Name = "MonitorToolStripMenuItem"
-        Me.MonitorToolStripMenuItem.Size = New System.Drawing.Size(126, 22)
+        Me.MonitorToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.MonitorToolStripMenuItem.Text = "Monitor..."
         '
         'ConsoleToolStripMenuItem
         '
         Me.ConsoleToolStripMenuItem.Name = "ConsoleToolStripMenuItem"
-        Me.ConsoleToolStripMenuItem.Size = New System.Drawing.Size(126, 22)
+        Me.ConsoleToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.ConsoleToolStripMenuItem.Text = "Console..."
         '
         'ContextMenuStripMain
@@ -305,6 +308,23 @@ Partial Class FormEmulator
         Me.Zoom400ToolStripMenuItem.Size = New System.Drawing.Size(102, 22)
         Me.Zoom400ToolStripMenuItem.Text = "400%"
         '
+        'ToolStripMenuItem4
+        '
+        Me.ToolStripMenuItem4.Name = "ToolStripMenuItem4"
+        Me.ToolStripMenuItem4.Size = New System.Drawing.Size(149, 6)
+        '
+        'CopyTextToolStripMenuItem
+        '
+        Me.CopyTextToolStripMenuItem.Name = "CopyTextToolStripMenuItem"
+        Me.CopyTextToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.CopyTextToolStripMenuItem.Text = "Copy Text"
+        '
+        'PasteTextToolStripMenuItem
+        '
+        Me.PasteTextToolStripMenuItem.Name = "PasteTextToolStripMenuItem"
+        Me.PasteTextToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.PasteTextToolStripMenuItem.Text = "Paste Text"
+        '
         'FormEmulator
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -359,4 +379,7 @@ Partial Class FormEmulator
     Friend WithEvents MHz3816ToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents MHz4770ToolStripMenuItem4 As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ContextMenuStripMain As System.Windows.Forms.ContextMenuStrip
+    Friend WithEvents ToolStripMenuItem4 As ToolStripSeparator
+    Friend WithEvents CopyTextToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents PasteTextToolStripMenuItem As ToolStripMenuItem
 End Class

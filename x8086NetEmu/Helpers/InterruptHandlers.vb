@@ -14,12 +14,11 @@ Partial Public Class x8086
         mRegisters.IP = IPAddrOff
     End Sub
 
-    Private Sub HandlerPendingInterrupt()
+    Private Sub HandlePendingInterrupt()
         ' Lesson 5 (mRegisters.ActiveSegmentChanged = False)
         ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
         If mFlags.IF = 1 AndAlso
-           Not ignoreINTs AndAlso
            Not trapEnabled AndAlso
            mRegisters.ActiveSegmentChanged = False AndAlso
            picIsAvailable Then

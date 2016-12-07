@@ -15,7 +15,12 @@ Public Class FormEmulator
 
     Private videoPort As Control
 
-    Private Sub frmMain_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
+    Private isLeftMouseButtonDown As Boolean
+    Private isSelectingText As Boolean
+    Private fromColRow As Point
+    Private toColRow As Point
+
+    Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SaveSettings()
 
         If fMonitor IsNot Nothing Then fMonitor.Close()
@@ -24,7 +29,7 @@ Public Class FormEmulator
         cpu.Close()
     End Sub
 
-    Private Sub frmMain_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
+    Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.BackColor = Color.Black
 
         StartEmulation()
@@ -54,6 +59,36 @@ Public Class FormEmulator
                                                                    dlg.ShowDialog(Me)
                                                                End Using
                                                            End Sub
+        AddHandler PasteTextToolStripMenuItem.Click, Sub()
+                                                         If Not isSelectingText AndAlso Clipboard.ContainsText(TextDataFormat.Text) Then
+                                                             Dim cbc As String = Clipboard.GetText(TextDataFormat.Text)
+                                                             Dim tmp As New Threading.Thread(Sub()
+                                                                                                 Dim gd() As Char = {"(", ")", "{", "}", "+", "^"}
+                                                                                                 For Each c As Char In cbc
+                                                                                                     If gd.Contains(c) Then
+                                                                                                         SendKeys.SendWait($"{gd(2)}{c}{gd(3)}")
+                                                                                                     Else
+                                                                                                         SendKeys.SendWait(c)
+                                                                                                     End If
+                                                                                                     Threading.Thread.Sleep(5)
+                                                                                                 Next
+                                                                                             End Sub)
+                                                             tmp.Start()
+                                                         End If
+                                                     End Sub
+
+        AddHandler CopyTextToolStripMenuItem.Click, Sub()
+                                                        If isSelectingText Then Exit Sub
+                                                        If TypeOf cpu.VideoAdapter Is CGAWinForms Then
+                                                            Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
+                                                            cgawf.HideHostCursor = False
+                                                            cgawf.RenderControl.Cursor = Cursors.IBeam
+                                                            cpu.Pause()
+                                                            isSelectingText = True
+                                                        Else
+                                                            MsgBox("Text copying is only supported on CGAWinForms video adapters", MsgBoxStyle.Information)
+                                                        End If
+                                                    End Sub
 
         'AddHandler cpu.EmulationHalted, Sub()
         '                                    MsgBox(String.Format("System Halted at {0:X4}:{1:X4}", cpu.Registers.CS, cpu.Registers.IP),
@@ -123,6 +158,8 @@ Public Class FormEmulator
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         'cpu.Adapters.Add(New MouseAdapter(cpu)) ' Not Compatible with MINIX
 
+        AddSupportForTextCopy()
+
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
 #End If
@@ -136,6 +173,80 @@ Public Class FormEmulator
         cpu.EmulateINT13 = True
 
         cpu.Run(False)
+    End Sub
+
+    Private Sub AddSupportForTextCopy()
+        If Not TypeOf cpu.VideoAdapter Is CGAWinForms Then Exit Sub
+
+        AddHandler videoPort.MouseUp, Sub(s As Object, e As MouseEventArgs)
+                                          If e.Button = MouseButtons.Left AndAlso isLeftMouseButtonDown Then
+                                              Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
+                                              cgawf.HideHostCursor = True
+
+                                              ' Why is this necessary?
+                                              ' Why the Cursor.Hide() at Helpers.vb@428 stops working?
+                                              cgawf.RenderControl.Cursor = New Cursor(New IO.MemoryStream(My.Resources.emptyCursor))
+
+                                              Dim c As Integer
+                                              Dim text As String = ""
+                                              Dim fromCol As Integer = Math.Min(fromColRow.X, toColRow.X)
+                                              Dim toCol As Integer = Math.Max(fromColRow.X, toColRow.X)
+                                              Dim fromRow As Integer = Math.Min(fromColRow.Y, toColRow.Y)
+                                              Dim toRow As Integer = Math.Max(fromColRow.Y, toColRow.Y)
+                                              For row As Integer = fromRow To toRow
+                                                  For col As Integer = If(row = fromRow, fromCol, 0) To If(row = toRow, toCol, cgawf.TextResolution.Width) - 1
+                                                      c = cpu.Memory(cgawf.ColRowToAddress(col, row))
+                                                      text += If(c >= 32, Convert.ToChar(c), " ")
+                                                  Next
+                                                  text += Environment.NewLine
+                                              Next
+                                              Clipboard.SetText(text, TextDataFormat.Text)
+
+                                              cpu.Resume()
+                                              isLeftMouseButtonDown = False
+                                              isSelectingText = False
+                                          End If
+                                      End Sub
+
+        AddHandler videoPort.MouseDown, Sub(s As Object, e As MouseEventArgs)
+                                            If e.Button = MouseButtons.Left AndAlso isSelectingText Then
+                                                Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
+                                                If cgawf.MainMode <> CGAAdapter.MainModes.Text Then
+                                                    MsgBox("Text copying is only supported in Text video modes", MsgBoxStyle.Information)
+                                                    Exit Sub
+                                                End If
+
+                                                fromColRow = New Point(e.X / videoPort.Width * cgawf.TextResolution.Width,
+                                                                       e.Y / videoPort.Height * cgawf.TextResolution.Height)
+                                                toColRow = fromColRow
+                                                isLeftMouseButtonDown = True
+                                            End If
+                                        End Sub
+
+        AddHandler videoPort.MouseMove, Sub(s As Object, e As MouseEventArgs)
+                                            If isLeftMouseButtonDown Then
+                                                Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
+                                                toColRow = New Point(e.X / videoPort.Width * cgawf.TextResolution.Width,
+                                                                     e.Y / videoPort.Height * cgawf.TextResolution.Height)
+                                            End If
+                                        End Sub
+
+        AddHandler CType(cpu.VideoAdapter, CGAWinForms).PostRender, Sub(sender As Object, e As PaintEventArgs)
+                                                                        If isLeftMouseButtonDown Then
+                                                                            Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
+                                                                            Dim fromCol As Integer = Math.Min(fromColRow.X, toColRow.X)
+                                                                            Dim toCol As Integer = Math.Max(fromColRow.X, toColRow.X)
+                                                                            Dim fromRow As Integer = Math.Min(fromColRow.Y, toColRow.Y)
+                                                                            Dim toRow As Integer = Math.Max(fromColRow.Y, toColRow.Y)
+                                                                            Using sb As New SolidBrush(Color.FromArgb(128, Color.DarkSlateBlue))
+                                                                                For row As Integer = fromRow To toRow
+                                                                                    For col As Integer = If(row = fromRow, fromCol, 0) To If(row = toRow, toCol, cgawf.TextResolution.Width) - 1
+                                                                                        e.Graphics.FillRectangle(sb, cgawf.ColRowToRectangle(col, row))
+                                                                                    Next
+                                                                                Next
+                                                                            End Using
+                                                                        End If
+                                                                    End Sub
     End Sub
 
     Private Sub ShowConsole()

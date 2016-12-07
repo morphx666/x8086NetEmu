@@ -453,14 +453,13 @@ Public Class x8086
     Public Sub Execute()
         mIsExecuting = True
 
+        If trapEnabled Then HandleInterrupt(1, False)
+        trapEnabled = (mFlags.TF = 1)
+
         If ignoreINTs Then
-            ' Lesson 4
-            ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
             ignoreINTs = False
         Else
-            If trapEnabled Then HandleInterrupt(1, False)
-            trapEnabled = (mFlags.TF = 1)
-            HandlerPendingInterrupt()
+            HandlePendingInterrupt()
         End If
 
         Prefetch()
@@ -576,6 +575,9 @@ Public Class x8086
 
             Case &H17 ' pop ss
                 mRegisters.SS = PopFromStack()
+                ' Lesson 4: http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+                ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
+                ignoreINTs = True
                 clkCyc += 8
 
             Case &H18 To &H1B ' sbb

@@ -205,7 +205,6 @@
             End Get
             Set(value As UInteger)
                 mSS = value
-                ignoreINTs = True ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
             End Set
         End Property
         Public Property SP As UInteger

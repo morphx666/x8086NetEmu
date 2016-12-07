@@ -424,9 +424,9 @@
         End Select
 
         If mVideoAdapter IsNot Nothing AndAlso TypeOf mVideoAdapter Is CGAWinForms Then
-            Dim wf As CGAWinForms = CType(mVideoAdapter, CGAWinForms)
-            AddHandler wf.RenderControl.MouseEnter, Sub() Cursor.Hide()
-            AddHandler wf.RenderControl.MouseLeave, Sub() Cursor.Show()
+            Dim cgawf As CGAWinForms = CType(mVideoAdapter, CGAWinForms)
+            AddHandler cgawf.RenderControl.MouseEnter, Sub() If cgawf.HideHostCursor Then Cursor.Hide()
+            AddHandler cgawf.RenderControl.MouseLeave, Sub() Cursor.Show()
         End If
     End Sub
 
