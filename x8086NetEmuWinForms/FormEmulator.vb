@@ -59,36 +59,9 @@ Public Class FormEmulator
                                                                    dlg.ShowDialog(Me)
                                                                End Using
                                                            End Sub
-        AddHandler PasteTextToolStripMenuItem.Click, Sub()
-                                                         If Not isSelectingText AndAlso Clipboard.ContainsText(TextDataFormat.Text) Then
-                                                             Dim cbc As String = Clipboard.GetText(TextDataFormat.Text)
-                                                             Dim tmp As New Threading.Thread(Sub()
-                                                                                                 Dim gd() As Char = {"(", ")", "{", "}", "+", "^"}
-                                                                                                 For Each c As Char In cbc
-                                                                                                     If gd.Contains(c) Then
-                                                                                                         SendKeys.SendWait($"{gd(2)}{c}{gd(3)}")
-                                                                                                     Else
-                                                                                                         SendKeys.SendWait(c)
-                                                                                                     End If
-                                                                                                     Threading.Thread.Sleep(5)
-                                                                                                 Next
-                                                                                             End Sub)
-                                                             tmp.Start()
-                                                         End If
-                                                     End Sub
+        AddHandler PasteTextToolStripMenuItem.Click, Sub() PasteTextFromClipboard()
 
-        AddHandler CopyTextToolStripMenuItem.Click, Sub()
-                                                        If isSelectingText Then Exit Sub
-                                                        If TypeOf cpu.VideoAdapter Is CGAWinForms Then
-                                                            Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
-                                                            cgawf.HideHostCursor = False
-                                                            cgawf.RenderControl.Cursor = Cursors.IBeam
-                                                            cpu.Pause()
-                                                            isSelectingText = True
-                                                        Else
-                                                            MsgBox("Text copying is only supported on CGAWinForms video adapters", MsgBoxStyle.Information)
-                                                        End If
-                                                    End Sub
+        AddHandler CopyTextToolStripMenuItem.Click, Sub() CopyTextFromEmulator()
 
         'AddHandler cpu.EmulationHalted, Sub()
         '                                    MsgBox(String.Format("System Halted at {0:X4}:{1:X4}", cpu.Registers.CS, cpu.Registers.IP),
@@ -98,21 +71,22 @@ Public Class FormEmulator
 #If Win32 Then
         AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
                                                  If (e1.KeyData And Keys.Control) = Keys.Control AndAlso Convert.ToBoolean(GetAsyncKeyState(Keys.RControlKey)) Then
-                                                     If e1.KeyCode = Keys.Home Then ContextMenuStripMain.Show(Cursor.Position)
-
-                                                     If e1.KeyCode = Keys.Add Then
-                                                         Dim zoom = cpu.VideoAdapter.Zoom
-                                                         If zoom < 4 Then SetZoomLevel(zoom + 0.25)
-                                                     End If
-
-                                                     If e1.KeyCode = Keys.Subtract Then
-                                                         Dim zoom = cpu.VideoAdapter.Zoom
-                                                         If zoom > 0.25 Then SetZoomLevel(zoom - 0.25)
-                                                     End If
-
-                                                     If e1.KeyCode = Keys.NumPad0 Then SetZoomLevel(1)
-
-                                                     'Debug.WriteLine(e1.KeyData)
+                                                     Select Case e1.KeyCode
+                                                         Case Keys.Home
+                                                             ContextMenuStripMain.Show(Cursor.Position)
+                                                         Case Keys.Add
+                                                             Dim zoom = cpu.VideoAdapter.Zoom
+                                                             If zoom < 4 Then SetZoomLevel(zoom + 0.25)
+                                                         Case Keys.Subtract
+                                                             Dim zoom = cpu.VideoAdapter.Zoom
+                                                             If zoom > 0.25 Then SetZoomLevel(zoom - 0.25)
+                                                         Case Keys.NumPad0
+                                                             SetZoomLevel(1)
+                                                         Case Keys.C
+                                                             CopyTextFromEmulator()
+                                                         Case Keys.P
+                                                             PasteTextFromClipboard()
+                                                     End Select
 
                                                      e1.Handled = True
                                                  End If
@@ -124,6 +98,37 @@ Public Class FormEmulator
 #End If
         AddHandler videoPort.MouseEnter, Sub() ContextMenuStripMain.Hide()
         AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
+    End Sub
+
+    Private Sub CopyTextFromEmulator()
+        If isSelectingText Then Exit Sub
+        If TypeOf cpu.VideoAdapter Is CGAWinForms Then
+            Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
+            cgawf.HideHostCursor = False
+            cgawf.RenderControl.Cursor = Cursors.IBeam
+            cpu.Pause()
+            isSelectingText = True
+        Else
+            MsgBox("Text copying is only supported on CGAWinForms video adapters", MsgBoxStyle.Information)
+        End If
+    End Sub
+
+    Private Sub PasteTextFromClipboard()
+        If Not isSelectingText AndAlso Clipboard.ContainsText(TextDataFormat.Text) Then
+            Dim cbc As String = Clipboard.GetText(TextDataFormat.Text)
+            Dim tmp As New Threading.Thread(Sub()
+                                                Dim gd() As Char = {"(", ")", "{", "}", "+", "^"}
+                                                For Each c As Char In cbc
+                                                    If gd.Contains(c) Then
+                                                        SendKeys.SendWait($"{gd(2)}{c}{gd(3)}")
+                                                    Else
+                                                        SendKeys.SendWait(c)
+                                                    End If
+                                                    Threading.Thread.Sleep(5)
+                                                Next
+                                            End Sub)
+            tmp.Start()
+        End If
     End Sub
 
     Private Sub SetTitleText()
