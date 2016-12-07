@@ -462,7 +462,7 @@ Public Class x8086
             HandlePendingInterrupt()
         End If
 
-        Prefetch()
+        'Prefetch()
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
 
