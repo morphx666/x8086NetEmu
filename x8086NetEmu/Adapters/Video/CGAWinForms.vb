@@ -386,6 +386,8 @@ Public Class CGAWinForms
             b0 = CPU.Memory(address)
             b1 = CPU.Memory(address + 1)
 
+            If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
+
             If useCGAFont Then
                 RenderChar(b0, g, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
             Else
@@ -397,14 +399,10 @@ Public Class CGAWinForms
                 If (blinkCounter < BlinkRate) Then
                     g.FillRectangle(brushCache(b1.LowNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
                 End If
-                If BlinkCursor Then
-                    If blinkCounter >= 2 * BlinkRate Then
-                        blinkCounter = 0
-                    Else
-                        blinkCounter += 1
-                    End If
-                Else
+                If blinkCounter >= 2 * BlinkRate Then
                     blinkCounter = 0
+                Else
+                    blinkCounter += 1
                 End If
             End If
 
@@ -426,12 +424,12 @@ Public Class CGAWinForms
     End Function
 
     Public Function ColRowToAddress(col As Integer, row As Integer) As UInteger
-        Return StartTextVideoAddress + row *( TextResolution.Width *2)+ (col * 2)
+        Return StartTextVideoAddress + row * (TextResolution.Width * 2) + (col * 2)
     End Function
 
     Private Sub RenderChar(c As Integer, g As Graphics, fb As SolidBrush, bb As SolidBrush, p As Point)
-        Dim ccc = New CGAChar(c, fb, bb)
-        Dim idx = cgaCharsCache.IndexOf(ccc)
+        Dim ccc As New CGAChar(c, fb, bb)
+        Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
         If idx = -1 Then
             ccc.Render()
             cgaCharsCache.Add(ccc)

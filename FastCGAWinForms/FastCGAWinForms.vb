@@ -378,14 +378,10 @@ Public Class FastCGAWinForms
                 If (blinkCounter < BlinkRate) Then
                     g.FillRectangle(brushCache(b1.LowNib()), CursorCol * charSize.Width + 1, CursorRow * charSize.Height + cursorYOffset, cursorSize.Width, cursorSize.Height)
                 End If
-                If BlinkCursor Then
-                    If blinkCounter >= 2 * BlinkRate Then
-                        blinkCounter = 0
-                    Else
-                        blinkCounter += 1
-                    End If
-                Else
+                If blinkCounter >= 2 * BlinkRate Then
                     blinkCounter = 0
+                Else
+                    blinkCounter += 1
                 End If
             End If
         End Using
