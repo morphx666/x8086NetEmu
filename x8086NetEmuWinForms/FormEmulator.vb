@@ -43,24 +43,14 @@ Public Class FormEmulator
         AddHandler ConsoleToolStripMenuItem.Click, Sub() ShowConsole()
         AddHandler SoftResetToolStripMenuItem.Click, Sub() cpu.SoftReset()
         AddHandler HardResetToolStripMenuItem.Click, Sub() cpu.HardReset()
-        AddHandler FloppyManagerToolStripMenuItem.Click, Sub()
-                                                             Using dlg As New FormDiskManager()
-                                                                 dlg.Emulator = cpu
-                                                                 dlg.HardDiskMode = False
+        AddHandler MediaToolStripMenuItem.Click, Sub()
+                                                     Using dlg As New FormDiskManager()
+                                                         dlg.Emulator = cpu
+                                                         dlg.ShowDialog(Me)
+                                                     End Using
+                                                 End Sub
 
-                                                                 dlg.ShowDialog(Me)
-                                                             End Using
-                                                         End Sub
-        AddHandler HardDiskManagerToolStripMenuItem.Click, Sub()
-                                                               Using dlg As New FormDiskManager()
-                                                                   dlg.Emulator = cpu
-                                                                   dlg.HardDiskMode = True
-
-                                                                   dlg.ShowDialog(Me)
-                                                               End Using
-                                                           End Sub
         AddHandler PasteTextToolStripMenuItem.Click, Sub() PasteTextFromClipboard()
-
         AddHandler CopyTextToolStripMenuItem.Click, Sub() CopyTextFromEmulator()
 
         'AddHandler cpu.EmulationHalted, Sub()
@@ -146,7 +136,7 @@ Public Class FormEmulator
                                     cpu.SimulationMultiplier * 100,
                                     cpu.VideoAdapter.Zoom * 100,
                                     cpu.MIPs,
-                                    If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", "Running")))
+                                    If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", If(cpu.IsPaused, "Paused", "Running"))))
     End Sub
 
     Private Sub StartEmulation()

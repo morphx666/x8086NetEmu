@@ -22,25 +22,26 @@ Partial Class DiskImgCtrl
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
-        Me.Label1 = New System.Windows.Forms.Label()
+        Me.LabelDriveInfo = New System.Windows.Forms.Label()
         Me.TextBoxImageFileName = New System.Windows.Forms.TextBox()
         Me.ButtonLoad = New System.Windows.Forms.Button()
         Me.ButtonEject = New System.Windows.Forms.Button()
         Me.CheckBoxReadOnly = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
-        'Label1
+        'LabelDriveInfo
         '
-        Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(3, 0)
-        Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(38, 13)
-        Me.Label1.TabIndex = 0
-        Me.Label1.Text = "Floppy"
+        Me.LabelDriveInfo.AutoSize = True
+        Me.LabelDriveInfo.Location = New System.Drawing.Point(3, 0)
+        Me.LabelDriveInfo.Name = "LabelDriveInfo"
+        Me.LabelDriveInfo.Size = New System.Drawing.Size(38, 13)
+        Me.LabelDriveInfo.TabIndex = 0
+        Me.LabelDriveInfo.Text = "Floppy"
         '
         'TextBoxImageFileName
         '
-        Me.TextBoxImageFileName.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.TextBoxImageFileName.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.TextBoxImageFileName.BackColor = System.Drawing.SystemColors.Window
         Me.TextBoxImageFileName.Location = New System.Drawing.Point(6, 16)
         Me.TextBoxImageFileName.Name = "TextBoxImageFileName"
@@ -86,14 +87,14 @@ Partial Class DiskImgCtrl
         Me.Controls.Add(Me.ButtonEject)
         Me.Controls.Add(Me.ButtonLoad)
         Me.Controls.Add(Me.TextBoxImageFileName)
-        Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.LabelDriveInfo)
         Me.Name = "DiskImgCtrl"
         Me.Size = New System.Drawing.Size(585, 43)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
     End Sub
-    Friend WithEvents Label1 As System.Windows.Forms.Label
+    Friend WithEvents LabelDriveInfo As System.Windows.Forms.Label
     Friend WithEvents TextBoxImageFileName As System.Windows.Forms.TextBox
     Friend WithEvents ButtonLoad As System.Windows.Forms.Button
     Friend WithEvents ButtonEject As System.Windows.Forms.Button

@@ -76,7 +76,7 @@ Public Class x8086
     Private cancelAllThreads As Boolean
     Private debugWaiter As AutoResetEvent
 
-    Private trapEnabled As Boolean
+    'Private trapEnabled As Boolean
     Private Shared ignoreINTs As Boolean
 
     Public Sched As Scheduler
@@ -179,7 +179,7 @@ Public Class x8086
         mIsHalted = False
         mIsExecuting = False
         isDecoding = False
-        trapEnabled = False
+        'trapEnabled = False
         ignoreINTs = False
         repeLoopMode = REPLoopModes.None
         IPAddrOff = 0
@@ -453,16 +453,16 @@ Public Class x8086
     Public Sub Execute()
         mIsExecuting = True
 
-        If trapEnabled Then HandleInterrupt(1, False)
-        trapEnabled = (mFlags.TF = 1)
-
-        If ignoreINTs Then
+        If mFlags.TF = 1 Then
+            HandleInterrupt(1, False)
+        ElseIf ignoreINTs Then
             ignoreINTs = False
         Else
             HandlePendingInterrupt()
         End If
 
         'Prefetch()
+        'opCode = Prefetch.Buffer(0)
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
 

@@ -40,7 +40,7 @@ Public Class DiskImgCtrl
     Private Sub ButtonLoad_Click(sender As Object, e As EventArgs) Handles ButtonLoad.Click
         Using dlg As New OpenFileDialog()
             dlg.Title = "Select " + devName + " Disk Image"
-            dlg.Filter = "Supported " + devName + " Disk Images|*.ima;*.img;*.vfd|All Files|*.*"
+            dlg.Filter = "Supported " + devName + " Disk Images|*.ima;*.img;*.vfd;*.flp|All Files|*.*"
             If dlg.ShowDialog(Me) = Windows.Forms.DialogResult.OK Then
                 TextBoxImageFileName.Text = dlg.FileName
 
@@ -76,18 +76,17 @@ Public Class DiskImgCtrl
     Private Sub UpdateUI()
         If mHardDiskMode Then
             devName = "Hard"
-            Label1.Text = devName + " Drive "
         Else
             devName = "Floppy"
-            Label1.Text = devName + " Drive "
         End If
+        LabelDriveInfo.Text = $"{devName} Drive "
 
         If mEmulator Is Nothing Then Exit Sub
 
         If mHardDiskMode Then
-            If mIndex >= 128 Then Label1.Text = devName + " Drive " + Chr(67 + mIndex - 128) + ":"
+            If mIndex >= 128 Then LabelDriveInfo.Text = $"{devName} Drive {Chr(67 + mIndex - 128)}:"
         Else
-            Label1.Text = devName + " Drive " + Chr(65 + mIndex) + ":"
+            LabelDriveInfo.Text = $"{devName} Drive {Chr(65 + mIndex)}:"
         End If
 
         If mEmulator.FloppyContoller.DiskImage(mIndex) Is Nothing Then

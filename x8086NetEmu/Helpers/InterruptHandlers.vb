@@ -19,7 +19,7 @@ Partial Public Class x8086
         ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
         If mFlags.IF = 1 AndAlso
-           Not trapEnabled AndAlso
+           mFlags.TF = 0 AndAlso
            mRegisters.ActiveSegmentChanged = False AndAlso
            picIsAvailable Then
 
@@ -37,11 +37,6 @@ Partial Public Class x8086
         If intNum = &H13 AndAlso mEmulateINT13 Then ' (intNum = &H13 OrElse intNum = &HFD) AndAlso mEmulateINT13 Then
             HandleINT13()
         Else
-            'If intNum = 1 Then
-            '    DebugMode = True ' This is what causes CheckIT to hang when testing the "CPU Interrupt Bug"
-            '    'Stop
-            'End If
-
             PushIntoStack(mFlags.EFlags)
             PushIntoStack(mRegisters.CS)
 

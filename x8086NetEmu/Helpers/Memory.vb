@@ -222,11 +222,11 @@
             mActiveSegmentRegister = RegistersTypes.DS
         End Sub
 
-        Public Property ActiveSegmentRegister As GPRegisters.RegistersTypes
+        Public Property ActiveSegmentRegister As RegistersTypes
             Get
                 Return mActiveSegmentRegister
             End Get
-            Set(value As GPRegisters.RegistersTypes)
+            Set(value As RegistersTypes)
                 mActiveSegmentRegister = value
                 mActiveSegmentChanged = True
             End Set
