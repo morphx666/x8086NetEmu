@@ -20,6 +20,9 @@ Public Class FormEmulator
     Private fromColRow As Point
     Private toColRow As Point
 
+    Private v20Emulation As Boolean
+    Private int13Emulation As Boolean
+
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SaveSettings()
 
@@ -32,8 +35,14 @@ Public Class FormEmulator
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.BackColor = Color.Black
 
-        StartEmulation()
+        ' New settings that are recommend to be turned on
+        INT13EmulationToolStripMenuItem.Checked = True
+        int13Emulation = True
+        VIC20EmulationToolStripMenuItem.Checked = True
+        v20Emulation = True
 
+        StartEmulation()
+        LoadSettings()
         SetupEventHandlers()
         SetTitleText()
     End Sub
@@ -57,6 +66,17 @@ Public Class FormEmulator
         '                                    MsgBox(String.Format("System Halted at {0:X4}:{1:X4}", cpu.Registers.CS, cpu.Registers.IP),
         '                                           MsgBoxStyle.Critical, "Emulation Stopped")
         '                                End Sub
+
+        AddHandler INT13EmulationToolStripMenuItem.Click, Sub()
+                                                              int13Emulation = Not int13Emulation
+                                                              INT13EmulationToolStripMenuItem.Checked = int13Emulation
+                                                              WarnAboutRestart()
+                                                          End Sub
+        AddHandler VIC20EmulationToolStripMenuItem.Click, Sub()
+                                                              v20Emulation = Not v20Emulation
+                                                              VIC20EmulationToolStripMenuItem.Checked = v20Emulation
+                                                              WarnAboutRestart()
+                                                          End Sub
 
 #If Win32 Then
         AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
@@ -88,6 +108,14 @@ Public Class FormEmulator
 #End If
         AddHandler videoPort.MouseEnter, Sub() ContextMenuStripMain.Hide()
         AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
+    End Sub
+
+    Private Sub WarnAboutRestart()
+        cpu.Pause()
+        Me.Hide()
+        MsgBox("Changes to this option require restarting the emulator", MsgBoxStyle.Information)
+        Me.Show()
+        cpu.Resume()
     End Sub
 
     Private Sub CopyTextFromEmulator()
@@ -130,7 +158,7 @@ Public Class FormEmulator
         sysMenuShortcut = "Ctrl + MButton"
 #End If
 
-        Me.Text = String.Format("x8086NetEmu [System Menu: {0}]       {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5}",
+        Me.Text = String.Format("x8086NetEmu [Menu: {0}]       {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5}",
                                     sysMenuShortcut,
                                     cpu.Clock / x8086.MHz,
                                     cpu.SimulationMultiplier * 100,
@@ -140,7 +168,7 @@ Public Class FormEmulator
     End Sub
 
     Private Sub StartEmulation()
-        cpu = New x8086(True)
+        cpu = New x8086(v20Emulation)
         cpuState = New EmulatorState(cpu)
 
         videoPort = New RenderCtrlGDI()
@@ -159,14 +187,11 @@ Public Class FormEmulator
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
 #End If
 
-        ' http://www.allbootdisks.com/
-        LoadSettings()
-
         cpu.VideoAdapter.AutoSize()
 
         x8086.LogToConsole = False
-        cpu.EmulateINT13 = True
 
+        cpu.EmulateINT13 = int13Emulation
         cpu.Run(False)
     End Sub
 
@@ -315,6 +340,8 @@ Public Class FormEmulator
     End Sub
 
     Private Sub LoadSettings()
+        ' Enforce defaults
+
         If IO.File.Exists("settings.dat") Then
             Dim xml = XDocument.Load("settings.dat")
 
@@ -367,6 +394,10 @@ Public Class FormEmulator
 
         Me.Left = (My.Computer.Screen.WorkingArea.Width - Me.Width) / 2
         Me.Top = (My.Computer.Screen.WorkingArea.Height - Me.Height) / 2
+
+        Dim b As Boolean
+        If Boolean.TryParse(xml.<extras>.<emulateINT13>.Value, b) Then INT13EmulationToolStripMenuItem.Checked = b : int13Emulation = b
+        If Boolean.TryParse(xml.<extras>.<vic20>.Value, b) Then VIC20EmulationToolStripMenuItem.Checked = b : v20Emulation = b
     End Sub
 
     Private Sub SetCPUClockSpeed(value As Double)
@@ -406,8 +437,10 @@ Public Class FormEmulator
     Private Sub SaveSettings()
         cpuState.SaveSettings("settings.dat",
                               <extras>
-                                  <consoleVisible><%= (fConsole IsNot Nothing).ToString() %></consoleVisible>
-                                  <monitorVisible><%= (fMonitor IsNot Nothing).ToString() %></monitorVisible>
+                                  <consoleVisible><%= fConsole?.ToString() %></consoleVisible>
+                                  <monitorVisible><%= fMonitor?.ToString() %></monitorVisible>
+                                  <emulateINT13><%= int13Emulation %></emulateINT13>
+                                  <vic20><%= v20Emulation %></vic20>
                               </extras>)
     End Sub
 

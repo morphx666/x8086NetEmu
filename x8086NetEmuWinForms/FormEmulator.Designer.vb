@@ -63,6 +63,9 @@ Partial Class FormEmulator
         Me.Zoom150ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.Zoom200ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.Zoom400ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.INT13EmulationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.VIC20EmulationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.ToolStripMenuItem5 = New System.Windows.Forms.ToolStripSeparator()
         Me.ContextMenuStripMain.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -111,7 +114,7 @@ Partial Class FormEmulator
         '
         'EmulatorToolStripMenuItem
         '
-        Me.EmulatorToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CPUClockToolStripMenuItem, Me.EmulationSpeedToolStripMenuItem, Me.ToolStripMenuItem1, Me.SoftResetToolStripMenuItem, Me.HardResetToolStripMenuItem, Me.ToolStripMenuItem2, Me.LoadStateToolStripMenuItem, Me.SaveStateToolStripMenuItem, Me.ToolStripMenuItem3, Me.ExitToolStripMenuItem})
+        Me.EmulatorToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CPUClockToolStripMenuItem, Me.EmulationSpeedToolStripMenuItem, Me.ToolStripMenuItem5, Me.INT13EmulationToolStripMenuItem, Me.VIC20EmulationToolStripMenuItem, Me.ToolStripMenuItem1, Me.SoftResetToolStripMenuItem, Me.HardResetToolStripMenuItem, Me.ToolStripMenuItem2, Me.LoadStateToolStripMenuItem, Me.SaveStateToolStripMenuItem, Me.ToolStripMenuItem3, Me.ExitToolStripMenuItem})
         Me.EmulatorToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.icon
         Me.EmulatorToolStripMenuItem.Name = "EmulatorToolStripMenuItem"
         Me.EmulatorToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
@@ -121,7 +124,7 @@ Partial Class FormEmulator
         '
         Me.CPUClockToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MHz0477ToolStripMenuItem, Me.MHz0954ToolStripMenuItem, Me.MHz1908ToolStripMenuItem, Me.MHz3816ToolStripMenuItem, Me.MHz4770ToolStripMenuItem4})
         Me.CPUClockToolStripMenuItem.Name = "CPUClockToolStripMenuItem"
-        Me.CPUClockToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
+        Me.CPUClockToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
         Me.CPUClockToolStripMenuItem.Text = "CPU Clock"
         '
         'MHz0477ToolStripMenuItem
@@ -158,7 +161,7 @@ Partial Class FormEmulator
         '
         Me.EmulationSpeedToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripMenuItemSpeed25, Me.ToolStripMenuItemSpeed50, Me.ToolStripMenuItemSpeed100, Me.ToolStripMenuItemSpeed150, Me.ToolStripMenuItemSpeed200, Me.ToolStripMenuItemSpeed400, Me.ToolStripMenuItemSpeed800, Me.ToolStripMenuItemSpeed1000})
         Me.EmulationSpeedToolStripMenuItem.Name = "EmulationSpeedToolStripMenuItem"
-        Me.EmulationSpeedToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
+        Me.EmulationSpeedToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
         Me.EmulationSpeedToolStripMenuItem.Text = "Emulation Speed"
         '
         'ToolStripMenuItemSpeed25
@@ -214,46 +217,46 @@ Partial Class FormEmulator
         'ToolStripMenuItem1
         '
         Me.ToolStripMenuItem1.Name = "ToolStripMenuItem1"
-        Me.ToolStripMenuItem1.Size = New System.Drawing.Size(216, 6)
+        Me.ToolStripMenuItem1.Size = New System.Drawing.Size(223, 6)
         '
         'SoftResetToolStripMenuItem
         '
         Me.SoftResetToolStripMenuItem.Name = "SoftResetToolStripMenuItem"
-        Me.SoftResetToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
+        Me.SoftResetToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
         Me.SoftResetToolStripMenuItem.Text = "Soft Reset (CTRL+ALT+INS)"
         '
         'HardResetToolStripMenuItem
         '
         Me.HardResetToolStripMenuItem.Name = "HardResetToolStripMenuItem"
-        Me.HardResetToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
+        Me.HardResetToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
         Me.HardResetToolStripMenuItem.Text = "Hard Reset"
         '
         'ToolStripMenuItem2
         '
         Me.ToolStripMenuItem2.Name = "ToolStripMenuItem2"
-        Me.ToolStripMenuItem2.Size = New System.Drawing.Size(216, 6)
+        Me.ToolStripMenuItem2.Size = New System.Drawing.Size(223, 6)
         '
         'LoadStateToolStripMenuItem
         '
         Me.LoadStateToolStripMenuItem.Name = "LoadStateToolStripMenuItem"
-        Me.LoadStateToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
+        Me.LoadStateToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
         Me.LoadStateToolStripMenuItem.Text = "Load State..."
         '
         'SaveStateToolStripMenuItem
         '
         Me.SaveStateToolStripMenuItem.Name = "SaveStateToolStripMenuItem"
-        Me.SaveStateToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
+        Me.SaveStateToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
         Me.SaveStateToolStripMenuItem.Text = "Save State..."
         '
         'ToolStripMenuItem3
         '
         Me.ToolStripMenuItem3.Name = "ToolStripMenuItem3"
-        Me.ToolStripMenuItem3.Size = New System.Drawing.Size(216, 6)
+        Me.ToolStripMenuItem3.Size = New System.Drawing.Size(223, 6)
         '
         'ExitToolStripMenuItem
         '
         Me.ExitToolStripMenuItem.Name = "ExitToolStripMenuItem"
-        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(219, 22)
+        Me.ExitToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
         Me.ExitToolStripMenuItem.Text = "Exit"
         '
         'MediaToolStripMenuItem
@@ -310,6 +313,25 @@ Partial Class FormEmulator
         Me.Zoom400ToolStripMenuItem.Size = New System.Drawing.Size(102, 22)
         Me.Zoom400ToolStripMenuItem.Text = "400%"
         '
+        'INT13EmulationToolStripMenuItem
+        '
+        Me.INT13EmulationToolStripMenuItem.ForeColor = System.Drawing.Color.OrangeRed
+        Me.INT13EmulationToolStripMenuItem.Name = "INT13EmulationToolStripMenuItem"
+        Me.INT13EmulationToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
+        Me.INT13EmulationToolStripMenuItem.Text = "Emulate Disk Access (INT 13)"
+        '
+        'VIC20EmulationToolStripMenuItem
+        '
+        Me.VIC20EmulationToolStripMenuItem.ForeColor = System.Drawing.Color.OrangeRed
+        Me.VIC20EmulationToolStripMenuItem.Name = "VIC20EmulationToolStripMenuItem"
+        Me.VIC20EmulationToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
+        Me.VIC20EmulationToolStripMenuItem.Text = "VIC 20 Emulation"
+        '
+        'ToolStripMenuItem5
+        '
+        Me.ToolStripMenuItem5.Name = "ToolStripMenuItem5"
+        Me.ToolStripMenuItem5.Size = New System.Drawing.Size(223, 6)
+        '
         'FormEmulator
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -365,4 +387,7 @@ Partial Class FormEmulator
     Friend WithEvents ToolStripMenuItem4 As ToolStripSeparator
     Friend WithEvents CopyTextToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents PasteTextToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents INT13EmulationToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents VIC20EmulationToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents ToolStripMenuItem5 As ToolStripSeparator
 End Class

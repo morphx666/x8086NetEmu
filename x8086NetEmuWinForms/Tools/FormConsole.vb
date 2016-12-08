@@ -19,6 +19,8 @@ Public Class FormConsole
         SyncLock Me
             RemoveHandler x8086.Output, AddressOf Output
         End SyncLock
+
+        refreshTimer.Dispose()
     End Sub
 
     Private Sub FormConsole_Load(sender As Object, e As EventArgs) Handles MyBase.Load
