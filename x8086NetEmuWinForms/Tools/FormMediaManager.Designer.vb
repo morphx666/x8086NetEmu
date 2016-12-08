@@ -35,6 +35,7 @@ Partial Class FormMediaManager
         '
         'Label1
         '
+        Me.Label1.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label1.AutoSize = True
         Me.Label1.Location = New System.Drawing.Point(260, 4)
         Me.Label1.Name = "Label1"
@@ -123,11 +124,11 @@ Partial Class FormMediaManager
         Me.DiskImgCtrlA.Size = New System.Drawing.Size(434, 44)
         Me.DiskImgCtrlA.TabIndex = 0
         '
-        'FormDiskManager
+        'FormMediaManager
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(458, 260)
+        Me.ClientSize = New System.Drawing.Size(458, 261)
         Me.Controls.Add(Me.Panel1)
         Me.Controls.Add(Me.ButtonReboot)
         Me.Controls.Add(Me.ButtonOK)
@@ -139,9 +140,10 @@ Partial Class FormMediaManager
         Me.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MaximizeBox = False
+        Me.MaximumSize = New System.Drawing.Size(9999, 300)
         Me.MinimizeBox = False
-        Me.MinimumSize = New System.Drawing.Size(474, 255)
-        Me.Name = "FormDiskManager"
+        Me.MinimumSize = New System.Drawing.Size(474, 300)
+        Me.Name = "FormMediaManager"
         Me.ShowInTaskbar = False
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
         Me.Text = "Media Manager"
