@@ -125,10 +125,10 @@
     <Compile Include="Controls\DiskImgCtrl.vb">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Tools\FormDiskManager.Designer.vb">
-      <DependentUpon>FormDiskManager.vb</DependentUpon>
+    <Compile Include="Tools\FormMediaManager.Designer.vb">
+      <DependentUpon>FormMediaManager.vb</DependentUpon>
     </Compile>
-    <Compile Include="Tools\FormDiskManager.vb">
+    <Compile Include="Tools\FormMediaManager.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Tools\FormConsole.Designer.vb">
@@ -170,8 +170,8 @@
     <EmbeddedResource Include="Controls\DiskImgCtrl.resx">
       <DependentUpon>DiskImgCtrl.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Tools\FormDiskManager.resx">
-      <DependentUpon>FormDiskManager.vb</DependentUpon>
+    <EmbeddedResource Include="Tools\FormMediaManager.resx">
+      <DependentUpon>FormMediaManager.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Tools\FormConsole.resx">

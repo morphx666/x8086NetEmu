@@ -53,9 +53,14 @@ Public Class FormEmulator
         AddHandler SoftResetToolStripMenuItem.Click, Sub() cpu.SoftReset()
         AddHandler HardResetToolStripMenuItem.Click, Sub() cpu.HardReset()
         AddHandler MediaToolStripMenuItem.Click, Sub()
-                                                     Using dlg As New FormDiskManager()
+                                                     cpu.Pause()
+                                                     Using dlg As New FormMediaManager()
                                                          dlg.Emulator = cpu
-                                                         dlg.ShowDialog(Me)
+                                                         If dlg.ShowDialog(Me) = DialogResult.Abort Then
+                                                             cpu.HardReset()
+                                                         Else
+                                                             cpu.Resume()
+                                                         End If
                                                      End Using
                                                  End Sub
 
