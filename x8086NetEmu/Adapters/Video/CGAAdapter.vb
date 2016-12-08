@@ -118,7 +118,6 @@ Public MustInherit Class CGAAdapter
     Private mVideoMode As VideoModes = VideoModes.Undefined
     Private mMainMode As MainModes
     Private mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
-    Private mBlinkCharOn As Boolean
 
     Private mZoom As Double = 1.0
 
@@ -198,7 +197,8 @@ Public MustInherit Class CGAAdapter
 
     Public ReadOnly Property BlinkCharOn As Boolean
         Get
-            Return mBlinkCharOn
+            Return CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) <> 0 AndAlso
+                   CGAColorControlRegister(CGAColorControlRegisters.bright_background_or_blinking_text) = 0
         End Get
     End Property
 
@@ -518,7 +518,6 @@ Public MustInherit Class CGAAdapter
         If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
 
         mVideoEnabled = CGAModeControlRegister(CGAModeControlRegisters.video_enabled) <> 0
-        'mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) <> 0
     End Sub
 
     Protected Overridable Sub OnPaletteRegisterChanged()
@@ -528,7 +527,6 @@ Public MustInherit Class CGAAdapter
             Dim colors() As Color = Nothing
             Dim cgaModeReg As Integer = x8086.BitsArrayToWord(CGAModeControlRegister)
             Dim cgaColorReg As Integer = x8086.BitsArrayToWord(CGAPaletteRegister)
-            mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) <> 0
 
             'Dim burts As Boolean = (cgaModeReg And &H4) <> 0
             'Dim pal As Boolean = (cgaColorReg And &H20) <> 0

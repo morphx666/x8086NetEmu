@@ -455,7 +455,8 @@ Public Class x8086
         mIsExecuting = True
 
         If mFlags.TF = 1 Then
-            ' The additiong of the "If ignoreINTs Then" not only fixes the issue with CheckIt, but it even allows it to pass the dreaded "Interrupt Check"!!!
+            ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
+            ' but it even allows it to pass it successfully!!!
             If ignoreINTs Then HandleInterrupt(1, False)
         ElseIf ignoreINTs Then
             ignoreINTs = False
