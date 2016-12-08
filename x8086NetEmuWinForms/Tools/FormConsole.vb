@@ -13,8 +13,12 @@ Public Class FormConsole
                             "}%\par}"
     Private rtfText As String = ""
 
+    Private refreshTimer As New Timer(New TimerCallback(AddressOf UpdateRtf), Nothing, Timeout.Infinite, Timeout.Infinite)
+
     Private Sub FormConsole_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        RemoveHandler x8086.Output, AddressOf Output
+        SyncLock Me
+            RemoveHandler x8086.Output, AddressOf Output
+        End SyncLock
     End Sub
 
     Private Sub FormConsole_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -33,28 +37,31 @@ Public Class FormConsole
     End Property
 
     Private Sub Output(message As String, reason As x8086.NotificationReasons, arg() As Object)
-        Try
-            Me.Invoke(New MethodInvoker(Sub()
-                                            rtfText += "\cf1 " + MilTime + ": "
+        rtfText += "\cf1 " + MillTime + ": "
 
-                                            Select Case reason
-                                                Case x8086.NotificationReasons.Info : rtfText += "\cf2 "
-                                                Case x8086.NotificationReasons.Warn : rtfText += "\cf3 "
-                                                Case x8086.NotificationReasons.Err : rtfText += "\cf4 "
-                                                Case x8086.NotificationReasons.Fck : rtfText += "\cf5 "
-                                            End Select
+        Select Case reason
+            Case x8086.NotificationReasons.Info : rtfText += "\cf2 "
+            Case x8086.NotificationReasons.Warn : rtfText += "\cf3 "
+            Case x8086.NotificationReasons.Err : rtfText += "\cf4 "
+            Case x8086.NotificationReasons.Fck : rtfText += "\cf5 "
+        End Select
 
-                                            rtfText += String.Format(message.Replace("{", "\b {").Replace("}", "}\b0 ") + " \par ", arg)
+        rtfText += String.Format(message.Replace("{", "\b {").Replace("}", "}\b0 ") + " \par ", arg)
 
+        refreshTimer.Change(30, Timeout.Infinite)
+    End Sub
+
+    Private Sub UpdateRtf()
+        Me.Invoke(New MethodInvoker(Sub()
+                                        SyncLock Me
                                             RichTextBoxConsole.Rtf = rtfTextStd.Replace("%", rtfText)
                                             RichTextBoxConsole.SelectionStart = RichTextBoxConsole.TextLength
                                             RichTextBoxConsole.ScrollToCaret()
-                                        End Sub))
-        Catch
-        End Try
+                                        End SyncLock
+                                    End Sub))
     End Sub
 
-    Private ReadOnly Property MilTime As String
+    Private ReadOnly Property MillTime As String
         Get
             Return String.Format("{0:00}:{1:00}:{2:00}:{3:000}", Now.Hour, Now.Minute, Now.Second, Now.Millisecond)
         End Get
