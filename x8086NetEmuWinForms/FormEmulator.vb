@@ -158,7 +158,7 @@ Public Class FormEmulator
         sysMenuShortcut = "Ctrl + MButton"
 #End If
 
-        Me.Text = String.Format("x8086NetEmu [Menu: {0}]       {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5}",
+        Me.Text = String.Format("x8086NetEmu [Menu: {0}]      {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5}",
                                     sysMenuShortcut,
                                     cpu.Clock / x8086.MHz,
                                     cpu.SimulationMultiplier * 100,

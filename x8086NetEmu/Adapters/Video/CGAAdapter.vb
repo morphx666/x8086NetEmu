@@ -274,14 +274,9 @@ Public MustInherit Class CGAAdapter
         End If
     End Sub
 
-    Public Sub Update()
-        waiter.Set()
-    End Sub
-
     Private Sub MainLoop()
         Do
             waiter.WaitOne(1000 / VERTSYNC)
-            'waiter.WaitOne()
 
             If isInit AndAlso mVideoEnabled AndAlso mVideoMode <> VideoModes.Undefined Then
                 SyncLock lockObject
@@ -520,12 +515,10 @@ Public MustInherit Class CGAAdapter
         Dim newMode As VideoModes = v And &H17 ' 10111
         ' 00100101
 
-        If (v And vidModeChangeFlag) <> 0 Then
-            If newMode <> mVideoMode Then VideoMode = newMode
-        End If
+        If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
 
         mVideoEnabled = CGAModeControlRegister(CGAModeControlRegisters.video_enabled) <> 0
-        mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) <> 0
+        'mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) <> 0
     End Sub
 
     Protected Overridable Sub OnPaletteRegisterChanged()

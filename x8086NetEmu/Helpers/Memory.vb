@@ -404,14 +404,12 @@
             If address < ROMStart Then
                 Memory(address) = value
 
-                ' This considerably speeds up the emulator, but breaks cursor blinking...
-                'If mVideoAdapter IsNot Nothing Then
-                '    Select Case mVideoAdapter.MainMode
-                '        Case CGAAdapter.MainModes.Text
-                '            If address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress Then mVideoAdapter.Update()
-                '        Case CGAAdapter.MainModes.Graphics
-                '            If address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress Then mVideoAdapter.Update()
-                '    End Select
+                ' FIXME: This will not work until the rendering engine(s) utilize a persistent graphic (such as a DirectBitmap)
+                'If isVideoAdapterAvailable Then
+                '    If (address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) OrElse
+                '       (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) Then
+                '        mVideoAdapter.IsDirty(address) = True
+                '    End If
                 'End If
             End If
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))

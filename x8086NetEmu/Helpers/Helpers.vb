@@ -1,4 +1,5 @@
 ﻿Partial Public Class x8086
+    Private isVideoAdapterAvailable As Boolean
     Private tmpCF As UShort
     Private portsCache As New Dictionary(Of UInteger, IOPortHandler)
     Private parityLUT() As Byte = {
@@ -419,6 +420,7 @@
                 mMouse = adptr
             Case Adapter.AdapterType.Video
                 mVideoAdapter = adptr
+                isVideoAdapterAvailable = (adptr IsNot Nothing)
             Case Adapter.AdapterType.Floppy
                 mFloppyController = adptr
         End Select
