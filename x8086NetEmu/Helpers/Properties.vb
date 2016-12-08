@@ -114,12 +114,9 @@
     End Property
 
 
-    Public Property EmulateINT13 As Boolean
+    Public ReadOnly Property EmulateINT13 As Boolean
         Get
             Return mEmulateINT13
         End Get
-        Set(value As Boolean)
-            mEmulateINT13 = value
-        End Set
     End Property
 End Class

@@ -26,10 +26,7 @@ Public Class FormEmulator
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SaveSettings()
 
-        If fMonitor IsNot Nothing Then fMonitor.Close()
-        If fConsole IsNot Nothing Then fConsole.Close()
-
-        cpu.Close()
+        StopEmulation()
     End Sub
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -41,9 +38,12 @@ Public Class FormEmulator
         VIC20EmulationToolStripMenuItem.Checked = True
         v20Emulation = True
 
+        LoadSettings() ' For pre-emulation settings
         StartEmulation()
-        LoadSettings()
+        LoadSettings() ' For post-emulation settings
+
         SetupEventHandlers()
+
         SetTitleText()
     End Sub
 
@@ -78,6 +78,9 @@ Public Class FormEmulator
                                                               WarnAboutRestart()
                                                           End Sub
 
+    End Sub
+
+    Private Sub SetupCpuEventHandlers()
 #If Win32 Then
         AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
                                                  If (e1.KeyData And Keys.Control) = Keys.Control AndAlso Convert.ToBoolean(GetAsyncKeyState(Keys.RControlKey)) Then
@@ -167,8 +170,20 @@ Public Class FormEmulator
                                     If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", If(cpu.IsPaused, "Paused", "Running"))))
     End Sub
 
+    Private Sub StopEmulation()
+        If cpu IsNot Nothing Then
+            If fMonitor IsNot Nothing Then fMonitor.Close()
+            If fConsole IsNot Nothing Then fConsole.Close()
+
+            cpu.Close()
+            cpu = Nothing
+        End If
+    End Sub
+
     Private Sub StartEmulation()
-        cpu = New x8086(v20Emulation)
+        StopEmulation()
+
+        cpu = New x8086(v20Emulation, int13Emulation)
         cpuState = New EmulatorState(cpu)
 
         videoPort = New RenderCtrlGDI()
@@ -176,13 +191,13 @@ Public Class FormEmulator
         Me.Controls.Add(videoPort)
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
-        'cpu.Adapters.Add(New FastCGAWinForms.FastCGAWinForms(cpu, videoPort))
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         'cpu.Adapters.Add(New MouseAdapter(cpu)) ' Not Compatible with MINIX
 
         AddSupportForTextCopy()
 
+        ' FIXME: Use BASS to provide cross-platform audio support
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
 #End If
@@ -191,8 +206,9 @@ Public Class FormEmulator
 
         x8086.LogToConsole = False
 
-        cpu.EmulateINT13 = int13Emulation
         cpu.Run(False)
+
+        SetupCpuEventHandlers()
     End Sub
 
     Private Sub AddSupportForTextCopy()
@@ -350,50 +366,52 @@ Public Class FormEmulator
     End Sub
 
     Private Sub ParseSettings(xml As XElement)
-        cpu.SimulationMultiplier = Double.Parse(xml.<simulationMultiplier>.Value)
-        Dim simulationMultiplierText As String = (cpu.SimulationMultiplier * 100).ToString() + "%"
-        For Each ddi As ToolStripItem In EmulationSpeedToolStripMenuItem.DropDownItems
-            If TypeOf ddi Is ToolStripMenuItem Then
-                Dim mi = CType(ddi, ToolStripMenuItem)
-                If mi.Text.StartsWith("Custom") Then
+        If cpu IsNot Nothing Then
+            cpu.SimulationMultiplier = Double.Parse(xml.<simulationMultiplier>.Value)
+            Dim simulationMultiplierText As String = (cpu.SimulationMultiplier * 100).ToString() + "%"
+            For Each ddi As ToolStripItem In EmulationSpeedToolStripMenuItem.DropDownItems
+                If TypeOf ddi Is ToolStripMenuItem Then
+                    Dim mi = CType(ddi, ToolStripMenuItem)
+                    If mi.Text.StartsWith("Custom") Then
 
-                Else
-                    mi.Checked = (ddi.Text = simulationMultiplierText)
+                    Else
+                        mi.Checked = (ddi.Text = simulationMultiplierText)
+                    End If
                 End If
-            End If
-        Next
+            Next
 
-        SetCPUClockSpeed(Double.Parse(xml.<clockSpeed>.Value))
-        SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))
+            SetCPUClockSpeed(Double.Parse(xml.<clockSpeed>.Value))
+            SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))
 
-        For i As Integer = 0 To 512 - 1
-            If cpu.FloppyContoller.DiskImage(i) IsNot Nothing Then cpu.FloppyContoller.DiskImage(i).Close()
-        Next
+            For i As Integer = 0 To 512 - 1
+                If cpu.FloppyContoller.DiskImage(i) IsNot Nothing Then cpu.FloppyContoller.DiskImage(i).Close()
+            Next
 
-        For Each f In xml.<floppies>.<floppy>
-            Dim index As Integer = Asc(f.<letter>.Value) - 65
-            Dim image As String = f.<image>.Value
-            Dim ro As Boolean = Boolean.Parse(f.<readOnly>.Value)
+            For Each f In xml.<floppies>.<floppy>
+                Dim index As Integer = Asc(f.<letter>.Value) - 65
+                Dim image As String = f.<image>.Value
+                Dim ro As Boolean = Boolean.Parse(f.<readOnly>.Value)
 
-            cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro)
-        Next
+                cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro)
+            Next
 
-        For Each d In xml.<disks>.<disk>
-            Dim index As Integer = Asc(d.<letter>.Value) - 67 + 128
-            Dim image As String = d.<image>.Value
-            Dim ro As Boolean = Boolean.Parse(d.<readOnly>.Value)
+            For Each d In xml.<disks>.<disk>
+                Dim index As Integer = Asc(d.<letter>.Value) - 67 + 128
+                Dim image As String = d.<image>.Value
+                Dim ro As Boolean = Boolean.Parse(d.<readOnly>.Value)
 
-            cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro, True)
-        Next
+                cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro, True)
+            Next
 
-        Try
-            If Boolean.Parse(xml.<extras>.<consoleVisible>.Value) Then ShowConsole()
-            If Boolean.Parse(xml.<extras>.<monitorVisible>.Value) Then ShowMonitor()
-        Catch
-        End Try
+            Try
+                If Boolean.Parse(xml.<extras>.<consoleVisible>.Value) Then ShowConsole()
+                If Boolean.Parse(xml.<extras>.<monitorVisible>.Value) Then ShowMonitor()
+            Catch
+            End Try
 
-        Me.Left = (My.Computer.Screen.WorkingArea.Width - Me.Width) / 2
-        Me.Top = (My.Computer.Screen.WorkingArea.Height - Me.Height) / 2
+            Me.Left = (My.Computer.Screen.WorkingArea.Width - Me.Width) / 2
+            Me.Top = (My.Computer.Screen.WorkingArea.Height - Me.Height) / 2
+        End If
 
         Dim b As Boolean
         If Boolean.TryParse(xml.<extras>.<emulateINT13>.Value, b) Then INT13EmulationToolStripMenuItem.Checked = b : int13Emulation = b

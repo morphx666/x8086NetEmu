@@ -4,10 +4,10 @@
 ' http://www.delorie.com/djgpp/doc/rbinter/ix/
 
 Partial Public Class x8086
-    Private ignoreTimeSync As Boolean
-
     Private lastAH(256 - 1) As UShort
     Private lastCF(256 - 1) As UShort
+
+    Private pendingIntNum As Integer
 
     Public Sub HandleHardwareInterrupt(intNum As Byte)
         HandleInterrupt(intNum, True)
@@ -20,13 +20,13 @@ Partial Public Class x8086
 
         If mFlags.IF = 1 AndAlso
            mFlags.TF = 0 AndAlso
-           mRegisters.ActiveSegmentChanged = False AndAlso
+           Not mRegisters.ActiveSegmentChanged AndAlso
            picIsAvailable Then
 
-            Dim intNum As Integer = PIC.GetPendingInterrupt()
-            If intNum >= 0 Then
+            pendingIntNum = PIC.GetPendingInterrupt()
+            If pendingIntNum >= 0 Then
                 mIsHalted = False
-                HandleHardwareInterrupt(intNum)
+                HandleHardwareInterrupt(pendingIntNum)
             End If
         End If
     End Sub

@@ -97,8 +97,9 @@ Public Class x8086
     Public Shared Event Output(message As String, reason As NotificationReasons, arg() As Object)
     Public Event MIPsUpdated()
 
-    Public Sub New(Optional v20 As Boolean = False)
+    Public Sub New(Optional v20 As Boolean = True, Optional int13 As Boolean = True)
         mVic20 = v20
+        mEmulateINT13 = int13
 
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
