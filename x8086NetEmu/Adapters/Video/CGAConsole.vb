@@ -3,8 +3,9 @@
 Public Class CGAConsole
     Inherits CGAAdapter
 
-    Private loopThread As Thread
     Private waiter As AutoResetEvent
+
+    Private blinkCounter As Integer
 
     Private buffer() As Byte
 
@@ -15,32 +16,8 @@ Public Class CGAConsole
         InitiAdapter()
 
         Console.TreatControlCAsInput = True
-        Console.OutputEncoding = New System.Text.UTF8Encoding()
+        Console.OutputEncoding = New Text.UTF8Encoding()
         Console.Clear()
-
-        waiter = New AutoResetEvent(False)
-        loopThread = New Thread(AddressOf MainLoop)
-        loopThread.Start()
-    End Sub
-
-    Private Sub MainLoop()
-        Do
-            waiter.WaitOne(1000 / (VERTSYNC / 8))
-
-            If Console.KeyAvailable Then
-                Dim keyInfo = Console.ReadKey(True)
-                Dim keyEvent As New KeyEventArgs(keyInfo.Key)
-
-                HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Shift, Keys.ShiftKey)
-                HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Control, Keys.ControlKey)
-                HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Alt, Keys.Alt)
-                lastModifiers = keyInfo.Modifiers
-
-                OnKeyDown(Me, keyEvent)
-                Thread.Sleep(100)
-                OnKeyUp(Me, keyEvent)
-            End If
-        Loop Until cancelAllThreads
     End Sub
 
     Private Sub HandleModifier(v As ConsoleModifiers, t As ConsoleModifiers, k As Keys)
@@ -76,11 +53,26 @@ Public Class CGAConsole
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
         MyBase.InitVideoMemory(clearScreen)
-
         Console.Title = "x8086 Emu - " + VideoMode.ToString()
     End Sub
 
     Private isBusy As Boolean
+
+    Private Sub HandleKeyPress()
+        If Console.KeyAvailable Then
+            Dim keyInfo = Console.ReadKey(True)
+            Dim keyEvent As New KeyEventArgs(keyInfo.Key)
+
+            HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Shift, Keys.ShiftKey)
+            HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Control, Keys.ControlKey)
+            HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Alt, Keys.Alt)
+            lastModifiers = keyInfo.Modifiers
+
+            OnKeyDown(Me, keyEvent)
+            Thread.Sleep(100)
+            OnKeyUp(Me, keyEvent)
+        End If
+    End Sub
 
     Protected Overrides Sub Render()
         Dim b0 As Byte
@@ -90,17 +82,32 @@ Public Class CGAConsole
         Dim row As Integer = 0
         Dim bufIdx As Integer = 0
 
+        Dim cv As Boolean = False
+
+        HandleKeyPress()
+
         ' The "-4" is to prevent the code from printing the last character and avoid scrolling.
         ' Unfortunately, this causes the last char to not be printed
         For address As Integer = StartTextVideoAddress To StartTextVideoAddress + buffer.Length - 4 Step 2
             b0 = CPU.RAM(address)
             b1 = CPU.RAM(address + 1)
 
+            If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
+
             If buffer(bufIdx) <> b0 OrElse buffer(bufIdx + 1) <> b1 Then
                 ConsoleCrayon.WriteFast(chars(b0), b1.LowNib(), b1.HighNib(), col, row)
-
                 buffer(bufIdx) = b0
                 buffer(bufIdx + 1) = b1
+            End If
+
+            If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
+                If blinkCounter < BlinkRate Then cv = True
+
+                If blinkCounter >= 2 * BlinkRate Then
+                    blinkCounter = 0
+                Else
+                    blinkCounter += 1
+                End If
             End If
 
             col += 1
@@ -113,14 +120,14 @@ Public Class CGAConsole
             bufIdx += 2
         Next
 
-        If CursorVisible Then Console.SetCursorPosition(CursorCol, CursorRow)
+        If cv Then
+            Console.SetCursorPosition(CursorCol, CursorRow)
+            Console.CursorVisible = True
+        Else
+            Console.CursorVisible = False
+        End If
     End Sub
 
     Public Overrides Sub Run()
-    End Sub
-
-    Protected Overrides Sub OnDataRegisterChanged()
-        MyBase.OnDataRegisterChanged()
-        Console.CursorVisible = CursorVisible
     End Sub
 End Class

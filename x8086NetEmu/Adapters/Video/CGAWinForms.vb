@@ -399,6 +399,7 @@ Public Class CGAWinForms
                 If (blinkCounter < BlinkRate) Then
                     g.FillRectangle(brushCache(b1.LowNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
                 End If
+
                 If blinkCounter >= 2 * BlinkRate Then
                     blinkCounter = 0
                 Else

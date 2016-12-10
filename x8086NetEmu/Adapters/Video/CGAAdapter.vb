@@ -502,7 +502,7 @@ Public MustInherit Class CGAAdapter
                 mCursorRow = 50
             Else
                 mCursorCol = p Mod mTextResolution.Width
-                mCursorRow = p \ mTextResolution.Width
+                mCursorRow = p / mTextResolution.Width
             End If
         End If
     End Sub
