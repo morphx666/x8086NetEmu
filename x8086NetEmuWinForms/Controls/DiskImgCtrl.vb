@@ -103,11 +103,40 @@ Public Class DiskImgCtrl
             ButtonLoad.Enabled = False
             CheckBoxReadOnly.Enabled = True
         End If
+        ButtonView.Enabled = ButtonEject.Enabled
     End Sub
 
     Private Sub CheckBoxReadOnly_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxReadOnly.CheckedChanged
         If mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly <> CheckBoxReadOnly.Checked Then
             MountImage(mEmulator.FloppyContoller.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)
         End If
+    End Sub
+
+    Private Sub DoLayout()
+        ButtonView.Left = Me.Width - ButtonView.Width - ButtonView.Margin.Right
+        ButtonView.Top = TextBoxImageFileName.Top + (TextBoxImageFileName.Height - ButtonView.Height) / 2
+
+        ButtonEject.Left = ButtonView.Left - ButtonEject.Width - ButtonEject.Margin.Right - ButtonView.Margin.Left
+        ButtonEject.Top = ButtonView.Top
+
+        ButtonLoad.Left = ButtonEject.Left - ButtonLoad.Width - ButtonLoad.Margin.Right - ButtonEject.Margin.Left
+        ButtonLoad.Top = ButtonView.Top
+
+        CheckBoxReadOnly.Left = ButtonLoad.Left - CheckBoxReadOnly.Width - CheckBoxReadOnly.Margin.Right - ButtonLoad.Margin.Left
+        CheckBoxReadOnly.Top = TextBoxImageFileName.Top + (TextBoxImageFileName.Height - CheckBoxReadOnly.Height) / 2
+
+        TextBoxImageFileName.Width = CheckBoxReadOnly.Left - TextBoxImageFileName.Left - CheckBoxReadOnly.Margin.Left - TextBoxImageFileName.Margin.Right
+    End Sub
+
+    Private Sub DiskImgCtrl_Load(sender As Object, e As EventArgs) Handles Me.Load
+        AddHandler Me.FontChanged, AddressOf DoLayout
+        DoLayout()
+    End Sub
+
+    Private Sub ButtonView_Click(sender As Object, e As EventArgs) Handles ButtonView.Click
+        Using dlg As New FormDiskExplorer()
+            dlg.Initialize(TextBoxImageFileName.Text)
+            dlg.ShowDialog(Me)
+        End Using
     End Sub
 End Class

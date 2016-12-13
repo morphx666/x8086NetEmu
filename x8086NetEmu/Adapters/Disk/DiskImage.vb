@@ -31,18 +31,18 @@ Public Class DiskImage
         {80, 2, 36, 2880 * 1024}}
 
     Private file As IO.FileStream
-    Private mCylinders As Integer
-    Private mHeads As Integer
-    Private mSectors As Integer
-    Private mSectorSize As Integer
-    Private mReadOnly As Boolean
-    Private mStatus As ImageStatus = ImageStatus.NoDisk
-    Private mFileLength As Long
-    Private mIsHardDisk As Boolean
-    Private mFileName As String
-    Private mDriveType As DriveTypes
+    Protected Friend mCylinders As Integer
+    Protected Friend mHeads As Integer
+    Protected Friend mSectors As Integer
+    Protected Friend mSectorSize As Integer
+    Protected Friend mReadOnly As Boolean
+    Protected Friend mStatus As ImageStatus = ImageStatus.NoDisk
+    Protected Friend mFileLength As Long
+    Protected Friend mIsHardDisk As Boolean
+    Protected Friend mFileName As String
+    Protected Friend mDriveType As DriveTypes
 
-    Private Shared mHardDiskCount As Integer
+    Protected Friend Shared mHardDiskCount As Integer
 
     Public Sub New()
     End Sub
@@ -92,9 +92,9 @@ Public Class DiskImage
 
             Try
                 If mReadOnly Then
-                    file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.Read)
+                    file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite)
                 Else
-                    file = New IO.FileStream(mFileName, IO.FileMode.OpenOrCreate, IO.FileAccess.ReadWrite)
+                    file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.ReadWrite, IO.FileShare.ReadWrite)
                 End If
 
                 mFileLength = file.Length
@@ -111,11 +111,11 @@ Public Class DiskImage
             End Try
         End If
 
-        x8086.Notify("DiskImage '{0}': {1}", x8086.NotificationReasons.Info, fileName, mStatus.ToString())
+        x8086.Notify("DiskImage '{0}': {1}", x8086.NotificationReasons.Info, mFileName, mStatus.ToString())
     End Sub
 
     ' Guess disk geometry of the image based on its size
-    Private Function MatchGeometry() As Boolean
+    Protected Friend Function MatchGeometry() As Boolean
         mSectorSize = 512
 
         If mIsHardDisk Then
@@ -257,7 +257,7 @@ Public Class DiskImage
         End Get
     End Property
 
-    Public Function Read(offset As Long, data() As Byte) As Integer
+    Public Overridable Function Read(offset As Long, data() As Byte) As Integer
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         If offset < 0 OrElse offset + data.Length > mFileLength Then Return EOF
@@ -272,7 +272,7 @@ Public Class DiskImage
         End Try
     End Function
 
-    Public Function Write(offset As Long, data() As Byte) As Integer
+    Public Overridable Function Write(offset As Long, data() As Byte) As Integer
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         If offset < 0 OrElse offset + data.Length > mFileLength Then Return EOF

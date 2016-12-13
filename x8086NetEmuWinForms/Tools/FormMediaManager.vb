@@ -15,16 +15,18 @@ Public Class FormMediaManager
             DiskImgCtrlB.Emulator = mEmulator
             DiskImgCtrlC.Emulator = mEmulator
             DiskImgCtrlD.Emulator = mEmulator
+
+            Me.DialogResult = DialogResult.Abort
         End Set
     End Property
 
     Private Sub FormDiskManager_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         AddHandler ButtonOK.Click, Sub()
-                                       Me.DialogResult = DialogResult.OK
+                                       Me.DialogResult = DialogResult.No
                                        Me.Close()
                                    End Sub
         AddHandler ButtonReboot.Click, Sub()
-                                           Me.DialogResult = DialogResult.Abort
+                                           Me.DialogResult = DialogResult.Yes
                                            Me.Close()
                                        End Sub
     End Sub
