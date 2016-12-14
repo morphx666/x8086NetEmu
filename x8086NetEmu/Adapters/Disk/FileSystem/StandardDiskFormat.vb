@@ -193,31 +193,48 @@ Public Class StandardDiskFormat
     End Sub
 
     Public Function GetDirectoryEntries(partitionNumber As Integer, Optional clusterIndex As Integer = -1) As FAT12_16.DirectoryEntry()
+        Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
         Dim pb As GCHandle
         Dim des() As FAT12_16.DirectoryEntry = Nothing
         Dim b(32 - 1) As Byte
+        Dim bytesRead As UInt32
+        Dim dirEntryCount As Integer = -1
+        Dim tmp As FAT12_16.DirectoryEntry
 
-        If clusterIndex = -1 Then
-            strm.Position = fatRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
-        Else
-            strm.Position = ClusterToSector(partitionNumber, clusterIndex)
-        End If
+        While clusterIndex < &HFFF8
+            If clusterIndex = -1 Then
+                strm.Position = fatRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
+            Else
+                strm.Position = ClusterToSector(partitionNumber, clusterIndex)
+            End If
 
-        Dim dirEntryCount As Integer = 0
-        Do
-            strm.Read(b, 0, b.Length)
-            Select Case b(0) ' First char of FileName
-                Case 0 : Exit Do
-                Case 5 : b(0) = &HE5
-            End Select
-            pb = GCHandle.Alloc(b, GCHandleType.Pinned)
-            ReDim Preserve des(dirEntryCount)
-            des(dirEntryCount) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.DirectoryEntry))
-            'mRootDirectoryEntries(i)(dirEntryCount) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.DirectoryEntry))
-            pb.Free()
+            Do
+                strm.Read(b, 0, b.Length)
+                Select Case b(0) ' First char of FileName
+                    Case 0 : Exit Do
+                    Case 5 : b(0) = &HE5
+                End Select
+                pb = GCHandle.Alloc(b, GCHandleType.Pinned)
+                tmp = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.DirectoryEntry))
+                pb.Free()
 
-            dirEntryCount += 1
-        Loop
+                If tmp.StartingCluster > 0 Then
+                    dirEntryCount += 1
+                    ReDim Preserve des(dirEntryCount)
+                    des(dirEntryCount) = tmp
+                End If
+
+                If clusterIndex <> -1 Then
+                    bytesRead += b.Length
+                    If bytesRead Mod bytesInCluster = 0 Then
+                        clusterIndex = mFATDataPointers(partitionNumber)(clusterIndex)
+                        Exit Do
+                    End If
+                End If
+            Loop
+
+            If clusterIndex = -1 Then Exit While
+        End While
 
         Return des
     End Function

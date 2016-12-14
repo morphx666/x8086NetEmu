@@ -22,6 +22,7 @@ Partial Class FormDiskExplorer
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FormDiskExplorer))
         Me.ListViewFileSystem = New System.Windows.Forms.ListView()
         Me.ColumnHeaderFileName = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
@@ -46,6 +47,7 @@ Partial Class FormDiskExplorer
         Me.chMnemonic = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.chParameters = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.Label6 = New System.Windows.Forms.Label()
+        Me.ImageListIcons = New System.Windows.Forms.ImageList(Me.components)
         Me.SuspendLayout()
         '
         'ListViewFileSystem
@@ -62,6 +64,7 @@ Partial Class FormDiskExplorer
         Me.ListViewFileSystem.Location = New System.Drawing.Point(282, 178)
         Me.ListViewFileSystem.Name = "ListViewFileSystem"
         Me.ListViewFileSystem.Size = New System.Drawing.Size(438, 351)
+        Me.ListViewFileSystem.SmallImageList = Me.ImageListIcons
         Me.ListViewFileSystem.TabIndex = 1
         Me.ListViewFileSystem.UseCompatibleStateImageBehavior = False
         Me.ListViewFileSystem.View = System.Windows.Forms.View.Details
@@ -92,8 +95,11 @@ Partial Class FormDiskExplorer
         Me.TreeViewDirs.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.TreeViewDirs.FullRowSelect = True
         Me.TreeViewDirs.HideSelection = False
+        Me.TreeViewDirs.ImageIndex = 0
+        Me.TreeViewDirs.ImageList = Me.ImageListIcons
         Me.TreeViewDirs.Location = New System.Drawing.Point(12, 178)
         Me.TreeViewDirs.Name = "TreeViewDirs"
+        Me.TreeViewDirs.SelectedImageIndex = 0
         Me.TreeViewDirs.Size = New System.Drawing.Size(264, 351)
         Me.TreeViewDirs.TabIndex = 2
         '
@@ -247,6 +253,12 @@ Partial Class FormDiskExplorer
         Me.Label6.TabIndex = 6
         Me.Label6.Text = "Partition:"
         '
+        'ImageListIcons
+        '
+        Me.ImageListIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth24Bit
+        Me.ImageListIcons.ImageSize = New System.Drawing.Size(16, 16)
+        Me.ImageListIcons.TransparentColor = System.Drawing.Color.Transparent
+        '
         'FormDiskExplorer
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
@@ -303,4 +315,5 @@ Partial Class FormDiskExplorer
     Friend WithEvents chMnemonic As ColumnHeader
     Friend WithEvents chParameters As ColumnHeader
     Friend WithEvents Label6 As Label
+    Friend WithEvents ImageListIcons As ImageList
 End Class

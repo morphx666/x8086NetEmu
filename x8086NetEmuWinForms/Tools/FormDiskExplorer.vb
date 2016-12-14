@@ -10,6 +10,7 @@ Public Class FormDiskExplorer
         sdf = New StandardDiskFormat(New IO.FileStream(fileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite))
 
         LabelImageFile.Text = fileName
+        ImageListIcons.Images.Add(Win32FileIcon.GetIconFromFile("."))
 
         InitLVCode()
         AutoSizeLastColumn(ListViewCode)
@@ -37,10 +38,11 @@ Public Class FormDiskExplorer
 
                                                                 TreeViewDirs.Nodes.Clear()
                                                                 If volLabels.Count > 0 Then
-                                                                    rootNode = TreeViewDirs.Nodes.Add(volLabels.First())
+                                                                    rootNode = New TreeNode(volLabels.First(), -1, -1)
                                                                 Else
-                                                                    rootNode = TreeViewDirs.Nodes.Add("[No Label]")
+                                                                    rootNode = New TreeNode("[No Label]", -1, -1)
                                                                 End If
+                                                                TreeViewDirs.Nodes.Add(rootNode)
 
                                                                 DisplayFileSystem(rootNode, sdf.RootDirectoryEntries(selectedParitionIndex))
                                                             End Sub
@@ -60,12 +62,12 @@ Public Class FormDiskExplorer
 
         Dim directories = From de In entries
                           Where (de.Attribute And FAT12_16.EntryAttributes.Directory) = FAT12_16.EntryAttributes.Directory AndAlso
-                                Convert.ToByte(de.FileNameChars(0)) < &HE5
+                                Convert.ToByte(de.FileNameChars(0)) < &H5E
                           Order By de.FileName
         Dim files = From de In entries
                     Where (de.Attribute And FAT12_16.EntryAttributes.Directory) <> FAT12_16.EntryAttributes.Directory AndAlso
                           (de.Attribute And FAT12_16.EntryAttributes.VolumeName) <> FAT12_16.EntryAttributes.VolumeName AndAlso
-                          Convert.ToByte(de.FileNameChars(0)) < &HE5
+                          Convert.ToByte(de.FileNameChars(0)) < &H5E
                     Order By de.FileName
 
         'Dim driveNumber As Integer = sdf.BootSector(0).DriveNumber
@@ -81,12 +83,12 @@ Public Class FormDiskExplorer
                 node = FindNode(d, parentNode)
 
                 If node Is Nothing Then
-                    node = New TreeNode(d.FileName)
+                    node = New TreeNode(d.FileName, 0, 0)
                     node.Tag = d
                     parentNode.Nodes.Add(node)
                 End If
 
-                With ListViewFileSystem.Items.Add(d.FileName)
+                With ListViewFileSystem.Items.Add(d.FileName, 0)
                     With .SubItems
                         .Add("")
                         .Add(GetTypeDescription("Directory"))
@@ -98,8 +100,8 @@ Public Class FormDiskExplorer
         Next
 
         For Each f In files
-            With ListViewFileSystem.Items.Add(f.FileName).SubItems
-                .Add(Math.Ceiling( (f.FileSize / 1024)).ToString("N0") + " KB")
+            With ListViewFileSystem.Items.Add(f.FileName, GetExtensionIconIndex(f.FileExtension)).SubItems
+                .Add(Math.Ceiling((f.FileSize / 1024)).ToString("N0") + " KB")
                 .Add(GetTypeDescription($".{f.FileExtension}"))
                 .Add($"{f.WriteDateTime.ToShortDateString()} {f.WriteDateTime.ToLongTimeString()}")
             End With
@@ -109,6 +111,36 @@ Public Class FormDiskExplorer
         TreeViewDirs.SelectedNode = parentNode
         ListViewFileSystem.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent)
     End Sub
+
+    Private Function GetExtensionIconIndex(ext As String) As Integer
+        ext = "." + ext
+
+        Dim index As Integer = -1
+        Dim extKey As RegistryKey = Registry.ClassesRoot.OpenSubKey(ext)
+
+        Dim extValue As String = extKey?.GetValue("")?.ToString()
+        Dim dataKey As RegistryKey = Registry.ClassesRoot.OpenSubKey(extValue + "\DefaultIcon")
+
+        If dataKey IsNot Nothing AndAlso dataKey.ValueCount > 0 AndAlso dataKey.GetValue("") IsNot Nothing Then
+            Dim dataValue As String = dataKey.GetValue("").ToString()
+
+            index = ImageListIcons.Images.IndexOfKey(extValue)
+            If index = -1 Then
+                Dim ico As Icon = Win32FileIcon.GetIconFromFile(dataValue)
+                If ico IsNot Nothing Then
+                    ImageListIcons.Images.Add(extValue, ico)
+                    index = ImageListIcons.Images.IndexOfKey(extValue)
+
+                    'ImageListIcons.Images(index).Save($"d:\users\xavier\desktop\{extValue}.png", Imaging.ImageFormat.Png)
+                End If
+            End If
+        End If
+
+        extKey?.Close()
+        dataKey?.Close()
+
+        Return index
+    End Function
 
     Private Function FindNode(d As FAT12_16.DirectoryEntry, parentNode As TreeNode) As TreeNode
         For Each n As TreeNode In parentNode.Nodes
