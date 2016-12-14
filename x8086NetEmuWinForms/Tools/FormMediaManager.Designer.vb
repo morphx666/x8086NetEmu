@@ -85,7 +85,6 @@ Partial Class FormMediaManager
         '
         Me.DiskImgCtrlD.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.DiskImgCtrlD.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.DiskImgCtrlD.Emulator = Nothing
         Me.DiskImgCtrlD.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.DiskImgCtrlD.HardDiskMode = True
@@ -99,7 +98,6 @@ Partial Class FormMediaManager
         '
         Me.DiskImgCtrlB.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.DiskImgCtrlB.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.DiskImgCtrlB.Emulator = Nothing
         Me.DiskImgCtrlB.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.DiskImgCtrlB.HardDiskMode = False
@@ -113,7 +111,6 @@ Partial Class FormMediaManager
         '
         Me.DiskImgCtrlC.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.DiskImgCtrlC.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.DiskImgCtrlC.Emulator = Nothing
         Me.DiskImgCtrlC.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.DiskImgCtrlC.HardDiskMode = True
@@ -127,7 +124,6 @@ Partial Class FormMediaManager
         '
         Me.DiskImgCtrlA.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.DiskImgCtrlA.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.DiskImgCtrlA.Emulator = Nothing
         Me.DiskImgCtrlA.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.DiskImgCtrlA.HardDiskMode = False

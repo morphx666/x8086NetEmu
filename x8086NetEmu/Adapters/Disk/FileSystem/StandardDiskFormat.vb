@@ -3,6 +3,16 @@
 ' http://www.maverick-os.dk/Mainmenu_NoFrames.html
 
 Public Class StandardDiskFormat
+    Private geometryTable(,) As Integer = {
+        {40, 1, 8, 160 * 1024},
+        {40, 2, 8, 320 * 1024},
+        {40, 1, 9, 180 * 1024},
+        {40, 2, 9, 360 * 1024},
+        {80, 2, 9, 720 * 1024},
+        {80, 2, 15, 1200 * 1024},
+        {80, 2, 18, 1440 * 1024},
+        {80, 2, 36, 2880 * 1024}}
+
     Public Enum BootIndicators As Byte
         NonBootable = 0
         SystemPartition = &H80
@@ -83,8 +93,6 @@ Public Class StandardDiskFormat
     Private mMasterBootRecord As MBR
     Private mBootSectors(4 - 1) As FAT12_16.BootSector ' In case we wanted to support additional file systems we should use a inheritable class instead of hard coding it to FAT12/16
     Private mFATDataPointers(4 - 1)() As UInt16
-    Private mFATIsClean(4 - 1) As Boolean
-    Private mFATReadWriteError(4 - 1) As Boolean
     Private mRootDirectoryEntries(4 - 1)() As FAT12_16.DirectoryEntry
 
     Private strm As IO.Stream
@@ -96,6 +104,61 @@ Public Class StandardDiskFormat
 
         strm = s
 
+        ' Assume Floppy Image (No partitions)
+        ' FIXME: There has to be a better way to know is the image is a floppy or a hard disk
+        '        Perhaps some better way to detect if the image has a master boot record or something...
+        strm.Position = 0
+        strm.Read(b, 0, b.Length)
+        pb = GCHandle.Alloc(b, GCHandleType.Pinned)
+        Dim bs As FAT12_16.BootSector = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.BootSector))
+        pb.Free()
+        If bs.BIOSParameterBlock.BytesPerSector = 512 Then
+            LoadAsFloppyImage()
+        Else
+            LoadAsHardDiskImage()
+        End If
+    End Sub
+
+    Private Sub LoadAsFloppyImage()
+        Dim pb As GCHandle
+        Dim b(512 - 1) As Byte
+
+        strm.Position = 0
+
+        ReDim mMasterBootRecord.Partitions(0)
+        mMasterBootRecord.Partitions(0) = New Partition()
+        mMasterBootRecord.Partitions(0).BootIndicator = BootIndicators.SystemPartition
+
+        For i As Integer = 0 To geometryTable.Length / 4 - 1
+            If strm.Length = geometryTable(i, 3) Then
+                mMasterBootRecord.Partitions(0).EndingSectorCylinder = ((geometryTable(i, 0) And &H3FC) << 8) Or ((geometryTable(i, 0) And &H3) << 6) Or
+                                                                        geometryTable(i, 2)
+                mMasterBootRecord.Partitions(0).EndingHead = geometryTable(i, 1)
+            End If
+        Next
+
+        strm.Position = 0
+        strm.Read(b, 0, b.Length)
+        pb = GCHandle.Alloc(b, GCHandleType.Pinned)
+        mBootSectors(0) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.BootSector))
+        pb.Free()
+
+        Select Case mBootSectors(0).ExtendedBIOSParameterBlock.FileSystemType
+            Case "FAT12" : mMasterBootRecord.Partitions(0).SystemId = SystemIds.FAT_12
+            Case "FAT16" : mMasterBootRecord.Partitions(0).SystemId = SystemIds.FAT_16
+            Case Else : mMasterBootRecord.Partitions(0).SystemId = SystemIds.EMPTY
+        End Select
+
+        mMasterBootRecord.Signature = mBootSectors(0).Signature
+
+        ReadFAT(0)
+    End Sub
+
+    Private Sub LoadAsHardDiskImage()
+        Dim pb As GCHandle
+        Dim b(512 - 1) As Byte
+
+        strm.Position = 0
         strm.Read(b, 0, b.Length)
         pb = GCHandle.Alloc(b, GCHandleType.Pinned)
         mMasterBootRecord = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(MBR))
@@ -109,48 +172,36 @@ Public Class StandardDiskFormat
                 mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.BootSector))
                 pb.Free()
 
-                fatRegionStart(partitionNumber) = strm.Position
-
-                ReDim mFATDataPointers(partitionNumber)(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
-                For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
-                    mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
-                Next
-
-                If (mFATDataPointers(partitionNumber)(0) And &HFF) = mBootSectors(partitionNumber).BIOSParameterBlock.MediaDescriptor Then
-                    mFATIsClean(partitionNumber) = (mFATDataPointers(partitionNumber)(1) And &H8000) <> 0
-                    mFATReadWriteError(partitionNumber) = (mFATDataPointers(partitionNumber)(1) And &H4000) = 0
-
-                    'strm.Position += (mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies - 1) * mFATDataPointers(partitionNumber).Length * 2
-                    mRootDirectoryEntries(partitionNumber) = GetDirectoryEntries(partitionNumber, -6) ' -6 = Root Directory (formula abobe)
-                Else
-                    ' Invalid boot sector
-                End If
+                ReadFAT(partitionNumber)
             End If
         Next
-
-        'Dim file() As Byte
-        'For Each de In mRootDirectoryEntries(0)
-        '    If de.FileName = "TEST" AndAlso de.FileExtension = "ASM" Then
-        '        file = ReadFile(0, de)
-        '        Dim contents As String = Text.Encoding.ASCII.GetString(file)
-        '        Stop
-        '        Exit For
-        '    ElseIf (de.Attribute And FAT12_16.EntryAttributes.Directory) = FAT12_16.EntryAttributes.Directory Then
-        '        If de.FileName = "DOS" Then
-        '            ' EC00
-        '            Dim des() As FAT12_16.DirectoryEntry = GetDirectoryEntries(0, de.StartingCluster)
-        '            Stop
-        '        End If
-        '    End If
-        'Next
     End Sub
 
-    Private Function GetDirectoryEntries(partitionNumber As Integer, clusterIndex As Integer) As FAT12_16.DirectoryEntry()
+    Private Sub ReadFAT(partitionNumber As Integer)
+        fatRegionStart(partitionNumber) = strm.Position
+
+        ReDim mFATDataPointers(partitionNumber)(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
+        For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
+            mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
+        Next
+
+        If (mFATDataPointers(partitionNumber)(0) And &HFF) = mBootSectors(partitionNumber).BIOSParameterBlock.MediaDescriptor Then
+            mRootDirectoryEntries(partitionNumber) = GetDirectoryEntries(partitionNumber, -1)
+        Else
+            ' Invalid boot sector
+        End If
+    End Sub
+
+    Public Function GetDirectoryEntries(partitionNumber As Integer, Optional clusterIndex As Integer = -1) As FAT12_16.DirectoryEntry()
         Dim pb As GCHandle
         Dim des() As FAT12_16.DirectoryEntry = Nothing
         Dim b(32 - 1) As Byte
 
-        strm.Position = ClusterToSector(partitionNumber, clusterIndex)
+        If clusterIndex = -1 Then
+            strm.Position = fatRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
+        Else
+            strm.Position = ClusterToSector(partitionNumber, clusterIndex)
+        End If
 
         Dim dirEntryCount As Integer = 0
         Do
@@ -216,19 +267,50 @@ Public Class StandardDiskFormat
 
     Public ReadOnly Property IsClean(partitionIndex As Integer) As Boolean
         Get
-            Return mFATIsClean(partitionIndex)
+            Return (mFATDataPointers(partitionIndex)(1) And &H8000) <> 0
+        End Get
+    End Property
+
+    Public ReadOnly Property IsBootable(partitionIndex As Integer) As Boolean
+        Get
+            Return mMasterBootRecord.Partitions(partitionIndex).BootIndicator = BootIndicators.SystemPartition AndAlso
+                    mBootSectors(partitionIndex).Signature = &HAA55
         End Get
     End Property
 
     Public ReadOnly Property ReadWriteError(partitionIndex As Integer) As Boolean
         Get
-            Return mFATReadWriteError(partitionIndex)
+            Return (mFATDataPointers(partitionIndex)(1) And &H4000) = 0
         End Get
     End Property
 
     Public ReadOnly Property RootDirectoryEntries(partitionIndex As Integer) As FAT12_16.DirectoryEntry()
         Get
             Return mRootDirectoryEntries(partitionIndex)
+        End Get
+    End Property
+
+    Public ReadOnly Property Cylinders(partitionIndex As Integer) As Int16
+        Get
+            Dim sc As Int16 = mMasterBootRecord.Partitions(partitionIndex).StartingSectorCylinder >> 6
+            sc = (sc >> 2) Or ((sc And &H3) << 8)
+            Dim ec As Int16 = mMasterBootRecord.Partitions(partitionIndex).EndingSectorCylinder >> 6
+            ec = (ec >> 2) Or ((ec And &H3) << 8)
+            Return ec - sc + 1
+        End Get
+    End Property
+
+    Public ReadOnly Property Sectors(partitionIndex As Integer) As Int16
+        Get
+            Dim ss As Int16 = mMasterBootRecord.Partitions(partitionIndex).StartingSectorCylinder And &H3F
+            Dim es As Int16 = mMasterBootRecord.Partitions(partitionIndex).EndingSectorCylinder And &H3F
+            Return es - ss
+        End Get
+    End Property
+
+    Public ReadOnly Property Heads(partitionIndex As Integer) As Int16
+        Get
+            Return mMasterBootRecord.Partitions(partitionIndex).EndingHead - mMasterBootRecord.Partitions(partitionIndex).StartingHead
         End Get
     End Property
 End Class

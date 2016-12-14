@@ -96,7 +96,11 @@ Public Class FAT12_16
             Get
                 Dim t() As Integer = FSTimeToNative(LastWriteTime)
                 Dim d() As Integer = FSDateToNative(LastWriteDate)
-                Return New DateTime(d(0), d(1), d(2), t(0), t(1), t(2))
+                Try
+                    Return New DateTime(d(0), d(1), d(2), t(0), t(1), t(2))
+                Catch
+                    Return New DateTime(1980, 1, 1, 0, 0, 0)
+                End Try
             End Get
         End Property
 
@@ -126,6 +130,14 @@ Public Class FAT12_16
 
             Return $"{FullFileName} [{attr}]"
         End Function
+
+        Public Shared Operator =(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
+            Return d1.Attribute = d2.Attribute AndAlso d1.StartingCluster = d2.StartingCluster
+        End Operator
+
+        Public Shared Operator <>(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
+            Return Not (d1 = d2)
+        End Operator
     End Structure
 
     <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)>

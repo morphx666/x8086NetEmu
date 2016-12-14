@@ -691,6 +691,8 @@
                 opCodeASM = "MOV " + addrMode.Register1.ToString() + ", " + Param(SelPrmIndex.First).ToHex(addrMode.Size)
                 clkCycDecoder += 4
 
+            Case &HC0, &HC1 : DecodeGroup2()
+
             Case &HC2 ' ret within segment adding imm to sp
                 opCodeASM = "RET " + Param(SelPrmIndex.First).ToHex(DataSize.Word)
                 clkCycDecoder += 20
