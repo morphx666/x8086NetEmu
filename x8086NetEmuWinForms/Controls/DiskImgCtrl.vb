@@ -40,7 +40,7 @@ Public Class DiskImgCtrl
     Private Sub ButtonLoad_Click(sender As Object, e As EventArgs) Handles ButtonLoad.Click
         Using dlg As New OpenFileDialog()
             dlg.Title = "Select " + devName + " Disk Image"
-            dlg.Filter = "Supported " + devName + " Disk Images|*.ima;*.img;*.vfd|All Files|*.*"
+            dlg.Filter = "Supported " + devName + " Disk Images|*.ima;*.img;*.vfd;*.flp|All Files|*.*"
             If dlg.ShowDialog(Me) = Windows.Forms.DialogResult.OK Then
                 TextBoxImageFileName.Text = dlg.FileName
 
@@ -76,18 +76,17 @@ Public Class DiskImgCtrl
     Private Sub UpdateUI()
         If mHardDiskMode Then
             devName = "Hard"
-            Label1.Text = devName + " Drive "
         Else
             devName = "Floppy"
-            Label1.Text = devName + " Drive "
         End If
+        LabelDriveInfo.Text = $"{devName} Drive "
 
         If mEmulator Is Nothing Then Exit Sub
 
         If mHardDiskMode Then
-            If mIndex >= 128 Then Label1.Text = devName + " Drive " + Chr(67 + mIndex - 128) + ":"
+            If mIndex >= 128 Then LabelDriveInfo.Text = $"{devName} Drive {Chr(67 + mIndex - 128)}:"
         Else
-            Label1.Text = devName + " Drive " + Chr(65 + mIndex) + ":"
+            LabelDriveInfo.Text = $"{devName} Drive {Chr(65 + mIndex)}:"
         End If
 
         If mEmulator.FloppyContoller.DiskImage(mIndex) Is Nothing Then
@@ -104,11 +103,40 @@ Public Class DiskImgCtrl
             ButtonLoad.Enabled = False
             CheckBoxReadOnly.Enabled = True
         End If
+        ButtonView.Enabled = ButtonEject.Enabled
     End Sub
 
     Private Sub CheckBoxReadOnly_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxReadOnly.CheckedChanged
         If mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly <> CheckBoxReadOnly.Checked Then
             MountImage(mEmulator.FloppyContoller.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)
         End If
+    End Sub
+
+    Private Sub DoLayout()
+        ButtonView.Left = Me.Width - ButtonView.Width - ButtonView.Margin.Right
+        ButtonView.Top = TextBoxImageFileName.Top + (TextBoxImageFileName.Height - ButtonView.Height) / 2
+
+        ButtonEject.Left = ButtonView.Left - ButtonEject.Width - ButtonEject.Margin.Right - ButtonView.Margin.Left
+        ButtonEject.Top = ButtonView.Top
+
+        ButtonLoad.Left = ButtonEject.Left - ButtonLoad.Width - ButtonLoad.Margin.Right - ButtonEject.Margin.Left
+        ButtonLoad.Top = ButtonView.Top
+
+        CheckBoxReadOnly.Left = ButtonLoad.Left - CheckBoxReadOnly.Width - CheckBoxReadOnly.Margin.Right - ButtonLoad.Margin.Left
+        CheckBoxReadOnly.Top = TextBoxImageFileName.Top + (TextBoxImageFileName.Height - CheckBoxReadOnly.Height) / 2
+
+        TextBoxImageFileName.Width = CheckBoxReadOnly.Left - TextBoxImageFileName.Left - CheckBoxReadOnly.Margin.Left - TextBoxImageFileName.Margin.Right
+    End Sub
+
+    Private Sub DiskImgCtrl_Load(sender As Object, e As EventArgs) Handles Me.Load
+        AddHandler Me.FontChanged, AddressOf DoLayout
+        DoLayout()
+    End Sub
+
+    Private Sub ButtonView_Click(sender As Object, e As EventArgs) Handles ButtonView.Click
+        Using dlg As New FormDiskExplorer()
+            dlg.Initialize(TextBoxImageFileName.Text)
+            dlg.ShowDialog(Me)
+        End Using
     End Sub
 End Class

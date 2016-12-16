@@ -114,6 +114,10 @@ Public Class CGAWinForms
     Private scale As New SizeF(1, 1)
 
     Private mCPU As x8086
+    Private mHideHostCursor As Boolean = True
+
+    Public Event PreRender(sender As Object, e As PaintEventArgs)
+    Public Event PostRender(sender As Object, e As PaintEventArgs)
 
     Private Class TaskSC
         Inherits Scheduler.Task
@@ -185,6 +189,20 @@ Public Class CGAWinForms
                                    StringFormatFlags.NoClip
     End Sub
 
+    Public Property HideHostCursor As Boolean
+        Get
+            Return mHideHostCursor
+        End Get
+        Set(value As Boolean)
+            mHideHostCursor = value
+            If mHideHostCursor Then
+                Cursor.Hide()
+            Else
+                Cursor.Show()
+            End If
+        End Set
+    End Property
+
     Public Property RenderControl As Control
         Get
             Return mRenderControl
@@ -249,7 +267,7 @@ Public Class CGAWinForms
         mRenderControl.Invalidate()
     End Sub
 
-    Private Sub Paint(sender As Object, e As System.Windows.Forms.PaintEventArgs)
+    Private Sub Paint(sender As Object, e As PaintEventArgs)
         SyncLock MyBase.lockObject
             Dim g As Graphics = e.Graphics
 
@@ -258,6 +276,8 @@ Public Class CGAWinForms
             g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
 
             g.ScaleTransform(scale.Width, scale.Height)
+
+            RaiseEvent PreRender(sender, e)
 
             Select Case MainMode
                 Case MainModes.Text
@@ -269,6 +289,8 @@ Public Class CGAWinForms
                 Case MainModes.Graphics
                     RenderGraphics(g)
             End Select
+
+            RaiseEvent PostRender(sender, e)
 
             'RenderWaveform(g)
         End SyncLock
@@ -364,6 +386,8 @@ Public Class CGAWinForms
             b0 = CPU.Memory(address)
             b1 = CPU.Memory(address + 1)
 
+            If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
+
             If useCGAFont Then
                 RenderChar(b0, g, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
             Else
@@ -375,14 +399,11 @@ Public Class CGAWinForms
                 If (blinkCounter < BlinkRate) Then
                     g.FillRectangle(brushCache(b1.LowNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
                 End If
-                If BlinkCursor Then
-                    If blinkCounter >= 2 * BlinkRate Then
-                        blinkCounter = 0
-                    Else
-                        blinkCounter += 1
-                    End If
-                Else
+
+                If blinkCounter >= 2 * BlinkRate Then
                     blinkCounter = 0
+                Else
+                    blinkCounter += 1
                 End If
             End If
 
@@ -399,9 +420,17 @@ Public Class CGAWinForms
         Next
     End Sub
 
+    Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
+        Return New Rectangle(New Point(col * charSize.Width, row * charSize.Height), charSize)
+    End Function
+
+    Public Function ColRowToAddress(col As Integer, row As Integer) As UInteger
+        Return StartTextVideoAddress + row * (TextResolution.Width * 2) + (col * 2)
+    End Function
+
     Private Sub RenderChar(c As Integer, g As Graphics, fb As SolidBrush, bb As SolidBrush, p As Point)
-        Dim ccc = New CGAChar(c, fb, bb)
-        Dim idx = cgaCharsCache.IndexOf(ccc)
+        Dim ccc As New CGAChar(c, fb, bb)
+        Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
         If idx = -1 Then
             ccc.Render()
             cgaCharsCache.Add(ccc)

@@ -89,10 +89,10 @@ Public Class FormMonitor
         InitLV(lvStack)
         AutoSizeLastColumn(lvStack)
 
-        InitLV(lvCode)
-        AutoSizeLastColumn(lvCode)
-        lvCode.BackColor = Color.FromArgb(34, 40, 42)
-        lvCode.ForeColor = Color.FromArgb(102, 80, 15)
+        InitLV(ListViewCode)
+        AutoSizeLastColumn(ListViewCode)
+        ListViewCode.BackColor = Color.FromArgb(34, 40, 42)
+        ListViewCode.ForeColor = Color.FromArgb(102, 80, 15)
 
         loopWaiter = New AutoResetEvent(False)
         ohpWaiter = New AutoResetEvent(False)
@@ -136,14 +136,14 @@ Public Class FormMonitor
         StepInto()
     End Sub
 
-    Private Sub lvCode_DoubleClick(sender As Object, e As System.EventArgs) Handles lvCode.DoubleClick
-        If lvCode.SelectedItems.Count = 0 Then Exit Sub
-        Dim address As String = lvCode.SelectedItems(0).Text
+    Private Sub lvCode_DoubleClick(sender As Object, e As System.EventArgs) Handles ListViewCode.DoubleClick
+        If ListViewCode.SelectedItems.Count = 0 Then Exit Sub
+        Dim address As String = ListViewCode.SelectedItems(0).Text
         txtCS.Text = address.Split(":")(0)
         txtIP.Text = address.Split(":")(1)
     End Sub
 
-    Private Sub lvCode_ItemChecked(sender As Object, e As System.Windows.Forms.ItemCheckedEventArgs) Handles lvCode.ItemChecked
+    Private Sub lvCode_ItemChecked(sender As Object, e As System.Windows.Forms.ItemCheckedEventArgs) Handles ListViewCode.ItemChecked
         If e.Item.Text = "" OrElse e.Item.SubItems.Count <> 4 Then Exit Sub
 
         Dim segment As Integer = (Val("&h" + e.Item.Text.Split(":")(0)) And &HFFFF)
@@ -160,7 +160,7 @@ Public Class FormMonitor
             breakPoints.Add(New Breakpoint(segment, offset))
             e.Item.BackColor = Color.FromArgb(127, 54, 64)
         Else
-            e.Item.BackColor = lvCode.BackColor
+            e.Item.BackColor = ListViewCode.BackColor
         End If
         e.Item.SubItems(1).BackColor = e.Item.BackColor
         e.Item.SubItems(2).BackColor = e.Item.BackColor
@@ -171,8 +171,8 @@ Public Class FormMonitor
         StartStopRunMode()
     End Sub
 
-    Private Sub lvCode_ClientSizeChanged(sender As Object, e As System.EventArgs) Handles lvCode.ClientSizeChanged
-        AutoSizeLastColumn(lvCode)
+    Private Sub lvCode_ClientSizeChanged(sender As Object, e As System.EventArgs) Handles ListViewCode.ClientSizeChanged
+        AutoSizeLastColumn(ListViewCode)
     End Sub
 
     Private Sub btnRefresh_Click(sender As System.Object, e As System.EventArgs) Handles btnRefresh.Click
@@ -238,6 +238,8 @@ Public Class FormMonitor
                                                      End Sub
             AddHandler mEmulator.EmulationTerminated, Sub() If isRunning Then StartStopRunMode()
             isInit = True
+
+            StepInto()
         End Set
     End Property
 
@@ -263,8 +265,8 @@ Public Class FormMonitor
             Else
                 If TypeOf ctrl Is TextBox Then
                     If Emulator.Registers.ActiveSegmentRegister.ToString() = ctrl.Name.Substring(3) Then
-                        ctrl.ForeColor = Color.Blue
-                    Else
+                        ctrl.ForeColor = Color.Blue 
+                    ElseIf ctrl.Name <> txtMem.Name Then
                         ctrl.ForeColor = Color.Black
                     End If
                     ctrl.Refresh()
@@ -488,7 +490,7 @@ Public Class FormMonitor
                 item.Text = .Registers.SS.ToHex(x8086.DataSize.Word, "") + ":" + ptr.ToHex(x8086.DataSize.Word, "")
                 item.SubItems(1).Text = value.ToHex(x8086.DataSize.Word, "")
                 If ptr = .Registers.SP Then
-                    item.BackColor = Color.LightBlue
+                    item.BackColor = Color.DarkSlateBlue
                     item.EnsureVisible()
                 End If
 
@@ -509,12 +511,12 @@ Public Class FormMonitor
         Dim insertedCount As Integer
         Dim newCount As Integer
 
-        If lvCode.Items.ContainsKey(currentCSIP) Then
-            With lvCode.Items(currentCSIP)
-                .BackColor = lvCode.BackColor
-                .SubItems(1).BackColor = lvCode.BackColor
-                .SubItems(2).BackColor = lvCode.BackColor
-                .SubItems(3).BackColor = lvCode.BackColor
+        If ListViewCode.Items.ContainsKey(currentCSIP) Then
+            With ListViewCode.Items(currentCSIP)
+                .BackColor = ListViewCode.BackColor
+                .SubItems(1).BackColor = ListViewCode.BackColor
+                .SubItems(2).BackColor = ListViewCode.BackColor
+                .SubItems(3).BackColor = ListViewCode.BackColor
             End With
         End If
 
@@ -524,21 +526,21 @@ Public Class FormMonitor
             Dim address As String = x8086.SegOffToAbs(CS, IP).ToString("X")
 
             insIndex = -1
-            If lvCode.Items.ContainsKey(address) Then
-                item = lvCode.Items(address)
+            If ListViewCode.Items.ContainsKey(address) Then
+                item = ListViewCode.Items(address)
                 insertedCount += 1
             Else
-                For Each sItem As ListViewItem In lvCode.Items
+                For Each sItem As ListViewItem In ListViewCode.Items
                     If sItem.Tag > address Then
                         insIndex = sItem.Index
                         Exit For
                     End If
                 Next
                 If insIndex <> -1 Then
-                    item = lvCode.Items.Insert(insIndex, address, "", 0)
+                    item = ListViewCode.Items.Insert(insIndex, address, "", 0)
                     insertedCount += 1
                 Else
-                    item = lvCode.Items.Add(address, "", 0)
+                    item = ListViewCode.Items.Add(address, "", 0)
                     newCount += 1
                 End If
                 item.SubItems.Add("")
@@ -547,7 +549,7 @@ Public Class FormMonitor
                 item.Tag = address
                 item.UseItemStyleForSubItems = False
 
-                item.ForeColor = lvCode.ForeColor
+                item.ForeColor = ListViewCode.ForeColor
                 item.SubItems(1).ForeColor = Color.FromArgb(88, 81, 64)
                 item.SubItems(2).ForeColor = Color.FromArgb(97, 175, 99)
                 item.SubItems(3).ForeColor = Color.FromArgb(35 + 20, 87 + 20, 140 + 20)
@@ -583,12 +585,12 @@ Public Class FormMonitor
                 item.SubItems(3).BackColor = item.BackColor
                 item.EnsureVisible()
                 activeInstruction = info
-            ElseIf item.BackColor <> lvCode.BackColor AndAlso Not item.Checked Then
+            ElseIf item.BackColor <> ListViewCode.BackColor AndAlso Not item.Checked Then
                 item.SubItems(1).BackColor = item.BackColor
                 item.SubItems(2).BackColor = item.BackColor
                 item.SubItems(3).BackColor = item.BackColor
             End If
-        Loop Until (newCount >= 100) OrElse (insertedCount >= 100) OrElse (lvCode.Items.Count >= 1000)
+        Loop Until (newCount >= 100) OrElse (insertedCount >= 100) OrElse (ListViewCode.Items.Count >= 1000)
 
         ignoreEvents = False
     End Sub
@@ -605,7 +607,7 @@ Public Class FormMonitor
 
     Private Sub RefreshCodeListing()
         lvStack.Items.Clear()
-        lvCode.Items.Clear()
+        ListViewCode.Items.Clear()
         UpdateUI()
     End Sub
 
@@ -640,7 +642,7 @@ Public Class FormMonitor
         ignoreEvents = True
 
         Dim count As Integer = 0
-        Dim maxSteps As Integer = 1000
+        Dim maxSteps As Integer = 5000
         Dim address As Integer
         Dim lastAddress As Integer = -1
         'Dim instructions As New List(Of x8086.Instruction)
@@ -694,7 +696,7 @@ Public Class FormMonitor
 
         Dim item As ListViewItem = Nothing
         Select Case lv.Name
-            Case lvCode.Name
+            Case ListViewCode.Name
                 item = lv.Items.Add("FFFF:FFFF".Replace("F", " "))
                 With item
                     .SubItems.Add("FF FF FF FF FF FF".Replace("F", " "))
@@ -714,7 +716,7 @@ Public Class FormMonitor
         Dim w As Integer = lv.ClientSize.Width
         Select Case lv.BorderStyle
             Case BorderStyle.Fixed3D : w -= 4
-            Case BorderStyle.FixedSingle : w -= 2
+            Case BorderStyle.FixedSingle : w -= (2 + 16)
         End Select
         For i As Integer = 0 To lv.Columns.Count - 1
             w -= lv.Columns(i).Width
@@ -910,7 +912,7 @@ Public Class FormMonitor
     End Sub
 
     Private Sub CheckBoxBytesOrChars_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxBytesOrChars.CheckedChanged
-        lvCode.Items.Clear()
+        ListViewCode.Items.Clear()
         UpdateUI()
     End Sub
 End Class

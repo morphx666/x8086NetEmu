@@ -4,30 +4,29 @@
 ' http://www.delorie.com/djgpp/doc/rbinter/ix/
 
 Partial Public Class x8086
-    Private ignoreTimeSync As Boolean
-
     Private lastAH(256 - 1) As UShort
     Private lastCF(256 - 1) As UShort
+
+    Private pendingIntNum As Integer
 
     Public Sub HandleHardwareInterrupt(intNum As Byte)
         HandleInterrupt(intNum, True)
         mRegisters.IP = IPAddrOff
     End Sub
 
-    Private Sub HandlerPendingInterrupt()
+    Private Sub HandlePendingInterrupt()
         ' Lesson 5 (mRegisters.ActiveSegmentChanged = False)
         ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
         If mFlags.IF = 1 AndAlso
-           Not ignoreINTs AndAlso
-           Not trapEnabled AndAlso
-           mRegisters.ActiveSegmentChanged = False AndAlso
+           mFlags.TF = 0 AndAlso
+           Not mRegisters.ActiveSegmentChanged AndAlso
            picIsAvailable Then
 
-            Dim intNum As Integer = PIC.GetPendingInterrupt()
-            If intNum >= 0 Then
+            pendingIntNum = PIC.GetPendingInterrupt()
+            If pendingIntNum >= 0 Then
                 mIsHalted = False
-                HandleHardwareInterrupt(intNum)
+                HandleHardwareInterrupt(pendingIntNum)
             End If
         End If
     End Sub
@@ -38,11 +37,6 @@ Partial Public Class x8086
         If intNum = &H13 AndAlso mEmulateINT13 Then ' (intNum = &H13 OrElse intNum = &HFD) AndAlso mEmulateINT13 Then
             HandleINT13()
         Else
-            'If intNum = 1 Then
-            '    DebugMode = True ' This is what causes CheckIT to hang when testing the "CPU Interrupt Bug"
-            '    'Stop
-            'End If
-
             PushIntoStack(mFlags.EFlags)
             PushIntoStack(mRegisters.CS)
 

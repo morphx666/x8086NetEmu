@@ -3,8 +3,8 @@
 Public MustInherit Class CGAAdapter
     Inherits Adapter
 
-    Public Const VERTSYNC = 60
-    Public Const HORIZSYNC = VERTSYNC * 262.5
+    Public Const VERTSYNC As Double = 60.0
+    Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
     Private ht As Long = Scheduler.CLOCKRATE \ HORIZSYNC
     Private vt As Long = (Scheduler.CLOCKRATE \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
@@ -18,6 +18,7 @@ Public MustInherit Class CGAAdapter
         Mode4_Graphic_Color_320x200 = &H2
         Mode5_Graphic_BW_320x200 = &H6
         Mode6_Graphic_Color_640x200 = &H16
+        Mode6_Graphic_Color_640x200_Alt = &H12
 
         Undefined = &HFF
     End Enum
@@ -111,13 +112,12 @@ Public MustInherit Class CGAAdapter
 
     Private mCursorCol As Integer = 0
     Private mCursorRow As Integer = 0
-    Private mBlinkCursor As Boolean
     Private mCursorVisible As Boolean
 
     Private mVideoEnabled As Boolean = True
     Private mVideoMode As VideoModes = VideoModes.Undefined
     Private mMainMode As MainModes
-    Private mBlinkRate As Integer = 16
+    Private mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
 
     Private mZoom As Double = 1.0
 
@@ -195,6 +195,13 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
+    Public ReadOnly Property BlinkCharOn As Boolean
+        Get
+            Return CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) <> 0 AndAlso
+                   CGAColorControlRegister(CGAColorControlRegisters.bright_background_or_blinking_text) = 0
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property Name As String
         Get
             Return "CGA"
@@ -267,14 +274,9 @@ Public MustInherit Class CGAAdapter
         End If
     End Sub
 
-    Public Sub Update()
-        waiter.Set()
-    End Sub
-
     Private Sub MainLoop()
         Do
             waiter.WaitOne(1000 / VERTSYNC)
-            'waiter.WaitOne()
 
             If isInit AndAlso mVideoEnabled AndAlso mVideoMode <> VideoModes.Undefined Then
                 SyncLock lockObject
@@ -339,12 +341,6 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public ReadOnly Property BlinkCursor As Boolean
-        Get
-            Return mBlinkCursor
-        End Get
-    End Property
-
     Public ReadOnly Property CursorLocation As Point
         Get
             Return New Point(mCursorCol, mCursorRow)
@@ -396,7 +392,7 @@ Public MustInherit Class CGAAdapter
                     mVideoResolution = New Size(320, 200)
                     mMainMode = MainModes.Graphics
 
-                Case VideoModes.Mode6_Graphic_Color_640x200
+                Case VideoModes.Mode6_Graphic_Color_640x200, VideoModes.Mode6_Graphic_Color_640x200_Alt
                     mTextResolution = New Size(80, 25)
                     mVideoResolution = New Size(640, 200)
                     mMainMode = MainModes.Graphics
@@ -405,13 +401,6 @@ Public MustInherit Class CGAAdapter
                     mCPU.RaiseException("CGA: Unknown Video Mode " + CInt(value).ToHex(x8086.DataSize.Byte))
                     mVideoMode = VideoModes.Undefined
             End Select
-
-            'CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = False
-            'CGAStatusRegister(CGAStatusRegisters.light_pen_switch_status) = False
-            'CGAStatusRegister(CGAStatusRegisters.display_enable) = True
-            'CGAStatusRegister(CGAStatusRegisters.light_pen_trigger_set) = False
-
-            'CGAModeControlRegister(CGAModeControlRegisters.video_enabled) = True
 
             InitVideoMemory(clearScreen)
         End Set
@@ -513,7 +502,7 @@ Public MustInherit Class CGAAdapter
                 mCursorRow = 50
             Else
                 mCursorCol = p Mod mTextResolution.Width
-                mCursorRow = p \ mTextResolution.Width
+                mCursorRow = p / mTextResolution.Width
             End If
         End If
     End Sub
@@ -526,15 +515,9 @@ Public MustInherit Class CGAAdapter
         Dim newMode As VideoModes = v And &H17 ' 10111
         ' 00100101
 
-        If (v And vidModeChangeFlag) <> 0 Then
-            'Dim b1 As Binary = newMode
-            'Dim b2 As Binary = VideoMode
+        If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
 
-            If newMode <> mVideoMode Then VideoMode = newMode
-        End If
-
-        mBlinkCursor = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled)
-        mVideoEnabled = CGAModeControlRegister(CGAModeControlRegisters.video_enabled)
+        mVideoEnabled = CGAModeControlRegister(CGAModeControlRegisters.video_enabled) <> 0
     End Sub
 
     Protected Overridable Sub OnPaletteRegisterChanged()
@@ -544,6 +527,33 @@ Public MustInherit Class CGAAdapter
             Dim colors() As Color = Nothing
             Dim cgaModeReg As Integer = x8086.BitsArrayToWord(CGAModeControlRegister)
             Dim cgaColorReg As Integer = x8086.BitsArrayToWord(CGAPaletteRegister)
+
+            'Dim burts As Boolean = (cgaModeReg And &H4) <> 0
+            'Dim pal As Boolean = (cgaColorReg And &H20) <> 0
+            'Dim int As Boolean = (cgaColorReg And &H10) <> 0
+
+            'If burts Then
+            '    colors = New Color() {
+            '                CGABasePalette(cgaColorReg And &HF),
+            '                CGABasePalette(3 + If(int, 8, 0)),
+            '                CGABasePalette(4 + If(int, 8, 0)),
+            '                CGABasePalette(7 + If(int, 8, 0))
+            '            }
+            'ElseIf pal Then
+            '    colors = New Color() {
+            '                CGABasePalette(cgaColorReg And &HF),
+            '                CGABasePalette(3 + If(int, 8, 0)),
+            '                CGABasePalette(5 + If(int, 8, 0)),
+            '                CGABasePalette(7 + If(int, 8, 0))
+            '            }
+            'Else
+            '    colors = New Color() {
+            '                CGABasePalette(cgaColorReg And &HF),
+            '                CGABasePalette(2 + If(int, 8, 0)),
+            '                CGABasePalette(4 + If(int, 8, 0)),
+            '                CGABasePalette(6 + If(int, 8, 0))
+            '            }
+            'End If
 
             Select Case VideoMode
                 Case VideoModes.Mode4_Graphic_Color_320x200
@@ -565,11 +575,11 @@ Public MustInherit Class CGAAdapter
             End Select
 
             If colors IsNot Nothing Then
-                For i As Integer = 0 To colors.Length - 1
-                    CGAPalette(i) = colors(i)
-                Next
+                    For i As Integer = 0 To colors.Length - 1
+                        CGAPalette(i) = colors(i)
+                    Next
+                End If
             End If
-        End If
     End Sub
 
     Private Sub UpdateStatusRegister()

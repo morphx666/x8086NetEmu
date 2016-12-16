@@ -1,4 +1,5 @@
 ﻿Partial Public Class x8086
+    Private isVideoAdapterAvailable As Boolean
     Private tmpCF As UShort
     Private portsCache As New Dictionary(Of UInteger, IOPortHandler)
     Private parityLUT() As Byte = {
@@ -419,14 +420,15 @@
                 mMouse = adptr
             Case Adapter.AdapterType.Video
                 mVideoAdapter = adptr
+                isVideoAdapterAvailable = (adptr IsNot Nothing)
             Case Adapter.AdapterType.Floppy
                 mFloppyController = adptr
         End Select
 
         If mVideoAdapter IsNot Nothing AndAlso TypeOf mVideoAdapter Is CGAWinForms Then
-            Dim wf As CGAWinForms = CType(mVideoAdapter, CGAWinForms)
-            AddHandler wf.RenderControl.MouseEnter, Sub() Cursor.Hide()
-            AddHandler wf.RenderControl.MouseLeave, Sub() Cursor.Show()
+            Dim cgawf As CGAWinForms = CType(mVideoAdapter, CGAWinForms)
+            AddHandler cgawf.RenderControl.MouseEnter, Sub() If cgawf.HideHostCursor Then Cursor.Hide()
+            AddHandler cgawf.RenderControl.MouseLeave, Sub() Cursor.Show()
         End If
     End Sub
 

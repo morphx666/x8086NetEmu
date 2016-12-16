@@ -559,9 +559,9 @@
 
             Case &H8E ' mov reg/mem to seg reg
                 SetDecoderAddressing(DataSize.Word)
-                SetRegister1Alt(ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
                 SetRegister2Alt(ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
                 If addrMode.IsDirect Then
+                    SetRegister1Alt(ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
                     opCodeASM = "MOV " + addrMode.Register2.ToString() + ", " + addrMode.Register1.ToString()
                     clkCycDecoder += 2
                 Else
@@ -690,6 +690,8 @@
                 End If
                 opCodeASM = "MOV " + addrMode.Register1.ToString() + ", " + Param(SelPrmIndex.First).ToHex(addrMode.Size)
                 clkCycDecoder += 4
+
+            Case &HC0, &HC1 : DecodeGroup2()
 
             Case &HC2 ' ret within segment adding imm to sp
                 opCodeASM = "RET " + Param(SelPrmIndex.First).ToHex(DataSize.Word)

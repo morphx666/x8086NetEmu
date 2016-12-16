@@ -115,20 +115,37 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\TupperFormula\TupperFormula\DirectBitmap.vb">
+      <Link>Tools\Helpers\DirectBitmap.vb</Link>
+    </Compile>
     <Compile Include="..\x8086NetEmu\Helpers\Extensions.vb">
       <Link>Tools\Helpers\Extensions.vb</Link>
     </Compile>
     <Compile Include="ApplicationEvents.vb" />
+    <Compile Include="Controls\ButtonIcon.vb">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controls\DiskImgCtrl.Designer.vb">
       <DependentUpon>DiskImgCtrl.vb</DependentUpon>
     </Compile>
     <Compile Include="Controls\DiskImgCtrl.vb">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Tools\FormDiskManager.Designer.vb">
-      <DependentUpon>FormDiskManager.vb</DependentUpon>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Tools\FormDiskManager.vb">
+    <Compile Include="Tools\FormDiskExplorer.Designer.vb">
+      <DependentUpon>FormDiskExplorer.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\FormDiskExplorer.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Tools\FormMediaManager.Designer.vb">
+      <DependentUpon>FormMediaManager.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\FormMediaManager.vb">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Tools\FormConsole.Designer.vb">
@@ -155,11 +172,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
     </Compile>
-    <Compile Include="My Project\Resources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="My Project\Settings.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -170,8 +182,11 @@
     <EmbeddedResource Include="Controls\DiskImgCtrl.resx">
       <DependentUpon>DiskImgCtrl.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Tools\FormDiskManager.resx">
-      <DependentUpon>FormDiskManager.vb</DependentUpon>
+    <EmbeddedResource Include="Tools\FormDiskExplorer.resx">
+      <DependentUpon>FormDiskExplorer.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Tools\FormMediaManager.resx">
+      <DependentUpon>FormMediaManager.vb</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Tools\FormConsole.resx">
@@ -187,9 +202,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -207,16 +222,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+    <None Include="Resources\ExploreDisk.png" />
+    <None Include="Resources\EjectDiskImage.png" />
+    <None Include="Resources\LoadDiskImage.png" />
+    <None Include="Resources\emptyCursor.cur" />
     <None Include="Resources\tools_icon.png" />
     <None Include="Resources\zoom_icon.png" />
     <None Include="Resources\media_icon.png" />
     <None Include="Resources\icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FastCGAWinForms\FastCGAWinForms.vbproj">
-      <Project>{71c747b1-8da1-4d84-b160-871aef8b420b}</Project>
-      <Name>FastCGAWinForms</Name>
-    </ProjectReference>
     <ProjectReference Include="..\x8086NetEmu\x8086NetEmu.vbproj">
       <Project>{2d0b2d2c-0261-4ff8-aa8c-5e7e7c134840}</Project>
       <Name>x8086NetEmu</Name>

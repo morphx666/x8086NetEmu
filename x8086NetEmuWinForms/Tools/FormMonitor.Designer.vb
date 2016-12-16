@@ -73,7 +73,7 @@ Partial Class FormMonitor
         Me.chAddress = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.chValue = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.btnStep = New System.Windows.Forms.Button()
-        Me.lvCode = New System.Windows.Forms.ListView()
+        Me.ListViewCode = New System.Windows.Forms.ListView()
         Me.chCodeAddress = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.chBytes = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.chMnemonic = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
@@ -89,11 +89,11 @@ Partial Class FormMonitor
         Me.txtBreakCS = New System.Windows.Forms.TextBox()
         Me.ttValueInfo = New System.Windows.Forms.ToolTip(Me.components)
         Me.CheckBoxTextVideoMemory = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxBytesOrChars = New System.Windows.Forms.CheckBox()
         Me.TextBoxSearch = New System.Windows.Forms.TextBox()
         Me.ButtonSearch = New System.Windows.Forms.Button()
         Me.ButtonMemForward = New System.Windows.Forms.Button()
         Me.ButtonMemBack = New System.Windows.Forms.Button()
-        Me.CheckBoxBytesOrChars = New System.Windows.Forms.CheckBox()
         Me.gbFlags.SuspendLayout()
         Me.gbRegisters.SuspendLayout()
         Me.GroupBox3.SuspendLayout()
@@ -110,6 +110,7 @@ Partial Class FormMonitor
         Me.gbFlags.Controls.Add(Me.chkSF)
         Me.gbFlags.Controls.Add(Me.chkZF)
         Me.gbFlags.Controls.Add(Me.chkCF)
+        Me.gbFlags.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.gbFlags.Location = New System.Drawing.Point(12, 12)
         Me.gbFlags.Name = "gbFlags"
         Me.gbFlags.Size = New System.Drawing.Size(103, 309)
@@ -120,6 +121,9 @@ Partial Class FormMonitor
         'chkTF
         '
         Me.chkTF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkTF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkTF.Location = New System.Drawing.Point(6, 259)
         Me.chkTF.Name = "chkTF"
         Me.chkTF.Size = New System.Drawing.Size(91, 24)
@@ -130,6 +134,9 @@ Partial Class FormMonitor
         'chkDF
         '
         Me.chkDF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkDF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkDF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkDF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkDF.Location = New System.Drawing.Point(6, 229)
         Me.chkDF.Name = "chkDF"
         Me.chkDF.Size = New System.Drawing.Size(91, 24)
@@ -140,6 +147,9 @@ Partial Class FormMonitor
         'chkIF
         '
         Me.chkIF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkIF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkIF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkIF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkIF.Location = New System.Drawing.Point(6, 199)
         Me.chkIF.Name = "chkIF"
         Me.chkIF.Size = New System.Drawing.Size(91, 24)
@@ -150,6 +160,9 @@ Partial Class FormMonitor
         'chkAF
         '
         Me.chkAF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkAF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkAF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkAF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkAF.Location = New System.Drawing.Point(6, 169)
         Me.chkAF.Name = "chkAF"
         Me.chkAF.Size = New System.Drawing.Size(91, 24)
@@ -160,6 +173,9 @@ Partial Class FormMonitor
         'chkPF
         '
         Me.chkPF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkPF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkPF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkPF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkPF.Location = New System.Drawing.Point(6, 139)
         Me.chkPF.Name = "chkPF"
         Me.chkPF.Size = New System.Drawing.Size(91, 24)
@@ -170,6 +186,9 @@ Partial Class FormMonitor
         'chkOF
         '
         Me.chkOF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkOF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkOF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkOF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkOF.Location = New System.Drawing.Point(6, 109)
         Me.chkOF.Name = "chkOF"
         Me.chkOF.Size = New System.Drawing.Size(91, 24)
@@ -180,6 +199,9 @@ Partial Class FormMonitor
         'chkSF
         '
         Me.chkSF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkSF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkSF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkSF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkSF.Location = New System.Drawing.Point(6, 79)
         Me.chkSF.Name = "chkSF"
         Me.chkSF.Size = New System.Drawing.Size(91, 24)
@@ -190,6 +212,9 @@ Partial Class FormMonitor
         'chkZF
         '
         Me.chkZF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkZF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkZF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkZF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkZF.Location = New System.Drawing.Point(6, 49)
         Me.chkZF.Name = "chkZF"
         Me.chkZF.Size = New System.Drawing.Size(91, 24)
@@ -200,6 +225,9 @@ Partial Class FormMonitor
         'chkCF
         '
         Me.chkCF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.chkCF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.chkCF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.chkCF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.chkCF.Location = New System.Drawing.Point(6, 19)
         Me.chkCF.Name = "chkCF"
         Me.chkCF.Size = New System.Drawing.Size(91, 24)
@@ -242,6 +270,7 @@ Partial Class FormMonitor
         Me.gbRegisters.Controls.Add(Me.txtAH)
         Me.gbRegisters.Controls.Add(Me.Label5)
         Me.gbRegisters.Controls.Add(Me.Label1)
+        Me.gbRegisters.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.gbRegisters.Location = New System.Drawing.Point(121, 12)
         Me.gbRegisters.Name = "gbRegisters"
         Me.gbRegisters.Size = New System.Drawing.Size(218, 309)
@@ -251,44 +280,54 @@ Partial Class FormMonitor
         '
         'btnForward
         '
+        Me.btnForward.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.btnForward.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnForward.Location = New System.Drawing.Point(181, 88)
         Me.btnForward.Name = "btnForward"
         Me.btnForward.Size = New System.Drawing.Size(25, 23)
-        Me.btnForward.TabIndex = 18
+        Me.btnForward.TabIndex = 13
         Me.btnForward.Text = ">"
         Me.btnForward.UseVisualStyleBackColor = True
         '
         'btnBack
         '
+        Me.btnBack.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.btnBack.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnBack.Location = New System.Drawing.Point(137, 89)
         Me.btnBack.Name = "btnBack"
         Me.btnBack.Size = New System.Drawing.Size(25, 23)
-        Me.btnBack.TabIndex = 17
+        Me.btnBack.TabIndex = 12
         Me.btnBack.Text = "<"
         Me.btnBack.UseVisualStyleBackColor = True
         '
         'btnDecIP
         '
+        Me.btnDecIP.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.btnDecIP.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnDecIP.Location = New System.Drawing.Point(137, 117)
         Me.btnDecIP.Name = "btnDecIP"
         Me.btnDecIP.Size = New System.Drawing.Size(69, 23)
-        Me.btnDecIP.TabIndex = 19
+        Me.btnDecIP.TabIndex = 14
         Me.btnDecIP.Text = "<<"
         Me.btnDecIP.UseVisualStyleBackColor = True
         '
         'txtSI
         '
+        Me.txtSI.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtSI.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtSI.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtSI.Location = New System.Drawing.Point(136, 210)
         Me.txtSI.Name = "txtSI"
         Me.txtSI.Size = New System.Drawing.Size(70, 26)
-        Me.txtSI.TabIndex = 13
+        Me.txtSI.TabIndex = 17
         Me.txtSI.Text = "0000"
         Me.txtSI.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtDL
         '
+        Me.txtDL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtDL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtDL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtDL.Location = New System.Drawing.Point(68, 114)
         Me.txtDL.Name = "txtDL"
         Me.txtDL.Size = New System.Drawing.Size(35, 26)
@@ -298,27 +337,33 @@ Partial Class FormMonitor
         '
         'txtES
         '
+        Me.txtES.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtES.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtES.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtES.Location = New System.Drawing.Point(33, 242)
         Me.txtES.Name = "txtES"
         Me.txtES.Size = New System.Drawing.Size(70, 26)
-        Me.txtES.TabIndex = 14
+        Me.txtES.TabIndex = 11
         Me.txtES.Text = "0000"
         Me.txtES.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtBP
         '
+        Me.txtBP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtBP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtBP.Location = New System.Drawing.Point(136, 274)
         Me.txtBP.Name = "txtBP"
         Me.txtBP.Size = New System.Drawing.Size(70, 26)
-        Me.txtBP.TabIndex = 16
+        Me.txtBP.TabIndex = 19
         Me.txtBP.Text = "0000"
         Me.txtBP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtCL
         '
+        Me.txtCL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtCL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtCL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtCL.Location = New System.Drawing.Point(68, 82)
         Me.txtCL.Name = "txtCL"
         Me.txtCL.Size = New System.Drawing.Size(35, 26)
@@ -328,7 +373,9 @@ Partial Class FormMonitor
         '
         'txtDH
         '
+        Me.txtDH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtDH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtDH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtDH.Location = New System.Drawing.Point(33, 114)
         Me.txtDH.Name = "txtDH"
         Me.txtDH.Size = New System.Drawing.Size(35, 26)
@@ -338,47 +385,57 @@ Partial Class FormMonitor
         '
         'txtDI
         '
+        Me.txtDI.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtDI.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtDI.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtDI.Location = New System.Drawing.Point(136, 242)
         Me.txtDI.Name = "txtDI"
         Me.txtDI.Size = New System.Drawing.Size(70, 26)
-        Me.txtDI.TabIndex = 15
+        Me.txtDI.TabIndex = 18
         Me.txtDI.Text = "0000"
         Me.txtDI.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtDS
         '
+        Me.txtDS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtDS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtDS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtDS.Location = New System.Drawing.Point(33, 210)
         Me.txtDS.Name = "txtDS"
         Me.txtDS.Size = New System.Drawing.Size(70, 26)
-        Me.txtDS.TabIndex = 12
+        Me.txtDS.TabIndex = 10
         Me.txtDS.Text = "0000"
         Me.txtDS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtSP
         '
+        Me.txtSP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtSP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtSP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtSP.Location = New System.Drawing.Point(136, 178)
         Me.txtSP.Name = "txtSP"
         Me.txtSP.Size = New System.Drawing.Size(70, 26)
-        Me.txtSP.TabIndex = 11
+        Me.txtSP.TabIndex = 16
         Me.txtSP.Text = "0000"
         Me.txtSP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtSS
         '
+        Me.txtSS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtSS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtSS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtSS.Location = New System.Drawing.Point(33, 178)
         Me.txtSS.Name = "txtSS"
         Me.txtSS.Size = New System.Drawing.Size(70, 26)
-        Me.txtSS.TabIndex = 10
+        Me.txtSS.TabIndex = 9
         Me.txtSS.Text = "0000"
         Me.txtSS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtCH
         '
+        Me.txtCH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtCH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtCH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtCH.Location = New System.Drawing.Point(33, 82)
         Me.txtCH.Name = "txtCH"
         Me.txtCH.Size = New System.Drawing.Size(35, 26)
@@ -415,7 +472,9 @@ Partial Class FormMonitor
         '
         'txtBL
         '
+        Me.txtBL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtBL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtBL.Location = New System.Drawing.Point(68, 50)
         Me.txtBL.Name = "txtBL"
         Me.txtBL.Size = New System.Drawing.Size(35, 26)
@@ -470,7 +529,9 @@ Partial Class FormMonitor
         '
         'txtBH
         '
+        Me.txtBH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtBH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtBH.Location = New System.Drawing.Point(33, 50)
         Me.txtBH.Name = "txtBH"
         Me.txtBH.Size = New System.Drawing.Size(35, 26)
@@ -498,17 +559,21 @@ Partial Class FormMonitor
         '
         'txtIP
         '
+        Me.txtIP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtIP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtIP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtIP.Location = New System.Drawing.Point(136, 146)
         Me.txtIP.Name = "txtIP"
         Me.txtIP.Size = New System.Drawing.Size(70, 26)
-        Me.txtIP.TabIndex = 9
+        Me.txtIP.TabIndex = 15
         Me.txtIP.Text = "0000"
         Me.txtIP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtCS
         '
+        Me.txtCS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtCS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtCS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtCS.Location = New System.Drawing.Point(33, 146)
         Me.txtCS.Name = "txtCS"
         Me.txtCS.Size = New System.Drawing.Size(70, 26)
@@ -518,7 +583,9 @@ Partial Class FormMonitor
         '
         'txtAL
         '
+        Me.txtAL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtAL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtAL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtAL.Location = New System.Drawing.Point(68, 18)
         Me.txtAL.Name = "txtAL"
         Me.txtAL.Size = New System.Drawing.Size(35, 26)
@@ -537,7 +604,9 @@ Partial Class FormMonitor
         '
         'txtAH
         '
+        Me.txtAH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtAH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtAH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtAH.Location = New System.Drawing.Point(33, 18)
         Me.txtAH.Name = "txtAH"
         Me.txtAH.Size = New System.Drawing.Size(35, 26)
@@ -566,6 +635,7 @@ Partial Class FormMonitor
         'GroupBox3
         '
         Me.GroupBox3.Controls.Add(Me.lvStack)
+        Me.GroupBox3.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.GroupBox3.Location = New System.Drawing.Point(345, 12)
         Me.GroupBox3.Name = "GroupBox3"
         Me.GroupBox3.Size = New System.Drawing.Size(200, 309)
@@ -575,12 +645,11 @@ Partial Class FormMonitor
         '
         'lvStack
         '
-        Me.lvStack.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-            Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lvStack.BackColor = System.Drawing.Color.FromArgb(CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer))
         Me.lvStack.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
         Me.lvStack.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.chAddress, Me.chValue})
         Me.lvStack.Font = New System.Drawing.Font("Consolas", 11.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lvStack.ForeColor = System.Drawing.Color.Gainsboro
         Me.lvStack.FullRowSelect = True
         Me.lvStack.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
         Me.lvStack.Location = New System.Drawing.Point(6, 18)
@@ -601,30 +670,32 @@ Partial Class FormMonitor
         'btnStep
         '
         Me.btnStep.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnStep.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.btnStep.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnStep.Location = New System.Drawing.Point(882, 604)
         Me.btnStep.Name = "btnStep"
         Me.btnStep.Size = New System.Drawing.Size(97, 32)
-        Me.btnStep.TabIndex = 10
+        Me.btnStep.TabIndex = 13
         Me.btnStep.Text = "Step"
         Me.btnStep.UseVisualStyleBackColor = True
         '
-        'lvCode
+        'ListViewCode
         '
-        Me.lvCode.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+        Me.ListViewCode.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
             Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lvCode.CheckBoxes = True
-        Me.lvCode.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.chCodeAddress, Me.chBytes, Me.chMnemonic, Me.chParameters})
-        Me.lvCode.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lvCode.FullRowSelect = True
-        Me.lvCode.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
-        Me.lvCode.HideSelection = False
-        Me.lvCode.Location = New System.Drawing.Point(551, 18)
-        Me.lvCode.Name = "lvCode"
-        Me.lvCode.Size = New System.Drawing.Size(531, 580)
-        Me.lvCode.TabIndex = 5
-        Me.lvCode.UseCompatibleStateImageBehavior = False
-        Me.lvCode.View = System.Windows.Forms.View.Details
+        Me.ListViewCode.CheckBoxes = True
+        Me.ListViewCode.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.chCodeAddress, Me.chBytes, Me.chMnemonic, Me.chParameters})
+        Me.ListViewCode.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.ListViewCode.FullRowSelect = True
+        Me.ListViewCode.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
+        Me.ListViewCode.HideSelection = False
+        Me.ListViewCode.Location = New System.Drawing.Point(551, 18)
+        Me.ListViewCode.Name = "ListViewCode"
+        Me.ListViewCode.Size = New System.Drawing.Size(531, 578)
+        Me.ListViewCode.TabIndex = 15
+        Me.ListViewCode.UseCompatibleStateImageBehavior = False
+        Me.ListViewCode.View = System.Windows.Forms.View.Details
         '
         'chCodeAddress
         '
@@ -633,10 +704,12 @@ Partial Class FormMonitor
         'btnRefresh
         '
         Me.btnRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnRefresh.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnRefresh.Location = New System.Drawing.Point(779, 604)
         Me.btnRefresh.Name = "btnRefresh"
         Me.btnRefresh.Size = New System.Drawing.Size(97, 32)
-        Me.btnRefresh.TabIndex = 8
+        Me.btnRefresh.TabIndex = 12
         Me.btnRefresh.Text = "Refresh"
         Me.btnRefresh.UseVisualStyleBackColor = True
         '
@@ -651,7 +724,9 @@ Partial Class FormMonitor
         '
         'txtBreakIP
         '
+        Me.txtBreakIP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtBreakIP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBreakIP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtBreakIP.Location = New System.Drawing.Point(475, 327)
         Me.txtBreakIP.Name = "txtBreakIP"
         Me.txtBreakIP.Size = New System.Drawing.Size(70, 26)
@@ -661,59 +736,70 @@ Partial Class FormMonitor
         '
         'txtMem
         '
-        Me.txtMem.BackColor = System.Drawing.SystemColors.Window
+        Me.txtMem.BackColor = System.Drawing.Color.FromArgb(CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer))
         Me.txtMem.Cursor = System.Windows.Forms.Cursors.Arrow
         Me.txtMem.Font = New System.Drawing.Font("Consolas", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtMem.ForeColor = System.Drawing.Color.Gainsboro
         Me.txtMem.Location = New System.Drawing.Point(12, 359)
         Me.txtMem.Multiline = True
         Me.txtMem.Name = "txtMem"
         Me.txtMem.ReadOnly = True
-        Me.txtMem.Size = New System.Drawing.Size(533, 239)
+        Me.txtMem.Size = New System.Drawing.Size(533, 237)
         Me.txtMem.TabIndex = 7
         '
         'txtMemSeg
         '
+        Me.txtMemSeg.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtMemSeg.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtMemSeg.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtMemSeg.Location = New System.Drawing.Point(12, 327)
         Me.txtMemSeg.Name = "txtMemSeg"
         Me.txtMemSeg.Size = New System.Drawing.Size(70, 26)
-        Me.txtMemSeg.TabIndex = 3
+        Me.txtMemSeg.TabIndex = 1
         Me.txtMemSeg.Text = "0000"
         Me.txtMemSeg.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'txtMemOff
         '
+        Me.txtMemOff.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtMemOff.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtMemOff.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtMemOff.Location = New System.Drawing.Point(88, 327)
         Me.txtMemOff.Name = "txtMemOff"
         Me.txtMemOff.Size = New System.Drawing.Size(70, 26)
-        Me.txtMemOff.TabIndex = 4
+        Me.txtMemOff.TabIndex = 2
         Me.txtMemOff.Text = "0000"
         Me.txtMemOff.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'btnRun
         '
         Me.btnRun.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnRun.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.btnRun.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnRun.Location = New System.Drawing.Point(985, 604)
         Me.btnRun.Name = "btnRun"
         Me.btnRun.Size = New System.Drawing.Size(97, 32)
-        Me.btnRun.TabIndex = 11
+        Me.btnRun.TabIndex = 14
         Me.btnRun.Text = "Run"
         Me.btnRun.UseVisualStyleBackColor = True
         '
         'btnReboot
         '
         Me.btnReboot.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.btnReboot.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.btnReboot.FlatStyle = System.Windows.Forms.FlatStyle.Flat
         Me.btnReboot.Location = New System.Drawing.Point(551, 604)
         Me.btnReboot.Name = "btnReboot"
         Me.btnReboot.Size = New System.Drawing.Size(97, 32)
-        Me.btnReboot.TabIndex = 9
+        Me.btnReboot.TabIndex = 10
         Me.btnReboot.Text = "Reboot"
         Me.btnReboot.UseVisualStyleBackColor = True
         '
         'txtBreakCS
         '
+        Me.txtBreakCS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.txtBreakCS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.txtBreakCS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.txtBreakCS.Location = New System.Drawing.Point(399, 327)
         Me.txtBreakCS.Name = "txtBreakCS"
         Me.txtBreakCS.Size = New System.Drawing.Size(70, 26)
@@ -735,64 +821,76 @@ Partial Class FormMonitor
         '
         Me.CheckBoxTextVideoMemory.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.CheckBoxTextVideoMemory.AutoSize = True
-        Me.CheckBoxTextVideoMemory.Location = New System.Drawing.Point(345, 614)
+        Me.CheckBoxTextVideoMemory.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxTextVideoMemory.Location = New System.Drawing.Point(345, 615)
         Me.CheckBoxTextVideoMemory.Name = "CheckBoxTextVideoMemory"
-        Me.CheckBoxTextVideoMemory.Size = New System.Drawing.Size(15, 14)
-        Me.CheckBoxTextVideoMemory.TabIndex = 14
+        Me.CheckBoxTextVideoMemory.Size = New System.Drawing.Size(12, 11)
+        Me.CheckBoxTextVideoMemory.TabIndex = 8
         Me.ttValueInfo.SetToolTip(Me.CheckBoxTextVideoMemory, "Enable Text Video Memory compatibility search")
         Me.CheckBoxTextVideoMemory.UseVisualStyleBackColor = True
-        '
-        'TextBoxSearch
-        '
-        Me.TextBoxSearch.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.TextBoxSearch.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.TextBoxSearch.Location = New System.Drawing.Point(12, 607)
-        Me.TextBoxSearch.Name = "TextBoxSearch"
-        Me.TextBoxSearch.Size = New System.Drawing.Size(327, 26)
-        Me.TextBoxSearch.TabIndex = 12
-        '
-        'ButtonSearch
-        '
-        Me.ButtonSearch.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.ButtonSearch.Location = New System.Drawing.Point(366, 604)
-        Me.ButtonSearch.Name = "ButtonSearch"
-        Me.ButtonSearch.Size = New System.Drawing.Size(97, 32)
-        Me.ButtonSearch.TabIndex = 13
-        Me.ButtonSearch.Text = "Search"
-        Me.ButtonSearch.UseVisualStyleBackColor = True
-        '
-        'ButtonMemForward
-        '
-        Me.ButtonMemForward.Location = New System.Drawing.Point(195, 329)
-        Me.ButtonMemForward.Name = "ButtonMemForward"
-        Me.ButtonMemForward.Size = New System.Drawing.Size(25, 23)
-        Me.ButtonMemForward.TabIndex = 20
-        Me.ButtonMemForward.Text = ">"
-        Me.ButtonMemForward.UseVisualStyleBackColor = True
-        '
-        'ButtonMemBack
-        '
-        Me.ButtonMemBack.Location = New System.Drawing.Point(164, 329)
-        Me.ButtonMemBack.Name = "ButtonMemBack"
-        Me.ButtonMemBack.Size = New System.Drawing.Size(25, 23)
-        Me.ButtonMemBack.TabIndex = 19
-        Me.ButtonMemBack.Text = "<"
-        Me.ButtonMemBack.UseVisualStyleBackColor = True
         '
         'CheckBoxBytesOrChars
         '
         Me.CheckBoxBytesOrChars.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.CheckBoxBytesOrChars.AutoSize = True
-        Me.CheckBoxBytesOrChars.Location = New System.Drawing.Point(758, 614)
+        Me.CheckBoxBytesOrChars.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxBytesOrChars.Location = New System.Drawing.Point(761, 615)
         Me.CheckBoxBytesOrChars.Name = "CheckBoxBytesOrChars"
-        Me.CheckBoxBytesOrChars.Size = New System.Drawing.Size(15, 14)
-        Me.CheckBoxBytesOrChars.TabIndex = 21
+        Me.CheckBoxBytesOrChars.Size = New System.Drawing.Size(12, 11)
+        Me.CheckBoxBytesOrChars.TabIndex = 11
+        Me.ttValueInfo.SetToolTip(Me.CheckBoxBytesOrChars, "Toggle bytes/chars display")
         Me.CheckBoxBytesOrChars.UseVisualStyleBackColor = True
+        '
+        'TextBoxSearch
+        '
+        Me.TextBoxSearch.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.TextBoxSearch.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxSearch.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxSearch.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxSearch.Location = New System.Drawing.Point(12, 607)
+        Me.TextBoxSearch.Name = "TextBoxSearch"
+        Me.TextBoxSearch.Size = New System.Drawing.Size(327, 26)
+        Me.TextBoxSearch.TabIndex = 7
+        '
+        'ButtonSearch
+        '
+        Me.ButtonSearch.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.ButtonSearch.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonSearch.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonSearch.Location = New System.Drawing.Point(366, 604)
+        Me.ButtonSearch.Name = "ButtonSearch"
+        Me.ButtonSearch.Size = New System.Drawing.Size(97, 32)
+        Me.ButtonSearch.TabIndex = 9
+        Me.ButtonSearch.Text = "Search"
+        Me.ButtonSearch.UseVisualStyleBackColor = True
+        '
+        'ButtonMemForward
+        '
+        Me.ButtonMemForward.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonMemForward.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonMemForward.Location = New System.Drawing.Point(195, 329)
+        Me.ButtonMemForward.Name = "ButtonMemForward"
+        Me.ButtonMemForward.Size = New System.Drawing.Size(25, 23)
+        Me.ButtonMemForward.TabIndex = 4
+        Me.ButtonMemForward.Text = ">"
+        Me.ButtonMemForward.UseVisualStyleBackColor = True
+        '
+        'ButtonMemBack
+        '
+        Me.ButtonMemBack.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonMemBack.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonMemBack.Location = New System.Drawing.Point(164, 329)
+        Me.ButtonMemBack.Name = "ButtonMemBack"
+        Me.ButtonMemBack.Size = New System.Drawing.Size(25, 23)
+        Me.ButtonMemBack.TabIndex = 3
+        Me.ButtonMemBack.Text = "<"
+        Me.ButtonMemBack.UseVisualStyleBackColor = True
         '
         'FormMonitor
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
         Me.ClientSize = New System.Drawing.Size(1094, 648)
         Me.Controls.Add(Me.CheckBoxBytesOrChars)
         Me.Controls.Add(Me.ButtonMemForward)
@@ -803,7 +901,7 @@ Partial Class FormMonitor
         Me.Controls.Add(Me.btnReboot)
         Me.Controls.Add(Me.txtMem)
         Me.Controls.Add(Me.Label14)
-        Me.Controls.Add(Me.lvCode)
+        Me.Controls.Add(Me.ListViewCode)
         Me.Controls.Add(Me.btnRun)
         Me.Controls.Add(Me.btnRefresh)
         Me.Controls.Add(Me.btnStep)
@@ -815,9 +913,10 @@ Partial Class FormMonitor
         Me.Controls.Add(Me.txtMemSeg)
         Me.Controls.Add(Me.txtMemOff)
         Me.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.KeyPreview = True
-        Me.MinimumSize = New System.Drawing.Size(1095, 680)
+        Me.MinimumSize = New System.Drawing.Size(1095, 687)
         Me.Name = "FormMonitor"
         Me.Text = "Monitor"
         Me.gbFlags.ResumeLayout(False)
@@ -873,7 +972,7 @@ Partial Class FormMonitor
     Friend WithEvents chAddress As System.Windows.Forms.ColumnHeader
     Friend WithEvents chValue As System.Windows.Forms.ColumnHeader
     Friend WithEvents btnStep As System.Windows.Forms.Button
-    Friend WithEvents lvCode As System.Windows.Forms.ListView
+    Friend WithEvents ListViewCode As System.Windows.Forms.ListView
     Friend WithEvents chCodeAddress As System.Windows.Forms.ColumnHeader
     Friend WithEvents btnRefresh As System.Windows.Forms.Button
     Friend WithEvents Label14 As System.Windows.Forms.Label

@@ -87,7 +87,7 @@
 
         Dim irq As Integer = (lowPrio + 1) And 7
         While (reqmask And (1 << irq)) = 0
-            If Not specialMask AndAlso ((rISR And (1 << irq)) <> 0) Then Return -1 ' ISR bit blocks all lower-prio requests
+            If Not specialMask AndAlso ((rISR And (1 << irq)) <> 0) Then Return -1 ' ISR bit blocks all lower-priority requests
             irq = (irq + 1) And 7
         End While
 

@@ -76,7 +76,7 @@ Public Class x8086
     Private cancelAllThreads As Boolean
     Private debugWaiter As AutoResetEvent
 
-    Private trapEnabled As Boolean
+    'Private trapEnabled As Boolean
     Private Shared ignoreINTs As Boolean
 
     Public Sched As Scheduler
@@ -97,8 +97,9 @@ Public Class x8086
     Public Shared Event Output(message As String, reason As NotificationReasons, arg() As Object)
     Public Event MIPsUpdated()
 
-    Public Sub New(Optional v20 As Boolean = False)
+    Public Sub New(Optional v20 As Boolean = True, Optional int13 As Boolean = True)
         mVic20 = v20
+        mEmulateINT13 = int13
 
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
@@ -179,7 +180,7 @@ Public Class x8086
         mIsHalted = False
         mIsExecuting = False
         isDecoding = False
-        trapEnabled = False
+        'trapEnabled = False
         ignoreINTs = False
         repeLoopMode = REPLoopModes.None
         IPAddrOff = 0
@@ -453,17 +454,18 @@ Public Class x8086
     Public Sub Execute()
         mIsExecuting = True
 
-        If ignoreINTs Then
-            ' Lesson 4
-            ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+        If mFlags.TF = 1 Then
+            ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
+            ' but it even allows it to pass it successfully!!!
+            If ignoreINTs Then HandleInterrupt(1, False)
+        ElseIf ignoreINTs Then
             ignoreINTs = False
         Else
-            If trapEnabled Then HandleInterrupt(1, False)
-            trapEnabled = (mFlags.TF = 1)
-            HandlerPendingInterrupt()
+            HandlePendingInterrupt()
         End If
 
-        Prefetch()
+        'Prefetch()
+        'opCode = Prefetch.Buffer(0)
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
 
@@ -576,6 +578,9 @@ Public Class x8086
 
             Case &H17 ' pop ss
                 mRegisters.SS = PopFromStack()
+                ' Lesson 4: http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+                ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
+                ignoreINTs = True
                 clkCyc += 8
 
             Case &H18 To &H1B ' sbb
@@ -2176,35 +2181,9 @@ Public Class x8086
                 If sign1 Then remain = ((Not remain) + 1) And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)
 
                 If addrMode.Size = DataSize.Byte Then
-                    If sign1 <> sign2 Then
-                        If result > &H80 Then
-                            HandleInterrupt(0, False)
-                            Exit Select
-                        End If
-                        result = ((Not result) + 1) And &HFF
-                    ElseIf result > &H7F Then
-                        HandleInterrupt(0, False)
-                        Exit Select
-                    End If
-
-                    If sign1 Then remain = ((Not remain) + 1) And &HFF
-
                     mRegisters.AL = result And &HFF
                     mRegisters.AH = remain And &HFF
                 Else
-                    If sign1 <> sign2 Then
-                        If result > &H8000 Then
-                            HandleInterrupt(0, False)
-                            Exit Select
-                        End If
-                        result = ((Not result) + 1) And &HFFFF
-                    ElseIf result > &H7FFF Then
-                        HandleInterrupt(0, False)
-                        Exit Select
-                    End If
-
-                    If sign1 Then remain = ((Not remain) + 1) And &HFFFF
-
                     mRegisters.AX = result And &HFFFF
                     mRegisters.DX = remain And &HFFFF
                 End If

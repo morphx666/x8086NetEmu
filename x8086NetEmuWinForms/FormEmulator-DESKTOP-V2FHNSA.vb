@@ -41,6 +41,23 @@ Public Class FormEmulator
         StartEmulation()
         LoadSettings() ' For post-emulation settings
 
+        ' -------------------
+        Dim s As New IO.FileStream("disks\hd0_Copy.img", IO.FileMode.Open)
+        Dim b(512 - 1) As Byte
+        s.Read(b, 0, b.Length)
+
+        ' -------------------
+
+        ' -------------------
+        cpu.FloppyContoller.DiskImage(0) = Nothing
+        cpu.FloppyContoller.DiskImage(1) = Nothing
+        cpu.FloppyContoller.DiskImage(128) = Nothing
+        cpu.FloppyContoller.DiskImage(129) = Nothing
+
+        cpu.FloppyContoller.DiskImage(128) = New HostFolderAsDisk("disks\hd0_Copy.img")
+        'cpu.FloppyContoller.DiskImage(128) = New DiskImage("E:\Users\Xavier\Documents\Visual Studio 2015\Projects\x8086NetEmu\x8086NetEmu\bin\disks\hd0_Copy.img", False, True)
+        ' -------------------
+
         SetupEventHandlers()
 
         SetTitleText()
@@ -55,7 +72,7 @@ Public Class FormEmulator
                                                      cpu.Pause()
                                                      Using dlg As New FormMediaManager()
                                                          dlg.Emulator = cpu
-                                                         If dlg.ShowDialog(Me) = DialogResult.Yes Then
+                                                         If dlg.ShowDialog(Me) = DialogResult.Abort Then
                                                              cpu.HardReset()
                                                          Else
                                                              cpu.Resume()
@@ -459,8 +476,8 @@ Public Class FormEmulator
     Private Sub SaveSettings()
         cpuState.SaveSettings("settings.dat",
                               <extras>
-                                  <consoleVisible><%= fConsole IsNot Nothing %></consoleVisible>
-                                  <monitorVisible><%= fMonitor IsNot Nothing %></monitorVisible>
+                                  <consoleVisible><%= fConsole?.ToString() %></consoleVisible>
+                                  <monitorVisible><%= fMonitor?.ToString() %></monitorVisible>
                                   <emulateINT13><%= int13Emulation %></emulateINT13>
                                   <vic20><%= v20Emulation %></vic20>
                               </extras>)
