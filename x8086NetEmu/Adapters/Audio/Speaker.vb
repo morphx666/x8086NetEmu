@@ -18,8 +18,6 @@ Public Class SpeakerAdpater
 
     Private waveForm As WaveForms = WaveForms.Squared
 
-    Private Const hi As Integer = Byte.MaxValue
-    Private Const lo As Integer = Byte.MinValue
     Private Const ToRad As Double = Math.PI / 180
 
     Private audioDev As DirectSound
@@ -47,35 +45,12 @@ Public Class SpeakerAdpater
     Private bufferReadPosition As Integer
     Private currentStep As Integer
 
-    Private Structure DirtyByte
-        Private mValue As Byte
-        Private mIsDirty As Boolean
-
-        Public Property Value As Byte
-            Get
-                mIsDirty = False
-                Return mValue
-            End Get
-            Set(value As Byte)
-                mValue = value
-                mIsDirty = True
-            End Set
-        End Property
-
-        Public ReadOnly Property IsDirty As Boolean
-            Get
-                Return mIsDirty
-            End Get
-        End Property
-
-        Public Overrides Function ToString() As String
-            Return String.Format("{0}: {1}", mValue, If(mIsDirty, "Y", "N"))
-        End Function
-    End Structure
+    Private mVolume As Double
 
     Public Sub New(cpu As x8086)
         mCPU = cpu
         If mCPU.PIT IsNot Nothing Then mCPU.PIT.Speaker = Me
+        mVolume = 0.05
     End Sub
 
     Public Property Frequency As Double
@@ -98,6 +73,15 @@ Public Class SpeakerAdpater
         End Set
     End Property
 
+    Public Property Volume As Double
+        Get
+            Return mVolume
+        End Get
+        Set(value As Double)
+            mVolume = value
+        End Set
+    End Property
+
     Public ReadOnly Property AudioBuffer As Byte()
         Get
             Return mAudioBuffer
@@ -115,32 +99,34 @@ Public Class SpeakerAdpater
     End Sub
 
     Private Sub FillAudioBuffer()
+        Dim v As Double
         Do
             Select Case waveForm
                 Case WaveForms.Squared
                     If mEnabled Then
                         If currentStep <= halfWaveLength Then
-                            mAudioBuffer(bufferWritePosition) = hi
+                            v = -128
                         Else
-                            mAudioBuffer(bufferWritePosition) = lo
+                            v = 127
                         End If
                     Else
-                        mAudioBuffer(bufferWritePosition) = 128
+                        v = 0
                     End If
                 Case WaveForms.Sinusoidal
                     If mEnabled AndAlso waveLength > 0 Then
-                        Dim v = Math.Floor(Math.Sin((currentStep / waveLength) * (mFrequency / 2) * ToRad) * 128)
-                        If v < 0 Then
-                            v = 128 + v
-                        Else
-                            v += 127
-                        End If
-
-                        mAudioBuffer(bufferWritePosition) = v
+                        v = Math.Floor(Math.Sin((currentStep / waveLength) * (mFrequency / 2) * ToRad) * 128)
                     Else
-                        mAudioBuffer(bufferWritePosition) = 128
+                        v = 0
                     End If
             End Select
+
+            v *= mVolume
+            If v <= 0 Then
+                v = 128 + v
+            Else
+                v += 127
+            End If
+            mAudioBuffer(bufferWritePosition) = v
 
             currentStep += 1
             If currentStep >= waveLength Then currentStep = 0
