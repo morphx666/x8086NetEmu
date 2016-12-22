@@ -66,7 +66,7 @@ Public Class x8086
     Public Const KHz As Long = 1000
     Public Const MHz As Long = KHz * KHz
     Public Const GHz As Long = KHz * MHz
-    Private Const BaseClock As Double = 4.7727 * MHz
+    Private Const BaseClock As Long = 4.7727 * MHz
     Private mCyclesPerSecond As Long = BaseClock
 
     Private mDoReSchedule As Boolean
@@ -83,7 +83,8 @@ Public Class x8086
     Public DMA As DMAI8237
     Public PIC As PIC8259
     Public PIT As PIT8254
-    Public PPI As PPI8255_OLD
+    'Public PPI As PPI8255_OLD
+    Public PPI As PPI8255_NEW
     Public RTC As RTC
 
     Private picIsAvailable As Boolean
@@ -115,7 +116,8 @@ Public Class x8086
         PIT = New PIT8254(Me, intPIT)
 
         Dim intPPI = PIC.GetIrqLine(1)
-        PPI = New PPI8255_OLD(Me, intPPI)
+        'PPI = New PPI8255_OLD(Me, intPPI)
+        PPI = New PPI8255_NEW(Me, intPPI)
 
         'RTC = New RTC(Me)
 
@@ -215,7 +217,7 @@ Public Class x8086
         If PPI Is Nothing Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
-        PPI.SetSwitchData(Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
+        'PPI.SetSwitchData(Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
         '                             │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
         '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
         '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
@@ -230,57 +232,57 @@ Public Class x8086
         '                              │ │ └──────────────────── unused, internal modem (PS/2)
         '                              └─┴───────────────────── number of printer ports
 
-        'PPI.PortA(0) = &H30 Or &HC
-        'PPI.PortA(1) = &H0
-        'PPI.PortB = &H8
-        'PPI.PortC(0) = If(mModel = Models.PCE_IBMPC_5160, 1, 0)
-        'PPI.PortC(1) = 0
+        PPI.PortA(0) = &H30 Or &HC
+        PPI.PortA(1) = &H0
+        PPI.PortB = &H8
+        PPI.PortC(0) = If(mModel = Models.PCE_IBMPC_5160, 1, 0)
+        PPI.PortC(1) = 0
 
-        '' Floppy count
-        'Dim count = 2 ' Forced, for now...
-        'Select Case mModel
-        '    Case Models.PCE_IBMPC_5150
-        '        PPI.PortA(0) = PPI.PortA(0) And (Not &HC1)
-        '        If count > 0 Then
-        '            PPI.PortA(0) = PPI.PortA(0) Or &H1
-        '            PPI.PortA(0) = PPI.PortA(0) Or (((count - 1) And &H3) << 6)
-        '        End If
-        '    Case Models.PCE_IBMPC_5160
-        '        PPI.PortC(1) = PPI.PortC(1) And (Not &HC)
-        '        If count > 0 Then
-        '            PPI.PortC(1) = PPI.PortC(1) Or (((count - 1) And &H3) << 2)
-        '        End If
-        'End Select
+        ' Floppy count
+        Dim count = 2 ' Forced, for now...
+        Select Case mModel
+            Case Models.PCE_IBMPC_5150
+                PPI.PortA(0) = PPI.PortA(0) And (Not &HC1)
+                If count > 0 Then
+                    PPI.PortA(0) = PPI.PortA(0) Or &H1
+                    PPI.PortA(0) = PPI.PortA(0) Or (((count - 1) And &H3) << 6)
+                End If
+            Case Models.PCE_IBMPC_5160
+                PPI.PortC(1) = PPI.PortC(1) And (Not &HC)
+                If count > 0 Then
+                    PPI.PortC(1) = PPI.PortC(1) Or (((count - 1) And &H3) << 2)
+                End If
+        End Select
 
-        '' Video Mode
-        'Dim videoMode As CGAAdapter.VideoModes = CGAAdapter.VideoModes.Mode3_Text_Color_80x25 ' Forced, for now...
-        'Select Case mModel
-        '    Case Models.PCE_IBMPC_5150
-        '        PPI.PortA(0) = PPI.PortA(0) And (Not &H30)
-        '        PPI.PortA(0) = PPI.PortA(0) Or ((videoMode And &H3) << 4)
-        '    Case Models.PCE_IBMPC_5160
-        '        PPI.PortC(1) = PPI.PortC(1) And (Not &H3)
-        '        PPI.PortC(1) = PPI.PortC(1) Or (videoMode And &H3)
-        'End Select
+        ' Video Mode
+        Dim videoMode As CGAAdapter.VideoModes = CGAAdapter.VideoModes.Mode3_Text_Color_80x25 ' Forced, for now...
+        Select Case mModel
+            Case Models.PCE_IBMPC_5150
+                PPI.PortA(0) = PPI.PortA(0) And (Not &H30)
+                PPI.PortA(0) = PPI.PortA(0) Or ((videoMode And &H3) << 4)
+            Case Models.PCE_IBMPC_5160
+                PPI.PortC(1) = PPI.PortC(1) And (Not &H3)
+                PPI.PortC(1) = PPI.PortC(1) Or (videoMode And &H3)
+        End Select
 
-        '' RAM size
-        'Dim size = Memory.Length ' Forced, for now...
-        'Select Case mModel
-        '    Case Models.PCE_IBMPC_5150
-        '        size = If(size < 65536, 0, (size - 65536) / 32768)
-        '        PPI.PortC(0) = PPI.PortC(0) And &HF0
-        '        PPI.PortC(1) = PPI.PortC(1) And &HFE
-        '        PPI.PortC(0) = PPI.PortC(0) Or (size And &HF)
-        '        PPI.PortC(1) = PPI.PortC(1) Or ((size >> 4) And &H1)
-        '    Case Models.PCE_IBMPC_5160
-        '        size = size >> 16
-        '        If size > 0 Then
-        '            size -= 1
-        '            If size > 3 Then size = 3
-        '        End If
-        '        PPI.PortC(0) = PPI.PortC(0) And &HF3
-        '        PPI.PortC(0) = PPI.PortC(0) Or ((size << 2) And &HC)
-        'End Select
+        ' RAM size
+        Dim size = Memory.Length ' Forced, for now...
+        Select Case mModel
+            Case Models.PCE_IBMPC_5150
+                size = If(size < 65536, 0, (size - 65536) / 32768)
+                PPI.PortC(0) = PPI.PortC(0) And &HF0
+                PPI.PortC(1) = PPI.PortC(1) And &HFE
+                PPI.PortC(0) = PPI.PortC(0) Or (size And &HF)
+                PPI.PortC(1) = PPI.PortC(1) Or ((size >> 4) And &H1)
+            Case Models.PCE_IBMPC_5160
+                size = size >> 16
+                If size > 0 Then
+                    size -= 1
+                    If size > 3 Then size = 3
+                End If
+                PPI.PortC(0) = PPI.PortC(0) And &HF3
+                PPI.PortC(0) = PPI.PortC(0) Or ((size << 2) And &HC)
+        End Select
     End Sub
 
     Private Sub LoadBIOS()

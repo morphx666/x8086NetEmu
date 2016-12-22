@@ -357,7 +357,7 @@
                 mFlags.SF = 0
             Else
                 mFlags.ZF = 0
-                mFlags.SF = If((result And &H80) = 0, 0, 1)
+                mFlags.SF = If((result And &H80) <> 0, 1, 0)
             End If
         Else
             mFlags.PF = parityLUT(result And &HFF)
@@ -366,7 +366,7 @@
                 mFlags.SF = 0
             Else
                 mFlags.ZF = 0
-                mFlags.SF = If((result And &H8000) = 0, 0, 1)
+                mFlags.SF = If((result And &H8000) <> 0, 1, 0)
             End If
         End If
     End Sub
@@ -381,20 +381,15 @@
     Private Sub SetAddSubFlags(result As Integer, v1 As UInteger, v2 As Integer, size As DataSize, isSubstraction As Boolean)
         SetSZPFlags(result, size)
 
-        If v2 < 0 Then
-            If Not isSubstraction Then Stop
-            isSubstraction = True
-        End If
-
         If size = DataSize.Byte Then
-            mFlags.CF = If((result And &HFF00) = 0, 0, 1)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80) = 0, 0, 1)
+            mFlags.CF = If((result And &HFF00) <> 0, 1, 0)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80) <> 0, 1, 0)
         Else
             mFlags.CF = If((result And &HFFFF0000L) <> 0, 1, 0)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) = 0, 0, 1)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) <> 0, 1, 0)
         End If
 
-        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) = 0, 0, 1)
+        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)
     End Sub
 
     Public Shared Function BitsArrayToWord(b() As Boolean) As UShort

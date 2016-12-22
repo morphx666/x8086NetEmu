@@ -91,11 +91,11 @@ Public Class PPI8255_NEW
 
                                                            cpu.PIT.SetCh2Gate((v And 1) <> 0)
 
-#If Win32 Then
                                                            If ((old Xor v) And 2) <> 0 Then
+#If Win32 Then
                                                                cpu.PIT.Speaker.Enabled = ((v And 2) = 2)
-                                                           End If
 #End If
+                                                           End If
                                                        End Sub)
                 Case 2 ' C
                     ports(i).Read = New ReadFunction(Function()
@@ -214,21 +214,21 @@ Public Class PPI8255_NEW
 
     ' Store a scancode byte in the buffer
     Public Sub PutKeyData(v As Integer, isKeyUp As Boolean)
-        If keyBuf.Length = 16 Then keyBuf = keyBuf.Substring(1)
-        If keyBuf.Length() = 0 AndAlso irq IsNot Nothing Then irq.Raise(True)
+        If keyBuf.Length = 16 Then TrimBuffer()
 
-        keyBuf = keyBuf + Chr(v)
-        keyUpStates(keyBuf.Length - 1) = isKeyUp
+        SyncLock keyBuf
+            keyBuf = keyBuf + Chr(v)
+            keyUpStates(keyBuf.Length - 1) = isKeyUp
+
+            If keyBuf.Length = 1 AndAlso irq IsNot Nothing Then irq.Raise(True)
+        End SyncLock
     End Sub
 
-    ' Store scancode bytes in the buffer
-    Public Sub PutKeyData(b() As Byte, isKeyUp As Boolean)
-        If keyBuf.Length() = 0 AndAlso b.Length > 0 AndAlso irq IsNot Nothing Then irq.Raise(True)
-        keyBuf = ""
-        For i As Integer = 0 To b.Length - 1
-            keyBuf += Chr(b(i))
-        Next
-        keyUpStates(keyBuf.Length - 1) = isKeyUp
+    Private Sub TrimBuffer()
+        SyncLock keyBuf
+            keyBuf = keyBuf.Substring(1)
+            Array.Copy(keyUpStates, 1, keyUpStates, 0, keyUpStates.Length - 1)
+        End SyncLock
     End Sub
 
     ' Get a scancode byte from the buffer
@@ -236,16 +236,21 @@ Public Class PPI8255_NEW
         ' release interrupt
         If irq IsNot Nothing Then irq.Raise(False)
         ' if the buffer is empty, we just return the most recent byte 
-        If keyBuf.Length > 0 Then
-            ' read byte from buffer
-            lastKeyCode = keyMap.GetScanCode(Asc(keyBuf(0)))
-            If keyUpStates(0) Then lastKeyCode = lastKeyCode Or &H80
-            ' wait .5 msec before going to the next byte
-            If Not keyShiftPending Then
-                keyShiftPending = True
-                sched.RunTaskAfter(task, 500000)
+
+        SyncLock keyBuf
+            If keyBuf.Length() > 0 Then
+                ' read byte from buffer
+                lastKeyCode = keyMap.GetScanCode(Asc(keyBuf(0))) And &HFF
+                If keyUpStates(0) Then lastKeyCode = lastKeyCode Or &H80
+
+                ' wait .05 msec before going to the next byte
+                If Not keyShiftPending Then
+                    keyShiftPending = True
+                    sched.RunTaskAfter(task, 500000 / 1000)
+                End If
             End If
-        End If
+        End SyncLock
+
         ' return scancode byte
         Return lastKeyCode
     End Function
