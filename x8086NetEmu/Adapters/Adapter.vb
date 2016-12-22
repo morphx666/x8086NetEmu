@@ -46,7 +46,7 @@
     End Property
 
     Public MustOverride Overrides ReadOnly Property Description As String
-    Public MustOverride Overrides Function [In](port As UInteger) As UInteger
+    Public MustOverride Overrides Function [In](port As Integer) As Integer
     Public MustOverride Overrides ReadOnly Property Name As String
-    Public MustOverride Overrides Sub Out(port As UInteger, value As UInteger)
+    Public MustOverride Overrides Sub Out(port As Integer, value As Integer)
 End Class

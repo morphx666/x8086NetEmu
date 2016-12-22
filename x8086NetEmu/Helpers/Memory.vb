@@ -1,11 +1,11 @@
 ﻿Partial Public Class x8086
-    Public Const MemSize As UInteger = &H100000
-    Public Const ROMStart As UInteger = &HC0000
+    Public Const MemSize As Integer = &H100000
+    Public Const ROMStart As Integer = &HC0000
 
     Public Memory(MemSize - 1) As Byte
 
-    Private Const shl3 As UInteger = 1 << 3
-    Private Const shl2 As UInteger = 1 << 2
+    Private Const shl3 As Integer = 1 << 3
+    Private Const shl2 As Integer = 1 << 2
 
     Public Class MemoryAccessEventArgs
         Inherits EventArgs
@@ -16,9 +16,9 @@
         End Enum
 
         Private mAccessMode As AccessModes
-        Private mAddress As UInteger
+        Private mAddress As Integer
 
-        Public Sub New(address As UInteger, accesMode As AccessModes)
+        Public Sub New(address As Integer, accesMode As AccessModes)
             mAddress = address
             mAccessMode = accesMode
         End Sub
@@ -29,7 +29,7 @@
             End Get
         End Property
 
-        Public ReadOnly Property Address As UInteger
+        Public ReadOnly Property Address As Integer
             Get
                 Return mAddress
             End Get
@@ -73,9 +73,9 @@
 
         Private mActiveSegmentRegister As GPRegisters.RegistersTypes = RegistersTypes.DS
         Private mActiveSegmentChanged As Boolean = False
-        Private mSS As UInteger
+        Private mSS As Integer
 
-        Public Property Val(reg As RegistersTypes) As UInteger
+        Public Property Val(reg As RegistersTypes) As Integer
             Get
                 Select Case reg
                     Case RegistersTypes.AX : Return AX
@@ -111,7 +111,7 @@
                     Case Else : Throw New Exception("Invalid Register")
                 End Select
             End Get
-            Set(value As UInteger)
+            Set(value As Integer)
                 Select Case reg
                     Case RegistersTypes.AX : AX = value
                     Case RegistersTypes.AH : AH = value
@@ -148,74 +148,74 @@
             End Set
         End Property
 
-        Public Property AX As UInteger
+        Public Property AX As Integer
             Get
                 Return ((AH << 8) Or AL)
             End Get
-            Set(value As UInteger)
+            Set(value As Integer)
                 AH = value >> 8
                 AL = value And &HFF
             End Set
         End Property
-        Public Property AL As UShort
-        Public Property AH As UShort
+        Public Property AL As Integer
+        Public Property AH As Integer
 
-        Public Property BX As UInteger
+        Public Property BX As Integer
             Get
                 Return ((BH << 8) Or BL)
             End Get
-            Set(value As UInteger)
+            Set(value As Integer)
                 BH = value >> 8
                 BL = value And &HFF
             End Set
         End Property
-        Public Property BL As UShort
-        Public Property BH As UShort
+        Public Property BL As Integer
+        Public Property BH As Integer
 
-        Public Property CX As UInteger
+        Public Property CX As Integer
             Get
                 Return ((CH << 8) Or CL)
             End Get
-            Set(value As UInteger)
+            Set(value As Integer)
                 CH = value >> 8
                 CL = value And &HFF
             End Set
         End Property
-        Public Property CL As UShort
-        Public Property CH As UShort
+        Public Property CL As Integer
+        Public Property CH As Integer
 
-        Public Property DX As UInteger
+        Public Property DX As Integer
             Get
                 Return ((DH << 8) Or DL)
             End Get
-            Set(value As UInteger)
+            Set(value As Integer)
                 DH = value >> 8
                 DL = value And &HFF
             End Set
         End Property
-        Public Property DL As UShort
-        Public Property DH As UShort
+        Public Property DL As Integer
+        Public Property DH As Integer
 
-        Public Property CS As UInteger
-        Public Property IP As UInteger
+        Public Property CS As Integer
+        Public Property IP As Integer
 
-        Public Property SS As UInteger
+        Public Property SS As Integer
             Get
                 Return mSS
             End Get
-            Set(value As UInteger)
+            Set(value As Integer)
                 mSS = value
             End Set
         End Property
-        Public Property SP As UInteger
+        Public Property SP As Integer
 
-        Public Property DS As UInteger
-        Public Property SI As UInteger
+        Public Property DS As Integer
+        Public Property SI As Integer
 
-        Public Property ES As UInteger
-        Public Property DI As UInteger
+        Public Property ES As Integer
+        Public Property DI As Integer
 
-        Public Property BP As UInteger
+        Public Property BP As Integer
 
         Public Sub ResetSegmentRegister()
             mActiveSegmentChanged = False
@@ -232,7 +232,7 @@
             End Set
         End Property
 
-        Public ReadOnly Property ActiveSegmentValue As UInteger
+        Public ReadOnly Property ActiveSegmentValue As Integer
             Get
                 Return Val(mActiveSegmentRegister)
             End Get
@@ -284,18 +284,17 @@
             [OF] = 2 ^ 11
         End Enum
 
-        Public Property CF As UShort
-        Public Property PF As UShort
-        Public Property AF As UShort
-        Public Property ZF As UShort
-        Public Property SF As UShort
-        Private mTF As UShort
-        Public Property [IF] As UShort
-        Public Property DF As UShort
-        Public Property [OF] As UShort
-        Public Property TF As UShort
+        Public Property CF As Integer
+        Public Property PF As Integer
+        Public Property AF As Integer
+        Public Property ZF As Integer
+        Public Property SF As Integer
+        Public Property [IF] As Integer
+        Public Property DF As Integer
+        Public Property [OF] As Integer
+        Public Property TF As Integer
 
-        Public Property EFlags() As UShort
+        Public Property EFlags() As Integer
             Get
                 Return CF * FlagsTypes.CF +
                         1 * 2 ^ 1 +
@@ -310,7 +309,7 @@
                        DF * FlagsTypes.DF +
                      [OF] * FlagsTypes.OF
             End Get
-            Set(value As UShort)
+            Set(value As Integer)
                 CF = If((value And FlagsTypes.CF) = FlagsTypes.CF, 1, 0)
                 PF = If((value And FlagsTypes.PF) = FlagsTypes.PF, 1, 0)
                 AF = If((value And FlagsTypes.AF) = FlagsTypes.AF, 1, 0)
@@ -330,7 +329,7 @@
         End Function
     End Class
 
-    Public Sub LoadBIN(fileName As String, segment As UInteger, offset As UInteger)
+    Public Sub LoadBIN(fileName As String, segment As Integer, offset As Integer)
         fileName = x8086.FixPath(fileName)
 
         If IO.File.Exists(fileName) Then
@@ -340,15 +339,15 @@
         End If
     End Sub
 
-    Public Sub CopyToRAM(bytes() As Byte, segment As UInteger, offset As UInteger)
+    Public Sub CopyToRAM(bytes() As Byte, segment As Integer, offset As Integer)
         CopyToRAM(bytes, x8086.SegOffToAbs(segment, offset))
     End Sub
 
-    Public Sub CopyToRAM(bytes() As Byte, address As UInteger)
+    Public Sub CopyToRAM(bytes() As Byte, address As Integer)
         Array.Copy(bytes, 0, Memory, address, bytes.Length)
     End Sub
 
-    Public Sub CopyFromRAM(bytes() As Byte, address As UInteger)
+    Public Sub CopyFromRAM(bytes() As Byte, address As Integer)
         Array.Copy(Memory, address, bytes, 0, bytes.Length)
     End Sub
 
@@ -370,30 +369,30 @@
         End Set
     End Property
 
-    Private Sub PushIntoStack(value As UShort)
+    Private Sub PushIntoStack(value As Integer)
         mRegisters.SP = AddValues(mRegisters.SP, -2, DataSize.Word)
         RAM16(mRegisters.SS, mRegisters.SP) = value
     End Sub
 
-    Private Function PopFromStack() As UInteger
-        Dim value As UInteger = RAM16(mRegisters.SS, mRegisters.SP)
+    Private Function PopFromStack() As Integer
+        Dim value As Integer = RAM16(mRegisters.SS, mRegisters.SP)
         mRegisters.SP = AddValues(mRegisters.SP, 2, DataSize.Word)
         Return value
     End Function
 
-    Public Shared Function SegOffToAbs(segment As UInteger, offset As UInteger) As UInteger
+    Public Shared Function SegOffToAbs(segment As Integer, offset As Integer) As Integer
         Return (segment << 4) + offset
     End Function
 
-    Public Shared Function AbsToSeg(address As UInteger) As UInteger
+    Public Shared Function AbsToSeg(address As Integer) As Integer
         Return (address >> 4) And &HFFF00
     End Function
 
-    Public Shared Function AbsoluteToOff(address As UInteger) As UInteger
+    Public Shared Function AbsoluteToOff(address As Integer) As Integer
         Return address And &HFFF
     End Function
 
-    Public Property RAM(address As UInteger) As Byte
+    Public Property RAM(address As Integer) As Byte
         Get
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
             'Return FromPreftch(address)
@@ -416,7 +415,7 @@
         End Set
     End Property
 
-    Public Property RAM8(segment As UInteger, offset As UInteger, Optional inc As Integer = 0) As Byte
+    Public Property RAM8(segment As Integer, offset As Integer, Optional inc As Integer = 0) As Byte
         Get
             Return RAM(SegOffToAbs(segment, offset + inc))
         End Get
@@ -425,20 +424,20 @@
         End Set
     End Property
 
-    Public Property RAM16(segment As UInteger, offset As UInteger, Optional inc As Integer = 0) As UShort
+    Public Property RAM16(segment As Integer, offset As Integer, Optional inc As Integer = 0) As Integer
         Get
-            Dim address As UInteger = SegOffToAbs(segment, offset + inc)
+            Dim address As Integer = SegOffToAbs(segment, offset + inc)
             'Return RAM(address + 1) * 256 + RAM(address)
-            Return CUShort(RAM(address + 1)) << 8 Or RAM(address)
+            Return CUInt(RAM(address + 1)) << 8 Or RAM(address)
         End Get
-        Set(value As UShort)
-            Dim address As UInteger = SegOffToAbs(segment, offset + inc)
+        Set(value As Integer)
+            Dim address As Integer = SegOffToAbs(segment, offset + inc)
             RAM(address) = value And &HFF
             RAM(address + 1) = (value >> 8)
         End Set
     End Property
 
-    Public Property RAMn() As UShort
+    Public Property RAMn() As Integer
         Get
             If addrMode.Size = DataSize.Byte Then
                 Return RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
@@ -446,7 +445,7 @@
                 Return RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
             End If
         End Get
-        Set(value As UShort)
+        Set(value As Integer)
             If addrMode.Size = DataSize.Byte Then
                 RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = value
             Else

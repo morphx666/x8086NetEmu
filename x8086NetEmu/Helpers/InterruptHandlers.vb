@@ -4,8 +4,8 @@
 ' http://www.delorie.com/djgpp/doc/rbinter/ix/
 
 Partial Public Class x8086
-    Private lastAH(256 - 1) As UShort
-    Private lastCF(256 - 1) As UShort
+    Private lastAH(256 - 1) As Integer
+    Private lastCF(256 - 1) As Integer
 
     Private pendingIntNum As Integer
 
@@ -46,7 +46,7 @@ Partial Public Class x8086
                 PushIntoStack(AddValues(mRegisters.IP, opCodeSize, DataSize.Word))
             End If
 
-            Dim intOffset As UShort = intNum * 4
+            Dim intOffset As Integer = intNum * 4
             IPAddrOff = RAM16(0, intOffset)
             mRegisters.CS = RAM16(0, AddValues(intOffset, 2, DataSize.Word))
 
@@ -89,7 +89,7 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                Dim address As UInteger = x8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
+                Dim address As Integer = x8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
@@ -141,7 +141,7 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                Dim address As UInteger = x8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
+                Dim address As Integer = x8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then

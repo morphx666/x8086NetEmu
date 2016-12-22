@@ -678,7 +678,7 @@ Public Class FloppyControllerAdapter
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As Integer) As Integer
         If (port And 3) = 0 Then
             ' main status register
             Return GetMainStatus()
@@ -722,7 +722,7 @@ Public Class FloppyControllerAdapter
         End Get
     End Property
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As Integer, v As Integer)
         If (port And 3) = 2 Then
             ' write to digital output register
             If (v And &H4) = 0 Then

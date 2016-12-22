@@ -237,7 +237,7 @@
 
         ' Block further transactions until this one completes
         pendingTask = True
-        Dim transfertime As Long = 0
+        Dim transferTime As Long = 0
 
         If (mode And &HC0) = &HC0 Then
             'log.warn("cascade mode not implemented (channel " + i + ")")
@@ -262,7 +262,7 @@
                     ' DMA verify
                     curcount -= maxlen
                     curaddr = (curaddr + maxlen * addrstep) And &HFFFF
-                    transfertime += 3 * maxlen * Scheduler.CLOCKRATE / cpu.Clock
+                    transferTime += 3 * maxlen * Scheduler.CLOCKRATE / cpu.Clock
                 Case &H4
                     ' DMA write
                     While (maxlen > 0) AndAlso (Not chan.externalEop) AndAlso (blockmode OrElse chan.pendingRequest)
@@ -273,7 +273,7 @@
                         maxlen -= 1
                         curcount -= 1
                         curaddr = (curaddr + addrstep) And &HFFFF
-                        transfertime += 3 * Scheduler.CLOCKRATE / cpu.Clock
+                        transferTime += 3 * Scheduler.CLOCKRATE / cpu.Clock
                     End While
                 Case &H8
                     ' DMA read
@@ -285,7 +285,7 @@
                         maxlen -= 1
                         curcount -= 1
                         curaddr = (curaddr + addrstep) And &HFFFF
-                        transfertime += 3 * Scheduler.CLOCKRATE / cpu.Clock
+                        transferTime += 3 * Scheduler.CLOCKRATE / cpu.Clock
                     End While
             End Select
 
@@ -315,10 +315,10 @@
         End If
 
         ' Schedule a task to run when the simulated DMA transfer completes
-        cpu.Sched.RunTaskAfter(task, transfertime)
+        cpu.Sched.RunTaskAfter(task, transferTime)
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As Integer) As Integer
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel status
@@ -343,7 +343,7 @@
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As Integer, v As Integer)
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel setup

@@ -29,7 +29,7 @@
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As Integer) As Integer
         Dim tmp As Integer
 
         Select Case port
@@ -67,7 +67,7 @@
         End Get
     End Property
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As Integer, value As Integer)
         Dim oldReg = sm.reg(port And 7)
         sm.reg(port And 7) = value
 
@@ -152,7 +152,7 @@
         If rX < 0 Then highbits = 3
         If rY < 0 Then highbits = highbits Or &HC
 
-        Dim btns As UInteger = 0
+        Dim btns As Integer = 0
         If m.Button And MouseButtons.Left Then btns = btns Or 2
         If m.Button And MouseButtons.Right Then btns = btns Or 1
 

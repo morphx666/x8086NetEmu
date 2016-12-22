@@ -41,6 +41,8 @@ Public Class Scheduler
     ' The Cpu component controlled by this Scheduler
     Private mCPU As x8086
 
+    Private sw As New Stopwatch()
+
     ' The dispatcher for external input events
     'Private inputHandler As ExternalInputHandler
 
@@ -105,8 +107,8 @@ Public Class Scheduler
         Public MustOverride Overrides Sub Run()
     End Class
 
-    Private sw As New Stopwatch()
-    Public Sub New()
+    Public Sub New(cpu As x8086)
+        mCPU = cpu
         pq = New PriorityQueue()
         pendingInput = New ArrayList()
         sw.Start()
@@ -136,18 +138,14 @@ Public Class Scheduler
     ' @param simTimePerWallMs Determines the speed of the simulation
     '   (in simulated nanoseconds per real millisecond).
     '
-    Public Sub SetSynchronization(enable As Boolean, quantum As Long, simTimePerWallMs As Long)
-        If enable And quantum < 1 Then Throw New ArgumentException("Invalid value for SyncQuantum")
-        If enable And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid value for SyncSimTimePerWallMs")
-        syncScheduler = enable
+    Public Sub SetSynchronization(enabled As Boolean, quantum As Long, simTimePerWallMs As Long)
+        If enabled And quantum < 1 Then Throw New ArgumentException("Invalid value for SyncQuantum")
+        If enabled And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid value for SyncSimTimePerWallMs")
+        syncScheduler = enabled
         syncQuantum = quantum
         syncSimTimePerWallMs = simTimePerWallMs
         syncTimeSaldo = 0
         syncWallTimeMillis = CurrentTimeMillis()
-    End Sub
-
-    Public Sub SetCPU(cpu As x8086)
-        mCPU = cpu
     End Sub
 
     Public Sub RunTaskAt(tsk As Task, t As Long)

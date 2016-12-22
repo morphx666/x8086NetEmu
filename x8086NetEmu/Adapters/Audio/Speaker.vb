@@ -165,7 +165,7 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As Integer) As Integer
         Return &HFF
     End Function
 
@@ -245,7 +245,7 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As Integer, value As Integer)
 
     End Sub
 
@@ -301,11 +301,11 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overloads Overrides Function [In](port As UInteger) As UInteger
+    Public Overloads Overrides Function [In](port As Integer) As Integer
         Return 0
     End Function
 
-    Public Overloads Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overloads Overrides Sub Out(port As Integer, value As Integer)
 
     End Sub
 

@@ -7,11 +7,11 @@ Imports System.Threading
 
 Public Class x8086
     Public Enum Models
-        PCE_IBMPC_5150
-        PCE_IBMPC_5160
+        IBMPC_5150
+        IBMPC_5160
     End Enum
 
-    Private mModel As Models = Models.PCE_IBMPC_5150
+    Private mModel As Models = Models.IBMPC_5160
     Private mVic20 As Boolean
 
     Private mRegisters As GPRegisters = New GPRegisters()
@@ -27,7 +27,7 @@ Public Class x8086
     Private mIsPaused As Boolean
 
     Private opCode As Byte
-    Private opCodeSize As UInteger = 0
+    Private opCodeSize As Integer = 0
 
     Private addrMode As AddressingMode
     Private mIsExecuting As Boolean = False
@@ -48,13 +48,13 @@ Public Class x8086
     End Enum
     Private repeLoopMode As REPLoopModes
 
-    Private forceNewIPAddress As UInteger
-    Private Property IPAddrOff As UInteger
+    Private forceNewIPAddress As Integer
+    Private Property IPAddrOff As Integer
         Get
             useIPAddrOff = False
             Return forceNewIPAddress
         End Get
-        Set(value As UInteger)
+        Set(value As Integer)
             forceNewIPAddress = value
             useIPAddrOff = True
         End Set
@@ -83,8 +83,8 @@ Public Class x8086
     Public DMA As DMAI8237
     Public PIC As PIC8259
     Public PIT As PIT8254
-    'Public PPI As PPI8255_OLD
-    Public PPI As PPI8255_NEW
+    Public PPI As PPI8255
+    'Public PPI As PPI8255_ALT
     Public RTC As RTC
 
     Private picIsAvailable As Boolean
@@ -105,21 +105,15 @@ Public Class x8086
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
 
-        Sched = New Scheduler()
-        Sched.SetCPU(Me)
+        Sched = New Scheduler(Me)
 
         FPU = New x8087(Me)
         PIC = New PIC8259(Me)
         DMA = New DMAI8237(Me)
-
-        Dim intPIT = PIC.GetIrqLine(0)
-        PIT = New PIT8254(Me, intPIT)
-
-        Dim intPPI = PIC.GetIrqLine(1)
-        'PPI = New PPI8255_OLD(Me, intPPI)
-        PPI = New PPI8255_NEW(Me, intPPI)
-
-        'RTC = New RTC(Me)
+        PIT = New PIT8254(Me, PIC.GetIrqLine(0))
+        PPI = New PPI8255(Me, PIC.GetIrqLine(1))
+        'PPI = New PPI8255_ALT(Me, PIC.GetIrqLine(1))
+        'RTC = New RTC(Me, PIC.GetIrqLine(8))
 
         mPorts.Add(PIC)
         mPorts.Add(DMA)
@@ -217,7 +211,7 @@ Public Class x8086
         If PPI Is Nothing Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
-        'PPI.SetSwitchData(Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
+        PPI.SetSwitchData(Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
         '                             │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
         '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
         '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
@@ -232,57 +226,57 @@ Public Class x8086
         '                              │ │ └──────────────────── unused, internal modem (PS/2)
         '                              └─┴───────────────────── number of printer ports
 
-        PPI.PortA(0) = &H30 Or &HC
-        PPI.PortA(1) = &H0
-        PPI.PortB = &H8
-        PPI.PortC(0) = If(mModel = Models.PCE_IBMPC_5160, 1, 0)
-        PPI.PortC(1) = 0
+        'PPI.PortA(0) = &H30 Or &HC
+        'PPI.PortA(1) = &H0
+        'PPI.PortB = &H8
+        'PPI.PortC(0) = If(mModel = Models.IBMPC_5160, 1, 0)
+        'PPI.PortC(1) = 0
 
-        ' Floppy count
-        Dim count = 2 ' Forced, for now...
-        Select Case mModel
-            Case Models.PCE_IBMPC_5150
-                PPI.PortA(0) = PPI.PortA(0) And (Not &HC1)
-                If count > 0 Then
-                    PPI.PortA(0) = PPI.PortA(0) Or &H1
-                    PPI.PortA(0) = PPI.PortA(0) Or (((count - 1) And &H3) << 6)
-                End If
-            Case Models.PCE_IBMPC_5160
-                PPI.PortC(1) = PPI.PortC(1) And (Not &HC)
-                If count > 0 Then
-                    PPI.PortC(1) = PPI.PortC(1) Or (((count - 1) And &H3) << 2)
-                End If
-        End Select
+        '' Floppy count
+        'Dim count = 2 ' Forced, for now...
+        'Select Case mModel
+        '    Case Models.IBMPC_5150
+        '        PPI.PortA(0) = PPI.PortA(0) And (Not &HC1)
+        '        If count > 0 Then
+        '            PPI.PortA(0) = PPI.PortA(0) Or &H1
+        '            PPI.PortA(0) = PPI.PortA(0) Or (((count - 1) And &H3) << 6)
+        '        End If
+        '    Case Models.IBMPC_5160
+        '        PPI.PortC(1) = PPI.PortC(1) And (Not &HC)
+        '        If count > 0 Then
+        '            PPI.PortC(1) = PPI.PortC(1) Or (((count - 1) And &H3) << 2)
+        '        End If
+        'End Select
 
-        ' Video Mode
-        Dim videoMode As CGAAdapter.VideoModes = CGAAdapter.VideoModes.Mode3_Text_Color_80x25 ' Forced, for now...
-        Select Case mModel
-            Case Models.PCE_IBMPC_5150
-                PPI.PortA(0) = PPI.PortA(0) And (Not &H30)
-                PPI.PortA(0) = PPI.PortA(0) Or ((videoMode And &H3) << 4)
-            Case Models.PCE_IBMPC_5160
-                PPI.PortC(1) = PPI.PortC(1) And (Not &H3)
-                PPI.PortC(1) = PPI.PortC(1) Or (videoMode And &H3)
-        End Select
+        '' Video Mode
+        'Dim videoMode As CGAAdapter.VideoModes = CGAAdapter.VideoModes.Mode4_Graphic_Color_320x200  ' Forced, for now...
+        'Select Case mModel
+        '    Case Models.IBMPC_5150
+        '        PPI.PortA(0) = PPI.PortA(0) And (Not &H30)
+        '        PPI.PortA(0) = PPI.PortA(0) Or ((videoMode And &H3) << 4)
+        '    Case Models.IBMPC_5160
+        '        PPI.PortC(1) = PPI.PortC(1) And (Not &H3)
+        '        PPI.PortC(1) = PPI.PortC(1) Or (videoMode And &H3)
+        'End Select
 
-        ' RAM size
-        Dim size = Memory.Length ' Forced, for now...
-        Select Case mModel
-            Case Models.PCE_IBMPC_5150
-                size = If(size < 65536, 0, (size - 65536) / 32768)
-                PPI.PortC(0) = PPI.PortC(0) And &HF0
-                PPI.PortC(1) = PPI.PortC(1) And &HFE
-                PPI.PortC(0) = PPI.PortC(0) Or (size And &HF)
-                PPI.PortC(1) = PPI.PortC(1) Or ((size >> 4) And &H1)
-            Case Models.PCE_IBMPC_5160
-                size = size >> 16
-                If size > 0 Then
-                    size -= 1
-                    If size > 3 Then size = 3
-                End If
-                PPI.PortC(0) = PPI.PortC(0) And &HF3
-                PPI.PortC(0) = PPI.PortC(0) Or ((size << 2) And &HC)
-        End Select
+        '' RAM size
+        'Dim size = Memory.Length ' Forced, for now...
+        'Select Case mModel
+        '    Case Models.IBMPC_5150
+        '        size = If(size < 65536, 0, (size - 65536) / 32768)
+        '        PPI.PortC(0) = PPI.PortC(0) And &HF0
+        '        PPI.PortC(1) = PPI.PortC(1) And &HFE
+        '        PPI.PortC(0) = PPI.PortC(0) Or (size And &HF)
+        '        PPI.PortC(1) = PPI.PortC(1) Or ((size >> 4) And &H1)
+        '    Case Models.IBMPC_5160
+        '        size = size >> 16
+        '        If size > 0 Then
+        '            size -= 1
+        '            If size > 3 Then size = 3
+        '        End If
+        '        PPI.PortC(0) = PPI.PortC(0) And &HF3
+        '        PPI.PortC(0) = PPI.PortC(0) Or ((size << 2) And &HC)
+        'End Select
     End Sub
 
     Private Sub LoadBIOS()
@@ -1082,7 +1076,7 @@ Public Class x8086
             Case &H86 To &H87 ' xchg reg/mem with reg
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    Dim tmp As UInteger = mRegisters.Val(addrMode.Register1)
+                    Dim tmp As Integer = mRegisters.Val(addrMode.Register1)
                     mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
                     mRegisters.Val(addrMode.Register2) = tmp
                     clkCyc += 4
@@ -1159,7 +1153,7 @@ Public Class x8086
 
             Case &H90 To &H97 ' xchg reg with acc
                 SetRegister1Alt(opCode)
-                Dim tmp As UInteger = mRegisters.AX
+                Dim tmp As Integer = mRegisters.AX
                 mRegisters.AX = mRegisters.Val(addrMode.Register1)
                 mRegisters.Val(addrMode.Register1) = tmp
                 clkCyc += 3
@@ -1174,7 +1168,7 @@ Public Class x8086
 
             Case &H9A ' call direct intersegment
                 IPAddrOff = Param(SelPrmIndex.First, , DataSize.Word)
-                Dim cs As UInteger = Param(SelPrmIndex.Second, , DataSize.Word)
+                Dim cs As Integer = Param(SelPrmIndex.Second, , DataSize.Word)
 
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
@@ -1304,7 +1298,7 @@ Public Class x8086
                 End If
 
             Case &HCA ' ret intersegment adding imm to sp (retf)
-                Dim n As UShort = Param(SelPrmIndex.First, , DataSize.Word)
+                Dim n As Integer = Param(SelPrmIndex.First, , DataSize.Word)
                 IPAddrOff = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 mRegisters.SP = AddValues(mRegisters.SP, n, DataSize.Word)
@@ -1340,7 +1334,7 @@ Public Class x8086
             Case &HD0 To &HD3 : ExecuteGroup2()
 
             Case &HD4 ' aam
-                Dim div As UInteger = Param(SelPrmIndex.First, , DataSize.Byte)
+                Dim div As Integer = Param(SelPrmIndex.First, , DataSize.Byte)
                 If div = 0 Then
                     HandleInterrupt(0, False)
                     Exit Select
@@ -1439,7 +1433,7 @@ Public Class x8086
 
             Case &HE8 ' call direct within segment
                 IPAddrOff = OffsetIP(DataSize.Word)
-                PushIntoStack(AddValues(Registers.IP, opCodeSize , DataSize.Word))
+                PushIntoStack(AddValues(Registers.IP, opCodeSize, DataSize.Word))
                 clkCyc += 19
 
             Case &HE9 ' jmp direct within segment
@@ -1549,8 +1543,8 @@ Public Class x8086
     Private Sub ExecuteGroup1() ' &H80 To &H83
         SetAddressing()
 
-        Dim arg1 As UInteger = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
-        Dim arg2 As UInteger = Param(SelPrmIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
+        Dim arg1 As Integer = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
+        Dim arg2 As Integer = Param(SelPrmIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
         If opCode = &H83 Then arg2 = To16bitsWithSign(arg2)
 
         Select Case addrMode.Reg
@@ -1627,12 +1621,12 @@ Public Class x8086
     Private Sub ExecuteGroup2_SLOW() ' &HD0 To &HD3 (fake86 version)
         SetAddressing()
 
-        Dim value As UInteger
-        Dim count As UInteger
+        Dim value As Integer
+        Dim count As Integer
 
-        Dim mask80_8000 As UInteger
-        Dim mask07_15 As UShort
-        Dim maskFF_FFFF As UInteger
+        Dim mask80_8000 As Integer
+        Dim mask07_15 As Integer
+        Dim maskFF_FFFF As Integer
 
         If addrMode.Size = DataSize.Byte Then
             mask80_8000 = &H80
@@ -1677,8 +1671,8 @@ Public Class x8086
         If mVic20 Then count = count And &H1F
 
         Dim shift As Integer
-        Dim oldCF As UShort
-        Dim msb As UInteger
+        Dim oldCF As Integer
+        Dim msb As Integer
 
         Select Case addrMode.Reg
             Case 0 ' 000    --  rol
@@ -1777,17 +1771,17 @@ Public Class x8086
 
         ' Other Emulators & Resources\PCE - PC Emulator\src\src\cpu\e8086\opcodes.c
 
-        Dim newValue As UInteger
-        Dim count As UInteger
-        Dim oldValue As UInteger
+        Dim newValue As Integer
+        Dim count As Integer
+        Dim oldValue As Integer
 
-        Dim mask80_8000 As UInteger
-        Dim mask07_15 As UShort
-        Dim maskFF_FFFF As UInteger
-        Dim mask8_16 As UShort
-        Dim mask9_17 As UShort
-        Dim mask100_10000 As UInteger
-        Dim maskFF00_FFFF0000 As UInteger
+        Dim mask80_8000 As Integer
+        Dim mask07_15 As Integer
+        Dim maskFF_FFFF As Integer
+        Dim mask8_16 As Integer
+        Dim mask9_17 As Integer
+        Dim mask100_10000 As Integer
+        Dim maskFF00_FFFF0000 As Integer
 
         If addrMode.Size = DataSize.Byte Then
             mask80_8000 = &H80
@@ -1954,7 +1948,7 @@ Public Class x8086
                 End If
 
             Case 3 ' 011    --  neg
-                Dim result As UInteger
+                Dim result As Integer
 
                 If addrMode.IsDirect Then
                     result = AddValues(Not mRegisters.Val(addrMode.Register2), 1, addrMode.Size)
@@ -2062,10 +2056,10 @@ Public Class x8086
                 End If
 
             Case 6 ' 110    --  div
-                Dim div As UInteger
-                Dim num As UInteger
-                Dim result As UInteger
-                Dim remain As UInteger
+                Dim div As Integer
+                Dim num As Integer
+                Dim result As Integer
+                Dim remain As Integer
 
                 If addrMode.IsDirect Then
                     div = mRegisters.Val(addrMode.Register2)
@@ -2106,8 +2100,8 @@ Public Class x8086
                 End If
 
             Case 7 ' 111    --  idiv
-                Dim div As UInteger
-                Dim num As UInteger
+                Dim div As Integer
+                Dim num As Integer
                 Dim result As Integer
                 Dim remain As Integer
                 Dim sign1 As Boolean

@@ -1,7 +1,7 @@
 ﻿Imports System.Threading
 Imports System.Runtime.InteropServices
 
-Public Class PPI8255_NEW
+Public Class PPI8255_ALT
     Inherits IOPortHandler
 
     Private sched As Scheduler
@@ -15,8 +15,8 @@ Public Class PPI8255_NEW
 
     Private cpu As x8086
 
-    Private Delegate Function ReadFunction() As Integer
-    Private Delegate Sub WriteFunction(v As Integer)
+    Private Delegate Function ReadFunction() As Byte
+    Private Delegate Sub WriteFunction(v As Byte)
 
     Public PortA(2 - 1) As Byte
     Public PortB As Byte
@@ -76,7 +76,7 @@ Public Class PPI8255_NEW
 
             Select Case i
                 Case 0 ' A
-                    ports(i).Read = New ReadFunction(Function()
+                    ports(i).Read = New ReadFunction(Function() As Byte
                                                          If (PortB And &H80) <> 0 Then
                                                              Return PortA(0)
                                                          Else
@@ -85,7 +85,7 @@ Public Class PPI8255_NEW
                                                          End If
                                                      End Function)
                 Case 1 ' B
-                    ports(i).Write = New WriteFunction(Sub(v As Integer)
+                    ports(i).Write = New WriteFunction(Sub(v As Byte)
                                                            Dim old As Integer = PortB
                                                            PortB = v
 
@@ -99,7 +99,7 @@ Public Class PPI8255_NEW
                                                        End Sub)
                 Case 2 ' C
                     ports(i).Read = New ReadFunction(Function()
-                                                         If cpu.Model = x8086.Models.PCE_IBMPC_5160 Then
+                                                         If cpu.Model = x8086.Models.IBMPC_5160 Then
                                                              If (PortB And &H8) <> 0 Then
                                                                  Return PortC(1)
                                                              Else
@@ -138,7 +138,7 @@ Public Class PPI8255_NEW
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As Integer) As Integer
         Select Case (port And 3)
             Case 0 ' A
                 Return ReadFromPort(0)
@@ -153,7 +153,7 @@ Public Class PPI8255_NEW
         End Select
     End Function
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As Integer, v As Integer)
         Select Case port And 3
             Case 0 ' A
                 WriteToPort(0, v)
@@ -243,7 +243,7 @@ Public Class PPI8255_NEW
                 lastKeyCode = keyMap.GetScanCode(Asc(keyBuf(0))) And &HFF
                 If keyUpStates(0) Then lastKeyCode = lastKeyCode Or &H80
 
-                ' wait .05 msec before going to the next byte
+                ' wait ~.05 msec before going to the next byte
                 If Not keyShiftPending Then
                     keyShiftPending = True
                     sched.RunTaskAfter(task, 500000 / 1000)

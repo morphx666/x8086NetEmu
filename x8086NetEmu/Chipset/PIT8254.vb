@@ -551,8 +551,7 @@
             End Get
         End Property
     End Class
-
-    Private irqTask As Scheduler.Task = New TaskSC(Me)
+    Private task As Scheduler.Task = New TaskSC(Me)
 
     Public Sub New(cpu As x8086, irq As InterruptRequest)
         Me.cpu = cpu
@@ -583,7 +582,7 @@
         UpdateCh2(0)
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As Integer) As Integer
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then
@@ -595,7 +594,7 @@
         End If
     End Function
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As Integer, v As Integer)
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then
@@ -642,8 +641,8 @@
         ' State of channel 0 may have changed;
         '' run the IRQ task immediately to take this into account
         If irq IsNot Nothing Then
-            irqTask.Cancel()
-            irqTask.Start()
+            task.Cancel()
+            task.Start()
         End If
     End Sub
 
@@ -723,6 +722,6 @@
 
         ' reschedule task for next output change
         Dim t As Long = channels(0).NextOutputChangeTime()
-        If t > 0 Then cpu.Sched.RunTaskAt(irqTask, t)
+        If t > 0 Then cpu.Sched.RunTaskAt(task, t)
     End Sub
 End Class

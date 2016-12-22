@@ -157,16 +157,16 @@ Public Class FormEmulator
     End Sub
 
     Private Sub SetTitleText()
-        Dim sysMenuShortcut As String
+        Dim sysMenIntegercut As String
 
 #If Win32 Then
-        sysMenuShortcut = "RCtrl + Home"
+        sysMenIntegercut = "RCtrl + Home"
 #Else
-        sysMenuShortcut = "Ctrl + MButton"
+        sysMenIntegercut = "Ctrl + MButton"
 #End If
 
         Me.Text = String.Format("x8086NetEmu [Menu: {0}]      {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5}",
-                                    sysMenuShortcut,
+                                    sysMenIntegercut,
                                     cpu.Clock / x8086.MHz,
                                     cpu.SimulationMultiplier * 100,
                                     cpu.VideoAdapter.Zoom * 100,

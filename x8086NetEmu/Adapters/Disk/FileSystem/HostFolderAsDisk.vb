@@ -3,8 +3,8 @@
 Public Class HostFolderAsDisk
     Inherits DiskImage
 
-    Private mDiskSize As UInteger = 32 * 1024 * 1204 ' 32MB
-    Private bytesPerSector As UShort = 512
+    Private mDiskSize As Integer = 32 * 1024 * 1204 ' 32MB
+    Private bytesPerSector As Integer = 512
     Private buffer() As Byte
 
     Private s As IO.FileStream

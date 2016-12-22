@@ -424,7 +424,7 @@ Public Class CGAWinForms
         Return New Rectangle(New Point(col * charSize.Width, row * charSize.Height), charSize)
     End Function
 
-    Public Function ColRowToAddress(col As Integer, row As Integer) As UInteger
+    Public Function ColRowToAddress(col As Integer, row As Integer) As Integer
         Return StartTextVideoAddress + row * (TextResolution.Width * 2) + (col * 2)
     End Function
 

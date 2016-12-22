@@ -1,7 +1,7 @@
 ﻿Partial Public Class x8086
     Private isVideoAdapterAvailable As Boolean
-    Private tmpCF As UShort
-    Private portsCache As New Dictionary(Of UInteger, IOPortHandler)
+    Private tmpCF As Integer
+    Private portsCache As New Dictionary(Of Integer, IOPortHandler)
     Private parityLUT() As Byte = {
         1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
         0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
@@ -50,8 +50,8 @@
         Public Register1 As GPRegisters.RegistersTypes
         Public Register2 As GPRegisters.RegistersTypes
         Public IsDirect As Boolean
-        Public IndAdr As UInteger    ' Indirect Address
-        Public IndMem As UInteger    ' Indirect Memory Contents
+        Public IndAdr As Integer    ' Indirect Address
+        Public IndMem As Integer    ' Indirect Memory Contents
 
         Private regOffset As Integer
 
@@ -95,7 +95,8 @@
         ' If Rm = 6, AS will be set to SS, except for Modifier = 0
         ' http://www.ic.unicamp.br/~celio/mc404s2-03/addr_modes/intel_addr.html
 
-        If (Not mRegisters.ActiveSegmentChanged) AndAlso (addrMode.Modifier <> 3) AndAlso
+        'If (Not mRegisters.ActiveSegmentChanged) AndAlso (addrMode.Modifier <> 3) AndAlso
+        If (Not mRegisters.ActiveSegmentChanged) AndAlso
                 (
                     addrMode.Rm = 2 OrElse
                     addrMode.Rm = 3 OrElse
@@ -160,7 +161,7 @@
         opCodeSize += 1
     End Sub
 
-    Private Function To16bitsWithSign(v As UInteger) As UInteger
+    Private Function To16bitsWithSign(v As Integer) As Integer
         If (v And &H80) <> 0 Then
             Return &HFF00 Or v
         Else
@@ -168,7 +169,7 @@
         End If
     End Function
 
-    Private Function To32bitsWithSign(v As UInteger) As UInteger
+    Private Function To32bitsWithSign(v As Integer) As Integer
         If (v And &H8000) <> 0 Then
             Return &HFFFF0000L Or v
         Else
@@ -176,7 +177,7 @@
         End If
     End Function
 
-    'Private Function FixByteSign(v As UInteger) As UInteger
+    'Private Function FixByteSign(v As Integer) As Integer
     '    If addrMode.Size = DataSize.Byte Then
     '        Return To16bitsWithSign(v)
     '    Else
@@ -184,7 +185,7 @@
     '    End If
     'End Function
 
-    Private Sub SendToPort(portAddress As UInteger, value As UInteger)
+    Private Sub SendToPort(portAddress As Integer, value As Integer)
         FlushCycles()
 
         If portsCache.ContainsKey(portAddress) Then
@@ -215,7 +216,7 @@
         NoIOPort(portAddress)
     End Sub
 
-    Private Function ReceiveFromPort(portAddress As UInteger) As UInteger
+    Private Function ReceiveFromPort(portAddress As Integer) As Integer
         FlushCycles()
 
         If portsCache.ContainsKey(portAddress) Then
@@ -245,7 +246,7 @@
         Return &HFF
     End Function
 
-    Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As UInteger = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UShort
+    Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As Integer = 1, Optional size As DataSize = DataSize.UseAddressingMode) As Integer
         Get
             If size = DataSize.UseAddressingMode Then size = addrMode.Size
 
@@ -259,7 +260,7 @@
         End Get
     End Property
 
-    Private ReadOnly Property ParamNOPS(index As SelPrmIndex, Optional ipOffset As Integer = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UShort
+    Private ReadOnly Property ParamNOPS(index As SelPrmIndex, Optional ipOffset As Integer = 1, Optional size As DataSize = DataSize.UseAddressingMode) As Integer
         Get
             If size = DataSize.UseAddressingMode Then size = addrMode.Size
 
@@ -279,7 +280,7 @@
         mRegisters.IP = AddValues(mRegisters.IP, value, DataSize.Word)
     End Sub
 
-    Private Function OffsetIP(paramSize As DataSize) As UShort
+    Private Function OffsetIP(paramSize As DataSize) As Integer
         If paramSize = DataSize.Byte Then
             Return AddValues(mRegisters.IP, To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte)) + opCodeSize, DataSize.Word)
         Else
@@ -287,7 +288,7 @@
         End If
     End Function
 
-    Public Function AddValues(v1 As UInteger, v2 As Integer, size As DataSize) As UShort
+    Public Function AddValues(v1 As Integer, v2 As Integer, size As DataSize) As Integer
         If size = DataSize.Byte Then
             Return (v1 + v2) And &HFF
         Else
@@ -295,7 +296,7 @@
         End If
     End Function
 
-    Private Function Eval(v1 As UInteger, v2 As Integer, opMode As Operation, size As DataSize) As UShort
+    Private Function Eval(v1 As Integer, v2 As Integer, opMode As Operation, size As DataSize) As Integer
         Dim result As Integer
 
         Select Case opMode
@@ -378,7 +379,7 @@
         mFlags.OF = 0
     End Sub
 
-    Private Sub SetAddSubFlags(result As Integer, v1 As UInteger, v2 As Integer, size As DataSize, isSubstraction As Boolean)
+    Private Sub SetAddSubFlags(result As Integer, v1 As Integer, v2 As Integer, size As DataSize, isSubstraction As Boolean)
         SetSZPFlags(result, size)
 
         If size = DataSize.Byte Then
@@ -392,15 +393,15 @@
         mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)
     End Sub
 
-    Public Shared Function BitsArrayToWord(b() As Boolean) As UShort
-        Dim r As UShort = 0
-        For i As UShort = 0 To b.Length - 1
+    Public Shared Function BitsArrayToWord(b() As Boolean) As Integer
+        Dim r As Integer = 0
+        For i As Integer = 0 To b.Length - 1
             If b(i) Then r += 2 ^ i
         Next
         Return r
     End Function
 
-    Public Shared Sub WordToBitsArray(value As UShort, a() As Boolean)
+    Public Shared Sub WordToBitsArray(value As Integer, a() As Boolean)
         For i As Integer = 0 To a.Length - 1
             a(i) = (value And 2 ^ i) <> 0
         Next
