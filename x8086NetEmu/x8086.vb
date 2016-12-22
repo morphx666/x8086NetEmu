@@ -1686,7 +1686,7 @@ Public Class x8086
                     value = value << 1
                     value = value Or mFlags.CF
                 Next
-                If count = 1 Then mFlags.OF = mFlags.CF Xor ((value > mask07_15) And 1)
+                If count = 1 Then mFlags.OF = mFlags.CF Xor ((value >> mask07_15) And 1)
 
             Case 1 ' 001    --  ror
                 For shift = 1 To count
