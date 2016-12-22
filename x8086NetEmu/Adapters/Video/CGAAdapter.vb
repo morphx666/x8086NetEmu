@@ -147,9 +147,7 @@ Public MustInherit Class CGAAdapter
             ValidPortAddress.Add(i)
         Next
 
-        For i As Integer = &H3C0 To &H3CF
-            ValidPortAddress.Add(i)
-        Next
+        'ValidPortAddress.Add(&H3B8)
 
         For i As Integer = 0 To 255
             If i >= 32 AndAlso i < 255 Then
@@ -199,8 +197,8 @@ Public MustInherit Class CGAAdapter
 
     Public ReadOnly Property BlinkCharOn As Boolean
         Get
-            Return CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) <> 0 AndAlso
-                   CGAColorControlRegister(CGAColorControlRegisters.bright_background_or_blinking_text) = 0
+            Return CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) AndAlso
+                   Not CGAColorControlRegister(CGAColorControlRegisters.bright_background_or_blinking_text)
         End Get
     End Property
 
@@ -424,24 +422,24 @@ Public MustInherit Class CGAAdapter
     End Sub
 
     Public Overrides Function [In](port As Integer) As Integer
-        Select Case port And &HF
-            Case &H0, &H2, &H4, &H6 ' CRT (6845) index register
+        Select Case port
+            Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
                 Return CRT6845IndexRegister
 
-            Case &H1, &H3, &H5, &H7 ' CRT (6845) data register
+            Case &H3D1, &H3D3, &H3D5, &H3D7 ' CRT (6845) data register
                 Return CRT6845DataRegister(CRT6845IndexRegister)
 
-            Case &H8 ' CGA mode control register  (except PCjr)
+            Case &H3D8 ' CGA mode control register  (except PCjr)
                 Return x8086.BitsArrayToWord(CGAModeControlRegister)
 
-            Case &H9 ' CGA palette register
+            Case &H3D9 ' CGA palette register
                 Return x8086.BitsArrayToWord(CGAPaletteRegister)
 
-            Case &HA ' CGA status register
+            Case &H3DA ' CGA status register
                 UpdateStatusRegister()
                 Return x8086.BitsArrayToWord(CGAStatusRegister)
 
-            Case &HF ' CRT/CPU page register  (PCjr only)
+            Case &H3DF ' CRT/CPU page register  (PCjr only)
                 Stop
             Case Else
                 mCPU.RaiseException("CGA: Unknown In Port: " + port.ToHex(x8086.DataSize.Word))
@@ -451,29 +449,41 @@ Public MustInherit Class CGAAdapter
     End Function
 
     Public Overrides Sub Out(port As Integer, value As Integer)
-        Select Case port And &HF
-            Case &H0, &H2, &H4, &H6 ' CRT (6845) index register
+        Select Case port
+            'Case &H3B8
+            '    If value And &H80 Then
+            '        videoTextSegment = &HB800
+            '    Else
+            '        videoTextSegment = &HB000
+            '    End If
+            '    InitVideoMemory(True)
+
+            Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
                 CRT6845IndexRegister = value And &HFF
 
-            Case &H1, &H3, &H5, &H7 ' CRT (6845) data register
+            Case &H3D1, &H3D3, &H3D5, &H3D7 ' CRT (6845) data register
                 CRT6845DataRegister(CRT6845IndexRegister) = value
                 OnDataRegisterChanged()
 
-            Case &H8 ' CGA mode control register  (except PCjr)
+            Case &H3D8 ' CGA mode control register  (except PCjr)
+                'If videoTextSegment <> &HB800 Then
+                '    videoTextSegment = &HB800
+                '    InitVideoMemory(True)
+                'End If
                 x8086.WordToBitsArray(value, CGAModeControlRegister)
                 OnModeControlRegisterChanged()
 
-            Case &H9 ' CGA palette register
+            Case &H3D9 ' CGA palette register
                 x8086.WordToBitsArray(value, CGAPaletteRegister)
                 OnPaletteRegisterChanged()
 
-            Case &HA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
+            Case &H3DA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
                 x8086.WordToBitsArray(value, CGAStatusRegister)
 
-            Case &HB ' The trigger is cleared by writing any value to port 03DBh (undocumented)
+            Case &H3DB ' The trigger is cleared by writing any value to port 03DBh (undocumented)
                 CGAStatusRegister(CGAStatusRegisters.light_pen_trigger_set) = False
 
-            Case &HF ' CRT/CPU page register  (PCjr only)
+            Case &H3DF ' CRT/CPU page register  (PCjr only)
                 Stop
             Case Else
                 mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToHex(x8086.DataSize.Word))
@@ -502,10 +512,10 @@ Public MustInherit Class CGAAdapter
     Protected Overridable Sub OnModeControlRegisterChanged()
         ' http://www.seasip.info/VintagePC/cga.html
         Dim v As Integer = x8086.BitsArrayToWord(CGAModeControlRegister)
-        If (v And vidModeChangeFlag) <> 0 Then
-            Dim newMode As VideoModes = v And &H17
-            If newMode <> mVideoMode Then VideoMode = newMode
-        End If
+        Dim newMode As VideoModes = v And &H17 ' 10111
+        ' 00100101
+
+        If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
 
         mVideoEnabled = CGAModeControlRegister(CGAModeControlRegisters.video_enabled) <> 0
     End Sub
@@ -565,11 +575,11 @@ Public MustInherit Class CGAAdapter
             End Select
 
             If colors IsNot Nothing Then
-                    For i As Integer = 0 To colors.Length - 1
-                        CGAPalette(i) = colors(i)
-                    Next
-                End If
+                For i As Integer = 0 To colors.Length - 1
+                    CGAPalette(i) = colors(i)
+                Next
             End If
+        End If
     End Sub
 
     Private Sub UpdateStatusRegister()
