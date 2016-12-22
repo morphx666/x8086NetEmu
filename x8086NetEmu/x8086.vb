@@ -27,7 +27,7 @@ Public Class x8086
     Private mIsPaused As Boolean
 
     Private opCode As Byte
-    Private opCodeSize As Integer = 0
+    Private opCodeSize As Byte = 0
 
     Private addrMode As AddressingMode
     Private mIsExecuting As Boolean = False
@@ -35,7 +35,7 @@ Public Class x8086
     Private mipsThread As Thread
     Private mipsWaiter As AutoResetEvent
     Private mMPIs As Double
-    Private instrucionsCounter As Integer
+    Private instrucionsCounter As UInteger
 
     Public Shared Property LogToConsole As Boolean
 
@@ -48,13 +48,13 @@ Public Class x8086
     End Enum
     Private repeLoopMode As REPLoopModes
 
-    Private forceNewIPAddress As Integer
-    Private Property IPAddrOff As Integer
+    Private forceNewIPAddress As UInteger
+    Private Property IPAddrOff As UInteger
         Get
             useIPAddrOff = False
             Return forceNewIPAddress
         End Get
-        Set(value As Integer)
+        Set(value As UInteger)
             forceNewIPAddress = value
             useIPAddrOff = True
         End Set
@@ -1076,7 +1076,7 @@ Public Class x8086
             Case &H86 To &H87 ' xchg reg/mem with reg
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    Dim tmp As Integer = mRegisters.Val(addrMode.Register1)
+                    Dim tmp As UInteger = mRegisters.Val(addrMode.Register1)
                     mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
                     mRegisters.Val(addrMode.Register2) = tmp
                     clkCyc += 4
@@ -1153,7 +1153,7 @@ Public Class x8086
 
             Case &H90 To &H97 ' xchg reg with acc
                 SetRegister1Alt(opCode)
-                Dim tmp As Integer = mRegisters.AX
+                Dim tmp As UInteger = mRegisters.AX
                 mRegisters.AX = mRegisters.Val(addrMode.Register1)
                 mRegisters.Val(addrMode.Register1) = tmp
                 clkCyc += 3
@@ -1168,7 +1168,7 @@ Public Class x8086
 
             Case &H9A ' call direct intersegment
                 IPAddrOff = Param(SelPrmIndex.First, , DataSize.Word)
-                Dim cs As Integer = Param(SelPrmIndex.Second, , DataSize.Word)
+                Dim cs As UInteger = Param(SelPrmIndex.Second, , DataSize.Word)
 
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
@@ -1298,7 +1298,7 @@ Public Class x8086
                 End If
 
             Case &HCA ' ret intersegment adding imm to sp (retf)
-                Dim n As Integer = Param(SelPrmIndex.First, , DataSize.Word)
+                Dim n As UInteger = Param(SelPrmIndex.First, , DataSize.Word)
                 IPAddrOff = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 mRegisters.SP = AddValues(mRegisters.SP, n, DataSize.Word)
@@ -1334,7 +1334,7 @@ Public Class x8086
             Case &HD0 To &HD3 : ExecuteGroup2()
 
             Case &HD4 ' aam
-                Dim div As Integer = Param(SelPrmIndex.First, , DataSize.Byte)
+                Dim div As UInteger = Param(SelPrmIndex.First, , DataSize.Byte)
                 If div = 0 Then
                     HandleInterrupt(0, False)
                     Exit Select
@@ -1543,8 +1543,8 @@ Public Class x8086
     Private Sub ExecuteGroup1() ' &H80 To &H83
         SetAddressing()
 
-        Dim arg1 As Integer = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
-        Dim arg2 As Integer = Param(SelPrmIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
+        Dim arg1 As UInteger = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
+        Dim arg2 As UInteger = Param(SelPrmIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
         If opCode = &H83 Then arg2 = To16bitsWithSign(arg2)
 
         Select Case addrMode.Reg
@@ -1621,12 +1621,12 @@ Public Class x8086
     Private Sub ExecuteGroup2_SLOW() ' &HD0 To &HD3 (fake86 version)
         SetAddressing()
 
-        Dim value As Integer
-        Dim count As Integer
+        Dim value As UInteger
+        Dim count As UInteger
 
-        Dim mask80_8000 As Integer
-        Dim mask07_15 As Integer
-        Dim maskFF_FFFF As Integer
+        Dim mask80_8000 As UInteger
+        Dim mask07_15 As UInteger
+        Dim maskFF_FFFF As UInteger
 
         If addrMode.Size = DataSize.Byte Then
             mask80_8000 = &H80
@@ -1670,9 +1670,9 @@ Public Class x8086
         ' 80186/V20 class CPUs limit shift count to 31 (fake86)
         If mVic20 Then count = count And &H1F
 
-        Dim shift As Integer
-        Dim oldCF As Integer
-        Dim msb As Integer
+        Dim shift As UInteger
+        Dim oldCF As UInteger
+        Dim msb As UInteger
 
         Select Case addrMode.Reg
             Case 0 ' 000    --  rol
@@ -1771,17 +1771,17 @@ Public Class x8086
 
         ' Other Emulators & Resources\PCE - PC Emulator\src\src\cpu\e8086\opcodes.c
 
-        Dim newValue As Integer
-        Dim count As Integer
-        Dim oldValue As Integer
+        Dim newValue As UInteger
+        Dim count As UInteger
+        Dim oldValue As UInteger
 
-        Dim mask80_8000 As Integer
-        Dim mask07_15 As Integer
-        Dim maskFF_FFFF As Integer
-        Dim mask8_16 As Integer
-        Dim mask9_17 As Integer
-        Dim mask100_10000 As Integer
-        Dim maskFF00_FFFF0000 As Integer
+        Dim mask80_8000 As UInteger
+        Dim mask07_15 As UInteger
+        Dim maskFF_FFFF As UInteger
+        Dim mask8_16 As UInteger
+        Dim mask9_17 As UInteger
+        Dim mask100_10000 As UInteger
+        Dim maskFF00_FFFF0000 As UInteger
 
         If addrMode.Size = DataSize.Byte Then
             mask80_8000 = &H80
@@ -1948,7 +1948,7 @@ Public Class x8086
                 End If
 
             Case 3 ' 011    --  neg
-                Dim result As Integer
+                Dim result As UInteger
 
                 If addrMode.IsDirect Then
                     result = AddValues(Not mRegisters.Val(addrMode.Register2), 1, addrMode.Size)
@@ -1963,7 +1963,7 @@ Public Class x8086
                 End If
 
             Case 4 ' 100    --  mul
-                Dim result As Long
+                Dim result As UInteger
 
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
@@ -2003,7 +2003,7 @@ Public Class x8086
                 If Not mVic20 Then mFlags.ZF = If(result = 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (80186)
 
             Case 5 ' 101    --  imul
-                Dim result As Long
+                Dim result As UInteger
 
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
@@ -2056,10 +2056,10 @@ Public Class x8086
                 End If
 
             Case 6 ' 110    --  div
-                Dim div As Integer
-                Dim num As Integer
-                Dim result As Integer
-                Dim remain As Integer
+                Dim div As UInteger
+                Dim num As UInteger
+                Dim result As UInteger
+                Dim remain As UInteger
 
                 If addrMode.IsDirect Then
                     div = mRegisters.Val(addrMode.Register2)
@@ -2100,10 +2100,10 @@ Public Class x8086
                 End If
 
             Case 7 ' 111    --  idiv
-                Dim div As Integer
-                Dim num As Integer
-                Dim result As Integer
-                Dim remain As Integer
+                Dim div As UInteger
+                Dim num As UInteger
+                Dim result As UInteger
+                Dim remain As UInteger
                 Dim sign1 As Boolean
                 Dim sign2 As Boolean
 
