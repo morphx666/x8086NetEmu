@@ -9,8 +9,6 @@
         Dim dskImg As DiskImage = mFloppyController.DiskImage(mRegisters.DL)
         Dim bufSize As Integer = mRegisters.AL * If(dskImg IsNot Nothing, dskImg.SectorSize, 0)
 
-        If mRegisters.AH > 8 Then Stop
-
         Select Case mRegisters.AH
             Case &H0 ' reset drive
                 x8086.Notify("Drive {0} Reset", NotificationReasons.Info, mRegisters.DL)
