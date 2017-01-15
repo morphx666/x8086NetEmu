@@ -106,7 +106,7 @@ Public Class DiskImage
                 Else
                     mStatus = ImageStatus.UnsupportedImageFormat
                 End If
-            Catch
+            Catch ex As Exception
                 mStatus = ImageStatus.UnsupportedImageFormat
             End Try
         End If
