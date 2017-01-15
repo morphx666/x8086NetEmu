@@ -395,7 +395,7 @@
             If address < ROMStart Then
                 Memory(address) = value
 
-                ' FIXME: This will not work until the rendering engine(s) utilize a persistent graphic (such as a DirectBitmap)
+                ' FIXME: This will not work until the rendering engine(s) uses a persistent surface (such as a DirectBitmap)
                 'If isVideoAdapterAvailable Then
                 '    If (address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) OrElse
                 '       (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) Then

@@ -1921,7 +1921,7 @@ Public Class x8086
         'If addrMode.Reg = 7 Then ' sar
         'mFlags.OF = 0
         'Else
-        mFlags.OF = If(((newValue Xor oldValue) And mask80_8000) = mask80_8000, 1, 0)
+        mFlags.OF = If(((newValue Xor oldValue) And mask80_8000) <> 0, 1, 0)
         'End If
     End Sub
 

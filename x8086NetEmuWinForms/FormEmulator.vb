@@ -101,7 +101,7 @@ Public Class FormEmulator
                                                              SetZoomLevel(1)
                                                          Case Keys.C
                                                              CopyTextFromEmulator()
-                                                         Case Keys.P
+                                                         Case Keys.V
                                                              PasteTextFromClipboard()
                                                      End Select
 
@@ -142,6 +142,7 @@ Public Class FormEmulator
         If Not isSelectingText AndAlso Clipboard.ContainsText(TextDataFormat.Text) Then
             Dim cbc As String = Clipboard.GetText(TextDataFormat.Text)
             Dim tmp As New Threading.Thread(Sub()
+                                                Threading.Thread.Sleep(500)
                                                 Dim gd() As Char = {"(", ")", "{", "}", "+", "^"}
                                                 For Each c As Char In cbc
                                                     If gd.Contains(c) Then
@@ -197,7 +198,7 @@ Public Class FormEmulator
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' Not Compatible with MINIX
+        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' Not Compatible with MINIX/ELKS
 
         AddSupportForTextCopy()
 
