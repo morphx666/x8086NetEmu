@@ -1,7 +1,7 @@
 ﻿Public Class VGAAdapter
     Inherits CGAAdapter
 
-    Public VGABasePalette() As Color = {
+    Private VGABasePalette() As Color = {
         Color.FromArgb(0, 0, 0),
         Color.FromArgb(0, 0, 169),
         Color.FromArgb(0, 169, 0),
@@ -260,8 +260,41 @@
         Color.FromArgb(0, 0, 0)
     }
 
+    Private VGA_SC(&H100 - 1) As Byte
+    Private VGA_CRTC(&H100 - 1) As Byte
+    Private VGA_ATTR(&H100 - 1) As Byte
+    Private VGA_GC(&H100 - 1) As Byte
+    Private flip3C0 As Boolean
+    Private latchRGB = 0
+    Private latchPal = 0
+    Private VGA_latch(4 - 1) As Byte
+    Private stateDAC = 0
+    Private latchReadRGB = 0
+    Private latchReadPal = 0
+    Private RAM(&H3DF - &H3C0 - 1) As Byte
+    Private tempRGB As Integer
+    Private palettevga(256 - 1) As Integer
+    Private curX As Integer
+    Private curY As Integer
+    Private cols As Integer = 80
+    Private rows As Integer = 25
+    Private vgapage As Integer
+    Private curPos As Integer
+    Private curVisible As Integer
+    Private vtotal As Integer
+    Private port3DA As Integer
+
     Public Sub New(cpu As x8086)
         MyBase.New(cpu)
+
+        ValidPortAddress.Clear()
+        For i As Integer = &H3C0 To &H3DF
+            ValidPortAddress.Add(i)
+        Next
+
+        For i As Integer = 0 To VGABasePalette.Length - 1
+            palettevga(i) = VGABasePalette(i).ToArgb()
+        Next
     End Sub
 
     Public Overrides Sub AutoSize()
@@ -275,4 +308,144 @@
     Public Overrides Sub Run()
 
     End Sub
+
+    Public Overrides Function [In](port As Integer) As Integer
+        Select Case port
+            Case &H3C1
+                Return VGA_ATTR(RAM(&H3C0 - &H3C0))
+
+            Case &H3C5
+                Return VGA_ATTR(RAM(&H3C4 - &H3C0))
+
+            Case &H3D5
+                Return VGA_ATTR(RAM(&H3D4 - &H3C0))
+
+            Case &H3C7
+                Return stateDAC
+
+            Case &H3C8
+                Return latchReadPal
+
+            Case &H3C9
+                Select Case latchReadRGB
+                    Case 0 ' R
+                        Return (palettevga(latchReadPal) >> 2) And 63
+                    Case 1 ' G
+                        Return (palettevga(latchReadPal) >> 10) And 63
+                    Case 2 ' B
+                        latchReadRGB = 0
+                        Dim b As Integer = (palettevga(latchReadPal) >> 18) And 63
+                        latchReadPal += 1
+                        Return b
+                End Select
+
+            Case &H3DA
+                Return port3DA
+
+        End Select
+
+        Return RAM(port - &H3C0)
+    End Function
+
+    Public Overrides Sub Out(port As Integer, value As Integer)
+        Dim ramAddr As Integer = port - &H3C0
+        value = value And &HFF
+
+        Select Case port
+            Case &H3C0
+                If flip3C0 Then
+                    flip3C0 = False
+                    RAM(ramAddr) = value
+                Else
+                    flip3C0 = True
+                    VGA_ATTR(ramAddr) = value
+                End If
+
+            Case &H3C4
+                RAM(ramAddr) = value
+
+            Case &H3C5
+                VGA_SC(RAM(ramAddr)) = value
+
+            Case &H3D4
+                RAM(ramAddr) = value
+
+            Case &H3C7
+                latchReadPal = value
+                latchReadRGB = 0
+                stateDAC = 0
+
+            Case &H3C8
+                latchPal = value
+                latchRGB = 0
+                tempRGB = 0
+                stateDAC = 3
+
+            Case &H3C9
+                value = value And 63
+                Select Case latchRGB
+                    Case 0 ' R
+                        tempRGB = value << 2
+                    Case 1 ' G
+                        tempRGB = tempRGB Or (value << 10)
+                    Case 2 ' B
+                        tempRGB = tempRGB Or (value << 18)
+                        palettevga(latchPal) = tempRGB
+                        latchPal += 1
+                End Select
+                latchRGB = (latchRGB + 1) Mod 3
+
+            Case &H3D5
+                VGA_CRTC(RAM(&H3D4 - &H3C0)) = value
+                If RAM(&H3D4 - &H3C0) = &HE Then
+                    curPos = (curPos And &HFF) Or (value << 8)
+                ElseIf RAM(&H3D4 - &H3C0) = &HF Then
+                    curPos = (curPos And &HFF00) Or value
+                End If
+
+                curY = curPos / cols
+                curX = curPos Mod cols
+
+                If RAM(&H3D4 - &H3C0) = &H6 Then
+                    vtotal = value Or ((VGA_GC(7) And 1) << 8) Or (If(VGA_GC(7) And 32 <> 0, 1, 0) << 9)
+                End If
+
+            Case &H3CF
+                VGA_GC(RAM(&H3CE - &H3C0)) = value
+
+            Case Else
+                RAM(ramAddr) = value
+
+        End Select
+    End Sub
+
+    Public Overrides ReadOnly Property Name As String
+        Get
+            Return "VGA"
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property Description As String
+        Get
+            Return "VGA Emulator"
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property VersionMajor As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property VersionMinor As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property VersionRevision As Integer
+        Get
+            Return 1
+        End Get
+    End Property
 End Class

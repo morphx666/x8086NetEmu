@@ -29,7 +29,7 @@ Public MustInherit Class CGAAdapter
         Graphics = 2
     End Enum
 
-    Public CGABasePalette() As Color = {
+    Private CGABasePalette() As Color = {
         Color.FromArgb(&H0, &H0, &H0),
         Color.FromArgb(&H0, &H0, &HAA),
         Color.FromArgb(&H0, &HAA, &H0),
@@ -228,13 +228,13 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides ReadOnly Property VersionMinor As Integer
         Get
-            Return 3
+            Return 4
         End Get
     End Property
 
     Public Overrides ReadOnly Property VersionRevision As Integer
         Get
-            Return 2
+            Return 7
         End Get
     End Property
 

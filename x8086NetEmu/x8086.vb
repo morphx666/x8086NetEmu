@@ -466,7 +466,7 @@ Public Class x8086
         opCodeSize = 1
 
         ' Hack from fake86 to force BIOS into detecting a EGA/VGA adapter
-        'Memory(&H410) = &H41
+        ' Memory(&H410) = &H41
 
         Select Case opCode
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
@@ -1838,74 +1838,39 @@ Public Class x8086
 
         Select Case addrMode.Reg
             Case 0 ' 000    --  rol
-                If count = 1 Then
-                    newValue = (oldValue << 1) Or (oldValue >> mask07_15)
-                    mFlags.CF = If((oldValue And mask80_8000) = mask80_8000, 1, 0)
-                Else
-                    newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
-                    mFlags.CF = newValue And &H1
-                End If
+                newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
+                mFlags.CF = newValue And &H1
 
             Case 1 ' 001    --  ror
-                If count = 1 Then
-                    newValue = (oldValue >> 1) Or (oldValue << mask07_15)
-                    mFlags.CF = oldValue And &H1
-                Else
-                    newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
-                    mFlags.CF = If((newValue And mask80_8000) = mask80_8000, 1, 0)
-                End If
+                newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
+                mFlags.CF = If((newValue And mask80_8000) = mask80_8000, 1, 0)
 
             Case 2 ' 010    --  rcl
-                If count = 1 Then
-                    newValue = (oldValue << 1) Or mFlags.CF
-                    mFlags.CF = If((oldValue And mask80_8000) = mask80_8000, 1, 0)
-                Else
-                    oldValue = oldValue Or (mFlags.CF << mask8_16)
-                    newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
-                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
-                End If
+                oldValue = oldValue Or (mFlags.CF << mask8_16)
+                newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
+                mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
 
             Case 3 ' 011    --  rcr
-                If count = 1 Then
-                    newValue = (oldValue >> 1) Or (mFlags.CF << mask07_15)
-                    mFlags.CF = oldValue And &H1
-                Else
-                    oldValue = oldValue Or (mFlags.CF << mask8_16)
-                    newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
-                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
-                End If
+                oldValue = oldValue Or (mFlags.CF << mask8_16)
+                newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
+                mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
 
             Case 4, 6 ' 100/110    --  shl/sal
-                If count = 1 Then
-                    newValue = oldValue << 1
-                    mFlags.CF = If((oldValue And mask80_8000) = mask80_8000, 1, 0)
-                Else
-                    newValue = If(count > mask8_16, 0, (oldValue << count))
-                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
-                End If
+                newValue = If(count > mask8_16, 0, (oldValue << count))
+                mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 5 ' 101    --  shr
-                If count = 1 Then
-                    newValue = oldValue >> 1
-                    mFlags.CF = oldValue And &H1
-                Else
-                    newValue = If(count > mask8_16, 0, (oldValue >> (count - 1)))
-                    mFlags.CF = newValue And &H1
-                    newValue = (newValue >> 1)
-                End If
+                newValue = If(count > mask8_16, 0, (oldValue >> (count - 1)))
+                mFlags.CF = newValue And &H1
+                newValue = (newValue >> 1)
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 7 ' 111    --  sar
-                If count = 1 Then
-                    newValue = (oldValue >> 1) Or (oldValue And mask80_8000)
-                    mFlags.CF = oldValue And &H1
-                Else
-                    oldValue = oldValue Or If((oldValue And mask80_8000) = mask80_8000, maskFF00_FFFF0000, 0)
-                    newValue = oldValue >> If(count >= mask8_16, mask07_15, count - 1)
-                    mFlags.CF = newValue And &H1
-                    newValue = (newValue >> 1) And maskFF_FFFF
-                End If
+                oldValue = oldValue Or If((oldValue And mask80_8000) = mask80_8000, maskFF00_FFFF0000, 0)
+                newValue = oldValue >> If(count >= mask8_16, mask07_15, count - 1)
+                mFlags.CF = newValue And &H1
+                newValue = (newValue >> 1) And maskFF_FFFF
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case Else
