@@ -56,12 +56,12 @@
         Private regOffset As UInteger
 
         Public Sub Decode(data As Byte, addressingModeByte As Byte)
-            Size = data And 1                                   ' (00000001)
-            Direction = (data And 2) >> 1                       ' (00000010)
+            Size = data And 1                                   ' (0000 0001)
+            Direction = (data And 2) >> 1                       ' (0000 0010)
 
-            Modifier = addressingModeByte >> 6                  ' (11000000)
-            Reg = (addressingModeByte >> 3) And 7               ' (00111000)
-            Rm = addressingModeByte And 7                       ' (00000111)
+            Modifier = addressingModeByte >> 6                  ' (1100 0000)
+            Reg = (addressingModeByte >> 3) And 7               ' (0011 1000)
+            Rm = addressingModeByte And 7                       ' (0000 0111)
 
             regOffset = (Size << 3)
 
@@ -80,7 +80,6 @@
     End Sub
 
     Private Sub SetRegister2Alt(data As Byte)
-        ' WTF was I smoking???
         addrMode.Register2 = (((data And &H38) >> 3) + GPRegisters.RegistersTypes.ES) Mod GPRegisters.RegistersTypes.DI
         addrMode.Size = DataSize.Word
     End Sub
@@ -92,18 +91,19 @@
 
         ' AS = Active Segment
         ' AS = SS when Rm = 2 or 3
-        ' If Rm = 6, AS will be set to SS, except for Modifier = 0
+        ' If Rm = 6, AS will be set to DS if Modifier = 0, otherwise it will be set to SS
         ' http://www.ic.unicamp.br/~celio/mc404s2-03/addr_modes/intel_addr.html
 
-        'If (Not mRegisters.ActiveSegmentChanged) AndAlso (addrMode.Modifier <> 3) AndAlso
-        If (Not mRegisters.ActiveSegmentChanged) AndAlso
-                (
-                    addrMode.Rm = 2 OrElse
-                    addrMode.Rm = 3 OrElse
-                    (addrMode.Rm = 6 AndAlso addrMode.Modifier <> 0)
-                ) Then
-            mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
-            clkCyc += 2
+        If Not mRegisters.ActiveSegmentChanged Then
+            Select Case addrMode.Rm
+                Case 2, 3 : mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
+                Case 6
+                    If addrMode.Modifier = 0 Then
+                        mRegisters.ResetActiveSegment()
+                    Else
+                        mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
+                    End If
+            End Select
         End If
 
         ' http://umcs.maine.edu/~cmeadow/courses/cos335/Asm07-MachineLanguage.pdf
@@ -150,7 +150,7 @@
                     Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5                                          ' 110 [BP]
                     Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
                 End Select
-                addrMode.IndAdr = AddValues(addrMode.IndAdr, Param(SelPrmIndex.First, 2, DataSize.Word), DataSize.Word)
+                addrMode.IndAdr = AddValues(addrMode.IndAdr, To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word)), DataSize.Word)
                 addrMode.IndMem = RAMn
 
             Case 3 ' 11
@@ -170,7 +170,7 @@
     End Function
 
     Private Function To32bitsWithSign(v As UInteger) As UInteger
-        If (v And &H8000) <> 0 Then
+        If (v And &H8000L) <> 0 Then
             Return &HFFFF0000L Or v
         Else
             Return v
@@ -313,7 +313,7 @@
                 SetAddSubFlags(result, v1, v2, size, True)
 
             Case Operation.SubstractWithCarry
-                result = v1 - v2 - mFlags.CF
+                result = v1 - (v2 + mFlags.CF)
                 SetAddSubFlags(result, v1, v2, size, True)
 
             Case Operation.LogicOr
@@ -390,7 +390,7 @@
             mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) <> 0, 1, 0)
         End If
 
-        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)
+        mFlags.AF = If((((v1 Xor v2) Xor result) And &H10) <> 0, 1, 0)
     End Sub
 
     Public Shared Function BitsArrayToWord(b() As Boolean) As UInteger

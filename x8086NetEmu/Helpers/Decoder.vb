@@ -975,7 +975,7 @@
         If activeSegmentChanged Then
             mRegisters.ActiveSegmentRegister = activeSegment
         Else
-            mRegisters.ResetSegmentRegister()
+            mRegisters.ResetActiveSegment()
         End If
 
         isDecoding = False

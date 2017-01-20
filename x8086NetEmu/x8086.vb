@@ -182,7 +182,7 @@ Public Class x8086
         IPAddrOff = 0
         useIPAddrOff = False
 
-        mRegisters.ResetSegmentRegister()
+        mRegisters.ResetActiveSegment()
 
         mRegisters.AX = 0
         mRegisters.BX = 0
@@ -734,14 +734,16 @@ Public Class x8086
                 clkCyc += 4
 
             Case &H37 ' aaa
+                Dim c As Integer = (mRegisters.AL > &HF9) And &HFF
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
                     mRegisters.AL = AddValues(mRegisters.AL, 6, DataSize.Byte) And &HF
-                    mRegisters.AH = AddValues(mRegisters.AH, 1, DataSize.Byte)
+                    mRegisters.AH = AddValues(mRegisters.AH, 1 + c, DataSize.Byte)
                     mFlags.AF = 1
                     mFlags.CF = 1
                 Else
                     mFlags.AF = 0
                     mFlags.CF = 0
+                    mRegisters.AL = mRegisters.AL And &HF
                 End If
                 clkCyc += 8
 
@@ -772,14 +774,16 @@ Public Class x8086
                 clkCyc += 4
 
             Case &H3F ' aas
+                Dim b As Integer = (mRegisters.AL < 6) And &HFF
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
                     mRegisters.AL = AddValues(mRegisters.AL, -6, DataSize.Byte) And &HF
-                    mRegisters.AH = AddValues(mRegisters.AH, -1, DataSize.Byte)
+                    mRegisters.AH = AddValues(mRegisters.AH, -1 - b, DataSize.Byte)
                     mFlags.AF = 1
                     mFlags.CF = 1
                 Else
                     mFlags.AF = 0
                     mFlags.CF = 0
+                    mRegisters.AL = mRegisters.AL And &HF
                 End If
                 clkCyc += 8
 
@@ -1141,7 +1145,7 @@ Public Class x8086
                     mRegisters.Val(addrMode.Register2) = addrMode.IndMem
                     clkCyc += 8
                 End If
-                ignoreINTs = (addrMode.Register2 = GPRegisters.RegistersTypes.CS)
+                ignoreINTs = ignoreINTs Or (addrMode.Register2 = GPRegisters.RegistersTypes.CS)
 
             Case &H8F ' pop reg/mem
                 SetAddressing()
@@ -1284,7 +1288,7 @@ Public Class x8086
 
                     Select Case nestLevel
                         Case 0 : clkCyc += 15
-                        Case 0 : clkCyc += 25
+                        Case 1 : clkCyc += 25
                         Case Else : clkCyc += 22 + 16 * (nestLevel - 1)
                     End Select
                 End If
@@ -1532,7 +1536,7 @@ Public Class x8086
             Select Case opCode
                 Case &H26, &H2E, &H36, &H3E ' Keep Active Segment / Do Not Reset
                 Case Else
-                    mRegisters.ResetSegmentRegister()
+                    mRegisters.ResetActiveSegment()
                     clkCyc += 2
             End Select
         End If
@@ -1914,7 +1918,6 @@ Public Class x8086
 
             Case 3 ' 011    --  neg
                 Dim result As UInteger
-
                 If addrMode.IsDirect Then
                     result = AddValues(Not mRegisters.Val(addrMode.Register2), 1, addrMode.Size)
                     Eval(0, mRegisters.Val(addrMode.Register2), Operation.Substract, addrMode.Size)

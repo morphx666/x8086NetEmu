@@ -4,8 +4,8 @@
 
     Public Memory(MemSize - 1) As Byte
 
-    Private Const shl3 As UInteger = 1 << 3
     Private Const shl2 As UInteger = 1 << 2
+    Private Const shl3 As UInteger = 1 << 3
 
     Public Class MemoryAccessEventArgs
         Inherits EventArgs
@@ -209,7 +209,7 @@
 
         Public Property BP As UInteger
 
-        Public Sub ResetSegmentRegister()
+        Public Sub ResetActiveSegment()
             mActiveSegmentChanged = False
             mActiveSegmentRegister = RegistersTypes.DS
         End Sub
@@ -373,6 +373,7 @@
     End Function
 
     Public Shared Function SegOffToAbs(segment As UInteger, offset As UInteger) As UInteger
+        ' Return ((segment And &HFFFF) << 4) + (offset And &HFFFF)
         Return (segment << 4) + offset
     End Function
 
@@ -419,12 +420,11 @@
     Public Property RAM16(segment As UInteger, offset As UInteger, Optional inc As UInteger = 0) As UInteger
         Get
             Dim address As Integer = SegOffToAbs(segment, offset + inc)
-            'Return RAM(address + 1) * 256 + RAM(address)
             Return CUInt(RAM(address + 1)) << 8 Or RAM(address)
         End Get
         Set(value As UInteger)
             Dim address As UInteger = SegOffToAbs(segment, offset + inc)
-            RAM(address) = value And &HFF
+            RAM(address) = value 'And &HFF
             RAM(address + 1) = (value >> 8)
         End Set
     End Property

@@ -32,7 +32,7 @@
         End Set
     End Property
 
-    Private Function GenerateDisabledImage() As Bitmap
+    Private Sub GenerateDisabledImage()
         Dim disabledColor As Color = Color.FromArgb(66, 66, 66)
 
         If disabledImage IsNot Nothing Then
@@ -49,7 +49,7 @@
                 Next
             Next
         End If
-    End Function
+    End Sub
 
     Protected Overrides Sub OnPaintBackground(pevent As PaintEventArgs)
         'MyBase.OnPaintBackground(pevent)
