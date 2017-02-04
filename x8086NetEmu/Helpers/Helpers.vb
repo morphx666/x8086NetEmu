@@ -79,9 +79,8 @@
         addrMode.Size = DataSize.Word
     End Sub
 
-    Private Sub SetRegister2Alt(data As Byte)
-        addrMode.Register2 = (((data And &H38) >> 3) + GPRegisters.RegistersTypes.ES) Mod GPRegisters.RegistersTypes.DI
-        addrMode.Size = DataSize.Word
+    Private Sub SetRegister2ToSegReg()
+        addrMode.Register2 = addrMode.Reg + GPRegisters.RegistersTypes.ES
     End Sub
 
     Private Sub SetAddressing(Optional forceSize As DataSize = DataSize.UseAddressingMode)
@@ -90,8 +89,8 @@
         If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
 
         ' AS = Active Segment
-        ' AS = SS when Rm = 2 or 3
-        ' If Rm = 6, AS will be set to DS if Modifier = 0, otherwise it will be set to SS
+        ' AS = SS when Rm = 2, 3 or 6
+        ' If Rm = 6 and Modifier = 0, AS will be set to DS instead
         ' http://www.ic.unicamp.br/~celio/mc404s2-03/addr_modes/intel_addr.html
 
         If Not mRegisters.ActiveSegmentChanged Then
@@ -103,6 +102,8 @@
                     Else
                         mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
                     End If
+                Case Else
+                    mRegisters.ResetActiveSegment()
             End Select
         End If
 

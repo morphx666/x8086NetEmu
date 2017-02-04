@@ -60,18 +60,29 @@
             DH = DL Or shl2
             DX = DL Or shl3
 
-            ES = (AL + BX + 1) Or shl3
+            ES = 12
             CS = ES + 1
             SS = ES + 2
             DS = ES + 3
-            SP = (AH + BX + 1) Or shl3
-            BP = (CH + BX + 1) Or shl3
-            SI = (DH + BX + 1) Or shl3
-            DI = (BH + BX + 1) Or shl3
-            IP = DI + 1
+
+            SP = 24
+            BP = SP + 1
+            SI = SP + 2
+            DI = SP + 3
+            IP = SP + 4
+
+            'ES = (AL + BX + 1) Or shl3
+            'CS = ES + 1
+            'SS = ES + 2
+            'DS = ES + 3
+            'SP = (AH + BX + 1) Or shl3
+            'BP = (CH + BX + 1) Or shl3
+            'SI = (DH + BX + 1) Or shl3
+            'DI = (BH + BX + 1) Or shl3
+            'IP = DI + 1
         End Enum
 
-        Private mActiveSegmentRegister As GPRegisters.RegistersTypes = RegistersTypes.DS
+        Private mActiveSegmentRegister As RegistersTypes = RegistersTypes.DS
         Private mActiveSegmentChanged As Boolean = False
 
         Public Property Val(reg As RegistersTypes) As UInteger

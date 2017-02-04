@@ -559,7 +559,7 @@
 
             Case &H8E ' mov reg/mem to seg reg
                 SetDecoderAddressing(DataSize.Word)
-                SetRegister2Alt(ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
+                SetRegister2ToSegReg() 'ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
                 If addrMode.IsDirect Then
                     SetRegister1Alt(ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
                     opCodeASM = "MOV " + addrMode.Register2.ToString() + ", " + addrMode.Register1.ToString()

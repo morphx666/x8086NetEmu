@@ -1136,7 +1136,7 @@ Public Class x8086
 
             Case &H8E  ' mov reg/mem to seg reg
                 SetAddressing(DataSize.Word)
-                SetRegister2Alt(ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
+                SetRegister2ToSegReg()
                 If addrMode.IsDirect Then
                     SetRegister1Alt(ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
                     mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
