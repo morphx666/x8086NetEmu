@@ -113,6 +113,86 @@
             Case 0 ' 00
                 addrMode.IsDirect = False
                 Select Case addrMode.Rm
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7                          ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8                          ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8                          ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7                          ' 011 [BP+DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5                                          ' 100 [SI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5                                          ' 101 [DI]
+                    Case 6 : addrMode.IndAdr = Param(SelPrmIndex.First, 2, DataSize.Word) : clkCyc += 9             ' 110 Direct Addressing
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
+                End Select
+                addrMode.IndAdr = addrMode.IndAdr And &HFFFF
+                addrMode.IndMem = RAMn
+
+            Case 1 ' 01 - 8bit
+                addrMode.IsDirect = False
+                Select Case addrMode.Rm
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7                          ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8                          ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8                          ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7                          ' 011 [BP+DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5                                          ' 100 [SI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5                                          ' 101 [DI]
+                    Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5                                          ' 110 [BP]
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
+                End Select
+                addrMode.IndAdr = AddValues(addrMode.IndAdr, To16bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Byte)), DataSize.Word)
+                addrMode.IndMem = RAMn
+
+            Case 2 ' 10 - 16bit
+                addrMode.IsDirect = False
+                Select Case addrMode.Rm
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7                          ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8                          ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8                          ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7                          ' 011 [BP+DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5                                          ' 100 [SI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5                                          ' 101 [DI]
+                    Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5                                          ' 110 [BP]
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
+                End Select
+                addrMode.IndAdr = AddValues(addrMode.IndAdr, To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word)), DataSize.Word)
+                addrMode.IndMem = RAMn
+
+            Case 3 ' 11
+                addrMode.IsDirect = True
+
+        End Select
+
+        opCodeSize += 1
+    End Sub
+
+    Private Sub SetAddressing2(Optional forceSize As DataSize = DataSize.UseAddressingMode)
+        addrMode.Decode(opCode, ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
+
+        If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
+
+        ' AS = Active Segment
+        ' AS = SS when Rm = 2, 3 or 6
+        ' If Rm = 6 and Modifier = 0, AS will be set to DS instead
+        ' http://www.ic.unicamp.br/~celio/mc404s2-03/addr_modes/intel_addr.html
+
+        If Not mRegisters.ActiveSegmentChanged Then
+            Select Case addrMode.Rm
+                Case 2, 3 : mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
+                Case 6
+                    If addrMode.Modifier = 0 Then
+                        mRegisters.ResetActiveSegment()
+                    Else
+                        mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
+                    End If
+                Case Else
+                    mRegisters.ResetActiveSegment()
+            End Select
+        End If
+
+        ' http://umcs.maine.edu/~cmeadow/courses/cos335/Asm07-MachineLanguage.pdf
+        ' http://maven.smith.edu/~thiebaut/ArtOfAssembly/CH04/CH04-2.html#HEADING2-35
+        Select Case addrMode.Modifier
+            Case 0 ' 00
+                addrMode.IsDirect = False
+                Select Case addrMode.Rm
                     Case 0 : addrMode.IndAdr = AddValues(mRegisters.BX, mRegisters.SI, DataSize.Word) : clkCyc += 7 ' 000 [BX+SI]
                     Case 1 : addrMode.IndAdr = AddValues(mRegisters.BX, mRegisters.DI, DataSize.Word) : clkCyc += 8 ' 001 [BX+DI]
                     Case 2 : addrMode.IndAdr = AddValues(mRegisters.BP, mRegisters.SI, DataSize.Word) : clkCyc += 8 ' 010 [BP+SI]
@@ -250,13 +330,7 @@
     Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As UInteger = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInteger
         Get
             If size = DataSize.UseAddressingMode Then size = addrMode.Size
-
-            If size = DataSize.Byte Then
-                opCodeSize += 1
-            Else
-                opCodeSize += 2
-            End If
-
+            opCodeSize += (size + 1)
             Return ParamNOPS(index, ipOffset, size)
         End Get
     End Property
@@ -270,15 +344,18 @@
             'If (mRegisters.IP Mod 2) <> 0 Then clkCyc += 4
 
             If size = DataSize.Byte Then
-                Return RAM8(mRegisters.CS, AddValues(mRegisters.IP, ipOffset + index, DataSize.Word))
+                'Return RAM8(mRegisters.CS, AddValues(mRegisters.IP, ipOffset + index, DataSize.Word))
+                Return RAM8(mRegisters.CS, mRegisters.IP + ipOffset + index)
             Else
-                Return RAM16(mRegisters.CS, AddValues(mRegisters.IP, ipOffset + index * 2, DataSize.Word))
+                'Return RAM16(mRegisters.CS, AddValues(mRegisters.IP, ipOffset + index * 2, DataSize.Word))
+                Return RAM16(mRegisters.CS, mRegisters.IP + ipOffset + index * 2)
             End If
         End Get
     End Property
 
     Public Sub IncIP(value As UInteger)
-        mRegisters.IP = AddValues(mRegisters.IP, value, DataSize.Word)
+        'mRegisters.IP = AddValues(mRegisters.IP, value, DataSize.Word)
+        mRegisters.IP = mRegisters.IP + value
     End Sub
 
     Private Function OffsetIP(paramSize As DataSize) As UInteger
@@ -362,8 +439,9 @@
                 mFlags.SF = If((result And &H80) <> 0, 1, 0)
             End If
         Else
+            result = result And &HFFFF
             mFlags.PF = parityLUT(result And &HFF)
-            If (result And &HFFFF) = 0 Then
+            If result = 0 Then
                 mFlags.ZF = 1
                 mFlags.SF = 0
             Else
@@ -391,7 +469,7 @@
             mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) <> 0, 1, 0)
         End If
 
-        mFlags.AF = If((((v1 Xor v2) Xor result) And &H10) <> 0, 1, 0)
+        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)
     End Sub
 
     Public Shared Function BitsArrayToWord(b() As Boolean) As UInteger

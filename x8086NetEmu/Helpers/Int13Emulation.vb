@@ -219,7 +219,7 @@
                     ret = 0
                 End If
 
-            Case &H9 ' Init Drive Pair Characteristic
+            Case &H9 ' Initialize Drive Pair Characteristic
                 If dskImg Is Nothing Then
                     x8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
