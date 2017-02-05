@@ -221,8 +221,10 @@
         Public Property BP As UInteger
 
         Public Sub ResetActiveSegment()
-            mActiveSegmentChanged = False
-            mActiveSegmentRegister = RegistersTypes.DS
+            If mActiveSegmentChanged Then
+                mActiveSegmentChanged = False
+                mActiveSegmentRegister = RegistersTypes.DS
+            End If
         End Sub
 
         Public Property ActiveSegmentRegister As RegistersTypes
@@ -385,7 +387,6 @@
     End Function
 
     Public Shared Function SegOffToAbs(segment As UInteger, offset As UInteger) As UInteger
-        ' Return ((segment And &HFFFF) << 4) + (offset And &HFFFF)
         Return (segment << 4) + offset
     End Function
 
@@ -431,7 +432,7 @@
 
     Public Property RAM16(segment As UInteger, offset As UInteger, Optional inc As UInteger = 0) As UInteger
         Get
-            Dim address As uInteger = SegOffToAbs(segment, offset + inc)
+            Dim address As UInteger = SegOffToAbs(segment, offset + inc)
             Return CUInt(RAM(address + 1UI)) << 8UI Or RAM(address)
         End Get
         Set(value As UInteger)

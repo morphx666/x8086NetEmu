@@ -868,13 +868,13 @@ Public Class x8086
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
-                    Dim tmp1 As Long = mRegisters.Val(addrMode.Register1)
-                    Dim tmp2 As Long = Param(SelPrmIndex.First, , DataSize.Word)
-                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000L
-                    If (tmp2 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000L
-                    Dim tmp3 As Long = tmp1 * tmp2
+                    Dim tmp1 As UInteger = mRegisters.Val(addrMode.Register1)
+                    Dim tmp2 As UInteger = Param(SelPrmIndex.First, , DataSize.Word)
+                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
+                    If (tmp2 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
+                    Dim tmp3 As UInteger = tmp1 * tmp2
                     mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFL
-                    If (tmp3 And &HFFFF0000L) <> 0 Then
+                    If (tmp3 And &HFFFF0000UI) <> 0 Then
                         mFlags.CF = 1
                         mFlags.OF = 1
                     Else
@@ -895,13 +895,13 @@ Public Class x8086
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
-                    Dim tmp1 As Long = mRegisters.Val(addrMode.Register1)
-                    Dim tmp2 As Long = To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte))
-                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000L
-                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000L
-                    Dim tmp3 As Long = tmp1 * tmp2
+                    Dim tmp1 As UInteger = mRegisters.Val(addrMode.Register1)
+                    Dim tmp2 As UInteger = To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte))
+                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
+                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
+                    Dim tmp3 As UInteger = tmp1 * tmp2
                     mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFL
-                    If (tmp3 And &HFFFF0000L) <> 0 Then
+                    If (tmp3 And &HFFFF0000UI) <> 0 Then
                         mFlags.CF = 1
                         mFlags.OF = 1
                     Else
@@ -1802,7 +1802,7 @@ Public Class x8086
             mask8_16 = 16
             mask9_17 = 17
             mask100_10000 = &H10000
-            maskFF00_FFFF0000 = &HFFFF0000L
+            maskFF00_FFFF0000 = &HFFFF0000UI
         End If
 
         If addrMode.IsDirect Then
@@ -1961,7 +1961,7 @@ Public Class x8086
                 'SetSZPFlags(result And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF), addrMode.Size)
                 ' Apparently, this is no longer required(?)
 
-                If (result And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000L)) <> 0 Then
+                If (result And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
                 Else
@@ -1975,17 +1975,17 @@ Public Class x8086
 
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
-                        Dim m1 As Long = To16bitsWithSign(mRegisters.AL)
-                        Dim m2 As Long = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
+                        Dim m1 As UInteger = To16bitsWithSign(mRegisters.AL)
+                        Dim m2 As UInteger = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         result = m1 * m2
                         mRegisters.AX = result And &HFFFF
                         clkCyc += 70
                     Else
-                        Dim m1 As Long = mRegisters.AX
-                        If (m1 And &H8000) = &H8000 Then m1 = m1 Or &HFFFF0000L
-                        Dim m2 As Long = mRegisters.Val(addrMode.Register2)
-                        If (m2 And &H8000) = &H8000 Then m2 = m2 Or &HFFFF0000L
+                        Dim m1 As UInteger = mRegisters.AX
+                        If (m1 And &H8000) = &H8000 Then m1 = m1 Or &HFFFF0000UI
+                        Dim m2 As UInteger = mRegisters.Val(addrMode.Register2)
+                        If (m2 And &H8000) = &H8000 Then m2 = m2 Or &HFFFF0000UI
 
                         result = m1 * m2
                         mRegisters.AX = result And &HFFFF
@@ -1994,17 +1994,17 @@ Public Class x8086
                     End If
                 Else
                     If addrMode.Size = DataSize.Byte Then
-                        Dim m1 As Long = To16bitsWithSign(mRegisters.AL)
-                        Dim m2 As Long = To16bitsWithSign(addrMode.IndMem)
+                        Dim m1 As UInteger = To16bitsWithSign(mRegisters.AL)
+                        Dim m2 As UInteger = To16bitsWithSign(addrMode.IndMem)
 
                         result = m1 * m2
                         mRegisters.AX = result And &HFFFF
                         clkCyc += 76
                     Else
-                        Dim m1 As Long = mRegisters.AX
-                        If (m1 And &H8000) = &H8000 Then m1 = m1 Or &HFFFF0000L
-                        Dim m2 As Long = addrMode.IndMem
-                        If (m2 And &H8000) = &H8000 Then m2 = m2 Or &HFFFF0000L
+                        Dim m1 As UInteger = mRegisters.AX
+                        If (m1 And &H8000) = &H8000 Then m1 = m1 Or &HFFFF0000UI
+                        Dim m2 As UInteger = addrMode.IndMem
+                        If (m2 And &H8000) = &H8000 Then m2 = m2 Or &HFFFF0000UI
 
                         result = m1 * m2
                         mRegisters.AX = result And &HFFFF
@@ -2013,7 +2013,7 @@ Public Class x8086
                     End If
                 End If
 
-                Dim mask As Long = If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000L)
+                Dim mask As UInteger = If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)
                 result = result And mask
                 If result <> 0 AndAlso result <> mask Then
                     mFlags.CF = 1
@@ -2059,7 +2059,7 @@ Public Class x8086
                     mRegisters.AL = result And &HFF
                     mRegisters.AH = remain And &HFF
                 Else
-                    If (result And &HFFFF0000L) <> 0 Then
+                    If (result And &HFFFF0000UI) <> 0 Then
                         HandleInterrupt(0, False)
                         Exit Select
                     End If
@@ -2089,10 +2089,10 @@ Public Class x8086
                         clkCyc += 80
                     Else
                         num = (mRegisters.DX << 16) Or mRegisters.AX
-                        div = If(div And &H8000, div Or &HFFFF0000L, div)
+                        div = If(div And &H8000, div Or &HFFFF0000UI, div)
 
-                        sign1 = (num And &H80000000L) <> 0
-                        sign2 = (div And &H80000000L) <> 0
+                        sign1 = (num And &H80000000UI) <> 0
+                        sign2 = (div And &H80000000UI) <> 0
                         num = If(sign1, ((Not num) + 1) And &HFFFFFFFFL, num)
                         div = If(sign2, ((Not div) + 1) And &HFFFFFFFFL, div)
 
@@ -2112,10 +2112,10 @@ Public Class x8086
                         clkCyc += 86
                     Else
                         num = (mRegisters.DX << 16) Or mRegisters.AX
-                        div = If(div And &H8000, div Or &HFFFF0000L, div)
+                        div = If(div And &H8000, div Or &HFFFF0000UI, div)
 
-                        sign1 = (num And &H80000000L) <> 0
-                        sign2 = (div And &H80000000L) <> 0
+                        sign1 = (num And &H80000000UI) <> 0
+                        sign2 = (div And &H80000000UI) <> 0
                         num = If(sign1, ((Not num) + 1) And &HFFFFFFFFL, num)
                         div = If(sign2, ((Not div) + 1) And &HFFFFFFFFL, div)
 

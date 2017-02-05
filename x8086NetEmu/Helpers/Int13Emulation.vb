@@ -1,4 +1,6 @@
-﻿Partial Public Class x8086
+﻿' http://www.delorie.com/djgpp/doc/rbinter/ix/13/
+
+Partial Public Class x8086
     Private Sub HandleINT13()
         If mFloppyController Is Nothing Then DiskAdapterNotFound()
 
@@ -274,7 +276,7 @@
                 buf(buf.Length - 2) = ecc(3)
                 buf(buf.Length - 1) = ecc(2)
                 CopyToRAM(buf, address)
-                AL = bufSize / dskImg.SectorSize
+                AL = bufSize \ dskImg.SectorSize
 
             Case &HC ' Seek to Cylinder
                 x8086.Notify("Drive {0} Seek to Cylinder ", NotificationReasons.Info, mRegisters.DL)
