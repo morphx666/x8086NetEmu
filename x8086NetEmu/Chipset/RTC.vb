@@ -175,6 +175,8 @@
         data.Read()
 
         Stop
+
+        Return 0 ' Just to suppress the warning
     End Function
 
     Public Overrides Sub Out(port As Integer, value As Integer)

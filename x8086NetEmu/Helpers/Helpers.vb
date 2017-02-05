@@ -63,7 +63,7 @@
             Reg = (addressingModeByte >> 3) And 7               ' (0011 1000)
             Rm = addressingModeByte And 7                       ' (0000 0111)
 
-            regOffset = (Size << 3)
+            regOffset = (Size << 3UI)
 
             Register1 = Reg Or regOffset
             If Register1 >= GPRegisters.RegistersTypes.ES Then Register1 += GPRegisters.RegistersTypes.ES

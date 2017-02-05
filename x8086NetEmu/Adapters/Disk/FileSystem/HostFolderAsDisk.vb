@@ -58,5 +58,7 @@ Public Class HostFolderAsDisk
         'Catch e As Exception
         '    Return EIO
         'End Try
+
+        Return EIO ' Just to suppress the warning
     End Function
 End Class

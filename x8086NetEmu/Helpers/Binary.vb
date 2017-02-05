@@ -43,17 +43,17 @@
     Public Shared Function TryParse(value As String, ByRef result As Long) As Boolean
         Try
             Select Case value.Last()
-                Case "d"
-                    result = Long.Parse(value.TrimEnd("d"))
+                Case "d"c
+                    result = Long.Parse(value.TrimEnd("d"c))
                     Return True
-                Case "h"
-                    result = Convert.ToInt32(value.TrimEnd("h"), 16)
+                Case "h"c
+                    result = Convert.ToInt32(value.TrimEnd("h"c), 16)
                     Return True
-                Case "b"
-                    result = Convert.ToInt32(value.TrimEnd("b"), 2)
+                Case "b"c
+                    result = Convert.ToInt32(value.TrimEnd("b"c), 2)
                     Return True
-                Case "o"
-                    result = Convert.ToInt32(value.TrimEnd("o"), 8)
+                Case "o"c
+                    result = Convert.ToInt32(value.TrimEnd("o"c), 8)
                     Return True
                 Case Else
                     Dim base As Integer = 2

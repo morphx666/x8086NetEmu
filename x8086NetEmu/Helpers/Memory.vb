@@ -430,17 +430,17 @@
 
     Public Property RAM16(segment As UInteger, offset As UInteger, Optional inc As UInteger = 0) As UInteger
         Get
-            Dim address As Integer = SegOffToAbs(segment, offset + inc)
-            Return CUInt(RAM(address + 1)) << 8 Or RAM(address)
+            Dim address As uInteger = SegOffToAbs(segment, offset + inc)
+            Return CUInt(RAM(address + 1UI)) << 8UI Or RAM(address)
         End Get
         Set(value As UInteger)
             Dim address As UInteger = SegOffToAbs(segment, offset + inc)
             RAM(address) = value 'And &HFF
-            RAM(address + 1) = (value >> 8)
+            RAM(address + 1UI) = (value >> 8UI)
         End Set
     End Property
 
-    Public Property RAMn() As Integer
+    Public Property RAMn() As UInteger
         Get
             If addrMode.Size = DataSize.Byte Then
                 Return RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
@@ -448,9 +448,9 @@
                 Return RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
             End If
         End Get
-        Set(value As Integer)
+        Set(value As UInteger)
             If addrMode.Size = DataSize.Byte Then
-                RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = value
+                RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = CByte(value)
             Else
                 RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = value
             End If
