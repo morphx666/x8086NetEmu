@@ -86,10 +86,9 @@ Public Class x8086
     Public PPI As PPI8255
     'Public PPI As PPI8255_ALT
     Public RTC As RTC
+    Public FPU As x8087
 
     Private picIsAvailable As Boolean
-
-    Private FPU As x8087
 
     Public Event EmulationTerminated()
     Public Event EmulationHalted()
@@ -1363,7 +1362,7 @@ Public Class x8086
                 mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, AddValues(mRegisters.BX, mRegisters.AL, DataSize.Word))
                 clkCyc += 11
 
-            Case &HD8 To &HDF ' Ignore coprocessor instructions
+            Case &HD8 To &HDF ' Ignore co-processor instructions
                 SetAddressing()
 
                 'FPU.Execute(opCode)
@@ -1669,7 +1668,7 @@ Public Class x8086
             clkCyc += 2
         End If
 
-        ' 80186/V20 class CPUs limit shift count to 31 (fake86)
+        ' 80186/V20 class CPUs limit shift count to 31
         If mVic20 Then count = count And &H1F
 
         Dim shift As UInteger

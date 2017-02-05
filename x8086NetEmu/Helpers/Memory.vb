@@ -221,10 +221,8 @@
         Public Property BP As UInteger
 
         Public Sub ResetActiveSegment()
-            If mActiveSegmentChanged Then
-                mActiveSegmentChanged = False
-                mActiveSegmentRegister = RegistersTypes.DS
-            End If
+            mActiveSegmentChanged = False
+            mActiveSegmentRegister = RegistersTypes.DS
         End Sub
 
         Public Property ActiveSegmentRegister As RegistersTypes
@@ -255,7 +253,7 @@
             End Get
         End Property
 
-        Public Function Clone() As Object Implements System.ICloneable.Clone
+        Public Function Clone() As Object Implements ICloneable.Clone
             Dim reg = New GPRegisters()
             reg.AX = AX
             reg.BX = BX
@@ -349,7 +347,9 @@
     End Sub
 
     Public Sub CopyToRAM(bytes() As Byte, address As UInteger)
-        ' TODO: We need to implement some checks to prevent loading code into ROM areas
+        ' TODO: We need to implement some checks to prevent loading code into ROM areas.
+        '       Something like this, for example:
+        '       If address + bytes.Length >= ROMStart Then Stop
         Array.Copy(bytes, 0, Memory, address, bytes.Length)
     End Sub
 

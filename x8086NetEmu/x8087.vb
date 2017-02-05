@@ -2,7 +2,7 @@
 ' http://www.ousob.com/ng/masm/ng2e21c.php
 
 Public Class x8087
-    Private ST(7) As Double
+    Private ST(8 - 1) As Double
     Private i As Integer
 
     Private controlWord As Integer
@@ -25,14 +25,13 @@ Public Class x8087
                 Select Case opCode2
                     Case &H3C ' FNSTCW
                         cpu.RAM16(&H40, &H200) = controlWord
-                    Case &HF0 ' F2XM1
-                        ST(0) = 2.0 ^ ST(0) - 1.0
                     Case &HE1 ' FABS            
                         ST(0) = Math.Abs(ST(0))
                     Case &HE0 ' FCHS
                         ST(0) -= ST(0)
+                    Case &HF0 ' F2XM1
+                        ST(0) = 2.0 ^ ST(0) - 1.0
                     Case &HFF ' FCOS
-                        ' 386 Only
                     Case &HF6 ' FDECSTP
                     Case &HF7 ' FINCSTP
 
@@ -44,10 +43,10 @@ Public Class x8087
             Case &HDB ' FNINIT
                 Select Case opCode2
                     Case &HE3 ' Nowait Initialize 8087
-                        For i As Integer = 0 To ST.Length - 1
-                            ST(i) = 0.0
-                        Next
+                        Array.Clear(ST, 0, ST.Length)
                         controlWord = &H37F
+                        statusWord = 0
+
                 End Select
 
                 cpu.Registers.AX = 1
