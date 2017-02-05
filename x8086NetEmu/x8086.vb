@@ -734,16 +734,15 @@ Public Class x8086
                 clkCyc += 4
 
             Case &H37 ' aaa
-                Dim c As Integer = (mRegisters.AL > &HF9) And &HFF
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
                     mRegisters.AL = AddValues(mRegisters.AL, 6, DataSize.Byte) And &HF
-                    mRegisters.AH = AddValues(mRegisters.AH, 1 + c, DataSize.Byte)
+                    mRegisters.AH = AddValues(mRegisters.AH, 1 + ((mRegisters.AL > &HF9) And &HFF), DataSize.Byte)
                     mFlags.AF = 1
                     mFlags.CF = 1
                 Else
+                    mRegisters.AL = mRegisters.AL And &HF
                     mFlags.AF = 0
                     mFlags.CF = 0
-                    mRegisters.AL = mRegisters.AL And &HF
                 End If
                 clkCyc += 8
 
@@ -774,10 +773,9 @@ Public Class x8086
                 clkCyc += 4
 
             Case &H3F ' aas
-                Dim b As Integer = (mRegisters.AL < 6) And &HFF
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
                     mRegisters.AL = AddValues(mRegisters.AL, -6, DataSize.Byte) And &HF
-                    mRegisters.AH = AddValues(mRegisters.AH, -1 - b, DataSize.Byte)
+                    mRegisters.AH = AddValues(mRegisters.AH, -1 - ((mRegisters.AL < 6) And &HFF), DataSize.Byte)
                     mFlags.AF = 1
                     mFlags.CF = 1
                 Else
@@ -1957,10 +1955,6 @@ Public Class x8086
                     End If
                 End If
 
-                ' This prevents an overflow error in C:\GAMES\SW.EXE
-                'SetSZPFlags(result And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF), addrMode.Size)
-                ' Apparently, this is no longer required(?)
-
                 If (result And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
@@ -2048,6 +2042,7 @@ Public Class x8086
                     Exit Select
                 End If
 
+                ' If (num - (div * Int(num / div))) <> (num Mod div) Then Stop
                 result = num \ div
                 remain = num Mod div
 
