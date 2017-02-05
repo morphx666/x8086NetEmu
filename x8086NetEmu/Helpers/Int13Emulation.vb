@@ -10,17 +10,17 @@
         Dim bufSize As Integer = mRegisters.AL * If(dskImg IsNot Nothing, dskImg.SectorSize, 0)
 
         Select Case mRegisters.AH
-            Case &H0 ' reset drive
+            Case &H0 ' Reset drive
                 x8086.Notify("Drive {0} Reset", NotificationReasons.Info, mRegisters.DL)
                 ret = If(dskImg Is Nothing, &HAA, 0)
 
-            Case &H1 ' get last operation status
+            Case &H1 ' Get last operation status
                 x8086.Notify("Drive {0} Get Last Operation Status", NotificationReasons.Info, mRegisters.DL)
                 mRegisters.AH = lastAH(mRegisters.DL)
                 mFlags.CF = lastCF(mRegisters.DL)
                 ret = 0
 
-            Case &H2  ' read sectors
+            Case &H2  ' Read sectors
                 If dskImg Is Nothing Then
                     x8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
@@ -60,7 +60,7 @@
                 CopyToRAM(buf, address)
                 AL = bufSize / dskImg.SectorSize
 
-            Case &H3 ' write sectors
+            Case &H3 ' Write sectors
                 If dskImg Is Nothing Then
                     x8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
@@ -117,7 +117,7 @@
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
-                    x8086.Notify("Format Track: Drive {0} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
+                    x8086.Notify("Verify Sector: Drive {0} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H40 ' seek failed
                     Exit Select
                 End If
@@ -205,7 +205,7 @@
                 Else
                     mRegisters.CH = (dskImg.Cylinders - 1) And &HFF
                     mRegisters.CL = (dskImg.Sectors And 63)
-                    mRegisters.CL += (dskImg.Cylinders \ 256) * 64
+                    mRegisters.CL += ((dskImg.Cylinders - 1) \ 256) * 64
                     mRegisters.DH = dskImg.Heads - 1
 
                     If mRegisters.DL < &H80 Then

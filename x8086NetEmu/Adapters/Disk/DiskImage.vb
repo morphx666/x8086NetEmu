@@ -114,7 +114,7 @@ Public Class DiskImage
         x8086.Notify("DiskImage '{0}': {1}", x8086.NotificationReasons.Info, mFileName, mStatus.ToString())
     End Sub
 
-    ' Guess disk geometry of the image based on its size
+    ' Guess the image's disk geometry based on its size
     Protected Friend Function MatchGeometry() As Boolean
         mSectorSize = 512
 
@@ -227,15 +227,15 @@ Public Class DiskImage
         Return True
     End Function
 
-    Public Function LBA(cylinder As Integer, head As Integer, sector As Integer) As Long
+    Public Function LBA(cylinder As UInteger, head As UInteger, sector As UInteger) As Long
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         cylinder = cylinder Or ((sector And &HC0) << 2)
-        sector = sector And 63
+        sector = sector And &H3F
 
-        If cylinder < 0 OrElse cylinder >= mCylinders OrElse
-            sector <= 0 OrElse sector > mSectors OrElse
-            head < 0 OrElse head > mHeads Then
+        If cylinder >= mCylinders OrElse
+            sector < 1 OrElse sector > mSectors OrElse
+             head > mHeads Then
             Return -1
         End If
 
