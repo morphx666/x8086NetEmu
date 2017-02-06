@@ -144,8 +144,8 @@ Public Class CGAWinForms
         mCPU = cpu
         Me.RenderControl = renderControl
 
-        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs) OnKeyDown(Me, e)
-        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs) OnKeyUp(Me, e)
+        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs) HandleKeyDown(Me, e)
+        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs) HandleKeyUp(Me, e)
 
         AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, e)
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs) OnMouseMove(Me, e)
@@ -211,11 +211,11 @@ Public Class CGAWinForms
             DetachRenderControl()
             mRenderControl = value
 
-            useSDL = TypeOf mRenderControl Is RenderCtrlSDL
-            If useSDL Then
-                sdlCtrl = CType(mRenderControl, RenderCtrlSDL)
-                sdlCtrl.Init(Me, mFont.FontFamily.Name, mFont.Size)
-            End If
+            'useSDL = TypeOf mRenderControl Is RenderCtrlSDL
+            'If useSDL Then
+            '    sdlCtrl = CType(mRenderControl, RenderCtrlSDL)
+            '    sdlCtrl.Init(Me, mFont.FontFamily.Name, mFont.Size)
+            'End If
 
             InitiAdapter()
 
@@ -281,11 +281,11 @@ Public Class CGAWinForms
 
             Select Case MainMode
                 Case MainModes.Text
-                    If useSDL Then
-                        RenderTextSDL()
-                    Else
-                        RenderText(g)
-                    End If
+                    'If useSDL Then
+                    '    RenderTextSDL()
+                    'Else
+                    RenderText(g)
+                    'End If
                 Case MainModes.Graphics
                     RenderGraphics(g)
             End Select
@@ -383,8 +383,8 @@ Public Class CGAWinForms
             'r.Y = row * charSize.Height
 
             ' Ideally, we should use cpu.RAM as it's safer, but using cpu.Memory should be faster
-            b0 = CPU.Memory(address)
-            b1 = CPU.Memory(address + 1)
+            b0 = mCPU.Memory(address)
+            b1 = mCPU.Memory(address + 1)
 
             If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
 
@@ -439,43 +439,43 @@ Public Class CGAWinForms
         cgaCharsCache(idx).Paint(g, p, scale)
     End Sub
 
-    Private Sub RenderTextSDL()
-        Dim b0 As Byte
-        Dim b1 As Byte
+    'Private Sub RenderTextSDL()
+    '    Dim b0 As Byte
+    '    Dim b1 As Byte
 
-        Dim col As Integer = 0
-        Dim row As Integer = 0
+    '    Dim col As Integer = 0
+    '    Dim row As Integer = 0
 
-        Dim p As New Point(0, 0)
+    '    Dim p As New Point(0, 0)
 
-        For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
-            b0 = mCPU.RAM(address)
-            b1 = mCPU.RAM(address + 1)
+    '    For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
+    '        b0 = mCPU.RAM(address)
+    '        b1 = mCPU.RAM(address + 1)
 
-            Dim text = sdlCtrl.SDLFont.Render(chars(b0), CGAPalette(b1.LowNib()), CGAPalette(b1.HighNib()))
-            sdlCtrl.SDLScreen.Blit(text, p)
+    '        Dim text = sdlCtrl.SDLFont.Render(chars(b0), CGAPalette(b1.LowNib()), CGAPalette(b1.HighNib()))
+    '        sdlCtrl.SDLScreen.Blit(text, p)
 
-            'If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-            '    If (Not BlinkCursor) OrElse (blinkCounter < 10) Then
-            '        g.FillRectangle(cursorBrush, r.X + 1, r.Y, cursorSize.Width, cursorSize.Height - 2)
-            '    End If
-            '    blinkCounter = (blinkCounter + 1) Mod 20
-            'End If
+    '        'If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
+    '        '    If (Not BlinkCursor) OrElse (blinkCounter < 10) Then
+    '        '        g.FillRectangle(cursorBrush, r.X + 1, r.Y, cursorSize.Width, cursorSize.Height - 2)
+    '        '    End If
+    '        '    blinkCounter = (blinkCounter + 1) Mod 20
+    '        'End If
 
-            p.X += sdlCtrl.SDLFontSize.Width
-            col += 1
-            If col = TextResolution.Width Then
-                col = 0
-                row += 1
-                If row = TextResolution.Height Then Exit For
+    '        p.X += sdlCtrl.SDLFontSize.Width
+    '        col += 1
+    '        If col = TextResolution.Width Then
+    '            col = 0
+    '            row += 1
+    '            If row = TextResolution.Height Then Exit For
 
-                p.X = 0
-                p.Y += sdlCtrl.SDLFontSize.Height
-            End If
-        Next
+    '            p.X = 0
+    '            p.Y += sdlCtrl.SDLFontSize.Height
+    '        End If
+    '    Next
 
-        sdlCtrl.SDLScreen.Update()
-    End Sub
+    '    sdlCtrl.SDLScreen.Update()
+    'End Sub
 
     Private Sub RenderWaveform(g As Graphics)
 #If Win32 Then
@@ -528,12 +528,6 @@ Public Class CGAWinForms
         Return size
     End Function
 
-    Public Overrides ReadOnly Property Description As String
-        Get
-            Return "CGA Adapter"
-        End Get
-    End Property
-
     Private Sub DisposeColorCaches()
         If penCache(0) IsNot Nothing Then
             For i As Integer = 0 To CGAPalette.Length - 1
@@ -543,9 +537,15 @@ Public Class CGAWinForms
         End If
     End Sub
 
+    Public Overrides ReadOnly Property Description As String
+        Get
+            Return "CGA WinForms Adapter"
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property Name As String
         Get
-            Return "CGA"
+            Return "CGA WinForms"
         End Get
     End Property
 

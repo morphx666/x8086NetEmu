@@ -1,27 +1,13 @@
 ﻿Imports System.Threading
 
 Public MustInherit Class CGAAdapter
-    Inherits Adapter
+    Inherits VideoAdapter
 
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
     Private ht As Long = Scheduler.CLOCKRATE \ HORIZSYNC
     Private vt As Long = (Scheduler.CLOCKRATE \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
-
-    Public Enum VideoModes
-        Mode0_Text_BW_40x25 = &H4
-        Mode1_Text_Color_40x25 = &H0
-        Mode2_Text_BW_80x25 = &H5
-        Mode3_Text_Color_80x25 = &H1
-
-        Mode4_Graphic_Color_320x200 = &H2
-        Mode5_Graphic_BW_320x200 = &H6
-        Mode6_Graphic_Color_640x200 = &H16
-        Mode6_Graphic_Color_640x200_Alt = &H12
-
-        Undefined = &HFF
-    End Enum
 
     Public Enum MainModes
         Unknown = -1
@@ -98,8 +84,8 @@ Public MustInherit Class CGAAdapter
 
     Protected isInit As Boolean
 
-    Private videoTextSegment As Integer = &HB800
-    Private videoGraphicsSegment As Integer = &HB800
+    Protected videoTextSegment As Integer = &HB800
+    Protected videoGraphicsSegment As Integer = &HB800
 
     Private mStartTextVideoAddress As Integer
     Private mEndTextVideoAddress As Integer
@@ -136,8 +122,8 @@ Public MustInherit Class CGAAdapter
 
     Protected MustOverride Sub Render()
 
-    Public Event KeyDown(sender As Object, e As KeyEventArgs)
-    Public Event KeyUp(sender As Object, e As KeyEventArgs)
+    'Public Event KeyDown(sender As Object, e As KeyEventArgs)
+    'Public Event KeyUp(sender As Object, e As KeyEventArgs)
 
     Public Sub New(cpu As x8086, Optional useInternalTimer As Boolean = True)
         mCPU = cpu
@@ -161,16 +147,16 @@ Public MustInherit Class CGAAdapter
         Reset()
     End Sub
 
-    Public Sub OnKeyDown(sender As Object, e As KeyEventArgs)
-        RaiseEvent KeyDown(Me, e)
+    Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
+        MyBase.OnKeyDown(Me, e)
         If e.Handled Then Exit Sub
         'Debug.WriteLine("KEY DOWN: " + e.KeyCode.ToString() + " | " + e.Modifiers.ToString())
         If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, False))
         e.Handled = True
     End Sub
 
-    Public Sub OnKeyUp(sender As Object, e As KeyEventArgs)
-        RaiseEvent KeyUp(Me, e)
+    Public Sub HandleKeyUp(sender As Object, e As KeyEventArgs)
+        MyBase.OnKeyUp(Me, e)
         If e.Handled Then Exit Sub
         'Debug.WriteLine("KEY UP:   " + e.KeyCode.ToString() + " | " + e.Modifiers.ToString())
         If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, True))
@@ -288,7 +274,7 @@ Public MustInherit Class CGAAdapter
         Loop Until cancelAllThreads
     End Sub
 
-    Public Sub Reset()
+    Public Overrides Sub Reset()
         x8086.WordToBitsArray(&H29, CGAModeControlRegister)
         x8086.WordToBitsArray(&H0, CGAColorControlRegister)
         CRT6845DataRegister(0) = &H71
@@ -353,7 +339,7 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public Property VideoMode() As VideoModes
+    Public Overrides Property VideoMode() As VideoModes
         Get
             Return mVideoMode
         End Get
@@ -592,9 +578,9 @@ Public MustInherit Class CGAAdapter
         CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = vRetrace
     End Sub
 
-    Public MustOverride Sub AutoSize()
+    Public MustOverride Overrides Sub AutoSize()
 
-    Public Property Zoom As Double
+    Public Overrides Property Zoom As Double
         Get
             Return mZoom
         End Get

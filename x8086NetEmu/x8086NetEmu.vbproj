@@ -115,11 +115,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SdlDotNet, Version=6.1.0.0, Culture=neutral, PublicKeyToken=26ad4f7e10c61408, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files (x86)\SdlDotNet\bin\SdlDotNet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="SlimDX, Version=4.0.13.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\SlimDX SDK (January 2012)\Bin\net40\x86\SlimDX.dll</HintPath>
@@ -161,10 +156,10 @@
     <Compile Include="Adapters\Video\RenderCtrlSDL.Designer.vb">
       <DependentUpon>RenderCtrlSDL.vb</DependentUpon>
     </Compile>
-    <Compile Include="Adapters\Video\RenderCtrlSDL.vb">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="Adapters\Video\RenderCtrlSDL.vb" />
     <Compile Include="Adapters\Video\VGAAdapter.vb" />
+    <Compile Include="Adapters\Video\VGAWinForms.vb" />
+    <Compile Include="Adapters\Video\VideoAdapter.vb" />
     <Compile Include="Chipset\RTC.vb" />
     <Compile Include="Chipset\PPI8255_ALT.vb" />
     <Compile Include="Helpers\Binary.vb" />
@@ -271,7 +266,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

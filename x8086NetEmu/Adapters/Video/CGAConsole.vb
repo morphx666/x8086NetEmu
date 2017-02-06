@@ -130,4 +130,16 @@ Public Class CGAConsole
 
     Public Overrides Sub Run()
     End Sub
+
+    Public Overrides ReadOnly Property Description As String
+        Get
+            Return "CGA Console Adapter"
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property Name As String
+        Get
+            Return "CGA Console"
+        End Get
+    End Property
 End Class

@@ -43,7 +43,7 @@
         End Get
     End Property
 
-    Public ReadOnly Property VideoAdapter As CGAAdapter
+    Public ReadOnly Property VideoAdapter As VideoAdapter
         Get
             Return mVideoAdapter
         End Get

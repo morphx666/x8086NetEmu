@@ -16,7 +16,7 @@ Public Class x8086
 
     Private mRegisters As GPRegisters = New GPRegisters()
     Private mFlags As GPFlags = New GPFlags()
-    Private mVideoAdapter As CGAAdapter
+    Private mVideoAdapter As VideoAdapter
     Private mKeyboard As KeyboardAdapter
     Private mMouse As MouseAdapter
     Private mFloppyController As FloppyControllerAdapter
@@ -145,12 +145,13 @@ Public Class x8086
         Sched.StopSimulation()
 
         InitSystem()
-        LoadBIOS()
         FlushCycles()
 
         SetSynchronization()
 
         SetupSystem()
+
+        LoadBIOS()
 
         mEnableExceptions = False
         mIsExecuting = False
@@ -290,9 +291,11 @@ Public Class x8086
         'LoadBIN("..\..\Other Emulators & Resources\PCE - PC Emulator\bin\rom\ibm-pc-1982.rom", &HFE00, &H0)
 
         ' VGA
-        'LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\xtbios2\TEST\ET4000.BIN", &HC000, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
+        If mVideoAdapter?.Name.StartsWith("VGA") Then
+            'LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
+            LoadBIN("..\..\Other Emulators & Resources\xtbios2\TEST\ET4000.BIN", &HC000, &H0)
+            'LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
+        End If
 
         ' BASIC C1.1
         LoadBIN("roms\BASICC11.BIN", &HF600, &H0)
@@ -323,7 +326,6 @@ Public Class x8086
     End Sub
 
     Public Sub HardReset()
-        Init()
         Run(mDebugMode)
     End Sub
 
@@ -332,6 +334,8 @@ Public Class x8086
     End Sub
 
     Public Sub Run(Optional debugMode As Boolean = False)
+        Init()
+
         mDebugMode = debugMode
         cancelAllThreads = False
         picIsAvailable = (PIC IsNot Nothing)

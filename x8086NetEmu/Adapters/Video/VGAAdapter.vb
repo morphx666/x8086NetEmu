@@ -287,7 +287,7 @@
     Public Sub New(cpu As x8086)
         MyBase.New(cpu)
 
-        ValidPortAddress.Clear()
+        'ValidPortAddress.Clear()
         For i As Integer = &H3C0 To &H3DF
             ValidPortAddress.Add(i)
         Next
