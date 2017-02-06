@@ -44,20 +44,22 @@ Public Class EmulatorState
         Dim curPath = My.Application.Info.DirectoryPath + "\"
         Dim xml = <floppies></floppies>
 
-        For i As Integer = 0 To 128 - 1
-            If mCPU.FloppyContoller.DiskImage(i) IsNot Nothing Then
-                Dim di = mCPU.FloppyContoller.DiskImage(i)
+        If mCPU.FloppyContoller IsNot Nothing Then
+            For i As Integer = 0 To 128 - 1
+                If mCPU.FloppyContoller.DiskImage(i) IsNot Nothing Then
+                    Dim di = mCPU.FloppyContoller.DiskImage(i)
 
-                If Not di.IsHardDisk Then
-                    xml.Add(<floppy>
-                                <letter><%= Chr(65 + i) %></letter>
-                                <index><%= i %></index>
-                                <image><%= di.FileName.Replace(curPath, "") %></image>
-                                <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
-                            </floppy>)
+                    If Not di.IsHardDisk Then
+                        xml.Add(<floppy>
+                                    <letter><%= Chr(65 + i) %></letter>
+                                    <index><%= i %></index>
+                                    <image><%= di.FileName.Replace(curPath, "") %></image>
+                                    <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
+                                </floppy>)
+                    End If
                 End If
-            End If
-        Next
+            Next
+        End If
 
         Return xml
     End Function

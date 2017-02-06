@@ -2,7 +2,10 @@
 
 Partial Public Class x8086
     Private Sub HandleINT13()
-        If mFloppyController Is Nothing Then DiskAdapterNotFound()
+        If mFloppyController Is Nothing Then
+            DiskAdapterNotFound()
+            Exit Sub
+        End If
 
         Dim ret As Integer
         Dim AL As Integer

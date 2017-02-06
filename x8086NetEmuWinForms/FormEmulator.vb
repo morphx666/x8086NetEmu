@@ -51,17 +51,7 @@ Public Class FormEmulator
         AddHandler ConsoleToolStripMenuItem.Click, Sub() ShowConsole()
         AddHandler SoftResetToolStripMenuItem.Click, Sub() cpu.SoftReset()
         AddHandler HardResetToolStripMenuItem.Click, Sub() cpu.HardReset()
-        AddHandler MediaToolStripMenuItem.Click, Sub()
-                                                     cpu.Pause()
-                                                     Using dlg As New FormMediaManager()
-                                                         dlg.Emulator = cpu
-                                                         If dlg.ShowDialog(Me) = DialogResult.Yes Then
-                                                             cpu.HardReset()
-                                                         Else
-                                                             cpu.Resume()
-                                                         End If
-                                                     End Using
-                                                 End Sub
+        AddHandler MediaToolStripMenuItem.Click, Sub() RunMediaManager()
 
         AddHandler PasteTextToolStripMenuItem.Click, Sub() PasteTextFromClipboard()
         AddHandler CopyTextToolStripMenuItem.Click, Sub() CopyTextFromEmulator()
@@ -82,6 +72,18 @@ Public Class FormEmulator
                                                               WarnAboutRestart()
                                                           End Sub
 
+    End Sub
+
+    Private Sub RunMediaManager()
+        cpu.Pause()
+        Using dlg As New FormMediaManager()
+            dlg.Emulator = cpu
+            If dlg.ShowDialog(Me) = DialogResult.Yes Then
+                cpu.HardReset()
+            Else
+                cpu.Resume()
+            End If
+        End Using
     End Sub
 
     Private Sub SetupCpuEventHandlers()
@@ -192,10 +194,9 @@ Public Class FormEmulator
         cpuState = New EmulatorState(cpu)
 
         videoPort = New RenderCtrlGDI()
-        'videoPort = New RenderCtrlSDL() ' PRE-ALPHA (i.e. DO NOT USE)
         Me.Controls.Add(videoPort)
 
-        cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
+        'cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono)) ' Not properly supported yet...
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
@@ -366,8 +367,13 @@ Public Class FormEmulator
 
         If IO.File.Exists("settings.dat") Then
             Dim xml = XDocument.Load("settings.dat")
-
             ParseSettings(xml.<settings>(0))
+        Else
+            If MsgBox($"It looks like this is the first time you run the emulator.{Environment.NewLine}" +
+                      $"Use the 'RightCtrl + Home' hotkey to access the emulator settings.{Environment.NewLine}{Environment.NewLine}" +
+                      $"Would you like to configure the emulator's floppies and hard drives now?", MsgBoxStyle.Information Or MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                RunMediaManager()
+            End If
         End If
     End Sub
 
@@ -389,25 +395,27 @@ Public Class FormEmulator
             SetCPUClockSpeed(Double.Parse(xml.<clockSpeed>.Value))
             SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))
 
-            For i As Integer = 0 To 512 - 1
-                If cpu.FloppyContoller.DiskImage(i) IsNot Nothing Then cpu.FloppyContoller.DiskImage(i).Close()
-            Next
+            If cpu.FloppyContoller IsNot Nothing Then
+                For i As Integer = 0 To 512 - 1
+                    If cpu.FloppyContoller.DiskImage(i) IsNot Nothing Then cpu.FloppyContoller.DiskImage(i).Close()
+                Next
 
-            For Each f In xml.<floppies>.<floppy>
-                Dim index As Integer = Asc(f.<letter>.Value) - 65
-                Dim image As String = f.<image>.Value
-                Dim ro As Boolean = Boolean.Parse(f.<readOnly>.Value)
+                For Each f In xml.<floppies>.<floppy>
+                    Dim index As Integer = Asc(f.<letter>.Value) - 65
+                    Dim image As String = f.<image>.Value
+                    Dim ro As Boolean = Boolean.Parse(f.<readOnly>.Value)
 
-                cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro)
-            Next
+                    cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro)
+                Next
 
-            For Each d In xml.<disks>.<disk>
-                Dim index As Integer = Asc(d.<letter>.Value) - 67 + 128
-                Dim image As String = d.<image>.Value
-                Dim ro As Boolean = Boolean.Parse(d.<readOnly>.Value)
+                For Each d In xml.<disks>.<disk>
+                    Dim index As Integer = Asc(d.<letter>.Value) - 67 + 128
+                    Dim image As String = d.<image>.Value
+                    Dim ro As Boolean = Boolean.Parse(d.<readOnly>.Value)
 
-                cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro, True)
-            Next
+                    cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro, True)
+                Next
+            End If
 
             Try
                 If Boolean.Parse(xml.<extras>.<consoleVisible>.Value) Then ShowConsole()

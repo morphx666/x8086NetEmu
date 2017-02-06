@@ -156,7 +156,7 @@ Public Class DiskImage
         If h = 0 OrElse h > 255 Then Return False
         If s = 0 OrElse s > 255 Then Return False
 
-        Dim c = mFileLength / (h * s * mSectorSize)
+        Dim c As Integer = mFileLength / (h * s * mSectorSize)
 
         mCylinders = c
         mSectors = s
