@@ -149,16 +149,16 @@
     <Compile Include="Adapters\Keyboard\KeyMap.vb" />
     <Compile Include="Adapters\Audio\Speaker.vb" />
     <Compile Include="Adapters\Serial\MouseAdapter.vb" />
-    <Compile Include="Adapters\Video\CGAAdapter.vb" />
-    <Compile Include="Adapters\Video\CGAConsole.vb" />
-    <Compile Include="Adapters\Video\CGAWinForms.vb" />
-    <Compile Include="Adapters\Video\CGASDL.vb" />
+    <Compile Include="Adapters\Video\CGA\CGAAdapter.vb" />
+    <Compile Include="Adapters\Video\CGA\CGAConsole.vb" />
+    <Compile Include="Adapters\Video\CGA\CGAWinForms.vb" />
+    <Compile Include="Adapters\Video\CGA\CGASDL.vb" />
     <Compile Include="Adapters\Video\RenderCtrlSDL.Designer.vb">
       <DependentUpon>RenderCtrlSDL.vb</DependentUpon>
     </Compile>
     <Compile Include="Adapters\Video\RenderCtrlSDL.vb" />
-    <Compile Include="Adapters\Video\VGAAdapter.vb" />
-    <Compile Include="Adapters\Video\VGAWinForms.vb" />
+    <Compile Include="Adapters\Video\VGA\VGAAdapter.vb" />
+    <Compile Include="Adapters\Video\VGA\VGAWinForms.vb" />
     <Compile Include="Adapters\Video\VideoAdapter.vb" />
     <Compile Include="Chipset\RTC.vb" />
     <Compile Include="Chipset\PPI8255_ALT.vb" />
