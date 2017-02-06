@@ -139,6 +139,7 @@
 
     Private lastX As Integer = Integer.MinValue
     Private lastY As Integer = Integer.MinValue
+
     Public Sub HandleInput(e As ExternalInputEvent) Implements ExternalInputHandler.HandleInput
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 

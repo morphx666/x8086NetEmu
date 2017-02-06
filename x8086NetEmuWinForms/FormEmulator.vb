@@ -196,7 +196,7 @@ Public Class FormEmulator
         videoPort = New RenderCtrlGDI()
         Me.Controls.Add(videoPort)
 
-        'cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
+        cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono)) ' Not properly supported yet...
         cpu.Adapters.Add(New KeyboardAdapter(cpu))

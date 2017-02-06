@@ -270,9 +270,9 @@
         Private Function ToCounter(v As Integer) As Integer
             If bcdMode Then
                 v = v Mod 10000
-                Return ((v / 1000) Mod 10) << 12 Or
-                        ((v / 100) Mod 10) << 8 Or
-                         ((v / 10) Mod 10) << 4 Or
+                Return ((v \ 1000) Mod 10) << 12 Or
+                        ((v \ 100) Mod 10) << 8 Or
+                         ((v \ 10) Mod 10) << 4 Or
                         (v Mod 10)
             Else
                 Return v Mod &H10000
@@ -291,9 +291,9 @@
                 zero = (c >= 10000 OrElse (v <> 0 And c >= v))
                 v += 10000 - (c Mod 10000)
                 counterValue =
-                  ((v / 1000) Mod 10) << 12 Or
-                   ((v / 100) Mod 10) << 8 Or
-                    ((v / 10) Mod 10) << 4 Or
+                  ((v \ 1000) Mod 10) << 12 Or
+                   ((v \ 100) Mod 10) << 8 Or
+                    ((v \ 10) Mod 10) << 4 Or
                     (v Mod 10)
             Else
                 zero = (c > &HFFFF OrElse (counterValue <> 0 AndAlso c >= counterValue))
@@ -308,6 +308,7 @@
         Private Sub Update()
             ' compute elapsed clock pulses since last update
             Dim clocks As Long = TimeToClocks(owner.currentTime) - TimeToClocks(timeStamp)
+
             ' call mode-dependent update function
             Select Case countMode
                 Case 0 : UpdMode0(clocks)
@@ -599,11 +600,12 @@
         Dim c As Integer = port And 3
         If c = 3 Then
             '  write Control Word
+            Dim s As Integer
             c = (v >> 6) And 3
             If c = 3 Then
                 '  Read Back command
                 For i As Integer = 0 To 3 - 1
-                    Dim s As Integer = (2 << i)
+                    s = (2 << i)
                     If (v And (&H10 Or s)) = s Then channels(i).LatchStatus()
                     If (v And (&H20 Or s)) = s Then channels(i).LatchOutput()
                 Next
@@ -678,12 +680,12 @@
 
     Public Shared Function TimeToClocks(t As Long) As Long
         Return (t \ Scheduler.CLOCKRATE) * COUNTRATE +
-        ((t Mod Scheduler.CLOCKRATE) * COUNTRATE) \ Scheduler.CLOCKRATE
+               ((t Mod Scheduler.CLOCKRATE) * COUNTRATE) \ Scheduler.CLOCKRATE
     End Function
 
     Public Shared Function ClocksToTime(c As Long) As Long
         Return (c \ COUNTRATE) * Scheduler.CLOCKRATE +
-        ((c Mod COUNTRATE) * Scheduler.CLOCKRATE + COUNTRATE - 1) \ COUNTRATE
+               ((c Mod COUNTRATE) * Scheduler.CLOCKRATE + COUNTRATE - 1) \ COUNTRATE
     End Function
 
 #If Win32 Then

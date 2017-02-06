@@ -49,8 +49,9 @@
         nHeap -= 1
 
         Dim k As Integer = 1
-        While k <= nHeap / 2
-            Dim j As Integer = 2 * k
+        Dim j As Integer
+        While k <= nHeap \ 2
+            j = 2 * k
             If j < nHeap AndAlso heapPri(j) > heapPri(j + 1) Then j += 1
             If vp <= heapPri(j) Then Exit While
 
@@ -75,8 +76,9 @@
             Dim vp As Long = heapPri(nHeap)
             nHeap -= 1
 
-            While k <= nHeap / 2
-                Dim j As Integer = 2 * k
+            Dim j As Integer
+            While k <= nHeap \ 2
+                j = 2 * k
                 If j < nHeap AndAlso heapPri(j) > heapPri(j + 1) Then j += 1
                 If vp <= heapPri(j) Then Exit While
 

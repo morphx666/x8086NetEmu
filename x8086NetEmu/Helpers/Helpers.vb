@@ -56,12 +56,12 @@
         Private regOffset As UInteger
 
         Public Sub Decode(data As Byte, addressingModeByte As Byte)
-            Size = data And 1                                   ' (0000 0001)
-            Direction = (data And 2) >> 1                       ' (0000 0010)
+            Size = data And 1UI                                 ' (0000 0001)
+            Direction = (data And 2UI) >> 1UI                   ' (0000 0010)
 
-            Modifier = addressingModeByte >> 6                  ' (1100 0000)
-            Reg = (addressingModeByte >> 3) And 7               ' (0011 1000)
-            Rm = addressingModeByte And 7                       ' (0000 0111)
+            Modifier = addressingModeByte >> 6UI                ' (1100 0000)
+            Reg = (addressingModeByte >> 3UI) And 7UI           ' (0011 1000)
+            Rm = addressingModeByte And 7UI                     ' (0000 0111)
 
             regOffset = (Size << 3UI)
 

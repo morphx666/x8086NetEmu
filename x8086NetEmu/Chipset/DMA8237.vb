@@ -241,6 +241,7 @@
 
         If (mode And &HC0) = &HC0 Then
             'log.warn("cascade mode not implemented (channel " + i + ")")
+            Stop
         ElseIf (mode And &HC) = &HC Then
             'log.warn("invalid mode on channel " + i)
         Else

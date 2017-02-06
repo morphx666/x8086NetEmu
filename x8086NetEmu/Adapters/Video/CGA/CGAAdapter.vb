@@ -122,9 +122,6 @@ Public MustInherit Class CGAAdapter
 
     Protected MustOverride Sub Render()
 
-    'Public Event KeyDown(sender As Object, e As KeyEventArgs)
-    'Public Event KeyUp(sender As Object, e As KeyEventArgs)
-
     Public Sub New(cpu As x8086, Optional useInternalTimer As Boolean = True)
         mCPU = cpu
         Me.useInternalTimer = useInternalTimer
@@ -132,8 +129,6 @@ Public MustInherit Class CGAAdapter
         For i As Integer = &H3D0 To &H3DF
             ValidPortAddress.Add(i)
         Next
-
-        'ValidPortAddress.Add(&H3B8)
 
         For i As Integer = 0 To 255
             If i >= 32 AndAlso i < 255 Then
@@ -262,7 +257,11 @@ Public MustInherit Class CGAAdapter
 
     Private Sub MainLoop()
         Do
+#If DEBUG Then
+            waiter.WaitOne(1000 / (VERTSYNC / 4))
+#Else
             waiter.WaitOne(1000 / VERTSYNC)
+#End If
 
             If isInit AndAlso mVideoEnabled AndAlso mVideoMode <> VideoModes.Undefined Then
                 SyncLock lockObject

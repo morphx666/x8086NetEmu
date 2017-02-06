@@ -77,7 +77,7 @@ Public Class FormMonitor
 
     Private abortThreads As Boolean
 
-    Private Const numberSufixes As String = "hbo" ' hEX / bINARY / oCtal
+    Private Const numberSufixes As String = "hbo" ' hEX / bINARY / oCTAL
     Private activeInstruction As x8086.Instruction
 
     Private navigator As System.Xml.XPath.XPathNavigator = New System.Xml.XPath.XPathDocument(New IO.StringReader("<r/>")).CreateNavigator()
