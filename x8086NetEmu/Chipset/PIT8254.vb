@@ -273,7 +273,7 @@
                 Return ((v \ 1000) Mod 10) << 12 Or
                         ((v \ 100) Mod 10) << 8 Or
                          ((v \ 10) Mod 10) << 4 Or
-                        (v Mod 10)
+                           (v Mod 10)
             Else
                 Return v Mod &H10000
             End If
@@ -288,16 +288,16 @@
                                     ((counterValue >> 8) And &HF) * 100 +
                                     ((counterValue >> 4) And &HF) * 10 +
                                     (counterValue And &HF)
-                zero = (c >= 10000 OrElse (v <> 0 And c >= v))
+                zero = (c >= 10000 OrElse (v <> 0 AndAlso c >= v))
                 v += 10000 - (c Mod 10000)
                 counterValue =
                   ((v \ 1000) Mod 10) << 12 Or
                    ((v \ 100) Mod 10) << 8 Or
                     ((v \ 10) Mod 10) << 4 Or
-                    (v Mod 10)
+                      (v Mod 10)
             Else
                 zero = (c > &HFFFF OrElse (counterValue <> 0 AndAlso c >= counterValue))
-                counterValue = CInt((counterValue - c) And &HFFFF)
+                counterValue = (counterValue - c) And &HFFFF
             End If
 
             Return zero
