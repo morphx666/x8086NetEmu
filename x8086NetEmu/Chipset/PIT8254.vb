@@ -672,7 +672,7 @@
             If period = 0 Then
                 mSpeaker.Frequency = 0
             Else
-                mSpeaker.Frequency = COUNTRATE / channels(2).GetSquareWavePeriod() * 1000
+                mSpeaker.Frequency = COUNTRATE / period * 1000
             End If
         End If
 #End If

@@ -29,6 +29,8 @@ Public Class x8086
     Private opCode As Byte
     Private opCodeSize As Byte = 0
 
+    Private tmpVal As UInteger
+
     Private addrMode As AddressingMode
     Private mIsExecuting As Boolean = False
 
@@ -161,9 +163,7 @@ Public Class x8086
     End Sub
 
     Private Sub InitSystem()
-        For i As Integer = 0 To Memory.Length - 1
-            Memory(i) = 0
-        Next
+        Array.Clear(Memory, 0, Memory.Length)
 
         mIsExecuting = True
 
@@ -176,7 +176,6 @@ Public Class x8086
         mIsHalted = False
         mIsExecuting = False
         isDecoding = False
-        'trapEnabled = False
         ignoreINTs = False
         repeLoopMode = REPLoopModes.None
         IPAddrOff = 0
@@ -282,6 +281,7 @@ Public Class x8086
     Private Sub LoadBIOS()
         ' BIOS
         LoadBIN("roms\PCXTBIOS.ROM", &HFE00, &H0)
+        'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\pcxtbios.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios2\EPROMS\2764\XTBIOS.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios25\EPROMS\2764\PCXTBIOS.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\genxt\pcxt.rom", &HFE00, &H0)
@@ -292,14 +292,18 @@ Public Class x8086
 
         ' VGA
         If mVideoAdapter?.Name.StartsWith("VGA") Then
+            LoadBIN("roms\ET4000.BIN", &HC000, &H0)
             'LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-            LoadBIN("..\..\Other Emulators & Resources\xtbios2\TEST\ET4000.BIN", &HC000, &H0)
+            'LoadBIN("..\..\Other Emulators & Resources\xtbios2\TEST\ET4000.BIN", &HC000, &H0)
             'LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
         End If
 
-        ' BASIC C1.1
+        ' BASIC C1.10
         LoadBIN("roms\BASICC11.BIN", &HF600, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\xtbios2\TEST\BASICC11.BIN", &HF600, &H0)
+        'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicf6.rom", &HF600, &H0)
+        'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicf8.rom", &HF800, &H0)
+        'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicfa.rom", &HFA00, &H0)
+        'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicfc.rom", &HFC00, &H0)
 
         ' Lots of ROMs: http://www.hampa.ch/pce/download.html
     End Sub
@@ -441,7 +445,7 @@ Public Class x8086
                 RaiseEvent InstructionDecoded()
             End While
         Else
-            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso Not mDebugMode) OrElse repeLoopMode <> REPLoopModes.None
+            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule) OrElse repeLoopMode <> REPLoopModes.None
                 Execute()
                 instrucionsCounter += 1
             End While
@@ -467,9 +471,6 @@ Public Class x8086
         'opCode = Prefetch.Buffer(0)
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
-
-        ' Hack from fake86 to force BIOS into detecting a EGA/VGA adapter
-        ' Memory(&H410) = &H41
 
         Select Case opCode
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
@@ -816,12 +817,12 @@ Public Class x8086
 
             Case &H60 ' pusha (80186)
                 If mVic20 Then
-                    Dim sp = mRegisters.SP
+                    tmpVal = mRegisters.SP
                     PushIntoStack(mRegisters.AX)
                     PushIntoStack(mRegisters.CX)
                     PushIntoStack(mRegisters.DX)
                     PushIntoStack(mRegisters.BX)
-                    PushIntoStack(sp)
+                    PushIntoStack(tmpVal)
                     PushIntoStack(mRegisters.BP)
                     PushIntoStack(mRegisters.SI)
                     PushIntoStack(mRegisters.DI)
@@ -1081,9 +1082,9 @@ Public Class x8086
             Case &H86 To &H87 ' xchg reg/mem with reg
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    Dim tmp As UInteger = mRegisters.Val(addrMode.Register1)
+                    tmpVal = mRegisters.Val(addrMode.Register1)
                     mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
-                    mRegisters.Val(addrMode.Register2) = tmp
+                    mRegisters.Val(addrMode.Register2) = tmpVal
                     clkCyc += 4
                 Else
                     RAMn = mRegisters.Val(addrMode.Register1)
@@ -1158,9 +1159,9 @@ Public Class x8086
 
             Case &H90 To &H97 ' xchg reg with acc
                 SetRegister1Alt(opCode)
-                Dim tmp As UInteger = mRegisters.AX
+                tmpVal = mRegisters.AX
                 mRegisters.AX = mRegisters.Val(addrMode.Register1)
-                mRegisters.Val(addrMode.Register1) = tmp
+                mRegisters.Val(addrMode.Register1) = tmpVal
                 clkCyc += 3
 
             Case &H98 ' cbw
@@ -1173,12 +1174,12 @@ Public Class x8086
 
             Case &H9A ' call direct intersegment
                 IPAddrOff = Param(SelPrmIndex.First, , DataSize.Word)
-                Dim cs As UInteger = Param(SelPrmIndex.Second, , DataSize.Word)
+                tmpVal = Param(SelPrmIndex.Second, , DataSize.Word)
 
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
 
-                mRegisters.CS = cs
+                mRegisters.CS = tmpVal
 
                 clkCyc += 28
 
@@ -1303,10 +1304,10 @@ Public Class x8086
                 End If
 
             Case &HCA ' ret intersegment adding imm to sp (retf)
-                Dim n As UInteger = Param(SelPrmIndex.First, , DataSize.Word)
+                tmpVal = Param(SelPrmIndex.First, , DataSize.Word)
                 IPAddrOff = PopFromStack()
                 mRegisters.CS = PopFromStack()
-                mRegisters.SP = AddValues(mRegisters.SP, n, DataSize.Word)
+                mRegisters.SP = AddValues(mRegisters.SP, tmpVal, DataSize.Word)
                 clkCyc += 17
 
             Case &HCB ' ret intersegment (retf)
@@ -1918,65 +1919,60 @@ Public Class x8086
                 End If
 
             Case 3 ' 011    --  neg
-                Dim result As UInteger
                 If addrMode.IsDirect Then
-                    result = AddValues(Not mRegisters.Val(addrMode.Register2), 1, addrMode.Size)
+                    tmpVal = AddValues(Not mRegisters.Val(addrMode.Register2), 1, addrMode.Size)
                     Eval(0, mRegisters.Val(addrMode.Register2), Operation.Substract, addrMode.Size)
-                    mRegisters.Val(addrMode.Register2) = result
+                    mRegisters.Val(addrMode.Register2) = tmpVal
                     clkCyc += 3
                 Else
-                    result = AddValues(Not addrMode.IndMem, 1, addrMode.Size)
+                    tmpVal = AddValues(Not addrMode.IndMem, 1, addrMode.Size)
                     Eval(0, addrMode.IndMem, Operation.Substract, addrMode.Size)
-                    RAMn = result
+                    RAMn = tmpVal
                     clkCyc += 16
                 End If
 
             Case 4 ' 100    --  mul
-                Dim result As UInteger
-
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
-                        result = mRegisters.Val(addrMode.Register2) * mRegisters.AL
-                        mRegisters.AX = result And &HFFFF
+                        tmpVal = mRegisters.Val(addrMode.Register2) * mRegisters.AL
+                        mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 70
                     Else
-                        result = mRegisters.Val(addrMode.Register2) * mRegisters.AX
-                        mRegisters.AX = result And &HFFFF
-                        mRegisters.DX = (result >> 16) And &HFFFF
+                        tmpVal = mRegisters.Val(addrMode.Register2) * mRegisters.AX
+                        mRegisters.AX = tmpVal And &HFFFF
+                        mRegisters.DX = (tmpVal >> 16) And &HFFFF
                         clkCyc += 118
                     End If
                 Else
                     If addrMode.Size = DataSize.Byte Then
-                        result = addrMode.IndMem * mRegisters.AL
-                        mRegisters.AX = result And &HFFFF
+                        tmpVal = addrMode.IndMem * mRegisters.AL
+                        mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 76
                     Else
-                        result = addrMode.IndMem * mRegisters.AX
-                        mRegisters.AX = result And &HFFFF
-                        mRegisters.DX = (result >> 16) And &HFFFF
+                        tmpVal = addrMode.IndMem * mRegisters.AX
+                        mRegisters.AX = tmpVal And &HFFFF
+                        mRegisters.DX = (tmpVal >> 16) And &HFFFF
                         clkCyc += 134
                     End If
                 End If
 
-                If (result And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
+                If (tmpVal And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
                 Else
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                If Not mVic20 Then mFlags.ZF = If(result = 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (80186)
+                If Not mVic20 Then mFlags.ZF = If(tmpVal = 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (80186)
 
             Case 5 ' 101    --  imul
-                Dim result As UInteger
-
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
                         Dim m1 As UInteger = To16bitsWithSign(mRegisters.AL)
                         Dim m2 As UInteger = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
 
-                        result = m1 * m2
-                        mRegisters.AX = result And &HFFFF
+                        tmpVal = m1 * m2
+                        mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 70
                     Else
                         Dim m1 As UInteger = mRegisters.AX
@@ -1984,9 +1980,9 @@ Public Class x8086
                         Dim m2 As UInteger = mRegisters.Val(addrMode.Register2)
                         If (m2 And &H8000) = &H8000 Then m2 = m2 Or &HFFFF0000UI
 
-                        result = m1 * m2
-                        mRegisters.AX = result And &HFFFF
-                        mRegisters.DX = (result >> 16) And &HFFFF
+                        tmpVal = m1 * m2
+                        mRegisters.AX = tmpVal And &HFFFF
+                        mRegisters.DX = (tmpVal >> 16) And &HFFFF
                         clkCyc += 118
                     End If
                 Else
@@ -1994,8 +1990,8 @@ Public Class x8086
                         Dim m1 As UInteger = To16bitsWithSign(mRegisters.AL)
                         Dim m2 As UInteger = To16bitsWithSign(addrMode.IndMem)
 
-                        result = m1 * m2
-                        mRegisters.AX = result And &HFFFF
+                        tmpVal = m1 * m2
+                        mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 76
                     Else
                         Dim m1 As UInteger = mRegisters.AX
@@ -2003,16 +1999,16 @@ Public Class x8086
                         Dim m2 As UInteger = addrMode.IndMem
                         If (m2 And &H8000) = &H8000 Then m2 = m2 Or &HFFFF0000UI
 
-                        result = m1 * m2
-                        mRegisters.AX = result And &HFFFF
-                        mRegisters.DX = (result >> 16) And &HFFFF
+                        tmpVal = m1 * m2
+                        mRegisters.AX = tmpVal And &HFFFF
+                        mRegisters.DX = (tmpVal >> 16) And &HFFFF
                         clkCyc += 134
                     End If
                 End If
 
                 Dim mask As UInteger = If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)
-                result = result And mask
-                If result <> 0 AndAlso result <> mask Then
+                tmpVal = tmpVal And mask
+                If tmpVal <> 0 AndAlso tmpVal <> mask Then
                     mFlags.CF = 1
                     mFlags.OF = 1
                 Else
