@@ -1,7 +1,7 @@
 # x8086NetEmu
 A VB.NET implementation of an almost working 8086 emulator.
 
-![x8086NetEmu running PacMan under Linux](https://whenimbored.xfx.net/wp-content/uploads/2012/10/x8086_emu_game2.png)
+![x8086NetEmu Showcase](https://xfx.net/stackoverflow/x8086netEmu/x8086NetEmu_01.gif)
 
 Although it still has some bugs, it is a fairly stable and capable 8088/86/186 emulator:
 
