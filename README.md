@@ -23,6 +23,8 @@ Quite probably, this is the same bug that also prevents it from running Windows 
 
 Portions of the code in the emulator were adapted or inspired from '[fake86](https://github.com/rubbermallet/fake86)' (CGA emulation), '[PCE - PC Emulator](http://www.hampa.ch/pce/)' ([Group 2](http://www.mlsite.net/8086/), DIV, IDIV, MUL and IMUL opcodes emulation and flags management) and '[retro](http://jorisvr.nl/article/retro)' (Scheduler, chipset and keyboard handling).
 
-Precompiled binaries, including various boot disks, are available at https://whenimbored.xfx.net/2012/10/x8086netemu-an-8086-emulator-in-vb-net/
+~~Precompiled binaries, including various boot disks, are available at https://whenimbored.xfx.net/2012/10/x8086netemu-an-8086-emulator-in-vb-net/~~
+
+Precompiled binaries can now be downloaded from the [releases](https://github.com/morphx666/x8086NetEmu/releases) section.
 
 For sound support under Win32, [SlimDX .NET 4 runtimes](https://slimdx.org/download.php) need to be installed
