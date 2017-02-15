@@ -68,7 +68,7 @@ Public Class FormDiskExplorer
                     Where (de.Attribute And FAT12_16.EntryAttributes.Directory) <> FAT12_16.EntryAttributes.Directory AndAlso
                           (de.Attribute And FAT12_16.EntryAttributes.VolumeName) <> FAT12_16.EntryAttributes.VolumeName AndAlso
                           Convert.ToByte(de.FileNameChars(0)) < &H5E
-                    Order By de.FileName
+                    Order By GetTypeDescription(de.FileExtension)
 
         'Dim driveNumber As Integer = sdf.BootSector(0).DriveNumber
         'Dim rootNode As TreeNode = TreeViewDirs.Nodes.Add(Chr(If(driveNumber >= 128, Asc("C") + driveNumber - 128, Asc("A") + driveNumber)) + ":")
@@ -182,8 +182,12 @@ Public Class FormDiskExplorer
                 DisplayFileSystem(node, sdf.GetDirectoryEntries(0, entry.StartingCluster))
             Else ' It's a file
                 Dim b() As Byte = sdf.ReadFile(selectedParitionIndex, entry)
-                Dim targetPath As String = IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), entry.FileName)
-                'IO.File.WriteAllBytes(targetPath, b)
+                Dim targetFileName As String = IO.Path.Combine(IO.Path.GetTempPath(), entry.FullFileName)
+                IO.File.WriteAllBytes(targetFileName, b)
+                Try
+                    Process.Start(targetFileName)
+                Catch ex As Exception
+                End Try
             End If
         End If
     End Sub

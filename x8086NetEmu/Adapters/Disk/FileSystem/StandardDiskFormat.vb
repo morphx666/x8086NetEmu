@@ -182,7 +182,12 @@ Public Class StandardDiskFormat
 
         ReDim mFATDataPointers(partitionNumber)(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
-            mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
+            Select Case mBootSectors(partitionNumber).ExtendedBIOSParameterBlock.FileSystemType
+                Case "FAT12" ' FIXME: FAT cluster chain is not correctly built when the file system if FAT12
+                    mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
+                Case "FAT16"
+                    mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
+            End Select
         Next
 
         If (mFATDataPointers(partitionNumber)(0) And &HFF) = mBootSectors(partitionNumber).BIOSParameterBlock.MediaDescriptor Then
@@ -246,11 +251,11 @@ Public Class StandardDiskFormat
     End Function
 
     Public Function ReadFile(partitionNumber As Integer, de As FAT12_16.DirectoryEntry) As Byte()
-        Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
-        Dim clustersInFile As UInt16 = Math.Ceiling(de.FileSize / bytesInCluster)
+        Dim bytesInCluster As UInt32 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
+        Dim clustersInFile As UInt32 = Math.Ceiling(de.FileSize / bytesInCluster)
         Dim b(clustersInFile * bytesInCluster - 1) As Byte
         Dim clusterIndex As UInt16 = de.StartingCluster
-        Dim bytesRead As UInt32
+        Dim bytesRead As Long
 
         While clusterIndex < &HFFF8 AndAlso bytesRead < de.FileSize
             strm.Position = ClusterToSector(partitionNumber, clusterIndex)

@@ -29,6 +29,7 @@ Partial Class FormDiskExplorer
         Me.ColumnHeaderSize = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.ColumnHeaderType = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.ColumnHeaderDateModified = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ImageListIcons = New System.Windows.Forms.ImageList(Me.components)
         Me.TreeViewDirs = New System.Windows.Forms.TreeView()
         Me.LabelImageFile = New System.Windows.Forms.Label()
         Me.ComboBoxPartitions = New System.Windows.Forms.ComboBox()
@@ -47,7 +48,6 @@ Partial Class FormDiskExplorer
         Me.chMnemonic = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.chParameters = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.Label6 = New System.Windows.Forms.Label()
-        Me.ImageListIcons = New System.Windows.Forms.ImageList(Me.components)
         Me.SuspendLayout()
         '
         'ListViewFileSystem
@@ -63,7 +63,7 @@ Partial Class FormDiskExplorer
         Me.ListViewFileSystem.HideSelection = False
         Me.ListViewFileSystem.Location = New System.Drawing.Point(282, 178)
         Me.ListViewFileSystem.Name = "ListViewFileSystem"
-        Me.ListViewFileSystem.Size = New System.Drawing.Size(438, 351)
+        Me.ListViewFileSystem.Size = New System.Drawing.Size(572, 351)
         Me.ListViewFileSystem.SmallImageList = Me.ImageListIcons
         Me.ListViewFileSystem.TabIndex = 1
         Me.ListViewFileSystem.UseCompatibleStateImageBehavior = False
@@ -86,6 +86,12 @@ Partial Class FormDiskExplorer
         '
         Me.ColumnHeaderDateModified.Text = "Date Modified"
         Me.ColumnHeaderDateModified.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        '
+        'ImageListIcons
+        '
+        Me.ImageListIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth24Bit
+        Me.ImageListIcons.ImageSize = New System.Drawing.Size(16, 16)
+        Me.ImageListIcons.TransparentColor = System.Drawing.Color.Transparent
         '
         'TreeViewDirs
         '
@@ -111,7 +117,7 @@ Partial Class FormDiskExplorer
         Me.LabelImageFile.ForeColor = System.Drawing.Color.White
         Me.LabelImageFile.Location = New System.Drawing.Point(124, 9)
         Me.LabelImageFile.Name = "LabelImageFile"
-        Me.LabelImageFile.Size = New System.Drawing.Size(152, 23)
+        Me.LabelImageFile.Size = New System.Drawing.Size(286, 23)
         Me.LabelImageFile.TabIndex = 3
         Me.LabelImageFile.Text = "Image File:"
         Me.LabelImageFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
@@ -119,12 +125,13 @@ Partial Class FormDiskExplorer
         '
         'ComboBoxPartitions
         '
-        Me.ComboBoxPartitions.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.ComboBoxPartitions.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ComboBoxPartitions.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.ComboBoxPartitions.FormattingEnabled = True
         Me.ComboBoxPartitions.Location = New System.Drawing.Point(340, 9)
         Me.ComboBoxPartitions.Name = "ComboBoxPartitions"
-        Me.ComboBoxPartitions.Size = New System.Drawing.Size(380, 23)
+        Me.ComboBoxPartitions.Size = New System.Drawing.Size(514, 23)
         Me.ComboBoxPartitions.TabIndex = 4
         '
         'Label1
@@ -224,15 +231,16 @@ Partial Class FormDiskExplorer
         '
         'ListViewCode
         '
-        Me.ListViewCode.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.ListViewCode.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ListViewCode.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.chCodeAddress, Me.chBytes, Me.chMnemonic, Me.chParameters})
         Me.ListViewCode.Font = New System.Drawing.Font("Consolas", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ListViewCode.FullRowSelect = True
         Me.ListViewCode.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
         Me.ListViewCode.HideSelection = False
-        Me.ListViewCode.Location = New System.Drawing.Point(281, 38)
+        Me.ListViewCode.Location = New System.Drawing.Point(282, 38)
         Me.ListViewCode.Name = "ListViewCode"
-        Me.ListViewCode.Size = New System.Drawing.Size(439, 134)
+        Me.ListViewCode.Size = New System.Drawing.Size(572, 134)
         Me.ListViewCode.TabIndex = 7
         Me.ListViewCode.UseCompatibleStateImageBehavior = False
         Me.ListViewCode.View = System.Windows.Forms.View.Details
@@ -243,7 +251,6 @@ Partial Class FormDiskExplorer
         '
         'Label6
         '
-        Me.Label6.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.Label6.AutoSize = True
         Me.Label6.ForeColor = System.Drawing.Color.Gainsboro
         Me.Label6.Location = New System.Drawing.Point(279, 13)
@@ -253,18 +260,12 @@ Partial Class FormDiskExplorer
         Me.Label6.TabIndex = 6
         Me.Label6.Text = "Partition:"
         '
-        'ImageListIcons
-        '
-        Me.ImageListIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth24Bit
-        Me.ImageListIcons.ImageSize = New System.Drawing.Size(16, 16)
-        Me.ImageListIcons.TransparentColor = System.Drawing.Color.Transparent
-        '
         'FormDiskExplorer
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(734, 543)
+        Me.ClientSize = New System.Drawing.Size(868, 543)
         Me.Controls.Add(Me.ListViewCode)
         Me.Controls.Add(Me.LabelVolumeLabel)
         Me.Controls.Add(Me.Label6)
