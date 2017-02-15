@@ -14,10 +14,11 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - No BIOS hacks required
 - WinForms and Console samples included
 - Cross-platform support through Mono (the emulator has been tested under Windows, [MacOS, Linux and RaspberryPi/Raspbian](https://whenimbored.xfx.net/2013/10/x8086netemu-linux-mac-os-x-raspberry-pi/))
+- Hard disk and floppy images inspector (FAT12 and FAT16 support only and quite buggy)
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2012/09/debug.png)
 
-Development is currently stalled due to a breaking bug (or bugs) which prevent the emulator from working properly.
+Development is currently stalled due to a breaking bug (or bugs?) which prevent the emulator from working properly.
 The bug can be reproduced by booting into DOS 6.x and running EDIT, QBASIC, DEFRAG or MEMMAKER.
 Quite probably, this is the same bug that also prevents it from running Windows 1.01
 
