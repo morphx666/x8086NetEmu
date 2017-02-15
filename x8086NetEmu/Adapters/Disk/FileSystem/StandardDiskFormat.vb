@@ -91,7 +91,7 @@ Public Class StandardDiskFormat
     End Structure
 
     Private mMasterBootRecord As MBR
-    Private mBootSectors(4 - 1) As FAT12_16.BootSector ' In case we wanted to support additional file systems we should use a inheritable class instead of hard coding it to FAT12/16
+    Private mBootSectors(4 - 1) As FAT12_16.BootSector ' In case we wanted to support additional file systems we should use an inheritable class instead of hard coding it to FAT12/16
     Private mFATDataPointers(4 - 1)() As UInt16
     Private mRootDirectoryEntries(4 - 1)() As FAT12_16.DirectoryEntry
 
@@ -245,21 +245,21 @@ Public Class StandardDiskFormat
         Return dataRegionStart + (clusterIndex - 2) * mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
     End Function
 
-    Private Function ReadFile(partitionNumber As Integer, de As FAT12_16.DirectoryEntry) As Byte()
+    Public Function ReadFile(partitionNumber As Integer, de As FAT12_16.DirectoryEntry) As Byte()
         Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
         Dim clustersInFile As UInt16 = Math.Ceiling(de.FileSize / bytesInCluster)
         Dim b(clustersInFile * bytesInCluster - 1) As Byte
         Dim clusterIndex As UInt16 = de.StartingCluster
         Dim bytesRead As UInt32
 
-        While clusterIndex < &HFFF8
+        While clusterIndex < &HFFF8 AndAlso bytesRead < de.FileSize
             strm.Position = ClusterToSector(partitionNumber, clusterIndex)
 
             Do
                 b(bytesRead) = strm.ReadByte()
                 bytesRead += 1
 
-                If bytesRead Mod bytesInCluster = 0 Then
+                If (bytesRead Mod bytesInCluster) = 0 Then
                     clusterIndex = mFATDataPointers(partitionNumber)(clusterIndex)
                     Exit Do
                 End If

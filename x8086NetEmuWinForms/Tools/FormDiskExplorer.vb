@@ -100,10 +100,13 @@ Public Class FormDiskExplorer
         Next
 
         For Each f In files
-            With ListViewFileSystem.Items.Add(f.FileName, GetExtensionIconIndex(f.FileExtension)).SubItems
-                .Add(Math.Ceiling((f.FileSize / 1024)).ToString("N0") + " KB")
-                .Add(GetTypeDescription($".{f.FileExtension}"))
-                .Add($"{f.WriteDateTime.ToShortDateString()} {f.WriteDateTime.ToLongTimeString()}")
+            With ListViewFileSystem.Items.Add(f.FileName, GetExtensionIconIndex(f.FileExtension))
+                With .SubItems
+                    .Add(Math.Ceiling((f.FileSize / 1024)).ToString("N0") + " KB")
+                    .Add(GetTypeDescription($".{f.FileExtension}"))
+                    .Add($"{f.WriteDateTime.ToShortDateString()} {f.WriteDateTime.ToLongTimeString()}")
+                End With
+                .Tag = {node, f}
             End With
         Next
 
@@ -171,11 +174,17 @@ Public Class FormDiskExplorer
         If ListViewFileSystem.SelectedItems.Count <> 1 Then Exit Sub
 
         Dim slvi As ListViewItem = ListViewFileSystem.SelectedItems(0)
-        Dim objs() As Object = CType(slvi.Tag, Object())
-        Dim node As TreeNode = CType(objs(0), TreeNode)
-        Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
-        If (entry.Attribute And FAT12_16.EntryAttributes.Directory) = FAT12_16.EntryAttributes.Directory Then
-            DisplayFileSystem(node, sdf.GetDirectoryEntries(0, entry.StartingCluster))
+        If slvi.Tag IsNot Nothing Then ' It's a folder
+            Dim objs() As Object = CType(slvi.Tag, Object())
+            Dim node As TreeNode = CType(objs(0), TreeNode)
+            Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
+            If (entry.Attribute And FAT12_16.EntryAttributes.Directory) = FAT12_16.EntryAttributes.Directory Then ' It's a directory
+                DisplayFileSystem(node, sdf.GetDirectoryEntries(0, entry.StartingCluster))
+            Else ' It's a file
+                Dim b() As Byte = sdf.ReadFile(selectedParitionIndex, entry)
+                Dim targetPath As String = IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), entry.FileName)
+                'IO.File.WriteAllBytes(targetPath, b)
+            End If
         End If
     End Sub
 
@@ -184,7 +193,7 @@ Public Class FormDiskExplorer
         If node Is Nothing Then Exit Sub
 
         Dim entry As FAT12_16.DirectoryEntry = CType(node.Tag, FAT12_16.DirectoryEntry)
-        DisplayFileSystem(node, sdf.GetDirectoryEntries(0, entry.StartingCluster))
+        DisplayFileSystem(node, sdf.GetDirectoryEntries(0, If(entry.StartingCluster = 0, -1, entry.StartingCluster)))
     End Sub
 
     Private Sub DecodeBootStrapCode()
