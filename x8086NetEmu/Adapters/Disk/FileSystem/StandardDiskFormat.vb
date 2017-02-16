@@ -91,7 +91,7 @@ Public Class StandardDiskFormat
     End Structure
 
     Private mMasterBootRecord As MBR
-    Private mBootSectors(4 - 1) As FAT12_16.BootSector ' In case we wanted to support additional file systems we should use an inheritable class instead of hard coding it to FAT12/16
+    Private mBootSectors(4 - 1) As FAT12_16.BootSector ' FIXME: In case we wanted to support additional file systems we should use an inheritable class instead of hard coding it to FAT12/16
     Private mFATDataPointers(4 - 1)() As UInt16
     Private mRootDirectoryEntries(4 - 1)() As FAT12_16.DirectoryEntry
 

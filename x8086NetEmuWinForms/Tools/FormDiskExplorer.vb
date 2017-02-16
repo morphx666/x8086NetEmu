@@ -5,6 +5,7 @@ Public Class FormDiskExplorer
     Private sdf As StandardDiskFormat
     Private selectedParitionIndex As Integer
     Private ignoreNextEvent As Boolean
+    Private isMouseDown As Boolean
 
     Public Sub Initialize(fileName As String)
         sdf = New StandardDiskFormat(New IO.FileStream(fileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite))
@@ -170,28 +171,6 @@ Public Class FormDiskExplorer
         End If
     End Function
 
-    Private Sub ListViewFileSystem_DoubleClick(sender As Object, e As EventArgs) Handles ListViewFileSystem.DoubleClick
-        If ListViewFileSystem.SelectedItems.Count <> 1 Then Exit Sub
-
-        Dim slvi As ListViewItem = ListViewFileSystem.SelectedItems(0)
-        If slvi.Tag IsNot Nothing Then ' It's a folder
-            Dim objs() As Object = CType(slvi.Tag, Object())
-            Dim node As TreeNode = CType(objs(0), TreeNode)
-            Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
-            If (entry.Attribute And FAT12_16.EntryAttributes.Directory) = FAT12_16.EntryAttributes.Directory Then ' It's a directory
-                DisplayFileSystem(node, sdf.GetDirectoryEntries(0, entry.StartingCluster))
-            Else ' It's a file
-                Dim b() As Byte = sdf.ReadFile(selectedParitionIndex, entry)
-                Dim targetFileName As String = IO.Path.Combine(IO.Path.GetTempPath(), entry.FullFileName)
-                IO.File.WriteAllBytes(targetFileName, b)
-                Try
-                    Process.Start(targetFileName)
-                Catch ex As Exception
-                End Try
-            End If
-        End If
-    End Sub
-
     Private Sub TreeViewDirs_NodeMouseClick(sender As Object, e As TreeNodeMouseClickEventArgs) Handles TreeViewDirs.NodeMouseClick
         Dim node As TreeNode = e.Node
         If node Is Nothing Then Exit Sub
@@ -270,5 +249,77 @@ Public Class FormDiskExplorer
         Next
 
         lv.Columns(lv.Columns.Count - 1).Width += w
+    End Sub
+
+    Private Sub ListViewFileSystem_DoubleClick(sender As Object, e As EventArgs) Handles ListViewFileSystem.DoubleClick
+        If ListViewFileSystem.SelectedItems.Count <> 1 Then Exit Sub
+
+        Dim slvi As ListViewItem = ListViewFileSystem.SelectedItems(0)
+        If slvi.Tag IsNot Nothing Then ' It's a folder
+            Dim objs() As Object = CType(slvi.Tag, Object())
+            Dim node As TreeNode = CType(objs(0), TreeNode)
+            Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
+            If (entry.Attribute And FAT12_16.EntryAttributes.Directory) = FAT12_16.EntryAttributes.Directory Then ' It's a directory
+                DisplayFileSystem(node, sdf.GetDirectoryEntries(0, entry.StartingCluster))
+            Else ' It's a file
+                Dim b() As Byte = sdf.ReadFile(selectedParitionIndex, entry)
+                Dim targetFileName As String = IO.Path.Combine(IO.Path.GetTempPath(), entry.FullFileName)
+                IO.File.WriteAllBytes(targetFileName, b)
+                Try
+                    Process.Start(targetFileName)
+                Catch ex As Exception
+                End Try
+            End If
+        End If
+    End Sub
+
+    Private Sub ListViewFileSystem_MouseDown(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseDown
+        isMouseDown = True
+    End Sub
+
+    Private Sub ListViewFileSystem_MouseMove(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseMove
+        If isMouseDown Then
+            Dim filesCount As Integer = ListViewFileSystem.SelectedItems.Count
+            Dim si(filesCount - 1) As DataObjectEx.SelectedItem
+
+            For i As Integer = 0 To ListViewFileSystem.SelectedItems.Count - 1
+                Dim objs() As Object = CType(ListViewFileSystem.SelectedItems(i).Tag, Object())
+                Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
+
+                si(i).FileName = entry.FullFileName
+                si(i).WriteTime = entry.WriteDateTime
+                si(i).FileSize = entry.FileSize
+            Next
+
+            Dim dox As New DataObjectEx(si, Function(selItem As DataObjectEx.SelectedItem) As Byte()
+                                                Dim b() As Byte = Nothing
+                                                Me.Invoke(New MethodInvoker(Sub()
+                                                                                For i As Integer = 0 To ListViewFileSystem.SelectedItems.Count - 1
+                                                                                    Dim objs() As Object = CType(ListViewFileSystem.SelectedItems(i).Tag, Object())
+                                                                                    Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
+
+                                                                                    If selItem.FileName = entry.FullFileName AndAlso
+                                                                                        selItem.WriteTime = entry.WriteDateTime AndAlso
+                                                                                        selItem.FileSize = entry.FileSize Then
+                                                                                        b = sdf.ReadFile(selectedParitionIndex, entry)
+                                                                                    End If
+                                                                                Next
+                                                                            End Sub))
+
+                                                Return b
+                                            End Function)
+            dox.SetData(NativeMethods.CFSTR_FILEDESCRIPTORW, Nothing)
+            dox.SetData(NativeMethods.CFSTR_FILECONTENTS, Nothing)
+            dox.SetData(NativeMethods.CFSTR_PERFORMEDDROPEFFECT, Nothing)
+
+            'ListViewFileSystem.DoDragDrop(dox, DragDropEffects.All)
+            Clipboard.SetDataObject(dox)
+            isMouseDown = False
+        End If
+    End Sub
+
+    Private Sub ListViewFileSystem_MouseUp(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseUp
+        If Clipboard.ContainsFileDropList() Then SendKeys.Send("^V")
+        isMouseDown = False
     End Sub
 End Class
