@@ -1485,7 +1485,6 @@ Public Class x8086
 
             Case &HF4 ' hlt
                 clkCyc += 2
-                'mIsHalted = True
                 If Not mIsHalted Then SystemHalted()
                 IncIP(-1)
 
@@ -1762,7 +1761,7 @@ Public Class x8086
                 SetSZPFlags(value, addrMode.Size)
 
             Case Else
-                OpCodeNotImplemented(opCode, "Unknown Reg Mode for Opcode")
+                OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group2)")
         End Select
 
         If addrMode.IsDirect Then
@@ -1880,7 +1879,7 @@ Public Class x8086
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case Else
-                OpCodeNotImplemented(opCode, "Unknown Reg Mode for Opcode")
+                OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group2)")
         End Select
 
         If addrMode.IsDirect Then
@@ -2147,7 +2146,7 @@ Public Class x8086
                 End If
 
             Case Else
-                OpCodeNotImplemented(opCode, "Unknown Reg Mode for Opcode")
+                OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group3)")
         End Select
     End Sub
 
@@ -2215,7 +2214,7 @@ Public Class x8086
                 clkCyc += 16
 
             Case Else
-                OpCodeNotImplemented(opCode, "Unknown Reg Mode for Opcode")
+                OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group4&5)")
         End Select
     End Sub
 
@@ -2235,9 +2234,12 @@ Public Class x8086
                             Exit Sub
                         End If
                     End If
-                    If mDebugMode Then Exit While
+                    If mDebugMode Then
+                        IncIP(-opCodeSize)
+                        Exit Sub
+                    End If
                 End While
-                IncIP(-opCodeSize)
+                repeLoopMode = REPLoopModes.None
             End If
         End If
     End Sub
