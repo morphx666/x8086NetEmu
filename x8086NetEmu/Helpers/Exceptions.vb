@@ -95,7 +95,9 @@
         Dim formattedMessage = reason.ToString().PadRight(4) + " " + String.Format(message, arg)
 
         If LogToConsole Then Console.WriteLine(formattedMessage)
-        Debug.WriteLine(formattedMessage)
+#If DEBUG Then
+        If reason = NotificationReasons.Dbg Then Debug.WriteLine(formattedMessage)
+#End If
 
         RaiseEvent Output(message, reason, arg)
     End Sub

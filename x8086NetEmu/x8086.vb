@@ -26,7 +26,7 @@ Public Class x8086
     Private mDebugMode As Boolean
     Private mIsPaused As Boolean
 
-    Private Delegate Function IntHandler() As Boolean
+    Public Delegate Function IntHandler() As Boolean
     Private hooks As New Dictionary(Of Byte, IntHandler)
 
     Private opCode As Byte
@@ -128,6 +128,7 @@ Public Class x8086
         If mEmulateINT13 Then hooks.Add(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
 
 #If DEBUG Then
+        ' http://stanislavs.org/helppc/int_21.html
         hooks.Add(&H21, Function() As Boolean
                             If mRegisters.AH = &H4B Then
                                 Dim GetFileName = Function() As String
@@ -158,6 +159,18 @@ Public Class x8086
 
         Init()
     End Sub
+
+    Public Function TryAttachHook(intNum As Byte, handler As IntHandler) As Boolean
+        If hooks.ContainsKey(intNum) Then Return False
+        hooks.Add(intNum, handler)
+        Return True
+    End Function
+
+    Public Function TryDetachHook(intNum As Byte) As Boolean
+        If Not hooks.ContainsKey(intNum) Then Return False
+        hooks.Remove(intNum)
+        Return True
+    End Function
 
     Public Shared ReadOnly Property IsRunningOnMono As Boolean
         Get
@@ -947,11 +960,6 @@ Public Class x8086
                     clkCyc += 27
                 End If
 
-            'Case &H6C
-            '    If Not (repeLoopMode <> REPLoopModes.None AndAlso mRegisters.CX = 0) Then
-
-            '    End If
-
             Case &H6C To &H6F ' Ignore 80186/V20 port operations... for now...
                 opCodeSize += 1
                 clkCyc += 3
@@ -1221,19 +1229,19 @@ Public Class x8086
                 clkCyc += 4
 
             Case &H9C ' pushf
-                PushIntoStack((mFlags.EFlags And &HFD5) Or &HF002)
+                PushIntoStack((mFlags.EFlags And &HFD5) Or &HF000)
                 clkCyc += 10
 
             Case &H9D ' popf
-                mFlags.EFlags = (PopFromStack() And &HFD5) Or &HF002
+                mFlags.EFlags = (PopFromStack() And &HFD5) Or &HF000
                 clkCyc += 8
 
             Case &H9E ' sahf
-                mFlags.EFlags = (mFlags.EFlags And &HFF00) Or (mRegisters.AH And &HD5) Or 2
+                mFlags.EFlags = (mFlags.EFlags And &HFF00) Or (mRegisters.AH And &HD5)
                 clkCyc += 4
 
             Case &H9F ' lahf
-                mRegisters.AH = (mFlags.EFlags And &HD5) Or 2
+                mRegisters.AH = (mFlags.EFlags And &HD5)
                 clkCyc += 4
 
             Case &HA0 To &HA3 ' mov mem to acc | mov acc to mem
@@ -1565,7 +1573,11 @@ Public Class x8086
         Else
             IncIP(opCodeSize)
         End If
+#If DEBUG Then
+        clkCyc += opCodeSize * 6 ' This an approximation for an i7 960
+#Else
         clkCyc += opCodeSize * 4
+#End If
 
         If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
             Select Case opCode
