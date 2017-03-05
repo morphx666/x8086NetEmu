@@ -23,6 +23,8 @@ Public Class FormEmulator
     Private v20Emulation As Boolean
     Private int13Emulation As Boolean
 
+    Private runningApp As String
+
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SaveSettings()
         StopEmulation()
@@ -167,13 +169,14 @@ Public Class FormEmulator
         sysMenIntegercut = "Ctrl + MButton"
 #End If
 
-        Me.Text = String.Format("x8086NetEmu [Menu: {0}]      {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5}",
+        Me.Text = String.Format("x8086NetEmu [Menu: {0}]      {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5} {6}",
                                     sysMenIntegercut,
                                     cpu.Clock / x8086.MHz,
                                     cpu.SimulationMultiplier * 100,
                                     cpu.VideoAdapter.Zoom * 100,
                                     cpu.MIPs,
-                                    If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", If(cpu.IsPaused, "Paused", "Running"))))
+                                    If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", If(cpu.IsPaused, "Paused", "Running"))),
+                                    If(runningApp <> "", $" | {runningApp}", ""))
     End Sub
 
     Private Sub StopEmulation()
@@ -224,35 +227,50 @@ Public Class FormEmulator
     Private Sub AddCustomHooks()
 #If DEBUG Then
         cpu.TryAttachHook(&H21, Function() As Boolean
-                                    If cpu.Registers.AH = &H4B Then
-                                        Dim GetFileName = Function() As String
-                                                              Dim b As New List(Of Byte)
-                                                              Dim addr As UInteger = x8086.SegOffToAbs(cpu.Registers.DS, cpu.Registers.DX)
-                                                              While cpu.RAM(addr) <> 0
-                                                                  b.Add(cpu.RAM(addr))
-                                                                  addr += 1
-                                                              End While
-                                                              Return System.Text.Encoding.ASCII.GetString(b.ToArray())
-                                                          End Function
+                                    Select Case cpu.Registers.AH
+                                        Case &H4C
+                                            runningApp = ""
+                                        Case &H4B
+                                            Dim mode As String = ""
+                                            Dim fileName As String = ""
 
-                                        Dim mode As String = ""
+                                            Dim GetFileName = Function() As String
+                                                                  Dim b As New List(Of Byte)
+                                                                  Dim addr As UInteger = x8086.SegOffToAbs(cpu.Registers.DS, cpu.Registers.DX)
+                                                                  While cpu.RAM(addr) <> 0
+                                                                      b.Add(cpu.RAM(addr))
+                                                                      addr += 1
+                                                                  End While
+                                                                  Return System.Text.Encoding.ASCII.GetString(b.ToArray())
+                                                              End Function
 
-                                        Select Case cpu.Registers.AL
-                                            Case 0 : mode = "L&X" ' Load & Execute
-                                            Case 1 : mode = "UND" ' Undocumented
-                                            Case 2 : mode = "UNK" ' Unknown
-                                            Case 3 : mode = "LOD" ' Load
-                                            Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
-                                        End Select
+                                            Dim ParseRunningApp = Function() As String
+                                                                      If fileName.Contains("\") Then
+                                                                          Dim tokens() As String = fileName.Split("\"c)
+                                                                          Return tokens(tokens.Length - 1)
+                                                                      Else
+                                                                          Return fileName
+                                                                      End If
+                                                                  End Function
 
-                                        x8086.Notify($"DOS {mode}: {GetFileName()} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", x8086.NotificationReasons.Dbg)
-                                    End If
+                                            fileName = GetFileName()
+                                            runningApp = ParseRunningApp()
+
+                                            Select Case cpu.Registers.AL
+                                                Case 0 : mode = "L&X" ' Load & Execute
+                                                Case 1 : mode = "UND" ' Undocumented
+                                                Case 2 : mode = "UNK" ' Unknown
+                                                Case 3 : mode = "LOD" ' Load
+                                                Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
+                                            End Select
+
+                                            x8086.Notify($"DOS {mode}: {GetFileName()} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", x8086.NotificationReasons.Dbg)
+                                    End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.
                                     '   Code execution will be transfered to the "native" interrupt handler.
                                     ' Return True if you want to prevent the emulator from executing the code associated with this interrupt.
                                     '   See INT13.vb for more information
-
                                     Return False
                                 End Function)
 #End If
