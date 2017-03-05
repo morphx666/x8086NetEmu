@@ -140,7 +140,17 @@ Public Class x8086
                                                       Return Text.Encoding.ASCII.GetString(b.ToArray())
                                                   End Function
 
-                                x8086.Notify($"DOS Loading: {GetFileName()} -> {mRegisters.ES:X4}:{mRegisters.BX:X4}", NotificationReasons.Dbg)
+                                Dim mode As String = ""
+
+                                Select Case mRegisters.AL
+                                    Case 0 : mode = "L&X"
+                                    Case 1 : mode = "UND"
+                                    Case 2 : mode = "UNK"
+                                    Case 3 : mode = "LOD"
+                                    Case 4 : mode = "MSC"
+                                End Select
+
+                                x8086.Notify($"DOS {mode}: {GetFileName()} -> {mRegisters.ES:X4}:{mRegisters.BX:X4}", NotificationReasons.Dbg)
                             End If
                             Return False
                         End Function)

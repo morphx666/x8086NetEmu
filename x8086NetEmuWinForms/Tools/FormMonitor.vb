@@ -247,11 +247,11 @@ Public Class FormMonitor
         If ignoreEvents OrElse Not isInit Then Exit Sub
 
         Me.Invoke(New MethodInvoker(Sub()
-                                        UpdateMemory()
                                         GenCodeAhead()
                                         UpdateFlagsAndRegisters()
 
                                         If Not doFastUpdate Then
+                                            UpdateMemory()
                                             SetTextBoxesState(Me)
                                             UpdateStack()
                                         End If
@@ -289,7 +289,7 @@ Public Class FormMonitor
                 For k = 0 To 15
                     b = mEmulator.RAM(address + i + k)
                     If k = 8 Then mem += "- "
-                    mem += b.ToHex("") + " "
+                    mem +=$"{b:X2} "
                     If b <= 31 OrElse b > 122 Then
                         bcr += "."
                     Else
@@ -414,31 +414,31 @@ Public Class FormMonitor
 
         With mEmulator
             With .Registers
-                If Not txtAH.Focused Then txtAH.Text = .AH.ToHex(x8086.DataSize.Byte, "")
-                If Not txtAL.Focused Then txtAL.Text = .AL.ToHex(x8086.DataSize.Byte, "")
+                If Not txtAH.Focused Then txtAH.Text = $"{ .AH:X2}"
+                If Not txtAL.Focused Then txtAL.Text = $"{ .AL:X2}"
 
-                If Not txtBH.Focused Then txtBH.Text = .BH.ToHex(x8086.DataSize.Byte, "")
-                If Not txtBL.Focused Then txtBL.Text = .BL.ToHex(x8086.DataSize.Byte, "")
+                If Not txtBH.Focused Then txtBH.Text = $"{ .BH:X2}"
+                If Not txtBL.Focused Then txtBL.Text = $"{ .BL:X2}"
 
-                If Not txtCH.Focused Then txtCH.Text = .CH.ToHex(x8086.DataSize.Byte, "")
-                If Not txtCL.Focused Then txtCL.Text = .CL.ToHex(x8086.DataSize.Byte, "")
+                If Not txtCH.Focused Then txtCH.Text = $"{ .CH:X2}"
+                If Not txtCL.Focused Then txtCL.Text = $"{ .CL:X2}"
 
-                If Not txtDH.Focused Then txtDH.Text = .DH.ToHex(x8086.DataSize.Byte, "")
-                If Not txtDL.Focused Then txtDL.Text = .DL.ToHex(x8086.DataSize.Byte, "")
+                If Not txtDH.Focused Then txtDH.Text = $"{ .DH:X2}"
+                If Not txtDL.Focused Then txtDL.Text = $"{ .DL:X2}"
 
-                If Not txtCS.Focused Then txtCS.Text = .CS.ToHex(x8086.DataSize.Word, "")
-                If Not txtIP.Focused Then txtIP.Text = .IP.ToHex(x8086.DataSize.Word, "")
+                If Not txtCS.Focused Then txtCS.Text = $"{ .CS:X2}"
+                If Not txtIP.Focused Then txtIP.Text = $"{ .IP:X2}"
 
-                If Not txtSS.Focused Then txtSS.Text = .SS.ToHex(x8086.DataSize.Word, "")
-                If Not txtSP.Focused Then txtSP.Text = .SP.ToHex(x8086.DataSize.Word, "")
+                If Not txtSS.Focused Then txtSS.Text = $"{ .SS:X2}"
+                If Not txtSP.Focused Then txtSP.Text = $"{ .SP:X2}"
 
-                If Not txtBP.Focused Then txtBP.Text = .BP.ToHex(x8086.DataSize.Word, "")
-                If Not txtSI.Focused Then txtSI.Text = .SI.ToHex(x8086.DataSize.Word, "")
+                If Not txtBP.Focused Then txtBP.Text = $"{ .BP:X2}"
+                If Not txtSI.Focused Then txtSI.Text = $"{ .SI:X2}"
 
-                If Not txtDS.Focused Then txtDS.Text = .DS.ToHex(x8086.DataSize.Word, "")
-                If Not txtDI.Focused Then txtDI.Text = .DI.ToHex(x8086.DataSize.Word, "")
+                If Not txtDS.Focused Then txtDS.Text = $"{ .DS:X2}"
+                If Not txtDI.Focused Then txtDI.Text = $"{ .DI:X2}"
 
-                If Not txtES.Focused Then txtES.Text = .ES.ToHex(x8086.DataSize.Word, "")
+                If Not txtES.Focused Then txtES.Text = $"{ .ES:X2}"
             End With
 
             With Emulator.Flags
@@ -642,8 +642,7 @@ Public Class FormMonitor
         ignoreEvents = True
 
         Dim count As Integer = 0
-        Dim maxSteps As Integer = 5000
-        Dim address As Integer
+        Dim maxSteps As Integer = 1000 ' Execute 1000 instructions before updating the UI
         Dim lastAddress As Integer = -1
         'Dim instructions As New List(Of x8086.Instruction)
 
@@ -670,11 +669,9 @@ Public Class FormMonitor
                 End If
             Next
 
-            address = x8086.SegOffToAbs(mEmulator.Registers.CS, mEmulator.Registers.IP)
-
             If count = 0 Then
                 ignoreEvents = False
-                UpdateUI()
+                UpdateUI(Now.Second Mod 2 = 0) ' Do a full update only when Seconds are even
                 ignoreEvents = True
                 count = maxSteps
             Else
