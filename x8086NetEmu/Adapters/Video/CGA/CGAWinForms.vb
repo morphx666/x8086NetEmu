@@ -108,9 +108,6 @@ Public Class CGAWinForms
     Private Shared fontCGA() As Byte
     Private useCGAFont As Boolean
 
-    Private useSDL As Boolean
-    Private sdlCtrl As RenderCtrlSDL
-
     Private scale As New SizeF(1, 1)
 
     Private mCPU As x8086

@@ -152,11 +152,6 @@
     <Compile Include="Adapters\Video\CGA\CGAAdapter.vb" />
     <Compile Include="Adapters\Video\CGA\CGAConsole.vb" />
     <Compile Include="Adapters\Video\CGA\CGAWinForms.vb" />
-    <Compile Include="Adapters\Video\CGA\CGASDL.vb" />
-    <Compile Include="Adapters\Video\RenderCtrlSDL.Designer.vb">
-      <DependentUpon>RenderCtrlSDL.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Adapters\Video\RenderCtrlSDL.vb" />
     <Compile Include="Adapters\Video\VGA\VGAAdapter.vb" />
     <Compile Include="Adapters\Video\VGA\VGAWinForms.vb" />
     <Compile Include="Adapters\Video\VideoAdapter.vb" />

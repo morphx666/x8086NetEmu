@@ -127,39 +127,11 @@ Public Class x8086
 
         If mEmulateINT13 Then hooks.Add(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
 
-#If DEBUG Then
-        ' http://stanislavs.org/helppc/int_21.html
-        hooks.Add(&H21, Function() As Boolean
-                            If mRegisters.AH = &H4B Then
-                                Dim GetFileName = Function() As String
-                                                      Dim b As New List(Of Byte)
-                                                      Dim addr As UInteger = SegOffToAbs(mRegisters.DS, mRegisters.DX)
-                                                      While RAM(addr) <> 0
-                                                          b.Add(RAM(addr))
-                                                          addr += 1
-                                                      End While
-                                                      Return Text.Encoding.ASCII.GetString(b.ToArray())
-                                                  End Function
-
-                                Dim mode As String = ""
-
-                                Select Case mRegisters.AL
-                                    Case 0 : mode = "L&X"
-                                    Case 1 : mode = "UND"
-                                    Case 2 : mode = "UNK"
-                                    Case 3 : mode = "LOD"
-                                    Case 4 : mode = "MSC"
-                                End Select
-
-                                x8086.Notify($"DOS {mode}: {GetFileName()} -> {mRegisters.ES:X4}:{mRegisters.BX:X4}", NotificationReasons.Dbg)
-                            End If
-                            Return False
-                        End Function)
-#End If
-
         Init()
     End Sub
 
+    ' If necessary, in future versions we could implement support for
+    '   multiple hooks attached to the same interrupt and execute them based on some priority condition
     Public Function TryAttachHook(intNum As Byte, handler As IntHandler) As Boolean
         If hooks.ContainsKey(intNum) Then Return False
         hooks.Add(intNum, handler)

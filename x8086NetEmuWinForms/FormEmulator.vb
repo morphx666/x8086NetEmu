@@ -71,7 +71,6 @@ Public Class FormEmulator
                                                               VIC20EmulationToolStripMenuItem.Checked = v20Emulation
                                                               WarnAboutRestart()
                                                           End Sub
-
     End Sub
 
     Private Sub RunMediaManager()
@@ -216,6 +215,47 @@ Public Class FormEmulator
         cpu.Run(False)
 
         SetupCpuEventHandlers()
+
+        AddCustomHooks()
+    End Sub
+
+    ' Code demonstration on how to attach hooks to the CPU
+    ' http://stanislavs.org/helppc/int_21.html
+    Private Sub AddCustomHooks()
+#If DEBUG Then
+        cpu.TryAttachHook(&H21, Function() As Boolean
+                                    If cpu.Registers.AH = &H4B Then
+                                        Dim GetFileName = Function() As String
+                                                              Dim b As New List(Of Byte)
+                                                              Dim addr As UInteger = x8086.SegOffToAbs(cpu.Registers.DS, cpu.Registers.DX)
+                                                              While cpu.RAM(addr) <> 0
+                                                                  b.Add(cpu.RAM(addr))
+                                                                  addr += 1
+                                                              End While
+                                                              Return System.Text.Encoding.ASCII.GetString(b.ToArray())
+                                                          End Function
+
+                                        Dim mode As String = ""
+
+                                        Select Case cpu.Registers.AL
+                                            Case 0 : mode = "L&X" ' Load & Execute
+                                            Case 1 : mode = "UND" ' Undocumented
+                                            Case 2 : mode = "UNK" ' Unknown
+                                            Case 3 : mode = "LOD" ' Load
+                                            Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
+                                        End Select
+
+                                        x8086.Notify($"DOS {mode}: {GetFileName()} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", x8086.NotificationReasons.Dbg)
+                                    End If
+
+                                    ' Return False to notify the emulator that the interrupt was not handled.
+                                    '   Code execution will be transfered to the "native" interrupt handler.
+                                    ' Return True if you want to prevent the emulator from executing the code associated with this interrupt.
+                                    '   See INT13.vb for more information
+
+                                    Return False
+                                End Function)
+#End If
     End Sub
 
     Private Sub AddSupportForTextCopy()

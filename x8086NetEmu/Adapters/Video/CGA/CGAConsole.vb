@@ -60,7 +60,7 @@ Public Class CGAConsole
 
     Private Sub HandleKeyPress()
         If Console.KeyAvailable Then
-            Dim keyInfo = Console.ReadKey(True)
+            Dim keyInfo As ConsoleKeyInfo = Console.ReadKey(True)
             Dim keyEvent As New KeyEventArgs(keyInfo.Key)
 
             HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Shift, Keys.ShiftKey)
