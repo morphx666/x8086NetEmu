@@ -41,7 +41,7 @@
         Unknown
     End Enum
 
-    Private Structure AddressingMode
+    Public Structure AddressingMode
         Public Direction As Byte
         Public Size As DataSize
         Public Modifier As Byte

@@ -11,6 +11,7 @@
         Speaker
         Other
         SerialMouseCOM1
+        Memory
     End Enum
 
     Public Sub New()

@@ -167,8 +167,8 @@
                 AL = value And &HFF
             End Set
         End Property
-        Public Property AL As UInteger
-        Public Property AH As UInteger
+        Public Property AL As UShort
+        Public Property AH As UShort
 
         Public Property BX As UInteger
             Get
@@ -179,8 +179,8 @@
                 BL = value And &HFF
             End Set
         End Property
-        Public Property BL As UInteger
-        Public Property BH As UInteger
+        Public Property BL As UShort
+        Public Property BH As UShort
 
         Public Property CX As UInteger
             Get
@@ -191,8 +191,8 @@
                 CL = value And &HFF
             End Set
         End Property
-        Public Property CL As UInteger
-        Public Property CH As UInteger
+        Public Property CL As UShort
+        Public Property CH As UShort
 
         Public Property DX As UInteger
             Get
@@ -203,8 +203,8 @@
                 DL = value And &HFF
             End Set
         End Property
-        Public Property DL As UInteger
-        Public Property DH As UInteger
+        Public Property DL As UShort
+        Public Property DH As UShort
 
         Public Property CS As UInteger
         Public Property IP As UInteger
@@ -299,17 +299,17 @@
 
         Public Property EFlags() As UInteger
             Get
-                Return CF * FlagsTypes.CF +
-                        1 * 2 ^ 1 +
-                       PF * FlagsTypes.PF +
-                        0 * 2 ^ 3 +
-                       AF * FlagsTypes.AF +
-                        0 * 2 ^ 5 +
-                       ZF * FlagsTypes.ZF +
-                       SF * FlagsTypes.SF +
-                       TF * FlagsTypes.TF +
-                     [IF] * FlagsTypes.IF +
-                       DF * FlagsTypes.DF +
+                Return CF * FlagsTypes.CF Or
+                        1 * 2 ^ 1 Or
+                       PF * FlagsTypes.PF Or
+                        0 * 2 ^ 3 Or
+                       AF * FlagsTypes.AF Or
+                        0 * 2 ^ 5 Or
+                       ZF * FlagsTypes.ZF Or
+                       SF * FlagsTypes.SF Or
+                       TF * FlagsTypes.TF Or
+                     [IF] * FlagsTypes.IF Or
+                       DF * FlagsTypes.DF Or
                      [OF] * FlagsTypes.OF
             End Get
             Set(value As UInteger)

@@ -10,6 +10,7 @@ Public Class FormConsole
                             "\red192\green000\blue192;" +
                             "\red255\green000\blue000;" +
                             "\red255\green000\blue000;" +
+                            "\red080\green020\blue240;" +
                             "}%\par}"
     Private rtfText As String = ""
 
@@ -39,6 +40,7 @@ Public Class FormConsole
     End Property
 
     Private Sub Output(message As String, reason As x8086.NotificationReasons, arg() As Object)
+        message = message.Replace("\", "\\")
         rtfText += "\cf1 " + MillTime + ": "
 
         Select Case reason
@@ -46,6 +48,7 @@ Public Class FormConsole
             Case x8086.NotificationReasons.Warn : rtfText += "\cf3 "
             Case x8086.NotificationReasons.Err : rtfText += "\cf4 "
             Case x8086.NotificationReasons.Fck : rtfText += "\cf5 "
+            Case x8086.NotificationReasons.Dbg : rtfText += "\cf6 "
         End Select
 
         rtfText += String.Format(message.Replace("{", "\b {").Replace("}", "}\b0 ") + " \par ", arg)

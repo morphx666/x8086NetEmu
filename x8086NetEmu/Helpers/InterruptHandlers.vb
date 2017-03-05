@@ -4,8 +4,8 @@
 ' http://www.delorie.com/djgpp/doc/rbinter/ix/
 
 Partial Public Class x8086
-    Private lastAH(256 - 1) As Integer
-    Private lastCF(256 - 1) As Integer
+    Private lastAH(256 - 1) As UInteger
+    Private lastCF(256 - 1) As UShort
 
     Private pendingIntNum As Integer
 
@@ -34,9 +34,7 @@ Partial Public Class x8086
     Private Sub HandleInterrupt(intNum As Byte, isHard As Boolean)
         FlushCycles()
 
-        If intNum = &H13 AndAlso mEmulateINT13 Then ' (intNum = &H13 OrElse intNum = &HFD) AndAlso mEmulateINT13 Then
-            HandleINT13()
-        Else
+        If Not (hooks.ContainsKey(intNum) AndAlso hooks(intNum).Invoke()) Then
             PushIntoStack(mFlags.EFlags)
             PushIntoStack(mRegisters.CS)
 

@@ -88,12 +88,14 @@
         Warn
         Err
         Fck
+        Dbg
     End Enum
 
     Public Shared Sub Notify(message As String, reason As NotificationReasons, ParamArray arg() As Object)
         Dim formattedMessage = reason.ToString().PadRight(4) + " " + String.Format(message, arg)
 
         If LogToConsole Then Console.WriteLine(formattedMessage)
+        Debug.WriteLine(formattedMessage)
 
         RaiseEvent Output(message, reason, arg)
     End Sub

@@ -1,10 +1,10 @@
 ﻿' http://www.delorie.com/djgpp/doc/rbinter/ix/13/
 
 Partial Public Class x8086
-    Private Sub HandleINT13()
+    Private Function HandleINT13() As Boolean
         If mFloppyController Is Nothing Then
             DiskAdapterNotFound()
-            Exit Sub
+            Return True
         End If
 
         Dim ret As Integer
@@ -41,15 +41,15 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                x8086.Notify("Drive {0} Read  H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} -> {6}:{7}", NotificationReasons.Info,
+                x8086.Notify("Drive {0} Read  H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} -> {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
                                 offset.ToHex(DataSize.DWord, ""),
-                                mRegisters.ES.ToString("X4"),
-                                mRegisters.BX.ToString("X4"))
+                                mRegisters.ES,
+                                mRegisters.BX)
 
                 Dim buf(bufSize - 1) As Byte
                 ret = dskImg.Read(offset, buf)
@@ -87,15 +87,15 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                x8086.Notify("Drive {0} Write H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} <- {6}:{7}", NotificationReasons.Info,
+                x8086.Notify("Drive {0} Write H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} <- {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
                                 offset.ToHex(DataSize.DWord).Replace("h", ""),
-                                mRegisters.ES.ToString("X4"),
-                                mRegisters.BX.ToString("X4"))
+                                mRegisters.ES,
+                                mRegisters.BX)
 
                 Dim buf(bufSize - 1) As Byte
                 CopyFromRAM(buf, address)
@@ -127,15 +127,15 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                x8086.Notify("Drive {0} Verify Sectors H{1:00} T{2:000} S{3:000} ? {4:000} {5:000000} ? {6}:{7}", NotificationReasons.Info,
+                x8086.Notify("Drive {0} Verify Sectors H{1:00} T{2:000} S{3:000} ? {4:000} {5:000000} ? {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
                                 offset.ToHex(DataSize.DWord).Replace("h", ""),
-                                mRegisters.ES.ToString("X4"),
-                                mRegisters.BX.ToString("X4"))
+                                mRegisters.ES,
+                                mRegisters.BX)
 
                 AL = bufSize / dskImg.SectorSize
                 ret = 0
@@ -156,15 +156,15 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                x8086.Notify("Drive {0} Format Track H{1:00} T{2:000} S{3:000} ? {4:000} {5:000000} = {6}:{7}", NotificationReasons.Info,
+                x8086.Notify("Drive {0} Format Track H{1:00} T{2:000} S{3:000} ? {4:000} {5:000000} = {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
                                 offset.ToHex(DataSize.DWord).Replace("h", ""),
-                                mRegisters.ES.ToString("X4"),
-                                mRegisters.BX.ToString("X4"))
+                                mRegisters.ES,
+                                mRegisters.BX)
                 ret = 0
 
             Case &H6 ' Format Track - Set Bad Sector Flag
@@ -251,15 +251,15 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                x8086.Notify("Drive {0} Read Long H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} -> {6}:{7}", NotificationReasons.Info,
+                x8086.Notify("Drive {0} Read Long H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} -> {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
                                 offset.ToHex(DataSize.DWord, ""),
-                                mRegisters.ES.ToString("X4"),
-                                mRegisters.BX.ToString("X4"))
+                                mRegisters.ES,
+                                mRegisters.BX)
 
                 Dim buf(bufSize - 1) As Byte
                 ret = dskImg.Read(offset, buf)
@@ -336,7 +336,7 @@ Partial Public Class x8086
                     mFlags.CF = 1
                     mRegisters.AH = &HFF
                 End If
-                Exit Sub
+                Return True
 
             Case &H42 ' Extended Sectors Read
                 If dskImg Is Nothing Then
@@ -361,12 +361,12 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                x8086.Notify("Drive {0} Read {4:000} {5:000000} -> {6}:{7}", NotificationReasons.Info,
+                x8086.Notify("Drive {0} Read {4:000} {5:000000} -> {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 bufSize,
                                 offset.ToHex(DataSize.DWord, ""),
-                                seg.ToString("X4"),
-                                off.ToString("X4"))
+                                seg,
+                                off)
 
                 Dim buf(bufSize - 1) As Byte
                 ret = dskImg.Read(offset, buf)
@@ -405,12 +405,12 @@ Partial Public Class x8086
                     Exit Select
                 End If
 
-                x8086.Notify("Drive {0} Write {4:000} {5:000000} <- {6}:{7}", NotificationReasons.Info,
+                x8086.Notify("Drive {0} Write {4:000} {5:000000} <- {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 bufSize,
                                 offset.ToHex(DataSize.DWord, ""),
-                                seg.ToString("X4"),
-                                off.ToString("X4"))
+                                seg,
+                                off)
 
                 Dim buf(bufSize - 1) As Byte
                 CopyFromRAM(buf, address)
@@ -460,5 +460,7 @@ Partial Public Class x8086
         lastCF(mRegisters.DL) = mFlags.CF
 
         If (mRegisters.DL And &H80) <> 0 Then Memory(&H474) = mRegisters.AH
-    End Sub
+
+        Return True
+    End Function
 End Class

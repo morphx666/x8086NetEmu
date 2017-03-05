@@ -169,7 +169,7 @@
     <Compile Include="Helpers\Exceptions.vb" />
     <Compile Include="Adapters\Disk\DiskImage.vb" />
     <Compile Include="Chipset\PPI8255.vb" />
-    <Compile Include="Helpers\Int13Emulation.vb" />
+    <Compile Include="Helpers\Hooks\INT13.vb" />
     <Compile Include="Helpers\InterruptHandlers.vb" />
     <Compile Include="Helpers\Memory.vb" />
     <Compile Include="Helpers\Misc\IDMAChannel.vb" />
@@ -263,6 +263,7 @@
   <ItemGroup>
     <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
