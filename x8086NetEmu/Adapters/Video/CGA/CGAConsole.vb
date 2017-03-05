@@ -22,10 +22,10 @@ Public Class CGAConsole
 
     Private Sub HandleModifier(v As ConsoleModifiers, t As ConsoleModifiers, k As Keys)
         If HasModifier(v, t) AndAlso Not HasModifier(lastModifiers, t) Then
-            OnKeyDown(Me, New KeyEventArgs(k))
+            MyBase.HandleKeyDown(Me, New KeyEventArgs(k))
             Thread.Sleep(100)
         ElseIf Not HasModifier(v, t) AndAlso HasModifier(lastModifiers, t) Then
-            OnKeyUp(Me, New KeyEventArgs(k))
+            MyBase.HandleKeyUp(Me, New KeyEventArgs(k))
             Thread.Sleep(100)
         End If
     End Sub
@@ -68,9 +68,9 @@ Public Class CGAConsole
             HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Alt, Keys.Alt)
             lastModifiers = keyInfo.Modifiers
 
-            OnKeyDown(Me, keyEvent)
+            MyBase.HandleKeyDown(Me, keyEvent)
             Thread.Sleep(100)
-            OnKeyUp(Me, keyEvent)
+            MyBase.HandleKeyUp(Me, keyEvent)
         End If
     End Sub
 
