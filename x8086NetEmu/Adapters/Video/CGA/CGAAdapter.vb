@@ -247,7 +247,7 @@ Public MustInherit Class CGAAdapter
         Do
             waiter.WaitOne(1000 / VERTSYNC)
 
-            If isInit AndAlso mVideoEnabled AndAlso mVideoMode <> VideoModes.Undefined Then
+            If isInit AndAlso mVideoEnabled Then 'AndAlso mVideoMode <> VideoModes.Undefined Then
                 SyncLock lockObject
                     Render()
                 End SyncLock

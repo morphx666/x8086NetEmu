@@ -221,8 +221,8 @@ Module DirectBitmapExtensions
 
     <Extension()>
     Public Sub FillRectangle(dbmp As DirectBitmap, c As Color, x As Integer, y As Integer, w As Integer, h As Integer)
-        For x1 As Integer = x To x + w - 1
-            For y1 As Integer = y To y + h - 1
+        For y1 As Integer = y To y + h - 1
+            For x1 As Integer = x To x + w - 1
                 dbmp.Pixel(x1, y1) = c
             Next
         Next

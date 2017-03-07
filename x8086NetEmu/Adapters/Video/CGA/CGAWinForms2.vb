@@ -38,10 +38,11 @@ Public Class CGAWinForms2
         End Property
 
         Public Sub Paint(dbmp As DirectBitmap, p As Point, scale As SizeF)
-            For x As Integer = 0 To mBitmap.Width - 1
-                For y As Integer = 0 To mBitmap.Height - 1
-                    dbmp.Pixel(x + p.X, y + p.Y) = mBitmap.Pixel(x, y)
-                Next
+            Dim w4s As Integer = mBitmap.Width * 4
+            Dim w4d As Integer = dbmp.Width * 4
+            p.X *= 4
+            For y As Integer = 0 To mBitmap.Height - 1
+                Array.Copy(mBitmap.Bits, y * w4s, dbmp.Bits, (y + p.Y) * w4d + p.X, w4s)
             Next
         End Sub
 
@@ -268,9 +269,10 @@ Public Class CGAWinForms2
         SyncLock MyBase.lockObject
             Dim g As Graphics = e.Graphics
 
-            g.PixelOffsetMode = Drawing2D.PixelOffsetMode.Half
+            g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighSpeed
             g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
             g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
+            g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
             g.ScaleTransform(scale.Width, scale.Height)
 
@@ -366,16 +368,9 @@ Public Class CGAWinForms2
 
             If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
 
-            If MyBase.IsDirty(address) Then
-                If useCGAFont Then
-                    RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
-                Else
-                    videoBMP.FillRectangle(brushCache(b1.HighNib()), r)
-                    'If b0 > 32 Then g.DrawString(chars(b0), mFont, brushCache(b1.LowNib()), r.Location, textFormat)
-                End If
-            End If
+            If MyBase.IsDirty(address) OrElse BlinkCharOn Then RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
 
-            If row = CursorRow AndAlso col = CursorCol Then
+            If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
                 Else
