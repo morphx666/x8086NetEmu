@@ -74,7 +74,7 @@ Partial Class FormEmulator
         Me.ViewToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MonitorToolStripMenuItem, Me.ConsoleToolStripMenuItem, Me.ToolStripMenuItem4, Me.CopyTextToolStripMenuItem, Me.PasteTextToolStripMenuItem})
         Me.ViewToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.tools_icon
         Me.ViewToolStripMenuItem.Name = "ViewToolStripMenuItem"
-        Me.ViewToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
+        Me.ViewToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.ViewToolStripMenuItem.Text = "Tools"
         '
         'MonitorToolStripMenuItem
@@ -110,14 +110,14 @@ Partial Class FormEmulator
         '
         Me.ContextMenuStripMain.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.EmulatorToolStripMenuItem, Me.MediaToolStripMenuItem, Me.ZoomToolStripMenuItem, Me.ViewToolStripMenuItem})
         Me.ContextMenuStripMain.Name = "ContextMenuStripMain"
-        Me.ContextMenuStripMain.Size = New System.Drawing.Size(123, 92)
+        Me.ContextMenuStripMain.Size = New System.Drawing.Size(153, 114)
         '
         'EmulatorToolStripMenuItem
         '
         Me.EmulatorToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CPUClockToolStripMenuItem, Me.EmulationSpeedToolStripMenuItem, Me.ToolStripMenuItem5, Me.INT13EmulationToolStripMenuItem, Me.VIC20EmulationToolStripMenuItem, Me.ToolStripMenuItem1, Me.SoftResetToolStripMenuItem, Me.HardResetToolStripMenuItem, Me.ToolStripMenuItem2, Me.LoadStateToolStripMenuItem, Me.SaveStateToolStripMenuItem, Me.ToolStripMenuItem3, Me.ExitToolStripMenuItem})
         Me.EmulatorToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.icon
         Me.EmulatorToolStripMenuItem.Name = "EmulatorToolStripMenuItem"
-        Me.EmulatorToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
+        Me.EmulatorToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.EmulatorToolStripMenuItem.Text = "Emulator"
         '
         'CPUClockToolStripMenuItem
@@ -282,7 +282,7 @@ Partial Class FormEmulator
         '
         Me.MediaToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.media_icon
         Me.MediaToolStripMenuItem.Name = "MediaToolStripMenuItem"
-        Me.MediaToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
+        Me.MediaToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.MediaToolStripMenuItem.Text = "Media..."
         '
         'ZoomToolStripMenuItem
@@ -291,7 +291,7 @@ Partial Class FormEmulator
         Me.ZoomToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.Zoom25ToolStripMenuItem, Me.Zoom50ToolStripMenuItem, Me.Zoom100ToolStripMenuItem, Me.Zoom150ToolStripMenuItem, Me.Zoom200ToolStripMenuItem, Me.Zoom400ToolStripMenuItem})
         Me.ZoomToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.zoom_icon
         Me.ZoomToolStripMenuItem.Name = "ZoomToolStripMenuItem"
-        Me.ZoomToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
+        Me.ZoomToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.ZoomToolStripMenuItem.Text = "Zoom"
         '
         'Zoom25ToolStripMenuItem

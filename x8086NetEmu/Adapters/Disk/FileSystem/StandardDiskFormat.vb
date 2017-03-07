@@ -1,6 +1,7 @@
 ﻿Imports System.Runtime.InteropServices
 
 ' http://www.maverick-os.dk/Mainmenu_NoFrames.html
+' http://www.patersontech.com/dos/byte%E2%80%93inside-look.aspx
 
 Public Class StandardDiskFormat
     Private geometryTable(,) As Integer = {
@@ -204,7 +205,7 @@ Public Class StandardDiskFormat
         Dim b(32 - 1) As Byte
         Dim bytesRead As UInt32
         Dim dirEntryCount As Integer = -1
-        Dim tmp As FAT12_16.DirectoryEntry
+        Dim de As FAT12_16.DirectoryEntry
 
         While clusterIndex < &HFFF8
             If clusterIndex = -1 Then
@@ -220,13 +221,13 @@ Public Class StandardDiskFormat
                     Case 5 : b(0) = &HE5
                 End Select
                 pb = GCHandle.Alloc(b, GCHandleType.Pinned)
-                tmp = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.DirectoryEntry))
+                de = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.DirectoryEntry))
                 pb.Free()
 
-                If tmp.StartingCluster > 0 Then
+                If de.StartingCluster > 0 Then
                     dirEntryCount += 1
                     ReDim Preserve des(dirEntryCount)
-                    des(dirEntryCount) = tmp
+                    des(dirEntryCount) = de
                 End If
 
                 If clusterIndex <> -1 Then
@@ -245,9 +246,10 @@ Public Class StandardDiskFormat
     End Function
 
     Private Function ClusterToSector(partitionNumber As Integer, clusterIndex As Integer) As Long
-        Dim rootDirectoryRegionStart As Long = fatRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
-        Dim dataRegionStart As Long = rootDirectoryRegionStart + mBootSectors(partitionNumber).BIOSParameterBlock.RootEntries * 32
-        Return dataRegionStart + (clusterIndex - 2) * mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
+        Dim bs As FAT12_16.BootSector = mBootSectors(partitionNumber)
+        Dim rootDirectoryRegionStart As Long = fatRegionStart(partitionNumber) + bs.BIOSParameterBlock.NumberOfFATCopies * bs.BIOSParameterBlock.SectorsPerFAT * bs.BIOSParameterBlock.BytesPerSector
+        Dim dataRegionStart As Long = rootDirectoryRegionStart + bs.BIOSParameterBlock.RootEntries * 32
+        Return dataRegionStart + (clusterIndex - 2) * bs.BIOSParameterBlock.SectorsPerCluster * bs.BIOSParameterBlock.BytesPerSector
     End Function
 
     Public Function ReadFile(partitionNumber As Integer, de As FAT12_16.DirectoryEntry) As Byte()

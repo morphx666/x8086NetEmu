@@ -51,8 +51,14 @@ Public Class FormEmulator
     Private Sub SetupEventHandlers()
         AddHandler MonitorToolStripMenuItem.Click, Sub() ShowMonitor()
         AddHandler ConsoleToolStripMenuItem.Click, Sub() ShowConsole()
-        AddHandler SoftResetToolStripMenuItem.Click, Sub() cpu.SoftReset()
-        AddHandler HardResetToolStripMenuItem.Click, Sub() cpu.HardReset()
+        AddHandler SoftResetToolStripMenuItem.Click, Sub()
+                                                         runningApp = ""
+                                                         cpu.SoftReset()
+                                                     End Sub
+        AddHandler HardResetToolStripMenuItem.Click, Sub()
+                                                         runningApp = ""
+                                                         cpu.HardReset()
+                                                     End Sub
         AddHandler MediaToolStripMenuItem.Click, Sub() RunMediaManager()
 
         AddHandler PasteTextToolStripMenuItem.Click, Sub() PasteTextFromClipboard()
@@ -225,10 +231,14 @@ Public Class FormEmulator
     ' Code demonstration on how to attach hooks to the CPU
     ' http://stanislavs.org/helppc/int_21.html
     Private Sub AddCustomHooks()
-#If DEBUG Then
+        cpu.TryAttachHook(&H20, Function() As Boolean ' Older programs still rely on INT20 to terminate (http://stanislavs.org/helppc/int_20.html)
+                                    runningApp = ""
+                                    Return False
+                                End Function)
+
         cpu.TryAttachHook(&H21, Function() As Boolean
                                     Select Case cpu.Registers.AH
-                                        Case &H4C
+                                        Case &H0, &H4C, &H31
                                             runningApp = ""
                                         Case &H4B
                                             Dim mode As String = ""
@@ -254,7 +264,7 @@ Public Class FormEmulator
                                                                   End Function
 
                                             fileName = GetFileName()
-                                            runningApp = ParseRunningApp()
+                                            runningApp = fileName ' ParseRunningApp()
 
                                             Select Case cpu.Registers.AL
                                                 Case 0 : mode = "L&X" ' Load & Execute
@@ -273,7 +283,6 @@ Public Class FormEmulator
                                     '   See INT13.vb for more information
                                     Return False
                                 End Function)
-#End If
     End Sub
 
     Private Sub AddSupportForTextCopy()

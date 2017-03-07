@@ -71,7 +71,7 @@ Public Class x8086
     Public Const KHz As Long = 1000
     Public Const MHz As Long = KHz * KHz
     Public Const GHz As Long = KHz * MHz
-    Private Const BaseClock As Long = 4.7727 * MHz
+    Private Const BaseClock As Long = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
     Private mCyclesPerSecond As Long = BaseClock
 
     Private mDoReSchedule As Boolean
@@ -188,9 +188,11 @@ Public Class x8086
 
         StopAllThreads()
 
-        mipsWaiter = New AutoResetEvent(False)
-        mipsThread = New Thread(AddressOf MIPSCounterLoop)
-        mipsThread.Start()
+        If mipsWaiter Is Nothing Then
+            mipsWaiter = New AutoResetEvent(False)
+            mipsThread = New Thread(AddressOf MIPSCounterLoop)
+            mipsThread.Start()
+        End If
 
         mIsHalted = False
         mIsExecuting = False
@@ -458,7 +460,6 @@ Public Class x8086
                     Thread.Sleep(1)
                 Else
                     Execute()
-                    instrucionsCounter += 1
                 End If
 
                 RaiseEvent InstructionDecoded()
@@ -466,7 +467,6 @@ Public Class x8086
         Else
             While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule) OrElse repeLoopMode <> REPLoopModes.None
                 Execute()
-                instrucionsCounter += 1
             End While
         End If
 
@@ -475,6 +475,7 @@ Public Class x8086
 
     Public Sub Execute()
         mIsExecuting = True
+        instrucionsCounter += 1
 
         If mFlags.TF = 1 Then
             ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
@@ -2244,6 +2245,8 @@ Public Class x8086
     End Sub
 
     Private Sub HandleREPMode()
+        ' This will incorrectly increase the instrucionsCounter by one additional instruction than actually executed.
+        ' Not a big deal ;)
         If repeLoopMode = REPLoopModes.None Then
             ExecStringOpCode()
         Else
@@ -2269,6 +2272,8 @@ Public Class x8086
     End Sub
 
     Private Function ExecStringOpCode() As Boolean
+        instrucionsCounter += 1
+
         Select Case opCode
             Case &HA4  ' movsb
                 RAM8(mRegisters.ES, mRegisters.DI) = RAM8(mRegisters.ActiveSegmentValue, mRegisters.SI)

@@ -191,7 +191,7 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides ReadOnly Property Description As String
         Get
-            Return "CGA Emulator"
+            Return "CGA (6845) Emulator"
         End Get
     End Property
 
