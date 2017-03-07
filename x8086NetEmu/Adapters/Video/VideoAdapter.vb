@@ -39,12 +39,22 @@ Public MustInherit Class VideoAdapter
     Public MustOverride Overrides Sub CloseAdapter()
     Public MustOverride Overrides Sub InitiAdapter()
     Public MustOverride Overrides Sub Out(port As Integer, value As Integer)
+    Public MustOverride Overrides Function [In](port As Integer) As Integer
     Public MustOverride Overrides Sub Run()
 
     Public MustOverride Sub Reset()
     Public MustOverride Sub AutoSize()
 
-    Public MustOverride Overrides Function [In](port As Integer) As Integer
+    Protected mStartTextVideoAddress As Integer
+    Protected mEndTextVideoAddress As Integer
+
+    Protected mStartGraphicsVideoAddress As Integer
+    Protected mEndGraphicsVideoAddress As Integer
+
+    Protected mTextResolution As Size = New Size(40, 25)
+    Protected mVideoResolution As Size = New Size(0, 0)
+
+    Private Memory(x8086.MemSize - 1) As Boolean
 
     Protected Overridable Sub OnKeyDown(sender As Object, e As KeyEventArgs)
         RaiseEvent KeyDown(sender, e)
@@ -53,4 +63,51 @@ Public MustInherit Class VideoAdapter
     Protected Overridable Sub OnKeyUp(sender As Object, e As KeyEventArgs)
         RaiseEvent KeyUp(sender, e)
     End Sub
+
+    Public ReadOnly Property StartGraphicsVideoAddress As Integer
+        Get
+            Return mStartGraphicsVideoAddress
+        End Get
+    End Property
+
+    Public ReadOnly Property EndGraphicsVideoAddress As Integer
+        Get
+            Return mEndGraphicsVideoAddress
+        End Get
+    End Property
+
+    Public ReadOnly Property StartTextVideoAddress As Integer
+        Get
+            Return mStartTextVideoAddress
+        End Get
+    End Property
+
+    Public ReadOnly Property EndTextVideoAddress As Integer
+        Get
+            Return mEndTextVideoAddress
+        End Get
+    End Property
+
+    Public ReadOnly Property TextResolution As Size
+        Get
+            Return mTextResolution
+        End Get
+    End Property
+
+    Public ReadOnly Property GraphicsResolution As Size
+        Get
+            Return mVideoResolution
+        End Get
+    End Property
+
+    Public Property IsDirty(address As UInteger) As Boolean
+        Get
+            Dim r As Boolean = Memory(address)
+            Memory(address) = False
+            Return r
+        End Get
+        Set(value As Boolean)
+            Memory(address) = value
+        End Set
+    End Property
 End Class

@@ -4,16 +4,16 @@ Imports System.Runtime.InteropServices
 ' MODE 0x13: http://www.brackeen.com/vga/basics.html
 ' Color Graphics Adapter (CGA) http://webpages.charter.net/danrollins/techhelp/0066.HTM
 
-Public Class CGAWinForms
+Public Class CGAWinForms2
     Inherits CGAAdapter
 
     Private Class CGAChar
         Private mCGAChar As Integer
-        Private mForeColor As SolidBrush
-        Private mBackColor As SolidBrush
-        Private mBitmap As Bitmap
+        Private mForeColor As Color
+        Private mBackColor As Color
+        Private mBitmap As DirectBitmap
 
-        Public Sub New(c As Integer, fb As SolidBrush, bb As SolidBrush)
+        Public Sub New(c As Integer, fb As Color, bb As Color)
             mCGAChar = c
             mForeColor = fb
             mBackColor = bb
@@ -25,44 +25,46 @@ Public Class CGAWinForms
             End Get
         End Property
 
-        Public ReadOnly Property ForeColor As SolidBrush
+        Public ReadOnly Property ForeColor As Color
             Get
                 Return mForeColor
             End Get
         End Property
 
-        Public ReadOnly Property BackColor As SolidBrush
+        Public ReadOnly Property BackColor As Color
             Get
                 Return mBackColor
             End Get
         End Property
 
-        Public Sub Paint(g As Graphics, p As Point, scale As SizeF)
-            g.DrawImageUnscaled(mBitmap, p)
+        Public Sub Paint(dbmp As DirectBitmap, p As Point, scale As SizeF)
+            For x As Integer = 0 To mBitmap.Width - 1
+                For y As Integer = 0 To mBitmap.Height - 1
+                    dbmp.Pixel(x + p.X, y + p.Y) = mBitmap.Pixel(x, y)
+                Next
+            Next
         End Sub
 
         Public Sub Render()
             If mBitmap Is Nothing Then
-                mBitmap = New Bitmap(8, 16)
+                mBitmap = New DirectBitmap(8, 16)
 
-                Using g As Graphics = Graphics.FromImage(mBitmap)
-                    For y As Integer = 0 To 16 - 1
-                        For x As Integer = 0 To 8 - 1
-                            If fontCGA(mCGAChar * 128 + y * 8 + x) = 1 Then
-                                g.FillRectangle(mForeColor, x, y, 1, 1)
-                            Else
-                                g.FillRectangle(mBackColor, x, y, 1, 1)
-                            End If
-                        Next
+                For y As Integer = 0 To 16 - 1
+                    For x As Integer = 0 To 8 - 1
+                        If fontCGA(mCGAChar * 128 + y * 8 + x) = 1 Then
+                            mBitmap.Pixel(x, y) = mForeColor
+                        Else
+                            mBitmap.Pixel(x, y) = mBackColor
+                        End If
                     Next
-                End Using
+                Next
             End If
         End Sub
 
         Public Shared Operator =(c1 As CGAChar, c2 As CGAChar) As Boolean
             Return c1.CGAChar = c2.CGAChar AndAlso
-                    c1.ForeColor.Color = c2.ForeColor.Color AndAlso
-                    c1.BackColor.Color = c2.BackColor.Color
+                    c1.ForeColor = c2.ForeColor AndAlso
+                    c1.BackColor = c2.BackColor
         End Operator
 
         Public Shared Operator <>(c1 As CGAChar, c2 As CGAChar) As Boolean
@@ -76,19 +78,18 @@ Public Class CGAWinForms
         Public Overrides Function ToString() As String
             Return String.Format("{0:000} [{1:000}:{2:000}:{3:000}] [{4:000}:{5:000}:{6:000}]",
                                  mCGAChar,
-                                 mForeColor.Color.R,
-                                 mForeColor.Color.G,
-                                 mForeColor.Color.B,
-                                 mBackColor.Color.R,
-                                 mBackColor.Color.G,
-                                 mBackColor.Color.B)
+                                 mForeColor.R,
+                                 mForeColor.G,
+                                 mForeColor.B,
+                                 mBackColor.R,
+                                 mBackColor.G,
+                                 mBackColor.B)
         End Function
     End Class
     Private cgaCharsCache As New List(Of CGAChar)
 
     Private mRenderControl As Control
-    Private videoBMP As Bitmap
-    Private videoBMPRect As Rectangle
+    Private videoBMP As DirectBitmap
 
     Private charSize As Size
     Private cursorSize As Size
@@ -96,13 +97,12 @@ Public Class CGAWinForms
 
     Private preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
-    Private textFormat As StringFormat = New System.Drawing.StringFormat(StringFormat.GenericTypographic)
+    Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
     Private charSizeCache As New Dictionary(Of Integer, Size)
 
-    Private penCache(16 - 1) As Pen
-    Private brushCache(16 - 1) As SolidBrush
-    Private cursorBrush = New SolidBrush(Color.FromArgb(128, Color.White))
+    Private brushCache(16 - 1) As Color
+    Private cursorBrush As Color = Color.FromArgb(128, Color.White)
     Private cursorYOffset As Integer
 
     Private Shared fontCGA() As Byte
@@ -281,11 +281,13 @@ Public Class CGAWinForms
                     'If useSDL Then
                     '    RenderTextSDL()
                     'Else
-                    RenderText(g)
+                    RenderText()
                     'End If
                 Case MainModes.Graphics
-                    RenderGraphics(g)
+                    RenderGraphics()
             End Select
+
+            g.DrawImageUnscaled(videoBMP, 0, 0)
 
             RaiseEvent PostRender(sender, e)
 
@@ -299,38 +301,32 @@ Public Class CGAWinForms
         SyncLock MyBase.lockObject
             DisposeColorCaches()
             For i As Integer = 0 To CGAPalette.Length - 1
-                penCache(i) = New Pen(CGAPalette(i))
-                brushCache(i) = New SolidBrush(CGAPalette(i))
+                brushCache(i) = CGAPalette(i)
             Next
         End SyncLock
     End Sub
 
-    Private Sub RenderGraphics(g As Graphics)
+    Private Sub RenderGraphics()
         Dim b As Byte
-        Dim c As Color
         Dim pixelsPerByte As Integer = If(VideoMode = VideoModes.Mode6_Graphic_Color_640x200, 8, 4)
         Dim yOffset As Integer
+        Dim yRenderOffset As Integer
         Dim v As Byte
-
-        Dim sourceData = videoBMP.LockBits(videoBMPRect, ImageLockMode.WriteOnly, videoBMP.PixelFormat)
-        Dim sourcePointer = sourceData.Scan0
-        Dim sourceStride = sourceData.Stride
-        Dim sourceOffset As Integer
-        Dim yStride As Integer
+        Dim address As UInteger
 
         For y As Integer = 0 To 200 - 1
             If y < 100 Then ' Even Scan Lines
                 yOffset = StartGraphicsVideoAddress + y * 80
-                yStride = y * 2
+                yRenderOffset = y * 2
             Else            ' Odd Scan Lines
-                yStride = y Mod 100
-                yOffset = StartGraphicsVideoAddress + yStride * 80 + &H2000
-                yStride = yStride * 2 + 1
+                yOffset = StartGraphicsVideoAddress + (y Mod 100) * 80 + &H2000
+                yRenderOffset = (y Mod 100) * 2 + 1
             End If
-            yStride *= sourceStride
 
             For x As Integer = 0 To 80 - 1
-                b = CPU.RAM(x + yOffset)
+                address = x + yOffset
+                If Not MyBase.IsDirty(address) Then Continue For
+                b = CPU.RAM(address)
 
                 For pixel As Integer = 0 To pixelsPerByte - 1
                     If VideoMode = VideoModes.Mode4_Graphic_Color_320x200 Then
@@ -349,21 +345,13 @@ Public Class CGAWinForms
                     'Else
                     'b *= 63
                     'End If
-                    c = CGAPalette(v)
-
-                    sourceOffset = (x * pixelsPerByte + pixel) * 3 + yStride
-                    Marshal.WriteByte(sourcePointer, sourceOffset + 0, c.B)      ' B
-                    Marshal.WriteByte(sourcePointer, sourceOffset + 1, c.G)      ' G
-                    Marshal.WriteByte(sourcePointer, sourceOffset + 2, c.R)      ' R
+                    videoBMP.Pixel(x * pixelsPerByte + pixel, yRenderOffset) = CGAPalette(v)
                 Next
             Next
         Next
-
-        videoBMP.UnlockBits(sourceData)
-        g.DrawImageUnscaled(videoBMP, 0, 0)
     End Sub
 
-    Private Sub RenderText(g As Graphics)
+    Private Sub RenderText()
         Dim b0 As Byte
         Dim b1 As Byte
 
@@ -373,28 +361,25 @@ Public Class CGAWinForms
         Dim r As New Rectangle(Point.Empty, charSize)
 
         For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
-            'row = (address - StartTextVideoAddress) / 2 \ TextResolution.Width
-            'col = (address - StartTextVideoAddress) / 2 Mod TextResolution.Width
-
-            'r.X = col * charSize.Width
-            'r.Y = row * charSize.Height
-
-            ' Ideally, we should use cpu.RAM as it's safer, but using cpu.Memory should be faster
             b0 = mCPU.Memory(address)
             b1 = mCPU.Memory(address + 1)
 
             If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
 
-            If useCGAFont Then
-                RenderChar(b0, g, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
-            Else
-                g.FillRectangle(brushCache(b1.HighNib()), r)
-                If b0 > 32 Then g.DrawString(chars(b0), mFont, brushCache(b1.LowNib()), r.Location, textFormat)
+            If MyBase.IsDirty(address) Then
+                If useCGAFont Then
+                    RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
+                Else
+                    videoBMP.FillRectangle(brushCache(b1.HighNib()), r)
+                    'If b0 > 32 Then g.DrawString(chars(b0), mFont, brushCache(b1.LowNib()), r.Location, textFormat)
+                End If
             End If
 
-            If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-                If (blinkCounter < BlinkRate) Then
-                    g.FillRectangle(brushCache(b1.LowNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
+            If row = CursorRow AndAlso col = CursorCol Then
+                If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
+                    videoBMP.FillRectangle(brushCache(b1.LowNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
+                Else
+                    videoBMP.FillRectangle(brushCache(b1.HighNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
                 End If
 
                 If blinkCounter >= 2 * BlinkRate Then
@@ -425,7 +410,7 @@ Public Class CGAWinForms
         Return StartTextVideoAddress + row * (TextResolution.Width * 2) + (col * 2)
     End Function
 
-    Private Sub RenderChar(c As Integer, g As Graphics, fb As SolidBrush, bb As SolidBrush, p As Point)
+    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
         Dim ccc As New CGAChar(c, fb, bb)
         Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
         If idx = -1 Then
@@ -433,7 +418,7 @@ Public Class CGAWinForms
             cgaCharsCache.Add(ccc)
             idx = cgaCharsCache.Count - 1
         End If
-        cgaCharsCache(idx).Paint(g, p, scale)
+        cgaCharsCache(idx).Paint(dbmp, p, scale)
     End Sub
 
     'Private Sub RenderTextSDL()
@@ -526,12 +511,6 @@ Public Class CGAWinForms
     End Function
 
     Private Sub DisposeColorCaches()
-        If penCache(0) IsNot Nothing Then
-            For i As Integer = 0 To CGAPalette.Length - 1
-                penCache(i).Dispose()
-                brushCache(i).Dispose()
-            Next
-        End If
     End Sub
 
     Public Overrides ReadOnly Property Description As String
@@ -609,10 +588,12 @@ Public Class CGAWinForms
 
             SyncLock MyBase.lockObject
                 If videoBMP IsNot Nothing Then videoBMP.Dispose()
-                If MainMode = MainModes.Graphics Then
-                    videoBMP = New Bitmap(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format24bppRgb)
-                    videoBMPRect = New Rectangle(0, 0, GraphicsResolution.Width, GraphicsResolution.Height)
-                End If
+                Select Case MainMode
+                    Case MainModes.Text
+                        videoBMP = New DirectBitmap(640, 400)
+                    Case MainModes.Graphics
+                        videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+                End Select
             End SyncLock
 
             ' Monospace... duh!

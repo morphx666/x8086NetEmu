@@ -151,7 +151,9 @@
     <Compile Include="Adapters\Serial\MouseAdapter.vb" />
     <Compile Include="Adapters\Video\CGA\CGAAdapter.vb" />
     <Compile Include="Adapters\Video\CGA\CGAConsole.vb" />
+    <Compile Include="Adapters\Video\CGA\CGAWinForms2.vb" />
     <Compile Include="Adapters\Video\CGA\CGAWinForms.vb" />
+    <Compile Include="Adapters\Video\DirectBitmap.vb" />
     <Compile Include="Adapters\Video\VGA\VGAAdapter.vb" />
     <Compile Include="Adapters\Video\VGA\VGAWinForms.vb" />
     <Compile Include="Adapters\Video\VideoAdapter.vb" />
@@ -262,7 +264,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
+      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

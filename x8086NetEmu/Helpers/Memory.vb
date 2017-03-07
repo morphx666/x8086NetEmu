@@ -410,12 +410,12 @@
                 Memory(address) = value
 
                 ' FIXME: This will not work until the rendering engine(s) uses a persistent surface (such as a DirectBitmap)
-                'If isVideoAdapterAvailable Then
-                '    If (address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) OrElse
-                '       (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) Then
-                '        mVideoAdapter.IsDirty(address) = True
-                '    End If
-                'End If
+                If isVideoAdapterAvailable Then
+                    If (address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) OrElse
+                       (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) Then
+                        mVideoAdapter.IsDirty(address) = True
+                    End If
+                End If
             End If
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set

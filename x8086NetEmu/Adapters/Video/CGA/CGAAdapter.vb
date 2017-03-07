@@ -87,15 +87,6 @@ Public MustInherit Class CGAAdapter
     Protected videoTextSegment As Integer = &HB800
     Protected videoGraphicsSegment As Integer = &HB800
 
-    Private mStartTextVideoAddress As Integer
-    Private mEndTextVideoAddress As Integer
-
-    Private mStartGraphicsVideoAddress As Integer
-    Private mEndGraphicsVideoAddress As Integer
-
-    Private mTextResolution As Size = New Size(40, 25)
-    Private mVideoResolution As Size = New Size(0, 0)
-
     Private mCursorCol As Integer = 0
     Private mCursorRow As Integer = 0
     Private mCursorVisible As Boolean
@@ -120,6 +111,9 @@ Public MustInherit Class CGAAdapter
 
     Private mCPU As x8086
 
+    Private vidModeChangeFlag As New Binary("1000", Binary.Sizes.Byte)
+
+    Public MustOverride Overrides Sub AutoSize()
     Protected MustOverride Sub Render()
 
     Public Sub New(cpu As x8086, Optional useInternalTimer As Boolean = True)
@@ -225,12 +219,6 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public ReadOnly Property StartGraphicsVideoAddress As Integer
-        Get
-            Return mStartGraphicsVideoAddress
-        End Get
-    End Property
-
     Public ReadOnly Property CursorCol As Integer
         Get
             Return mCursorCol
@@ -257,11 +245,7 @@ Public MustInherit Class CGAAdapter
 
     Private Sub MainLoop()
         Do
-#If DEBUG Then
-            waiter.WaitOne(1000 / (VERTSYNC / 4))
-#Else
             waiter.WaitOne(1000 / VERTSYNC)
-#End If
 
             If isInit AndAlso mVideoEnabled AndAlso mVideoMode <> VideoModes.Undefined Then
                 SyncLock lockObject
@@ -295,30 +279,6 @@ Public MustInherit Class CGAAdapter
         'HandleCGAModeControlRegisterUpdated()
         InitVideoMemory(False)
     End Sub
-
-    Public ReadOnly Property TextResolution As Size
-        Get
-            Return mTextResolution
-        End Get
-    End Property
-
-    Public ReadOnly Property VideoResolution As Size
-        Get
-            Return mVideoResolution
-        End Get
-    End Property
-
-    Public ReadOnly Property StartTextVideoAddress As Integer
-        Get
-            Return mStartTextVideoAddress
-        End Get
-    End Property
-
-    Public ReadOnly Property EndTextVideoAddress As Integer
-        Get
-            Return mEndTextVideoAddress
-        End Get
-    End Property
 
     Public ReadOnly Property CursorVisible As Boolean
         Get
@@ -492,8 +452,6 @@ Public MustInherit Class CGAAdapter
         End If
     End Sub
 
-    Private vidModeChangeFlag As New Binary("1000", Binary.Sizes.Byte)
-
     Protected Overridable Sub OnModeControlRegisterChanged()
         ' http://www.seasip.info/VintagePC/cga.html
         Dim v As Integer = x8086.BitsArrayToWord(CGAModeControlRegister)
@@ -576,8 +534,6 @@ Public MustInherit Class CGAAdapter
         CGAStatusRegister(CGAStatusRegisters.display_enable) = hRetrace
         CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = vRetrace
     End Sub
-
-    Public MustOverride Overrides Sub AutoSize()
 
     Public Overrides Property Zoom As Double
         Get
