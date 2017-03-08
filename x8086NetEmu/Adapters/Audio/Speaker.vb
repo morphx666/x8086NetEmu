@@ -1,8 +1,7 @@
 ﻿#If Win32 Then
-Imports SlimDX.DirectSound
-Imports SlimDX.Multimedia
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports NAudio.Wave
 
 Public Class SpeakerAdpater
     Inherits Adapter
@@ -20,29 +19,18 @@ Public Class SpeakerAdpater
 
     Private Const ToRad As Double = Math.PI / 180
 
-    Private audioDev As DirectSound
-    Private bufPlayDesc As SoundBufferDescription
-    Private playBuf As SecondarySoundBuffer
-    Private notifySize As Integer
-    Private numberPlaybackNotifications As Integer = 8 ' 4
-    Private nextPlaybackOffset As Integer
-
-    Private waiter As AutoResetEvent = New AutoResetEvent(False)
-
+    Private waveOut As WaveOut
+    Private audioProvider As CustomBufferProvider
     Private mAudioBuffer() As Byte
-    Private audioWriteBufferPosition As Integer
-    Private Const sampleRate As Integer = 44100
+
+    Public Const SampleRate As Integer = 44100
 
     Private mCPU As x8086
     Private mEnabled As Boolean
-    Private playbackThread As Thread
-    Private cancelAllThreads As Boolean
 
     Private mFrequency As Double
     Private waveLength As Integer
     Private halfWaveLength As Integer
-    Private bufferWritePosition As Integer
-    Private bufferReadPosition As Integer
     Private currentStep As Integer
 
     Private mVolume As Double
@@ -90,7 +78,7 @@ Public Class SpeakerAdpater
 
     Private Sub UpdateWaveformParameters()
         If mFrequency > 0 Then
-            waveLength = sampleRate / mFrequency
+            waveLength = SampleRate / mFrequency
         Else
             waveLength = 0
         End If
@@ -98,9 +86,10 @@ Public Class SpeakerAdpater
         halfWaveLength = waveLength / 2
     End Sub
 
-    Private Sub FillAudioBuffer()
+    Private Sub FillAudioBuffer(buffer() As Byte)
         Dim v As Double
-        Do
+
+        For i As Integer = 0 To buffer.Length - 1
             Select Case waveForm
                 Case WaveForms.Squared
                     If mEnabled Then
@@ -126,37 +115,18 @@ Public Class SpeakerAdpater
             Else
                 v += 127
             End If
-            mAudioBuffer(bufferWritePosition) = v
+            buffer(i) = v
 
             currentStep += 1
             If currentStep >= waveLength Then currentStep = 0
+        Next
 
-            bufferWritePosition += 1
-            bufferWritePosition = bufferWritePosition Mod mAudioBuffer.Length
-        Loop Until cancelAllThreads OrElse bufferWritePosition = 0
-    End Sub
-
-    Private Sub MainLoop()
-        Do
-            waiter.WaitOne()
-
-            FillAudioBuffer()
-            Write()
-        Loop Until cancelAllThreads
+        'mAudioBuffer = buffer
     End Sub
 
     Public Overrides Sub CloseAdapter()
-        cancelAllThreads = True
-
-        Do
-            Thread.Sleep(10)
-        Loop While playbackThread.ThreadState <> ThreadState.Stopped
-
-        playBuf.Stop()
-        waiter.Set()
-
-        playBuf.Dispose()
-        audioDev.Dispose()
+        waveOut.Stop()
+        waveOut.Dispose()
     End Sub
 
     Public Overrides ReadOnly Property Description As String
@@ -170,73 +140,11 @@ Public Class SpeakerAdpater
     End Function
 
     Public Overrides Sub InitiAdapter()
-        ReDim mAudioBuffer(sampleRate / 100 - 1)
-
-        ' Define the capture format
-        Dim format As WaveFormat = New WaveFormat()
-        With format
-            .BitsPerSample = 8
-            .Channels = 1
-            .FormatTag = WaveFormatTag.Pcm
-            .SamplesPerSecond = sampleRate
-            .BlockAlignment = CShort(.Channels * .BitsPerSample / 8)
-            .AverageBytesPerSecond = .SamplesPerSecond * .BlockAlignment
-        End With
-
-        ' Define the size of the notification chunks
-        notifySize = mAudioBuffer.Length
-        notifySize -= notifySize Mod format.BlockAlignment
-
-        ' Create a buffer description object
-        bufPlayDesc = New SoundBufferDescription()
-        With bufPlayDesc
-            .Format = format
-            .Flags = BufferFlags.ControlPositionNotify Or
-                    BufferFlags.GetCurrentPosition2 Or
-                    BufferFlags.GlobalFocus Or
-                    BufferFlags.Static Or
-                    BufferFlags.ControlVolume Or
-                    BufferFlags.ControlPan Or
-                    BufferFlags.ControlFrequency
-            .SizeInBytes = notifySize * numberPlaybackNotifications
-        End With
-
-        audioDev = New DirectSound()
-        Dim windowHandle As IntPtr = GetDesktopWindow()
-        audioDev.SetCooperativeLevel(windowHandle, CooperativeLevel.Priority)
-        playBuf = New SecondarySoundBuffer(audioDev, bufPlayDesc)
-
-        ' Define the notification events
-        Dim np(numberPlaybackNotifications - 1) As NotificationPosition
-
-        For i As Integer = 0 To numberPlaybackNotifications - 1
-            np(i) = New NotificationPosition()
-            np(i).Offset = (notifySize * i) + notifySize - 1
-            np(i).Event = waiter
-        Next
-        playBuf.SetNotificationPositions(np)
-
-        nextPlaybackOffset = 0
-        playBuf.Play(0, PlayFlags.Looping)
-
-        playbackThread = New Thread(AddressOf MainLoop)
-        playbackThread.Start()
-    End Sub
-
-    Public Sub Write()
-        Dim lockSize As Integer
-
-        lockSize = playBuf.CurrentWritePosition - nextPlaybackOffset
-        If lockSize < 0 Then lockSize += bufPlayDesc.SizeInBytes
-
-        ' Block align lock size so that we always read on a boundary
-        lockSize -= lockSize Mod notifySize
-        If lockSize = 0 Then Exit Sub
-
-        playBuf.Write(Of Byte)(mAudioBuffer, nextPlaybackOffset, LockFlags.None)
-
-        nextPlaybackOffset += mAudioBuffer.Length
-        nextPlaybackOffset = nextPlaybackOffset Mod bufPlayDesc.SizeInBytes ' Circular buffer
+        waveOut = New WaveOut()
+        waveOut.NumberOfBuffers = 36
+        audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer)
+        waveOut.Init(audioProvider)
+        waveOut.Play()
     End Sub
 
     Public Overrides ReadOnly Property Name As String
@@ -279,7 +187,7 @@ Public Class SpeakerAdpater
 
     Public Overrides ReadOnly Property VersionRevision As Integer
         Get
-            Return 23
+            Return 1
         End Get
     End Property
 End Class
@@ -354,3 +262,28 @@ Public Class SpeakerAdpater
     End Property
 End Class
 #End If
+
+Public Class CustomBufferProvider
+    Implements IWaveProvider
+
+    Public Delegate Sub FillBuffer(buffer() As Byte)
+
+    Private wf As WaveFormat
+    Private fb As FillBuffer
+
+    Public Sub New(bufferFiller As FillBuffer)
+        wf = New WaveFormat(SpeakerAdpater.SampleRate, 8, 1)
+        fb = bufferFiller
+    End Sub
+
+    Public ReadOnly Property WaveFormat As WaveFormat Implements IWaveProvider.WaveFormat
+        Get
+            Return wf
+        End Get
+    End Property
+
+    Public Function Read(buffer() As Byte, offset As Integer, count As Integer) As Integer Implements IWaveProvider.Read
+        fb.Invoke(buffer)
+        Return count
+    End Function
+End Class

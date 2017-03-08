@@ -4,7 +4,7 @@ Imports System.Runtime.InteropServices
 ' MODE 0x13: http://www.brackeen.com/vga/basics.html
 ' Color Graphics Adapter (CGA) http://webpages.charter.net/danrollins/techhelp/0066.HTM
 
-Public Class CGAWinForms2
+Public Class CGAWinFormsFast
     Inherits CGAAdapter
 
     Private Class CGAChar
