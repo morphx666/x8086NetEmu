@@ -3,7 +3,7 @@ Imports System.Runtime.InteropServices
 
 Public Class KeyboardAdapter
     Inherits Adapter
-    Implements ExternalInputHandler
+    Implements IExternalInputHandler
 
     Private mCPU As x8086
 
@@ -245,7 +245,7 @@ Public Class KeyboardAdapter
 
     End Sub
 
-    Public Sub HandleInput(e As ExternalInputEvent) Implements ExternalInputHandler.HandleInput
+    Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         Dim keyEvent As KeyEventArgs = CType(e.TheEvent, KeyEventArgs)
         Dim isUp As Boolean = CType(e.Extra, Boolean)
 

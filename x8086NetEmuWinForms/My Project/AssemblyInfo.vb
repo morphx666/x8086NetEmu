@@ -11,8 +11,8 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyTitle("x8086NetEmuWinForms")> 
 <Assembly: AssemblyDescription("")> 
 <Assembly: AssemblyCompany("")> 
-<Assembly: AssemblyProduct("x8086NetEmuWinForms")> 
-<Assembly: AssemblyCopyright("Copyright ©  2012")> 
+<Assembly: AssemblyProduct("x8086NetEmuWinForms")>
+<Assembly: AssemblyCopyright("Copyright ©  2017")>
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)>

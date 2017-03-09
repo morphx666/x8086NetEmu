@@ -187,20 +187,6 @@ Public Class CGAWinForms
                                    StringFormatFlags.NoClip
     End Sub
 
-    Public Property HideHostCursor As Boolean
-        Get
-            Return mHideHostCursor
-        End Get
-        Set(value As Boolean)
-            mHideHostCursor = value
-            If mHideHostCursor Then
-                Cursor.Hide()
-            Else
-                Cursor.Show()
-            End If
-        End Set
-    End Property
-
     Public Property RenderControl As Control
         Get
             Return mRenderControl

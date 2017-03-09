@@ -3,7 +3,7 @@
 ' This code is a port from the "Scheduler" class in Retro 0.4
 
 Public Class Scheduler
-    Implements ExternalInputHandler
+    Implements IExternalInputHandler
 
     Private Shared NOTASK As Long = Long.MaxValue
     Private Shared STOPPING As Long = Long.MinValue
@@ -415,7 +415,7 @@ Public Class Scheduler
     Private isAltDown As Boolean
     Private cadCounter As Integer
 
-    Public Sub HandleInput(e As ExternalInputEvent) Implements ExternalInputHandler.HandleInput
+    Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         If e.Handler Is Nothing Then Exit Sub
 
         If TypeOf e.TheEvent Is KeyEventArgs Then
@@ -460,24 +460,24 @@ Public Class Scheduler
     End Sub
 End Class
 
-Public Interface ExternalInputHandler
+Public Interface IExternalInputHandler
     Sub HandleInput(e As ExternalInputEvent)
 End Interface
 
 Public Class ExternalInputEvent
     Inherits EventArgs
 
-    Public Property Handler As ExternalInputHandler
+    Public Property Handler As IExternalInputHandler
     Public Property TheEvent As EventArgs
     Public Property TimeStamp As Long
     Public Property Extra As Object
 
-    Public Sub New(handler As ExternalInputHandler, theEvent As EventArgs)
+    Public Sub New(handler As IExternalInputHandler, theEvent As EventArgs)
         Me.Handler = handler
         Me.TheEvent = theEvent
     End Sub
 
-    Public Sub New(handler As ExternalInputHandler, theEvent As EventArgs, extra As Object)
+    Public Sub New(handler As IExternalInputHandler, theEvent As EventArgs, extra As Object)
         Me.Handler = handler
         Me.TheEvent = theEvent
         Me.Extra = extra

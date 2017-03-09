@@ -1,4 +1,5 @@
 ﻿Imports System.Threading
+Imports System.Runtime.InteropServices
 
 Public MustInherit Class CGAAdapter
     Inherits VideoAdapter

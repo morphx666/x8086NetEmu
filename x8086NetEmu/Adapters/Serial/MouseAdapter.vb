@@ -1,6 +1,6 @@
 ﻿Public Class MouseAdapter
     Inherits Adapter
-    Implements ExternalInputHandler
+    Implements IExternalInputHandler
 
     Private Class SerialMouse
         Public reg(8 - 1) As Integer
@@ -87,14 +87,16 @@
         End If
     End Sub
 
-    Public Sub HandleInput(e As ExternalInputEvent) Implements ExternalInputHandler.HandleInput
+    Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 
         If lastX = Integer.MinValue Then lastX = m.X
         If lastY = Integer.MinValue Then lastY = m.Y
 
-        Dim rX As Integer = (m.X - lastX) / 3
-        Dim rY As Integer = (m.Y - lastY) / 3
+        Dim rX As Integer = (m.X - lastX) / (mCPU.VideoAdapter.Zoom * 2)
+        Dim rY As Integer = (m.Y - lastY) / ( mCPU.VideoAdapter.Zoom * 2)
+
+        Debug.WriteLine($"{m.X}, {m.Y}")
 
         Dim highbits As Integer = 0
         If rX < 0 Then highbits = 3

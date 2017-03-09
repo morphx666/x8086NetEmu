@@ -11,8 +11,8 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyTitle("x8086NetEmu")> 
 <Assembly: AssemblyDescription("")> 
 <Assembly: AssemblyCompany("xFX JumpStart")> 
-<Assembly: AssemblyProduct("x8086NetEmu")> 
-<Assembly: AssemblyCopyright("Copyright © xFX JumpStart 2011")> 
+<Assembly: AssemblyProduct("x8086NetEmu")>
+<Assembly: AssemblyCopyright("Copyright © xFX JumpStart 2017")>
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)> 

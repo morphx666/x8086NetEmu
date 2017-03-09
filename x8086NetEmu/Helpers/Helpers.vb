@@ -500,11 +500,11 @@
                 mFloppyController = adptr
         End Select
 
-        If mVideoAdapter IsNot Nothing AndAlso TypeOf mVideoAdapter Is CGAWinForms Then
-            Dim cgawf As CGAWinForms = CType(mVideoAdapter, CGAWinForms)
-            AddHandler cgawf.RenderControl.MouseEnter, Sub() If cgawf.HideHostCursor Then Cursor.Hide()
-            AddHandler cgawf.RenderControl.MouseLeave, Sub() Cursor.Show()
-        End If
+        'If mVideoAdapter IsNot Nothing AndAlso TypeOf mVideoAdapter Is CGAWinForms Then
+        '    Dim cgawf As CGAWinForms = CType(mVideoAdapter, CGAWinForms)
+        '    AddHandler cgawf.RenderControl.MouseEnter, Sub() If cgawf.HideHostCursor Then Cursor.Hide()
+        '    AddHandler cgawf.RenderControl.MouseLeave, Sub() Cursor.Show()
+        'End If
     End Sub
 
     Private Sub PrintOpCodes(n As UInteger)

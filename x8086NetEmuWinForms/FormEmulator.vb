@@ -97,6 +97,9 @@ Public Class FormEmulator
 #If Win32 Then
         AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
                                                  If (e1.KeyData And Keys.Control) = Keys.Control AndAlso Convert.ToBoolean(GetAsyncKeyState(Keys.RControlKey)) Then
+                                                     Cursor.Clip = Rectangle.Empty
+                                                     CursorVisible = True
+
                                                      Select Case e1.KeyCode
                                                          Case Keys.Home
                                                              ContextMenuStripMain.Show(Cursor.Position)
@@ -123,6 +126,11 @@ Public Class FormEmulator
                                         End Sub
 #End If
         AddHandler videoPort.MouseEnter, Sub() ContextMenuStripMain.Hide()
+        AddHandler videoPort.Click, Sub(s1 As Object, e1 As EventArgs)
+                                        If isSelectingText Then Exit Sub
+                                        Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
+                                        CursorVisible = False
+                                    End Sub
         AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
     End Sub
 
@@ -137,15 +145,33 @@ Public Class FormEmulator
     Private Sub CopyTextFromEmulator()
         If isSelectingText Then Exit Sub
         If TypeOf cpu.VideoAdapter Is CGAWinForms Then
-            Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
-            cgawf.HideHostCursor = False
-            cgawf.RenderControl.Cursor = Cursors.IBeam
+            CursorVisible = True
+            Me.Cursor = Cursors.IBeam
             cpu.Pause()
             isSelectingText = True
         Else
             MsgBox("Text copying is only supported on CGAWinForms video adapters", MsgBoxStyle.Information)
         End If
     End Sub
+
+    Private mCursorVisible As Boolean = True
+    Private Property CursorVisible As Boolean
+        Get
+            Return mCursorVisible
+        End Get
+        Set(value As Boolean)
+            If mCursorVisible = value Then
+                Exit Property
+            Else
+                If value Then
+                    Cursor.Show()
+                Else
+                    Cursor.Hide()
+                End If
+            End If
+            mCursorVisible = value
+        End Set
+    End Property
 
     Private Sub PasteTextFromClipboard()
         If Not isSelectingText AndAlso Clipboard.ContainsText(TextDataFormat.Text) Then
@@ -291,11 +317,8 @@ Public Class FormEmulator
         AddHandler videoPort.MouseUp, Sub(s As Object, e As MouseEventArgs)
                                           If e.Button = MouseButtons.Left AndAlso isLeftMouseButtonDown Then
                                               Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
-                                              cgawf.HideHostCursor = True
 
-                                              ' Why is this necessary?
-                                              ' Why the Cursor.Hide() at Helpers.vb@428 stops working?
-                                              cgawf.RenderControl.Cursor = New Cursor(New IO.MemoryStream(My.Resources.emptyCursor))
+                                              Me.Cursor = Cursors.Default
 
                                               Dim c As Integer
                                               Dim text As String = ""
