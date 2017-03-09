@@ -3,6 +3,31 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports NAudio.Wave
 
+Public Class CustomBufferProvider
+    Implements IWaveProvider
+
+    Public Delegate Sub FillBuffer(buffer() As Byte)
+
+    Private wf As WaveFormat
+    Private fb As FillBuffer
+
+    Public Sub New(bufferFiller As FillBuffer)
+        wf = New WaveFormat(SpeakerAdpater.SampleRate, 8, 1)
+        fb = bufferFiller
+    End Sub
+
+    Public ReadOnly Property WaveFormat As WaveFormat Implements IWaveProvider.WaveFormat
+        Get
+            Return wf
+        End Get
+    End Property
+
+    Public Function Read(buffer() As Byte, offset As Integer, count As Integer) As Integer Implements IWaveProvider.Read
+        fb.Invoke(buffer)
+        Return count
+    End Function
+End Class
+
 Public Class SpeakerAdpater
     Inherits Adapter
 
@@ -140,8 +165,10 @@ Public Class SpeakerAdpater
     End Function
 
     Public Overrides Sub InitiAdapter()
-        waveOut = New WaveOut()
-        waveOut.NumberOfBuffers = 36
+        waveOut = New WaveOut() With {
+            .NumberOfBuffers = 28,
+            .DesiredLatency = 100
+        }
         audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer)
         waveOut.Init(audioProvider)
         waveOut.Play()
@@ -262,28 +289,3 @@ Public Class SpeakerAdpater
     End Property
 End Class
 #End If
-
-Public Class CustomBufferProvider
-    Implements IWaveProvider
-
-    Public Delegate Sub FillBuffer(buffer() As Byte)
-
-    Private wf As WaveFormat
-    Private fb As FillBuffer
-
-    Public Sub New(bufferFiller As FillBuffer)
-        wf = New WaveFormat(SpeakerAdpater.SampleRate, 8, 1)
-        fb = bufferFiller
-    End Sub
-
-    Public ReadOnly Property WaveFormat As WaveFormat Implements IWaveProvider.WaveFormat
-        Get
-            Return wf
-        End Get
-    End Property
-
-    Public Function Read(buffer() As Byte, offset As Integer, count As Integer) As Integer Implements IWaveProvider.Read
-        fb.Invoke(buffer)
-        Return count
-    End Function
-End Class
