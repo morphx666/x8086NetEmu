@@ -39,10 +39,12 @@
                     Array.Copy(sm.buf, 1, sm.buf, 0, 15)
                     sm.bufPtr -= 1
 
-                    sm.reg(4) = (Not sm.reg(4)) And 1
-
                     If sm.bufPtr < 0 Then sm.bufPtr = 0
                     If sm.bufPtr > 0 Then irq.Raise(True)
+
+                    sm.reg(4) = (Not sm.reg(4)) And 1
+
+                    Return tmp
                 End If
 
                 Return tmp
@@ -54,8 +56,8 @@
                 End If
 
                 'Return tmp
-                Return &H1
                 'Return &H60 Or tmp
+                Return &H1
         End Select
 
         Return sm.reg(port And 7)
@@ -73,13 +75,12 @@
 
         Select Case port
             Case &H3FC ' Modem Control Register - MCR
-                If (value And 1) <> (oldReg And 1) Then ' software toggling of this register
-                    sm.bufPtr = 0 ' causes the mouse to reset and fill the buffer
-
-                    BufSerMouseData(M) ' with a bunch of ASCII 'M' characters.
-                    BufSerMouseData(M) ' this is intended to be a way for
-                    BufSerMouseData(M) ' drivers to verify that there is
-                    BufSerMouseData(M) ' actually a mouse connected to the port.
+                If (value And 1) <> (oldReg And 1) Then ' Software toggling of this register
+                    sm.bufPtr = 0 '                       causes the mouse to reset and fill the buffer
+                    BufSerMouseData(M) '                  with a bunch of ASCII 'M' characters.
+                    BufSerMouseData(M) '                  this is intended to be a way for
+                    BufSerMouseData(M) '                  drivers to verify that there is
+                    BufSerMouseData(M) '                  actually a mouse connected to the port.
                     BufSerMouseData(M)
                 End If
         End Select
@@ -90,13 +91,13 @@
     End Sub
 
     Private Sub BufSerMouseData(value As Byte)
-        If irq Is Nothing Then Exit Sub
+        If irq IsNot Nothing Then
+            If sm.bufPtr = 16 Then Exit Sub
+            If sm.bufPtr = 0 Then irq.Raise(True)
 
-        If sm.bufPtr = 16 Then Exit Sub
-        If sm.bufPtr = 0 Then irq.Raise(True)
-
-        sm.buf(sm.bufPtr) = value
-        sm.bufPtr += 1
+            sm.buf(sm.bufPtr) = value
+            sm.bufPtr += 1
+        End If
     End Sub
 
     Public Overrides Sub CloseAdapter()

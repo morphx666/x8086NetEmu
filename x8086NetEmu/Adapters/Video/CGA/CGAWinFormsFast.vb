@@ -369,7 +369,9 @@ Public Class CGAWinForms
 
             If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
 
-            If MyBase.IsDirty(address) OrElse BlinkCharOn Then RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
+            If MyBase.IsDirty(address) OrElse
+                MyBase.IsDirty(address + 1) OrElse
+                BlinkCharOn Then RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
@@ -416,44 +418,6 @@ Public Class CGAWinForms
         End If
         cgaCharsCache(idx).Paint(dbmp, p, scale)
     End Sub
-
-    'Private Sub RenderTextSDL()
-    '    Dim b0 As Byte
-    '    Dim b1 As Byte
-
-    '    Dim col As Integer = 0
-    '    Dim row As Integer = 0
-
-    '    Dim p As New Point(0, 0)
-
-    '    For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
-    '        b0 = mCPU.RAM(address)
-    '        b1 = mCPU.RAM(address + 1)
-
-    '        Dim text = sdlCtrl.SDLFont.Render(chars(b0), CGAPalette(b1.LowNib()), CGAPalette(b1.HighNib()))
-    '        sdlCtrl.SDLScreen.Blit(text, p)
-
-    '        'If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-    '        '    If (Not BlinkCursor) OrElse (blinkCounter < 10) Then
-    '        '        g.FillRectangle(cursorBrush, r.X + 1, r.Y, cursorSize.Width, cursorSize.Height - 2)
-    '        '    End If
-    '        '    blinkCounter = (blinkCounter + 1) Mod 20
-    '        'End If
-
-    '        p.X += sdlCtrl.SDLFontSize.Width
-    '        col += 1
-    '        If col = TextResolution.Width Then
-    '            col = 0
-    '            row += 1
-    '            If row = TextResolution.Height Then Exit For
-
-    '            p.X = 0
-    '            p.Y += sdlCtrl.SDLFontSize.Height
-    '        End If
-    '    Next
-
-    '    sdlCtrl.SDLScreen.Update()
-    'End Sub
 
     Private Sub RenderWaveform(g As Graphics)
 #If Win32 Then
