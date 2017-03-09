@@ -12,22 +12,19 @@
     Private sm As New SerialMouse()
     Private irq As PIC8259.IRQLine
 
-    Private Const M = Asc("M")
+    Private lastX As Integer = Integer.MinValue
+    Private lastY As Integer = Integer.MinValue
+
+    Private Const M As Integer = Asc("M")
 
     Public Sub New(cpu As x8086)
         mCPU = cpu
-        If mCPU.PIC IsNot Nothing Then Me.irq = mCPU.PIC.GetIrqLine(4)
+        If mCPU.PIC IsNot Nothing Then irq = mCPU.PIC.GetIrqLine(4)
 
         For i As Integer = &H3F8 To &H3F8 + 7
             ValidPortAddress.Add(i)
         Next
     End Sub
-
-    Public Overrides ReadOnly Property Description As String
-        Get
-            Return "Serial Mouse at COM1"
-        End Get
-    End Property
 
     Public Overrides Function [In](port As Integer) As Integer
         Dim tmp As Integer
@@ -63,12 +60,6 @@
         Return sm.reg(port And 7)
     End Function
 
-    Public Overrides ReadOnly Property Name As String
-        Get
-            Return "Mouse"
-        End Get
-    End Property
-
     Public Overrides Sub Out(port As Integer, value As Integer)
         Dim oldReg As Integer = sm.reg(port And 7)
         sm.reg(port And 7) = value
@@ -86,10 +77,6 @@
         End Select
     End Sub
 
-    Public Overrides Sub Run()
-
-    End Sub
-
     Private Sub BufSerMouseData(value As Byte)
         If irq IsNot Nothing Then
             If sm.bufPtr = 16 Then Exit Sub
@@ -100,6 +87,31 @@
         End If
     End Sub
 
+    Public Sub HandleInput(e As ExternalInputEvent) Implements ExternalInputHandler.HandleInput
+        Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
+
+        If lastX = Integer.MinValue Then lastX = m.X
+        If lastY = Integer.MinValue Then lastY = m.Y
+
+        Dim rX As Integer = (m.X - lastX) / 3
+        Dim rY As Integer = (m.Y - lastY) / 3
+
+        Dim highbits As Integer = 0
+        If rX < 0 Then highbits = 3
+        If rY < 0 Then highbits = highbits Or &HC
+
+        Dim btns As Integer = 0
+        If m.Button And MouseButtons.Left Then btns = btns Or 2
+        If m.Button And MouseButtons.Right Then btns = btns Or 1
+
+        BufSerMouseData(&H40 Or (btns << 4) Or highbits)
+        BufSerMouseData(rX And &H3F)
+        BufSerMouseData(rY And &H3F)
+
+        lastX = m.X
+        lastY = m.Y
+    End Sub
+
     Public Overrides Sub CloseAdapter()
 
     End Sub
@@ -107,6 +119,22 @@
     Public Overrides Sub InitiAdapter()
 
     End Sub
+
+    Public Overrides Sub Run()
+
+    End Sub
+
+    Public Overrides ReadOnly Property Name As String
+        Get
+            Return "Mouse"
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property Description As String
+        Get
+            Return "Serial Mouse at COM1"
+        End Get
+    End Property
 
     Public Overrides ReadOnly Property Type As Adapter.AdapterType
         Get
@@ -137,32 +165,4 @@
             Return 1
         End Get
     End Property
-
-    Private lastX As Integer = Integer.MinValue
-    Private lastY As Integer = Integer.MinValue
-
-    Public Sub HandleInput(e As ExternalInputEvent) Implements ExternalInputHandler.HandleInput
-        Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
-
-        If lastX = Integer.MinValue Then lastX = m.X
-        If lastY = Integer.MinValue Then lastY = m.Y
-
-        Dim rX As Integer = (m.X - lastX) / 3
-        Dim rY As Integer = (m.Y - lastY) / 3
-
-        Dim highbits As Integer = 0
-        If rX < 0 Then highbits = 3
-        If rY < 0 Then highbits = highbits Or &HC
-
-        Dim btns As Integer = 0
-        If m.Button And MouseButtons.Left Then btns = btns Or 2
-        If m.Button And MouseButtons.Right Then btns = btns Or 1
-
-        BufSerMouseData(&H40 Or (btns << 4) Or highbits)
-        BufSerMouseData(rX And &H3F)
-        BufSerMouseData(rY And &H3F)
-
-        lastX = m.X
-        lastY = m.Y
-    End Sub
 End Class
