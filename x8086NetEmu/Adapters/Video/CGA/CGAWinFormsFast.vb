@@ -4,7 +4,7 @@ Imports System.Runtime.InteropServices
 ' MODE 0x13: http://www.brackeen.com/vga/basics.html
 ' Color Graphics Adapter (CGA) http://webpages.charter.net/danrollins/techhelp/0066.HTM
 
-Public Class CGAWinFormsFast
+Public Class CGAWinForms
     Inherits CGAAdapter
 
     Private Class CGAChar
@@ -272,11 +272,11 @@ Public Class CGAWinFormsFast
             g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighSpeed
             g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
             g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
-            g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
             g.ScaleTransform(scale.Width, scale.Height)
 
             RaiseEvent PreRender(sender, e)
+            g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
             Select Case MainMode
                 Case MainModes.Text
@@ -291,6 +291,7 @@ Public Class CGAWinFormsFast
 
             g.DrawImageUnscaled(videoBMP, 0, 0)
 
+            g.CompositingMode = Drawing2D.CompositingMode.SourceOver
             RaiseEvent PostRender(sender, e)
 
             'RenderWaveform(g)

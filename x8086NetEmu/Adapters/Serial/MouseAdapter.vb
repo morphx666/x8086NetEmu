@@ -68,7 +68,7 @@
     End Property
 
     Public Overrides Sub Out(port As Integer, value As Integer)
-        Dim oldReg = sm.reg(port And 7)
+        Dim oldReg As Integer = sm.reg(port And 7)
         sm.reg(port And 7) = value
 
         Select Case port
