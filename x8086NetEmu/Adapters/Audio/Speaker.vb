@@ -1,6 +1,5 @@
 ﻿#If Win32 Then
 Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports NAudio.Wave
 
 Public Class CustomBufferProvider

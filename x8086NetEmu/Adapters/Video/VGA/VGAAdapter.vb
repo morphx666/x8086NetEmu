@@ -1,5 +1,5 @@
-﻿Public Class VGAAdapter
-    Inherits CGAAdapter
+﻿Public MustInherit Class VGAAdapter
+    Inherits VideoAdapter
 
     Private VGABasePalette() As Color = {
         Color.FromArgb(0, 0, 0),
@@ -260,6 +260,15 @@
         Color.FromArgb(0, 0, 0)
     }
 
+    Public Enum MainModes
+        Unknown = -1
+        Text = 0
+        Graphics = 2
+    End Enum
+
+    Public MustOverride Overrides Sub AutoSize()
+    Protected MustOverride Sub Render()
+
     Private VGA_SC(&H100 - 1) As Byte
     Private VGA_CRTC(&H100 - 1) As Byte
     Private VGA_ATTR(&H100 - 1) As Byte
@@ -284,8 +293,13 @@
     Private vtotal As Integer
     Private port3DA As Integer
 
+    Protected lockObject As New Object()
+
+    Private mCPU As x8086
+    Private mMainMode As MainModes
+
     Public Sub New(cpu As x8086)
-        MyBase.New(cpu)
+        mCPU = cpu
 
         'ValidPortAddress.Clear()
         For i As Integer = &H3C0 To &H3DF
@@ -297,16 +311,49 @@
         Next
     End Sub
 
-    Public Overrides Sub AutoSize()
-
-    End Sub
-
-    Protected Overrides Sub Render()
-
-    End Sub
-
     Public Overrides Sub Run()
 
+    End Sub
+
+    Public Overrides Sub CloseAdapter()
+        'isInit = False
+        'cancelAllThreads = True
+
+        Application.DoEvents()
+    End Sub
+
+    Public ReadOnly Property MainMode As MainModes
+        Get
+            Return mMainMode
+        End Get
+    End Property
+
+    Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
+        MyBase.OnKeyDown(Me, e)
+        If e.Handled Then Exit Sub
+        'Debug.WriteLine("KEY DOWN: " + e.KeyCode.ToString() + " | " + e.Modifiers.ToString())
+        If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, False))
+        e.Handled = True
+    End Sub
+
+    Public Sub HandleKeyUp(sender As Object, e As KeyEventArgs)
+        MyBase.OnKeyUp(Me, e)
+        If e.Handled Then Exit Sub
+        'Debug.WriteLine("KEY UP:   " + e.KeyCode.ToString() + " | " + e.Modifiers.ToString())
+        If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, True))
+        e.Handled = True
+    End Sub
+
+    Public Sub OnMouseDown(sender As Object, e As MouseEventArgs)
+        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, True))
+    End Sub
+
+    Public Sub OnMouseMove(sender As Object, e As MouseEventArgs)
+        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, Nothing))
+    End Sub
+
+    Public Sub OnMouseUp(sender As Object, e As MouseEventArgs)
+        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, False))
     End Sub
 
     Public Overrides Function [In](port As Integer) As Integer

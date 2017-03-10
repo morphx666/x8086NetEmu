@@ -1,7 +1,4 @@
-﻿Imports System.Drawing.Imaging
-Imports System.Runtime.InteropServices
-
-' MODE 0x13: http://www.brackeen.com/vga/basics.html
+﻿' MODE 0x13: http://www.brackeen.com/vga/basics.html
 ' Color Graphics Adapter (CGA) http://webpages.charter.net/danrollins/techhelp/0066.HTM
 
 Public Class CGAWinForms
@@ -88,8 +85,6 @@ Public Class CGAWinForms
         End Function
     End Class
     Private cgaCharsCache As New List(Of CGAChar)
-
-    Private mRenderControl As Control
     Private videoBMP As DirectBitmap
 
     Private charSize As Size
@@ -112,6 +107,7 @@ Public Class CGAWinForms
     Private scale As New SizeF(1, 1)
 
     Private mCPU As x8086
+    Private mRenderControl As Control
     Private mHideHostCursor As Boolean = True
 
     Public Event PreRender(sender As Object, e As PaintEventArgs)

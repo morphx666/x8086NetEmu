@@ -23,6 +23,8 @@ Public Class FormEmulator
     Private v20Emulation As Boolean
     Private int13Emulation As Boolean
 
+    Private mCursorVisible As Boolean = True
+
     Private runningApp As String
 
     Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -154,7 +156,6 @@ Public Class FormEmulator
         End If
     End Sub
 
-    Private mCursorVisible As Boolean = True
     Private Property CursorVisible As Boolean
         Get
             Return mCursorVisible

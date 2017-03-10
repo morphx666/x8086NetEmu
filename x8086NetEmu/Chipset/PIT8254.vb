@@ -525,10 +525,8 @@
     ' Interrupt request line for channel 0 
     Private irq As InterruptRequest
 
-#If Win32 Then
     ' Speaker Adapter connected to channel 2
     Private mSpeaker As SpeakerAdpater
-#End If
 
     ' Current time mirrored from Scheduler
     Private currentTime As Long
@@ -688,7 +686,6 @@
                ((c Mod COUNTRATE) * Scheduler.CLOCKRATE + COUNTRATE - 1) \ COUNTRATE
     End Function
 
-#If Win32 Then
     Public Property Speaker As SpeakerAdpater
         Get
             Return mSpeaker
@@ -697,7 +694,6 @@
             mSpeaker = value
         End Set
     End Property
-#End If
 
     Public Overrides ReadOnly Property Description As String
         Get

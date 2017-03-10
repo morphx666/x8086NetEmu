@@ -354,8 +354,7 @@
     End Property
 
     Public Sub IncIP(value As UInteger)
-        'mRegisters.IP = AddValues(mRegisters.IP, value, DataSize.Word)
-        mRegisters.IP = mRegisters.IP + value
+        mRegisters.IP = AddValues(mRegisters.IP, value, DataSize.Word)
     End Sub
 
     Private Function OffsetIP(paramSize As DataSize) As UInteger

@@ -90,13 +90,15 @@
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 
+        ' TODO: The scaling code needs to be adjusted so that the size of the screen is properly mapped to the emulator window
+
         If lastX = Integer.MinValue Then lastX = m.X
         If lastY = Integer.MinValue Then lastY = m.Y
 
         Dim rX As Integer = (m.X - lastX) / (mCPU.VideoAdapter.Zoom * 2)
         Dim rY As Integer = (m.Y - lastY) / ( mCPU.VideoAdapter.Zoom * 2)
 
-        Debug.WriteLine($"{m.X}, {m.Y}")
+        'Debug.WriteLine($"{m.X}, {m.Y}")
 
         Dim highbits As Integer = 0
         If rX < 0 Then highbits = 3
