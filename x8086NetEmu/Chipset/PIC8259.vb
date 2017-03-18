@@ -120,7 +120,7 @@
         If master IsNot Nothing Then UpdateSlaveOutput()
     End Sub
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         If (port And 1) = 0 Then
             ' A0 == 0
             If pollMode Then
@@ -134,7 +134,7 @@
         End If
     End Function
 
-    Public Overrides Sub Out(port As Integer, value As Integer)
+    Public Overrides Sub Out(port As UInteger, value As UInteger)
         If (port And 1) = 0 Then
             ' A0 = 0
             If (value And &H10) <> 0 Then

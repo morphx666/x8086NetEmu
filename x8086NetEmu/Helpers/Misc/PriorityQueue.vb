@@ -39,7 +39,7 @@
         Return If(nHeap > 0, heapPri(1), Long.MaxValue)
     End Function
 
-    Public Function RemoveFirst()
+    Public Function RemoveFirst() As Object
         If nHeap = 0 Then Return Nothing
 
         Dim obj As Object = heapObj(1)
@@ -67,7 +67,7 @@
 
     Public Sub Remove(obj As Object)
         Dim k As Integer = 1
-        While k <= nHeap AndAlso heapObj(k) <> obj
+        While k <= nHeap AndAlso (Not heapObj(k) Is obj)
             k += 1
         End While
 

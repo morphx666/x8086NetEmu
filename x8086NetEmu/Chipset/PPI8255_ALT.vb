@@ -48,7 +48,7 @@ Public Class PPI8255_ALT
             Owner.Run()
         End Sub
 
-        Public Overrides ReadOnly Property Name As Object
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Owner.Name
             End Get
@@ -138,7 +138,7 @@ Public Class PPI8255_ALT
         End Get
     End Property
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         Select Case (port And 3)
             Case 0 ' A
                 Return ReadFromPort(0)
@@ -153,7 +153,7 @@ Public Class PPI8255_ALT
         End Select
     End Function
 
-    Public Overrides Sub Out(port As Integer, v As Integer)
+    Public Overrides Sub Out(port As UInteger, v As UInteger)
         Select Case port And 3
             Case 0 ' A
                 WriteToPort(0, v)

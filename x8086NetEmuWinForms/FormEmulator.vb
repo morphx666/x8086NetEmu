@@ -32,7 +32,7 @@ Public Class FormEmulator
         StopEmulation()
     End Sub
 
-    Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+    Private Sub FormEmulator_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.BackColor = Color.Black
 
         ' New settings that are recommend to be turned on

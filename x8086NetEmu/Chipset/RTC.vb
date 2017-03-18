@@ -39,7 +39,7 @@
             Owner.Run()
         End Sub
 
-        Public Overrides ReadOnly Property Name As Object
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Owner.Name
             End Get
@@ -169,7 +169,7 @@
         Return ((v And &HF) + 10 * ((v >> 4) And &HF0))
     End Function
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         Clock2RAM()
 
         data.Read()
@@ -179,7 +179,7 @@
         Return 0 ' Just to suppress the warning
     End Function
 
-    Public Overrides Sub Out(port As Integer, value As Integer)
+    Public Overrides Sub Out(port As UInteger, value As UInteger)
         Stop
     End Sub
 

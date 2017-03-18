@@ -107,7 +107,7 @@ Public Class FloppyControllerAdapter
             Owner.Run()
         End Sub
 
-        Public Overrides ReadOnly Property Name As Object
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Owner.Name
             End Get
@@ -134,7 +134,7 @@ Public Class FloppyControllerAdapter
         ctlNonDma = False
         Reset()
 
-        For i As Integer = &H3F0 To &H3F7
+        For i As UInteger = &H3F0 To &H3F7
             ValidPortAddress.Add(i)
         Next
     End Sub
@@ -678,7 +678,7 @@ Public Class FloppyControllerAdapter
         End Get
     End Property
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         If (port And 3) = 0 Then
             ' main status register
             Return GetMainStatus()
@@ -722,7 +722,7 @@ Public Class FloppyControllerAdapter
         End Get
     End Property
 
-    Public Overrides Sub Out(port As Integer, v As Integer)
+    Public Overrides Sub Out(port As UInteger, v As UInteger)
         If (port And 3) = 2 Then
             ' write to digital output register
             If (v And &H4) = 0 Then

@@ -159,7 +159,7 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         Return &HFF
     End Function
 
@@ -179,7 +179,7 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overrides Sub Out(port As Integer, value As Integer)
+    Public Overrides Sub Out(port As UInteger, value As UInteger)
 
     End Sub
 

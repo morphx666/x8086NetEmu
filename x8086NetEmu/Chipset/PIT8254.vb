@@ -544,7 +544,7 @@
             Owner.Run()
         End Sub
 
-        Public Overrides ReadOnly Property Name As Object
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Owner.Name
             End Get
@@ -581,7 +581,7 @@
         UpdateCh2(0)
     End Sub
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then
@@ -593,7 +593,7 @@
         End If
     End Function
 
-    Public Overrides Sub Out(port As Integer, v As Integer)
+    Public Overrides Sub Out(port As UInteger, v As UInteger)
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then

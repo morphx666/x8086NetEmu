@@ -21,12 +21,12 @@
         mCPU = cpu
         If mCPU.PIC IsNot Nothing Then irq = mCPU.PIC.GetIrqLine(4)
 
-        For i As Integer = &H3F8 To &H3F8 + 7
+        For i As UInteger = &H3F8 To &H3F8 + 7
             ValidPortAddress.Add(i)
         Next
     End Sub
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         Dim tmp As Integer
 
         Select Case port
@@ -60,7 +60,7 @@
         Return sm.reg(port And 7)
     End Function
 
-    Public Overrides Sub Out(port As Integer, value As Integer)
+    Public Overrides Sub Out(port As UInteger, value As UInteger)
         Dim oldReg As Integer = sm.reg(port And 7)
         sm.reg(port And 7) = value
 
@@ -96,7 +96,7 @@
         If lastY = Integer.MinValue Then lastY = m.Y
 
         Dim rX As Integer = (m.X - lastX) / (mCPU.VideoAdapter.Zoom * 2)
-        Dim rY As Integer = (m.Y - lastY) / ( mCPU.VideoAdapter.Zoom * 2)
+        Dim rY As Integer = (m.Y - lastY) / (mCPU.VideoAdapter.Zoom * 2)
 
         'Debug.WriteLine($"{m.X}, {m.Y}")
 
@@ -105,8 +105,8 @@
         If rY < 0 Then highbits = highbits Or &HC
 
         Dim btns As Integer = 0
-        If m.Button And MouseButtons.Left Then btns = btns Or 2
-        If m.Button And MouseButtons.Right Then btns = btns Or 1
+        If (m.Button And MouseButtons.Left) = MouseButtons.Left Then btns = btns Or 2
+        If (m.Button And MouseButtons.Right) = MouseButtons.Right Then btns = btns Or 1
 
         BufSerMouseData(&H40 Or (btns << 4) Or highbits)
         BufSerMouseData(rX And &H3F)

@@ -30,7 +30,7 @@ Public Class PPI8255
             Owner.Run()
         End Sub
 
-        Public Overrides ReadOnly Property Name As Object
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Owner.Name
             End Get
@@ -72,7 +72,7 @@ Public Class PPI8255
         End Get
     End Property
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         Select Case (port And 3)
             Case 0 ' port &h60 (PPI port A)
                 ' Return keyboard data if bit 7 in port B is cleared.
@@ -92,7 +92,7 @@ Public Class PPI8255
         End Select
     End Function
 
-    Public Overrides Sub Out(port As Integer, v As Integer)
+    Public Overrides Sub Out(port As UInteger, v As UInteger)
         Select Case (port And 3)
             Case 1
                 ' Write to port 0x61 (system control port)

@@ -3,20 +3,20 @@ Public MustInherit Class IOPortHandler
     Implements IInterruptController, IIOPortHandler
 
     Private mEmulator As x8086
-    Private mValidPortAddresses As List(Of Integer)
+    Private mValidPortAddresses As List(Of UInteger)
 
     Public Sub New()
-        mValidPortAddresses = New List(Of Integer)
+        mValidPortAddresses = New List(Of UInteger)
     End Sub
 
-    Public ReadOnly Property ValidPortAddress As List(Of Integer) Implements IIOPortHandler.ValidPortAddress
+    Public ReadOnly Property ValidPortAddress As List(Of UInteger) Implements IIOPortHandler.ValidPortAddress
         Get
             Return mValidPortAddresses
         End Get
     End Property
 
-    Public MustOverride Sub Out(port As Integer, value As Integer) Implements IIOPortHandler.Out
-    Public MustOverride Function [In](port As Integer) As Integer Implements IIOPortHandler.In
+    Public MustOverride Sub Out(port As UInteger, value As UInteger) Implements IIOPortHandler.Out
+    Public MustOverride Function [In](port As UInteger) As UInteger Implements IIOPortHandler.In
     Public MustOverride ReadOnly Property Description As String Implements IIOPortHandler.Description
     Public MustOverride ReadOnly Property Name As String Implements IIOPortHandler.Name
     Public MustOverride Sub Run() Implements IIOPortHandler.Run

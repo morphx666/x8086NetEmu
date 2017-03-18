@@ -38,8 +38,8 @@ Public MustInherit Class VideoAdapter
 
     Public MustOverride Overrides Sub CloseAdapter()
     Public MustOverride Overrides Sub InitiAdapter()
-    Public MustOverride Overrides Sub Out(port As Integer, value As Integer)
-    Public MustOverride Overrides Function [In](port As Integer) As Integer
+    Public MustOverride Overrides Sub Out(port As UInteger, value As UInteger)
+    Public MustOverride Overrides Function [In](port As UInteger) As UInteger
     Public MustOverride Overrides Sub Run()
 
     Public MustOverride Sub Reset()

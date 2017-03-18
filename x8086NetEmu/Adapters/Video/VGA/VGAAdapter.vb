@@ -274,12 +274,12 @@
     Private VGA_ATTR(&H100 - 1) As Byte
     Private VGA_GC(&H100 - 1) As Byte
     Private flip3C0 As Boolean
-    Private latchRGB = 0
-    Private latchPal = 0
+    Private latchRGB As Integer = 0
+    Private latchPal As Integer = 0
     Private VGA_latch(4 - 1) As Byte
-    Private stateDAC = 0
-    Private latchReadRGB = 0
-    Private latchReadPal = 0
+    Private stateDAC As Integer = 0
+    Private latchReadRGB As Integer = 0
+    Private latchReadPal As Integer = 0
     Private RAM(&H3DF - &H3C0 - 1) As Byte
     Private tempRGB As Integer
     Private palettevga(256 - 1) As Integer
@@ -302,7 +302,7 @@
         mCPU = cpu
 
         'ValidPortAddress.Clear()
-        For i As Integer = &H3C0 To &H3DF
+        For i As UInteger = &H3C0 To &H3DF
             ValidPortAddress.Add(i)
         Next
 
@@ -356,7 +356,7 @@
         If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, False))
     End Sub
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         Select Case port
             Case &H3C1
                 Return VGA_ATTR(RAM(&H3C0 - &H3C0))
@@ -394,7 +394,7 @@
         Return RAM(port - &H3C0)
     End Function
 
-    Public Overrides Sub Out(port As Integer, value As Integer)
+    Public Overrides Sub Out(port As UInteger, value As UInteger)
         Dim ramAddr As Integer = port - &H3C0
         value = value And &HFF
 

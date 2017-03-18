@@ -2,12 +2,12 @@
 
 Public Class FAT12_16
     Public Enum EntryAttributes As Byte
-        [ReadOnly] = 2 ^ 0
-        Hidden = 2 ^ 1
-        System = 2 ^ 2
-        VolumeName = 2 ^ 3
-        Directory = 2 ^ 4
-        ArchiveFlag = 2 ^ 5
+        [ReadOnly] = CInt(2 ^ 0)
+        Hidden = CInt(2 ^ 1)
+        System = CInt(2 ^ 2)
+        VolumeName = CInt(2 ^ 3)
+        Directory = CInt(2 ^ 4)
+        ArchiveFlag = CInt(2 ^ 5)
     End Enum
 
     <StructLayout(LayoutKind.Sequential, Pack:=1)>

@@ -45,7 +45,7 @@
             Owner.Run()
         End Sub
 
-        Public Overrides ReadOnly Property Name As Object
+        Public Overrides ReadOnly Property Name As String
             Get
                 Return Owner.Name
             End Get
@@ -319,7 +319,7 @@
         cpu.Sched.RunTaskAfter(task, transferTime)
     End Sub
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel status
@@ -344,7 +344,7 @@
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As Integer, v As Integer)
+    Public Overrides Sub Out(port As UInteger, v As UInteger)
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel setup

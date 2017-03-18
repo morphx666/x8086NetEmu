@@ -21,10 +21,10 @@ Public Class Scheduler
     Private syncScheduler As Boolean = True
 
     ' Determines how often the time synchronization is checked
-    Private syncQuantum As Long = CLOCKRATE / 20
+    Private syncQuantum As Long = CLng(CLOCKRATE / 20)
 
     ' Determines speed of the simulation
-    Private syncSimTimePerWallMs As Long = CLOCKRATE / 1000
+    Private syncSimTimePerWallMs As Long = CLng(CLOCKRATE / 1000)
 
     ' Gain on wall time since last synchronization, plus one syncQuantum
     Private syncTimeSaldo As Long
@@ -220,11 +220,11 @@ Public Class Scheduler
                 If syncTimeSaldo < 0 Then syncTimeSaldo = 0
                 If syncTimeSaldo > 2 * syncQuantum Then
                     ' The simulation has gained more than one time quantum
-                    Dim sleepTime As Long = (syncTimeSaldo - syncQuantum) / syncSimTimePerWallMs
+                    Dim sleepTime As Integer = CInt((syncTimeSaldo - syncQuantum) / syncSimTimePerWallMs)
                     Try
                         If syncTimeSaldo > 4 * syncQuantum Then
                             ' Force a hard sleep
-                            Dim s As Long = syncQuantum / syncSimTimePerWallMs
+                            Dim s As Integer = CInt(syncQuantum / syncSimTimePerWallMs)
                             Thread.Sleep(s)
                             sleepTime -= s
                         End If
@@ -271,7 +271,7 @@ Public Class Scheduler
                 If syncTimeSaldo < 0 Then syncTimeSaldo = 0
                 If syncTimeSaldo > 2 * syncQuantum Then
                     ' Skipping would give a gain of more than one time quantum
-                    Dim sleepTime As Long = (syncTimeSaldo - syncQuantum) / syncSimTimePerWallMs
+                    Dim sleepTime As Integer = CInt((syncTimeSaldo - syncQuantum) / syncSimTimePerWallMs)
                     Try
                         ' Sleep, but wake up on asynchronous events
                         Wait(sleepTime)
@@ -496,7 +496,7 @@ Public Class ExternalInputEvent
 End Class
 
 Public MustInherit Class Runnable
-    Public MustOverride ReadOnly Property Name
+    Public MustOverride ReadOnly Property Name As String
     Public MustOverride Sub Run()
 End Class
 

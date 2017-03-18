@@ -86,7 +86,7 @@ Public Class KeyboardAdapter
     '    e.Handled = True
     'End Sub
 
-    Public Overrides Function [In](port As Integer) As Integer
+    Public Overrides Function [In](port As UInteger) As UInteger
         Return &HFF
     End Function
 
@@ -238,7 +238,7 @@ Public Class KeyboardAdapter
         End Get
     End Property
 
-    Public Overrides Sub Out(port As Integer, value As Integer)
+    Public Overrides Sub Out(port As UInteger, value As UInteger)
     End Sub
 
     Public Overrides Sub Run()
