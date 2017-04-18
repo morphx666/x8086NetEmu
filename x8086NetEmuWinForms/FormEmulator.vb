@@ -465,6 +465,7 @@ Public Class FormEmulator
                       $"Would you like to configure the emulator's floppies and hard drives now?", MsgBoxStyle.Information Or MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                 RunMediaManager()
             End If
+            ShowConsole()
         End If
     End Sub
 

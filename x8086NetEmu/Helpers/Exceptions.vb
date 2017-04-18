@@ -98,7 +98,6 @@
 #If DEBUG Then
         If reason = NotificationReasons.Dbg Then Debug.WriteLine(formattedMessage)
 #End If
-
         RaiseEvent Output(message, reason, arg)
     End Sub
 End Class
