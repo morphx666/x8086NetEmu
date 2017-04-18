@@ -41,9 +41,9 @@ Public Class FormEmulator
         VIC20EmulationToolStripMenuItem.Checked = True
         v20Emulation = True
 
-        LoadSettings() ' For pre-emulation settings
+        LoadSettings(True)  ' For pre-emulation settings
         StartEmulation()
-        LoadSettings() ' For post-emulation settings
+        LoadSettings(False) ' For post-emulation settings
 
         SetupEventHandlers()
 
@@ -453,17 +453,19 @@ Public Class FormEmulator
         Me.Close()
     End Sub
 
-    Private Sub LoadSettings()
+    Private Sub LoadSettings(showPrompt As Boolean)
         ' Enforce defaults
 
         If IO.File.Exists("settings.dat") Then
             Dim xml = XDocument.Load("settings.dat")
             ParseSettings(xml.<settings>(0))
         Else
-            If MsgBox($"It looks like this is the first time you run the emulator.{Environment.NewLine}" +
-                      $"Use the 'RightCtrl + Home' hotkey to access the emulator settings.{Environment.NewLine}{Environment.NewLine}" +
-                      $"Would you like to configure the emulator's floppies and hard drives now?", MsgBoxStyle.Information Or MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
-                RunMediaManager()
+            If showPrompt Then
+                If MsgBox($"It looks like this is the first time you run the emulator.{Environment.NewLine}" +
+                          $"Use the 'RightCtrl + Home' hotkey to access the emulator settings.{Environment.NewLine}{Environment.NewLine}" +
+                          $"Would you like to configure the emulator's floppies and hard drives now?", MsgBoxStyle.Information Or MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
+                    RunMediaManager()
+                End If
             End If
             ShowConsole()
         End If
