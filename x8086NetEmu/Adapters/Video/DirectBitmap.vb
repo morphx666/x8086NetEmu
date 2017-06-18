@@ -12,6 +12,7 @@ Public Class DirectBitmap
     Public ReadOnly Property Width As Integer
     Public ReadOnly Property Height As Integer
     Public ReadOnly Property Bits As Byte()
+    Public ReadOnly Property Size As Size
 
     Private bitsHandle As GCHandle
     Private w4 As Integer
@@ -20,6 +21,7 @@ Public Class DirectBitmap
     Public Sub New(w As Integer, h As Integer)
         Me.Width = w
         Me.Height = h
+        Me.Size = New Size(w, h)
 
         w4 = w * 4
         bufferSize = w4 * h - 1

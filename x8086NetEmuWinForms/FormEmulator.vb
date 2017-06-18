@@ -27,7 +27,7 @@ Public Class FormEmulator
 
     Private runningApp As String
 
-    Private Sub frmMain_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+    Private Sub FormEmulator_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SaveSettings()
         StopEmulation()
     End Sub
@@ -235,7 +235,7 @@ Public Class FormEmulator
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono)) ' Not properly supported yet...
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things
+        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things
 
         AddSupportForTextCopy()
 

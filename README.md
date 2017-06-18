@@ -30,4 +30,4 @@ Portions of the code in the emulator were adapted or inspired from '[fake86](htt
 
 Precompiled binaries can now be downloaded from the [releases](https://github.com/morphx666/x8086NetEmu/releases) section.
 
-For sound support under Win32, [SlimDX .NET 4 runtimes](https://slimdx.org/download.php) need to be installed
+~~For sound support under Win32, [SlimDX .NET 4 runtimes](https://slimdx.org/download.php) need to be installed
