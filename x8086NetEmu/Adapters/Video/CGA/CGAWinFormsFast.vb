@@ -88,7 +88,6 @@ Public Class CGAWinForms
     Private videoBMP As DirectBitmap
 
     Private charSize As Size
-    Private cursorSize As Size
     Private blinkCounter As Integer
 
     Private preferredFont As String = "Perfect DOS VGA 437"
@@ -99,7 +98,6 @@ Public Class CGAWinForms
 
     Private brushCache(16 - 1) As Color
     Private cursorBrush As Color = Color.FromArgb(128, Color.White)
-    Private cursorYOffset As Integer
 
     Private Shared fontCGA() As Byte
     Private useCGAFont As Boolean
@@ -343,23 +341,30 @@ Public Class CGAWinForms
         Dim col As Integer = 0
         Dim row As Integer = 0
 
+        Static cursorAddress As New List(Of Integer)
+
         Dim r As New Rectangle(Point.Empty, charSize)
 
         For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
             b0 = mCPU.Memory(address)
             b1 = mCPU.Memory(address + 1)
 
-            If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
+            If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
+                If (blinkCounter < BlinkRate) Then b0 = 0
+                MyBase.IsDirty(address) = True
+            End If
 
-            If MyBase.IsDirty(address) OrElse
-                MyBase.IsDirty(address + 1) OrElse
-                BlinkCharOn Then RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
+            If MyBase.IsDirty(address) OrElse MyBase.IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
+                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
+                cursorAddress.Remove(address)
+            End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
-                    videoBMP.FillRectangle(brushCache(b1.LowNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
-                Else
-                    videoBMP.FillRectangle(brushCache(b1.HighNib()), r.X + 1, r.Y + cursorYOffset, cursorSize.Width, cursorSize.Height)
+                    videoBMP.FillRectangle(brushCache(b1.LowNib()),
+                                           r.X + 1, r.Y + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 2,
+                                           charSize.Width - 1, (MyBase.CursorEnd - MyBase.CursorStart))
+                    cursorAddress.Add(address)
                 End If
 
                 If blinkCounter >= 2 * BlinkRate Then
@@ -436,9 +441,9 @@ Public Class CGAWinForms
         Else
             If charSizeCache.ContainsKey(code) Then Return charSizeCache(code)
 
-            Dim rect As System.Drawing.RectangleF = New System.Drawing.RectangleF(0, 0, 1000, 1000)
-            Dim ranges() As System.Drawing.CharacterRange = {New System.Drawing.CharacterRange(0, 1)}
-            Dim regions() As System.Drawing.Region = {New System.Drawing.Region()}
+            Dim rect As RectangleF = New RectangleF(0, 0, 1000, 1000)
+            Dim ranges() As CharacterRange = {New CharacterRange(0, 1)}
+            Dim regions() As Region = {New Region()}
 
             textFormat.SetMeasurableCharacterRanges(ranges)
 
@@ -540,13 +545,6 @@ Public Class CGAWinForms
 
             ' Monospace... duh!
             charSize = charSizeCache(65)
-
-            ' Line Cursor
-            cursorSize = New Size(charSize.Width - 1, 2)
-            ' Block Cursor
-            'cursorSize = New Size(charSize.Width - 1, charSize.Height - 2)
-
-            cursorYOffset = charSize.Height - cursorSize.Height - 2
 
             UpdateSystemInformationArea()
         End If

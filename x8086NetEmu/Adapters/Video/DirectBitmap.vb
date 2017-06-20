@@ -94,7 +94,7 @@ Public Class DirectBitmap
         End Set
     End Property
 
-    Public Property Pixel2(x As Integer, y As Integer) As Color
+    Public Property PixelA(x As Integer, y As Integer) As Color
         Get
             If x < 0 OrElse x >= Width OrElse y < 0 OrElse y >= Height Then Exit Property
             Dim offset As Integer = y * w4 + x * 4

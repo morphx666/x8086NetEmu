@@ -406,7 +406,7 @@
         End Get
         Set(value As Byte)
             address = address And &HFFFFF
-            If address < ROMStart Then
+            If address < ROMStart AndAlso Memory(address) <> value Then
                 Memory(address) = value
 
                 ' FIXME: This will not work until the rendering engine(s) uses a persistent surface (such as a DirectBitmap)

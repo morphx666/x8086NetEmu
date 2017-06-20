@@ -96,6 +96,8 @@ Public MustInherit Class CGAAdapter
     Private mMainMode As MainModes
     Private mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
     Private mBlinkCharOn As Boolean
+    Private mCursorStart As Integer = 0
+    Private mCursorEnd As Integer = 1
 
     Private mZoom As Double = 1.0
 
@@ -175,6 +177,18 @@ Public MustInherit Class CGAAdapter
     Public ReadOnly Property BlinkCharOn As Boolean
         Get
             Return mBlinkCharOn
+        End Get
+    End Property
+
+    Public ReadOnly Property CursorStart As Integer
+        Get
+            Return mCursorStart
+        End Get
+    End Property
+
+    Public ReadOnly Property CursorEnd As Integer
+        Get
+            Return mCursorEnd
         End Get
     End Property
 
@@ -452,8 +466,11 @@ Public MustInherit Class CGAAdapter
             End If
         End If
 
-        mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) AndAlso
-                        Not CGAColorControlRegister(CGAColorControlRegisters.bright_background_or_blinking_text)
+        mCursorStart = CRT6845DataRegister(&HA) And &B11111
+        mCursorEnd = CRT6845DataRegister(&HB) And &B11111
+
+        mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) 'AndAlso
+        'Not CGAColorControlRegister(CGAColorControlRegisters.bright_background_or_blinking_text)
     End Sub
 
     Protected Overridable Sub OnModeControlRegisterChanged()
