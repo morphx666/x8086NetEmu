@@ -75,10 +75,12 @@
             Return mDebugMode
         End Get
         Set(value As Boolean)
-            mDebugMode = value
-
-            mDoReSchedule = True
-            If Not mDebugMode Then debugWaiter.Set()
+            If mDebugMode And Not value Then
+                mDebugMode = False
+                debugWaiter.Set()
+            Else
+                mDebugMode = value
+            End If
         End Set
     End Property
 

@@ -453,7 +453,7 @@ Public Class x8086
         Dim maxRunCycl As Long = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.CLOCKRATE - 1) / Scheduler.CLOCKRATE
 
         If mDebugMode Then
-            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule)
+            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)
                 debugWaiter.WaitOne()
 
                 If isDecoding Then
