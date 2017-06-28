@@ -1290,7 +1290,7 @@ Public Class x8086
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     Dim stackSize = Param(SelPrmIndex.First, , DataSize.Word)
-                    Dim nestLevel = Param(SelPrmIndex.Second, , DataSize.Byte) And &H1F
+                    Dim nestLevel = Param(SelPrmIndex.Second, 2, DataSize.Byte) And &H1F
                     PushIntoStack(mRegisters.BP)
                     Dim frameTemp = mRegisters.SP
                     If nestLevel > 0 Then

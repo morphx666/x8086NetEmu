@@ -342,12 +342,10 @@
             ' Extra cycles for address misalignment
             ' This is too CPU expensive, with very few benefits... not worth it
             'If (mRegisters.IP Mod 2) <> 0 Then clkCyc += 4
-
+            
             If size = DataSize.Byte Then
-                'Return RAM8(mRegisters.CS, AddValues(mRegisters.IP, ipOffset + index, DataSize.Word))
                 Return RAM8(mRegisters.CS, mRegisters.IP + ipOffset + index)
             Else
-                'Return RAM16(mRegisters.CS, AddValues(mRegisters.IP, ipOffset + index * 2, DataSize.Word))
                 Return RAM16(mRegisters.CS, mRegisters.IP + ipOffset + index * 2)
             End If
         End Get

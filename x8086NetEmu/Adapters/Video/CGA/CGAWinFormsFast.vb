@@ -246,6 +246,8 @@ Public Class CGAWinForms
     End Sub
 
     Private Sub Paint(sender As Object, e As PaintEventArgs)
+        Static lastVideoEnabled As Boolean
+
         SyncLock MyBase.lockObject
             Dim g As Graphics = e.Graphics
 
@@ -258,16 +260,23 @@ Public Class CGAWinForms
             RaiseEvent PreRender(sender, e)
             g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-            Select Case MainMode
-                Case MainModes.Text
-                    'If useSDL Then
-                    '    RenderTextSDL()
-                    'Else
-                    RenderText()
+            If MyBase.VideoEnabled Then
+                Select Case MainMode
+                    Case MainModes.Text
+                        'If useSDL Then
+                        '    RenderTextSDL()
+                        'Else
+                        RenderText()
                     'End If
-                Case MainModes.Graphics
-                    RenderGraphics()
-            End Select
+                    Case MainModes.Graphics
+                        RenderGraphics()
+                End Select
+
+                lastVideoEnabled = True
+            ElseIf lastVideoEnabled Then
+                videoBMP.Clear(Color.Black)
+                lastVideoEnabled = False
+            End If
 
             g.DrawImageUnscaled(videoBMP, 0, 0)
 

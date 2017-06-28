@@ -192,6 +192,12 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
+    Public ReadOnly Property VideoEnabled As Boolean
+        Get
+            Return mVideoEnabled
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property Name As String
         Get
             Return "CGA"
@@ -262,7 +268,7 @@ Public MustInherit Class CGAAdapter
         Do
             waiter.WaitOne(1000 \ VERTSYNC)
 
-            If isInit AndAlso mVideoEnabled Then 'AndAlso mVideoMode <> VideoModes.Undefined Then
+            If isInit Then
                 SyncLock lockObject
                     Render()
                 End SyncLock
