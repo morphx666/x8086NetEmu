@@ -3,13 +3,15 @@
 Public Class CGAConsole
     Inherits CGAAdapter
 
-    Private waiter As AutoResetEvent
-
     Private blinkCounter As Integer
-
     Private buffer() As Byte
 
     Private lastModifiers As ConsoleModifiers
+
+    Private i2a As Image2Ascii
+    Private isRendering As Boolean
+    Private ratio As New Size(2, 4)
+    Private frameRate As Integer = 30
 
     Public Sub New(cpu As x8086)
         MyBase.New(cpu)
@@ -18,6 +20,33 @@ Public Class CGAConsole
         Console.TreatControlCAsInput = True
         Console.OutputEncoding = New Text.UTF8Encoding()
         Console.Clear()
+
+        i2a = New Image2Ascii() With {
+            .Charset = Image2Ascii.Charsets.Advanced,
+            .ColorMode = Image2Ascii.ColorModes.Color,
+            .GrayScaleMode = Image2Ascii.GrayscaleModes.Accuarte,
+            .ScanMode = Image2Ascii.ScanModes.Accurate,
+            .Font = New Font("Perfect DOS VGA 437", 18)
+        }
+
+        Dim tmp As New Threading.Thread(Sub()
+                                            Do
+                                                Thread.Sleep(1000 \ frameRate)
+
+                                                Try
+                                                    If MainMode = MainModes.Graphics Then
+                                                        i2a.ProcessImage(False)
+
+                                                        For y As Integer = 0 To Console.WindowHeight - 1
+                                                            For x As Integer = 0 To Console.WindowWidth - 1
+                                                                ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character, Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color), ConsoleColor.Black, x, y)
+                                                            Next
+                                                        Next
+                                                    End If
+                                                Catch : End Try
+                                            Loop Until MyBase.cancelAllThreads
+                                        End Sub)
+        tmp.Start()
     End Sub
 
     Private Sub HandleModifier(v As ConsoleModifiers, t As ConsoleModifiers, k As Keys)
@@ -44,17 +73,33 @@ Public Class CGAConsole
 
     Private Overloads Sub ResizeRenderControl()
 #If Win32 Then
-        Console.SetWindowSize(TextResolution.Width, TextResolution.Height)
+        Select Case MainMode
+            Case MainModes.Text
+                Console.SetWindowSize(TextResolution.Width, TextResolution.Height)
+            Case MainModes.Graphics
+                Console.SetWindowSize(GraphicsResolution.Width / ratio.Width, GraphicsResolution.Height / ratio.Height)
+                ResetI2A()
+        End Select
         Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight)
 #End If
     End Sub
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
         MyBase.InitVideoMemory(clearScreen)
+
         Console.Title = "x8086 Emu - " + VideoMode.ToString()
+
+        If MainMode = MainModes.Graphics Then ResetI2A()
     End Sub
 
-    Private isBusy As Boolean
+    Private Sub ResetI2A()
+        If i2a IsNot Nothing Then
+            If i2a.Bitmap IsNot Nothing Then i2a.Bitmap.Dispose()
+            i2a.Bitmap = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+            i2a.CanvasSize = New Size(Console.WindowWidth, Console.WindowHeight)
+            Console.CursorVisible = False
+        End If
+    End Sub
 
     Private Sub HandleKeyPress()
         If Console.KeyAvailable Then
@@ -73,6 +118,50 @@ Public Class CGAConsole
     End Sub
 
     Protected Overrides Sub Render()
+        If isRendering Then Exit Sub
+        isRendering = True
+
+        If MyBase.VideoEnabled Then
+            Try
+                Select Case MainMode
+                    Case MainModes.Text : RenderText()
+                    Case MainModes.Graphics : RenderGraphics()
+                End Select
+            Catch : End Try
+        End If
+
+        HandleKeyPress()
+
+        isRendering = False
+    End Sub
+
+    Private Sub RenderGraphics()
+        Dim b As Byte
+        Dim address As UInteger
+        Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
+
+        For y As Integer = 0 To GraphicsResolution.Height - 1
+            For x As Integer = 0 To GraphicsResolution.Width - 1
+                address = StartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
+                b = CPU.Memory(address)
+
+                If PixelsPerByte = 4 Then
+                    Select Case x And 3
+                        Case 3 : b = b And 3
+                        Case 2 : b = (b >> 2) And 3
+                        Case 1 : b = (b >> 4) And 3
+                        Case 0 : b = (b >> 6) And 3
+                    End Select
+                Else
+                    b = (b >> (7 - (x And 7))) And 1
+                End If
+
+                i2a.DirectBitmap.Pixel(x, y) = CGAPalette(b)
+            Next
+        Next
+    End Sub
+
+    Private Sub RenderText()
         Dim b0 As Byte
         Dim b1 As Byte
 
@@ -81,8 +170,6 @@ Public Class CGAConsole
         Dim bufIdx As Integer = 0
 
         Dim cv As Boolean = False
-
-        HandleKeyPress()
 
         ' The "-4" is to prevent the code from printing the last character and avoid scrolling.
         ' Unfortunately, this causes the last char to not be printed

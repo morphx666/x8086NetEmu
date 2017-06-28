@@ -151,8 +151,8 @@
     <Compile Include="Adapters\Video\CGA\CGAAdapter.vb" />
     <Compile Include="Adapters\Video\CGA\CGAConsole.vb" />
     <Compile Include="Adapters\Video\CGA\CGAWinFormsFast.vb" />
-    <Compile Include="Adapters\Video\CGA\CGAWinForms.vb" />
     <Compile Include="Adapters\Video\DirectBitmap.vb" />
+    <Compile Include="Adapters\Video\Image2Ascii.vb" />
     <Compile Include="Adapters\Video\VGA\VGAAdapter.vb" />
     <Compile Include="Adapters\Video\VGA\VGAWinForms.vb" />
     <Compile Include="Adapters\Video\VideoAdapter.vb" />
