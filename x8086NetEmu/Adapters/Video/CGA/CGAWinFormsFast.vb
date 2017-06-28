@@ -316,7 +316,7 @@ Public Class CGAWinForms
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
-                                           r.X + 1, r.Y + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 2,
+                                           r.X + 1, r.Y + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
                                            charSize.Width - 1, (MyBase.CursorEnd - MyBase.CursorStart))
                     cursorAddress.Add(address)
                 End If
