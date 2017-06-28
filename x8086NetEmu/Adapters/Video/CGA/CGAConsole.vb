@@ -35,13 +35,11 @@ Public Class CGAConsole
     End Function
 
     Public Overrides Sub AutoSize()
-        SyncLock lockObject
-            'Dim length = Console.WindowWidth * Console.WindowHeight * 2
-            Dim length = TextResolution.Width * TextResolution.Height * 2
-            If buffer Is Nothing OrElse buffer.Length <> length Then ReDim buffer(length - 1)
+        'Dim length = Console.WindowWidth * Console.WindowHeight * 2
+        Dim length = TextResolution.Width * TextResolution.Height * 2
+        If buffer Is Nothing OrElse buffer.Length <> length Then ReDim buffer(length - 1)
 
-            ResizeRenderControl()
-        End SyncLock
+        ResizeRenderControl()
     End Sub
 
     Private Overloads Sub ResizeRenderControl()

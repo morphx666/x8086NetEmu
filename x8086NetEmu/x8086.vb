@@ -1546,6 +1546,7 @@ Public Class x8086
         Else
             IncIP(opCodeSize)
         End If
+
 #If DEBUG Then
         clkCyc += opCodeSize * 6 ' This an approximation for an i7 960
 #Else

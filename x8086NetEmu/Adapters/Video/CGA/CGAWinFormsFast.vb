@@ -89,15 +89,16 @@ Public Class CGAWinForms
 
     Private charSize As Size
     Private blinkCounter As Integer
+    Private frameRate As Integer = 30
+    Private cursorAddress As New List(Of Integer)
+
+    Private charSizeCache As New Dictionary(Of Integer, Size)
+    Private brushCache(16 - 1) As Color
+    Private cursorBrush As Color = Color.FromArgb(128, Color.White)
 
     Private preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
     Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
-
-    Private charSizeCache As New Dictionary(Of Integer, Size)
-
-    Private brushCache(16 - 1) As Color
-    Private cursorBrush As Color = Color.FromArgb(128, Color.White)
 
     Private Shared fontCGA() As Byte
     Private useCGAFont As Boolean
@@ -179,6 +180,14 @@ Public Class CGAWinForms
                                    StringFormatFlags.MeasureTrailingSpaces Or
                                    StringFormatFlags.FitBlackBox Or
                                    StringFormatFlags.NoClip
+
+        Dim tmp As New Threading.Thread(Sub()
+                                            Do
+                                                Threading.Thread.Sleep(1000 \ frameRate)
+                                                mRenderControl.Invalidate()
+                                            Loop Until MyBase.cancelAllThreads
+                                        End Sub)
+        tmp.Start()
     End Sub
 
     Public Property RenderControl As Control
@@ -241,106 +250,44 @@ Public Class CGAWinForms
         scale = New SizeF(frmSize.Width / ctrlSize.Width, frmSize.Height / ctrlSize.Height)
     End Sub
 
-    Protected Overrides Sub Render()
-        mRenderControl.Invalidate()
-    End Sub
-
     Private Sub Paint(sender As Object, e As PaintEventArgs)
-        Static lastVideoEnabled As Boolean
+        Dim g As Graphics = e.Graphics
 
-        SyncLock MyBase.lockObject
-            Dim g As Graphics = e.Graphics
+        g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighSpeed
+        g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+        g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
 
-            g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighSpeed
-            g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
-            g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
+        g.ScaleTransform(scale.Width, scale.Height)
 
-            g.ScaleTransform(scale.Width, scale.Height)
+        RaiseEvent PreRender(sender, e)
+        g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-            RaiseEvent PreRender(sender, e)
-            g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
+        g.DrawImageUnscaled(videoBMP, 0, 0)
 
-            If MyBase.VideoEnabled Then
-                Select Case MainMode
-                    Case MainModes.Text
-                        'If useSDL Then
-                        '    RenderTextSDL()
-                        'Else
-                        RenderText()
-                    'End If
-                    Case MainModes.Graphics
-                        RenderGraphics()
-                End Select
+        g.CompositingMode = Drawing2D.CompositingMode.SourceOver
+        RaiseEvent PostRender(sender, e)
 
-                lastVideoEnabled = True
-            ElseIf lastVideoEnabled Then
-                videoBMP.Clear(Color.Black)
-                lastVideoEnabled = False
-            End If
-
-            g.DrawImageUnscaled(videoBMP, 0, 0)
-
-            g.CompositingMode = Drawing2D.CompositingMode.SourceOver
-            RaiseEvent PostRender(sender, e)
-
-            'RenderWaveform(g)
-        End SyncLock
+        'RenderWaveform(g)
     End Sub
 
     Protected Overrides Sub OnPaletteRegisterChanged()
         MyBase.OnPaletteRegisterChanged()
 
-        SyncLock MyBase.lockObject
-            DisposeColorCaches()
-            For i As Integer = 0 To CGAPalette.Length - 1
-                brushCache(i) = CGAPalette(i)
-            Next
-        End SyncLock
+        DisposeColorCaches()
+        For i As Integer = 0 To CGAPalette.Length - 1
+            brushCache(i) = CGAPalette(i)
+        Next
     End Sub
 
-    Private Sub RenderGraphics()
-        Dim b As Byte
-        Dim pixelsPerByte As Integer = If(VideoMode = VideoModes.Mode6_Graphic_Color_640x200, 8, 4)
-        Dim yOffset As Integer
-        Dim yRenderOffset As Integer
-        Dim v As Byte
-        Dim address As UInteger
-
-        For y As Integer = 0 To 200 - 1
-            If y < 100 Then ' Even Scan Lines
-                yOffset = StartGraphicsVideoAddress + y * 80
-                yRenderOffset = y * 2
-            Else            ' Odd Scan Lines
-                yOffset = StartGraphicsVideoAddress + (y Mod 100) * 80 + &H2000
-                yRenderOffset = (y Mod 100) * 2 + 1
-            End If
-
-            For x As Integer = 0 To 80 - 1
-                address = x + yOffset
-                If Not MyBase.IsDirty(address) Then Continue For
-                b = CPU.RAM(address)
-
-                For pixel As Integer = 0 To pixelsPerByte - 1
-                    If VideoMode = VideoModes.Mode4_Graphic_Color_320x200 Then
-                        Select Case pixel And 3
-                            Case 3 : v = b And 3
-                            Case 2 : v = (b >> 2) And 3
-                            Case 1 : v = (b >> 4) And 3
-                            Case 0 : v = (b >> 6) And 3
-                        End Select
-                    Else
-                        v = (b >> (7 - (pixel And 7))) And 1
-                    End If
-
-                    'If mVideoMode = VideoModes.Mode4_Graphic_Color_320x200 Then
-                    'b *= 2
-                    'Else
-                    'b *= 63
-                    'End If
-                    videoBMP.Pixel(x * pixelsPerByte + pixel, yRenderOffset) = CGAPalette(v)
-                Next
-            Next
-        Next
+    Protected Overrides Sub Render()
+        If MyBase.VideoEnabled Then
+            SyncLock videoBMP
+                Select Case MainMode
+                    Case MainModes.Text : RenderText()
+                    Case MainModes.Graphics : RenderGraphics()
+                End Select
+            End SyncLock
+        End If
     End Sub
 
     Private Sub RenderText()
@@ -349,8 +296,6 @@ Public Class CGAWinForms
 
         Dim col As Integer = 0
         Dim row As Integer = 0
-
-        Static cursorAddress As New List(Of Integer)
 
         Dim r As New Rectangle(Point.Empty, charSize)
 
@@ -395,6 +340,78 @@ Public Class CGAWinForms
             End If
         Next
     End Sub
+
+    ' FIXME: IsDirty is not working here. Also, scrolling games present a flickering issue
+    Private Sub RenderGraphics()
+        Dim b As Byte
+        Dim address As UInteger
+        Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
+
+        For y As Integer = 0 To GraphicsResolution.Height - 1
+            For x As Integer = 0 To GraphicsResolution.Width - 1
+                address = StartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
+                b = CPU.Memory(address)
+
+                If PixelsPerByte = 4 Then
+                    Select Case x And 3
+                        Case 3 : b = b And 3
+                        Case 2 : b = (b >> 2) And 3
+                        Case 1 : b = (b >> 4) And 3
+                        Case 0 : b = (b >> 6) And 3
+                    End Select
+                Else
+                    b = (b >> (7 - (x And 7))) And 1
+                End If
+
+                videoBMP.Pixel(x, y) = CGAPalette(b)
+            Next
+        Next
+    End Sub
+
+    'Private Sub RenderGraphics2()
+    '    Dim b As Byte
+    '    Dim yOffset As Integer
+    '    Dim yRenderOffset As Integer
+    '    Dim v As Byte
+    '    Dim address As UInteger
+
+    '    For y As Integer = 0 To MyBase.GraphicsResolution.Height - 1
+    '        If y < 100 Then ' Even Scan Lines
+    '            yOffset = StartGraphicsVideoAddress + y * 80
+    '            yRenderOffset = y * 2
+    '        Else            ' Odd Scan Lines
+    '            yOffset = StartGraphicsVideoAddress + (y - 100) * 80 + &H2000
+    '            yRenderOffset = (y - 100) * 2 + 1
+    '        End If
+
+    '        For x As Integer = 0 To 80 - 1
+    '            address = x + yOffset
+    '            ' FIXME: This is not working (test BASICA SAMPLES -> [E] DONKEY)
+    '            ' If Not MyBase.IsDirty(address) Then Continue For
+    '            b = CPU.Memory(address)
+
+    '            For pixel As Integer = 0 To MyBase.PixelsPerByte - 1
+    '                If MyBase.VideoMode = VideoModes.Mode4_Graphic_Color_320x200 Then
+    '                    Select Case pixel And 3
+    '                        Case 3 : v = b And 3
+    '                        Case 2 : v = (b >> 2) And 3
+    '                        Case 1 : v = (b >> 4) And 3
+    '                        Case 0 : v = (b >> 6) And 3
+    '                    End Select
+    '                Else
+    '                    v = (b >> (7 - (pixel And 7))) And 1
+    '                End If
+
+    '                'If mVideoMode = VideoModes.Mode4_Graphic_Color_320x200 Then
+    '                'b *= 2
+    '                'Else
+    '                'b *= 63
+    '                'End If
+    '                videoBMP.Pixel(x * MyBase.PixelsPerByte + pixel, yRenderOffset) = CGAPalette(v)
+    '            Next
+    '        Next
+    '    Next
+    'End Sub
 
     Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
         Return New Rectangle(New Point(col * charSize.Width, row * charSize.Height), charSize)
@@ -532,25 +549,21 @@ Public Class CGAWinForms
 
         If mRenderControl IsNot Nothing Then
             If clearScreen OrElse charSizeCache.Count = 0 Then
-                SyncLock MyBase.lockObject
-                    charSizeCache.Clear()
-                    Using g = mRenderControl.CreateGraphics()
-                        For i As Integer = 0 To 255
-                            MeasureChar(g, i, chars(i), mFont)
-                        Next
-                    End Using
-                End SyncLock
+                charSizeCache.Clear()
+                Using g = mRenderControl.CreateGraphics()
+                    For i As Integer = 0 To 255
+                        MeasureChar(g, i, chars(i), mFont)
+                    Next
+                End Using
             End If
 
-            SyncLock MyBase.lockObject
-                If videoBMP IsNot Nothing Then videoBMP.Dispose()
-                Select Case MainMode
-                    Case MainModes.Text
-                        videoBMP = New DirectBitmap(640, 400)
-                    Case MainModes.Graphics
-                        videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
-                End Select
-            End SyncLock
+            If videoBMP IsNot Nothing Then videoBMP.Dispose()
+            Select Case MainMode
+                Case MainModes.Text
+                    videoBMP = New DirectBitmap(640, 400)
+                Case MainModes.Graphics
+                    videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+            End Select
 
             ' Monospace... duh!
             charSize = charSizeCache(65)

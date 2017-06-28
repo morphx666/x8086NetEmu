@@ -380,7 +380,7 @@
                 SetAddSubFlags(result, v1, v2, size, False)
 
             Case Operation.AddWithCarry
-                result = v1 + v2 + mFlags.CF
+                result = v1 + (v2 + mFlags.CF)
                 SetAddSubFlags(result, v1, v2, size, False)
 
             Case Operation.Substract, Operation.Compare

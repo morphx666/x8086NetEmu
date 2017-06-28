@@ -98,10 +98,9 @@ Public MustInherit Class CGAAdapter
     Private mBlinkCharOn As Boolean
     Private mCursorStart As Integer = 0
     Private mCursorEnd As Integer = 1
+    Private mPixelsPerByte As Integer
 
     Private mZoom As Double = 1.0
-
-    Protected lockObject As New Object()
 
     Private loopThread As Thread
     Private waiter As AutoResetEvent
@@ -198,6 +197,12 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
+    Public ReadOnly Property PixelsPerByte As Integer
+        Get
+            Return mPixelsPerByte
+        End Get
+    End Property
+
     Public Overrides ReadOnly Property Name As String
         Get
             Return "CGA"
@@ -266,13 +271,9 @@ Public MustInherit Class CGAAdapter
 
     Private Sub MainLoop()
         Do
-            waiter.WaitOne(1000 \ VERTSYNC)
+            waiter.WaitOne(2 * 1000 \ VERTSYNC)
 
-            If isInit Then
-                SyncLock lockObject
-                    Render()
-                End SyncLock
-            End If
+            Render()
 
             'RaiseEvent VideoRefreshed(Me)
         Loop Until cancelAllThreads
@@ -383,6 +384,8 @@ Public MustInherit Class CGAAdapter
         mStartGraphicsVideoAddress = x8086.SegOffToAbs(videoGraphicsSegment, 0)
         mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + &H4000
 
+        mPixelsPerByte = If(VideoMode = VideoModes.Mode6_Graphic_Color_640x200, 8, 4)
+
         OnPaletteRegisterChanged()
         AutoSize()
     End Sub
@@ -406,7 +409,9 @@ Public MustInherit Class CGAAdapter
                 Return x8086.BitsArrayToWord(CGAStatusRegister)
 
             Case &H3DF ' CRT/CPU page register  (PCjr only)
+#If DEBUG Then
                 Stop
+#End If
             Case Else
                 mCPU.RaiseException("CGA: Unknown In Port: " + port.ToHex(x8086.DataSize.Word))
         End Select
