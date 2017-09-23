@@ -76,6 +76,8 @@ Public Class CGAConsole
             Case MainModes.Text
                 Console.SetWindowSize(TextResolution.Width, TextResolution.Height)
             Case MainModes.Graphics
+                ratio = New Size(Math.Ceiling(GraphicsResolution.Width / Console.LargestWindowWidth),
+                                 Math.Ceiling(GraphicsResolution.Height / Console.LargestWindowHeight))
                 Console.SetWindowSize(GraphicsResolution.Width / ratio.Width, GraphicsResolution.Height / ratio.Height)
                 ResetI2A()
                 Console.SetWindowSize(i2a.CanvasSize.Width, i2a.CanvasSize.Height)
@@ -118,7 +120,7 @@ Public Class CGAConsole
     End Sub
 
     Protected Overrides Sub Render()
-        If isRendering Then Exit Sub
+        If isRendering OrElse CPU Is Nothing Then Exit Sub
         isRendering = True
 
         If MyBase.VideoEnabled Then
