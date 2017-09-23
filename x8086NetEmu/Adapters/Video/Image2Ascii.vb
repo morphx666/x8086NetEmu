@@ -58,7 +58,7 @@
         SetCharSize()
     End Sub
 
-    Public Property CanvasSize As Size
+    Public Property CanvasSize() As Size
         Get
             Return mCanvasSize
         End Get
@@ -70,13 +70,13 @@
         End Set
     End Property
 
-    Public ReadOnly Property DirectBitmap As DirectBitmap
+    Public ReadOnly Property DirectBitmap() As DirectBitmap
         Get
             Return mBitmap
         End Get
     End Property
 
-    Public Property Bitmap As Bitmap
+    Public Property Bitmap() As Bitmap
         Get
             Return mBitmap
         End Get
@@ -86,13 +86,13 @@
         End Set
     End Property
 
-    Public ReadOnly Property Surface As Bitmap
+    Public ReadOnly Property Surface() As Bitmap
         Get
             Return mSurface
         End Get
     End Property
 
-    Public Property GrayScaleMode As GrayscaleModes
+    Public Property GrayScaleMode() As GrayscaleModes
         Get
             Return mGrayScaleMode
         End Get
@@ -102,7 +102,7 @@
         End Set
     End Property
 
-    Public Property Charset As Charsets
+    Public Property Charset() As Charsets
         Get
             Return mCharset
         End Get
@@ -113,7 +113,7 @@
         End Set
     End Property
 
-    Public Property ColorMode As ColorModes
+    Public Property ColorMode() As ColorModes
         Get
             Return mColorMode
         End Get
@@ -123,7 +123,7 @@
         End Set
     End Property
 
-    Public Property ScanMode As ScanModes
+    Public Property ScanMode() As ScanModes
         Get
             Return mScanMode
         End Get
@@ -133,13 +133,13 @@
         End Set
     End Property
 
-    Public ReadOnly Property CharSize As Size
+    Public ReadOnly Property CharSize() As Size
         Get
             Return mCharSize
         End Get
     End Property
 
-    Public Property BackColor As Color
+    Public Property BackColor() As Color
         Get
             Return mBackColor
         End Get
@@ -149,7 +149,7 @@
         End Set
     End Property
 
-    Public Property Font As Font
+    Public Property Font() As Font
         Get
             Return mFont
         End Get
@@ -160,7 +160,7 @@
         End Set
     End Property
 
-    Public ReadOnly Property Canvas As ASCIIChar()()
+    Public ReadOnly Property Canvas() As ASCIIChar()()
         Get
             Return mCanvas
         End Get
@@ -172,7 +172,7 @@
         mCharSize.Height -= 1
     End Sub
 
-    Public Sub ProcessImage(Optional gurfaceGraphics As Boolean = True)
+    Public Sub ProcessImage(Optional surfaceGraphics As Boolean = True)
         If mBitmap Is Nothing Then Exit Sub
 
         Dim sx As Integer
@@ -185,9 +185,9 @@
             mSurface = New DirectBitmap(mCanvasSize.Width * CharSize.Width, mCanvasSize.Height * CharSize.Height)
         End If
 
-        If gurfaceGraphics Then
-            surfaceGraphics = Graphics.FromImage(mSurface)
-            surfaceGraphics.Clear(Me.BackColor)
+        If surfaceGraphics Then
+            Me.surfaceGraphics = Graphics.FromImage(mSurface)
+            Me.surfaceGraphics.Clear(Me.BackColor)
         End If
 
         Dim scanStep As Size = New Size(Math.Ceiling(mBitmap.Width / mCanvasSize.Width), Math.Ceiling(mBitmap.Height / mCanvasSize.Height))
@@ -251,14 +251,14 @@
                         mCanvas(sx)(sy) = New ASCIIChar(ColorToASCII(r, g, b), Color.FromArgb(r, g, b))
                 End Select
 
-                If gurfaceGraphics Then
+                If surfaceGraphics Then
                     Using sb As New SolidBrush(mCanvas(sx)(sy).Color)
-                        surfaceGraphics.DrawString(mCanvas(sx)(sy).Character, Me.Font, sb, sx * CharSize.Width, sy * CharSize.Height)
+                        Me.surfaceGraphics.DrawString(mCanvas(sx)(sy).Character, Me.Font, sb, sx * CharSize.Width, sy * CharSize.Height)
                     End Using
                 End If
             Next
         Next
-        If gurfaceGraphics Then surfaceGraphics.Dispose()
+        If surfaceGraphics Then Me.surfaceGraphics.Dispose()
 
         lastCanvasSize = mCanvasSize
 

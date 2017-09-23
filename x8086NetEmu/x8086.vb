@@ -231,20 +231,20 @@ Public Class x8086
         If PPI Is Nothing Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
-        PPI.SetSwitchData(Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
-        '                             │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ ├─┴────── old PC system board RAM < 256K
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
-        '                              │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode
-        '                              │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
-        '                              │ │ │ │ │ │ │ └───────────── 0 if DMA installed
-        '                              │ │ │ │ └─┴─┴────────────── number of serial ports
-        '                              │ │ │ └─────────────────── game adapter installed
-        '                              │ │ └──────────────────── unused, internal modem (PS/2)
-        '                              └─┴───────────────────── number of printer ports
+        PPI.SetSwitchData(&B0_0_0_0_0_0_0_0_0_1_1_0_0_0_0_1)
+        '                  │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
+        '                   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
+        '                   │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
+        '                   │ │ │ │ │ │ │ │ │ │ │ │ ├─┴────── old PC system board RAM < 256K
+        '                   │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
+        '                   │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
+        '                   │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode
+        '                   │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
+        '                   │ │ │ │ │ │ │ └───────────── 0 if DMA installed
+        '                   │ │ │ │ └─┴─┴────────────── number of serial ports
+        '                   │ │ │ └─────────────────── game adapter installed
+        '                   │ │ └──────────────────── unused, internal modem (PS/2)
+        '                   └─┴───────────────────── number of printer ports
 
         'PPI.PortA(0) = &H30 Or &HC
         'PPI.PortA(1) = &H0
@@ -2181,7 +2181,7 @@ Public Class x8086
         SetAddressing()
 
         Select Case addrMode.Reg
-            Case 0 ' 000    --  inc reg/mem
+            Case 0 ' 000 inc reg/mem
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), 1, Operation.Increment, addrMode.Size)
                     clkCyc += 3
@@ -2190,7 +2190,7 @@ Public Class x8086
                     clkCyc += 15
                 End If
 
-            Case 1 ' 001    --  dec reg/mem
+            Case 1 ' 001 dec reg/mem
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), 1, Operation.Decrement, addrMode.Size)
                     clkCyc += 3
@@ -2199,7 +2199,7 @@ Public Class x8086
                     clkCyc += 15
                 End If
 
-            Case 2 ' 010    --  call indirect within segment
+            Case 2 ' 010 call indirect within segment
                 PushIntoStack(mRegisters.IP + opCodeSize)
                 If addrMode.IsDirect Then
                     IPAddrOff = mRegisters.Val(addrMode.Register2)
@@ -2208,14 +2208,14 @@ Public Class x8086
                 End If
                 clkCyc += 11
 
-            Case 3 ' 011    --  call indirect intersegment
+            Case 3 ' 011 call indirect inter-segment
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
                 IPAddrOff = addrMode.IndMem
                 mRegisters.CS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 clkCyc += 37
 
-            Case 4 ' 100    --  jmp indirect within segment
+            Case 4 ' 100 jmp indirect within segment
                 If addrMode.IsDirect Then
                     IPAddrOff = mRegisters.Val(addrMode.Register2)
                 Else
@@ -2223,12 +2223,12 @@ Public Class x8086
                 End If
                 clkCyc += 15
 
-            Case 5 ' 101    --  jmp indirect intersegment
+            Case 5 ' 101 jmp indirect inter-segment
                 IPAddrOff = addrMode.IndMem
                 mRegisters.CS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 clkCyc += 24
 
-            Case 6 ' 110    --  push reg/mem
+            Case 6 ' 110 push reg/mem
                 If addrMode.IsDirect Then
                     If addrMode.Register2 = GPRegisters.RegistersTypes.SP Then
                         PushIntoStack(AddValues(mRegisters.SP, -2, DataSize.Word))

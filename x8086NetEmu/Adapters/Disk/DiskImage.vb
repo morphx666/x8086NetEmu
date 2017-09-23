@@ -234,8 +234,8 @@ Public Class DiskImage
         sector = sector And &H3F
 
         If cylinder >= mCylinders OrElse
-            sector < 1 OrElse sector > mSectors OrElse
-             head > mHeads Then
+                sector < 1 OrElse sector > mSectors OrElse
+                head > mHeads Then
             Return -1
         End If
 

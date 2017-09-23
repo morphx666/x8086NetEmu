@@ -10,8 +10,8 @@ Public Class CGAConsole
 
     Private i2a As Image2Ascii
     Private isRendering As Boolean
-    Private ratio As New Size(2, 4)
-    Private frameRate As Integer = 30
+    Private ratio As New Size(3, 4)
+    Private frameRate As Integer = 27
 
     Public Sub New(cpu As x8086)
         MyBase.New(cpu)
@@ -22,30 +22,29 @@ Public Class CGAConsole
         Console.Clear()
 
         i2a = New Image2Ascii() With {
-            .Charset = Image2Ascii.Charsets.Advanced,
+            .Charset = Image2Ascii.Charsets.Standard,
             .ColorMode = Image2Ascii.ColorModes.Color,
             .GrayScaleMode = Image2Ascii.GrayscaleModes.Accuarte,
-            .ScanMode = Image2Ascii.ScanModes.Accurate,
-            .Font = New Font("Perfect DOS VGA 437", 18)
+            .ScanMode = Image2Ascii.ScanModes.Fast
         }
 
-        Dim tmp As New Threading.Thread(Sub()
-                                            Do
-                                                Thread.Sleep(1000 \ frameRate)
+        Dim tmp As New Thread(Sub()
+                                  Do
+                                      Thread.Sleep(1000 \ frameRate)
 
-                                                Try
-                                                    If MainMode = MainModes.Graphics Then
-                                                        i2a.ProcessImage(False)
+                                      Try
+                                          If MainMode = MainModes.Graphics Then
+                                              i2a.ProcessImage(False)
 
-                                                        For y As Integer = 0 To Console.WindowHeight - 1
-                                                            For x As Integer = 0 To Console.WindowWidth - 1
-                                                                ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character, Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color), ConsoleColor.Black, x, y)
-                                                            Next
-                                                        Next
-                                                    End If
-                                                Catch : End Try
-                                            Loop Until MyBase.cancelAllThreads
-                                        End Sub)
+                                              For y As Integer = 0 To Console.WindowHeight - 1
+                                                  For x As Integer = 0 To Console.WindowWidth - 1
+                                                      ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character, Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color), ConsoleColor.Black, x, y)
+                                                  Next
+                                              Next
+                                          End If
+                                      Catch : End Try
+                                  Loop Until MyBase.cancelAllThreads
+                              End Sub)
         tmp.Start()
     End Sub
 
@@ -79,6 +78,7 @@ Public Class CGAConsole
             Case MainModes.Graphics
                 Console.SetWindowSize(GraphicsResolution.Width / ratio.Width, GraphicsResolution.Height / ratio.Height)
                 ResetI2A()
+                Console.SetWindowSize(i2a.CanvasSize.Width, i2a.CanvasSize.Height)
         End Select
         Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight)
 #End If
