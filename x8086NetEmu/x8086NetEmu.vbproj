@@ -158,6 +158,7 @@
     <Compile Include="Adapters\Video\VideoAdapter.vb" />
     <Compile Include="Chipset\RTC.vb" />
     <Compile Include="Chipset\PPI8255_ALT.vb" />
+    <Compile Include="Helpers\Binary.vb" />
     <Compile Include="Helpers\ConsoleCrayon.vb" />
     <Compile Include="Helpers\Decoder.vb" />
     <Compile Include="Helpers\EmulatorState.vb" />

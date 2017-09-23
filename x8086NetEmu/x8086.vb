@@ -231,20 +231,20 @@ Public Class x8086
         If PPI Is Nothing Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
-        PPI.SetSwitchData(&B0_0_0_0_0_0_0_0_0_1_1_0_0_0_0_1)
-        '                  │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
-        '                   │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
-        '                   │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
-        '                   │ │ │ │ │ │ │ │ │ │ │ │ ├─┴────── old PC system board RAM < 256K
-        '                   │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
-        '                   │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
-        '                   │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode
-        '                   │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
-        '                   │ │ │ │ │ │ │ └───────────── 0 if DMA installed
-        '                   │ │ │ │ └─┴─┴────────────── number of serial ports
-        '                   │ │ │ └─────────────────── game adapter installed
-        '                   │ │ └──────────────────── unused, internal modem (PS/2)
-        '                   └─┴───────────────────── number of printer ports
+        PPI.SetSwitchData(Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
+        '                             │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
+        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
+        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
+        '                              │ │ │ │ │ │ │ │ │ │ │ │ ├─┼────── old PC system board RAM < 256K
+        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
+        '                              │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
+        '                              │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode
+        '                              │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
+        '                              │ │ │ │ │ │ │ └───────────── 0 if DMA installed
+        '                              │ │ │ │ └─┴─┴────────────── number of serial ports
+        '                              │ │ │ └─────────────────── game adapter installed
+        '                              │ │ └──────────────────── unused, internal modem (PS/2)
+        '                              └─┴───────────────────── number of printer ports
 
         'PPI.PortA(0) = &H30 Or &HC
         'PPI.PortA(1) = &H0

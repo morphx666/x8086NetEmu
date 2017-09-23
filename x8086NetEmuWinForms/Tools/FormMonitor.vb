@@ -352,7 +352,7 @@ Public Class FormMonitor
             Next
         End If
 
-        Dim GetNumber = Function(s As String, p As Integer)
+        Dim GetNumber = Function(s As String, p As Integer) As Array
                             Dim i As Integer
                             Dim n As String = ""
                             For i = p - 1 To 0 Step -1
