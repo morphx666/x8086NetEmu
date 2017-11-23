@@ -22,9 +22,9 @@ Public Class CGAConsole
         Console.Clear()
 
         i2a = New Image2Ascii() With {
-            .Charset = Image2Ascii.Charsets.Standard,
+            .Charset = Image2Ascii.Charsets.Advanced,
             .ColorMode = Image2Ascii.ColorModes.Color,
-            .GrayScaleMode = Image2Ascii.GrayscaleModes.Accuarte,
+            .GrayScaleMode = Image2Ascii.GrayscaleModes.Average,
             .ScanMode = Image2Ascii.ScanModes.Fast
         }
 

@@ -67,8 +67,14 @@ Public NotInheritable Class ConsoleCrayon
                 If Console.CursorLeft <> col Then Console.CursorLeft = col
                 If Console.CursorTop <> row Then Console.CursorTop = row
 
-                Console.ForegroundColor = foreColor
-                Console.BackgroundColor = backColor
+                If foreColor <> mForegroundColor Then
+                    Console.ForegroundColor = foreColor
+                    mForegroundColor = foreColor
+                End If
+                If backColor <> mBackgroundColor Then
+                    Console.BackgroundColor = backColor
+                    mBackgroundColor = backColor
+                End If
 
                 If row = Console.WindowHeight - 1 AndAlso col + text.Length >= Console.WindowWidth Then
                     text = text.Substring(0, (text.Length * 2 + col) - Console.WindowWidth - 1)
@@ -76,9 +82,6 @@ Public NotInheritable Class ConsoleCrayon
 
                 Console.Write(text)
             End If
-
-            'mForegroundColor = foreColor
-            'mBackgroundColor = backColor
         End SyncLock
     End Sub
 
