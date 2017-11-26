@@ -26,7 +26,7 @@
     ' SECONDS
     Private Const SECOND_NOSC = &H80
 
-    Private Const baseFrequency As Integer = 32.768 * x8086.KHz
+    Private Const baseFrequency As Integer = 32.768 * X8086.KHz
 
     Private Class TaskSC
         Inherits Scheduler.Task
@@ -65,7 +65,7 @@
 
     Private data As DS1743
 
-    Public Sub New(cpu As x8086, irq As InterruptRequest)
+    Public Sub New(cpu As X8086, irq As InterruptRequest)
         Me.irq = irq
 
         For i As Integer = &H70 To &H71

@@ -8,7 +8,7 @@
         Public bufPtr As Integer
     End Class
 
-    Private mCPU As x8086
+    Private mCPU As X8086
     Private sm As New SerialMouse()
     Private irq As PIC8259.IRQLine
 
@@ -17,7 +17,7 @@
 
     Private Const M As Integer = Asc("M")
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         mCPU = cpu
         If mCPU.PIC IsNot Nothing Then irq = mCPU.PIC.GetIrqLine(4)
 

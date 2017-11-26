@@ -2,7 +2,7 @@
 Public MustInherit Class IOPortHandler
     Implements IInterruptController, IIOPortHandler
 
-    Private mEmulator As x8086
+    Private mEmulator As X8086
     Private mValidPortAddresses As List(Of UInteger)
 
     Public Sub New()

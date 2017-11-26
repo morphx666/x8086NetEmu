@@ -111,14 +111,14 @@ Public MustInherit Class CGAAdapter
 
     Protected chars(256 - 1) As Char
 
-    Private mCPU As x8086
+    Private mCPU As X8086
 
     Private vidModeChangeFlag As Integer = &B1000
 
     Public MustOverride Overrides Sub AutoSize()
     Protected MustOverride Sub Render()
 
-    Public Sub New(cpu As x8086, Optional useInternalTimer As Boolean = True)
+    Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True)
         mCPU = cpu
         Me.useInternalTimer = useInternalTimer
 
@@ -280,8 +280,8 @@ Public MustInherit Class CGAAdapter
     End Sub
 
     Public Overrides Sub Reset()
-        x8086.WordToBitsArray(&H29, CGAModeControlRegister)
-        x8086.WordToBitsArray(&H0, CGAColorControlRegister)
+        X8086.WordToBitsArray(&H29, CGAModeControlRegister)
+        X8086.WordToBitsArray(&H0, CGAColorControlRegister)
         CRT6845DataRegister(0) = &H71
         CRT6845DataRegister(1) = &H50
         CRT6845DataRegister(2) = &H5A
@@ -365,7 +365,7 @@ Public MustInherit Class CGAAdapter
                     mMainMode = MainModes.Graphics
 
                 Case Else
-                    mCPU.RaiseException("CGA: Unknown Video Mode " + CInt(value).ToHex(x8086.DataSize.Byte))
+                    mCPU.RaiseException("CGA: Unknown Video Mode " + CInt(value).ToHex(X8086.DataSize.Byte))
                     mVideoMode = VideoModes.Undefined
             End Select
 
@@ -376,12 +376,12 @@ Public MustInherit Class CGAAdapter
     Protected Overridable Sub InitVideoMemory(clearScreen As Boolean)
         If Not isInit Then Exit Sub
 
-        x8086.Notify("Set Video Mode: {0} @ {1}", x8086.NotificationReasons.Info, mVideoMode, videoTextSegment.ToHex(x8086.DataSize.Word))
+        X8086.Notify("Set Video Mode: {0} @ {1}", X8086.NotificationReasons.Info, mVideoMode, videoTextSegment.ToHex(X8086.DataSize.Word))
 
-        mStartTextVideoAddress = x8086.SegOffToAbs(videoTextSegment, 0)
+        mStartTextVideoAddress = X8086.SegOffToAbs(videoTextSegment, 0)
         mEndTextVideoAddress = mStartTextVideoAddress + &H4000
 
-        mStartGraphicsVideoAddress = x8086.SegOffToAbs(videoGraphicsSegment, 0)
+        mStartGraphicsVideoAddress = X8086.SegOffToAbs(videoGraphicsSegment, 0)
         mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + &H4000
 
         mPixelsPerByte = If(VideoMode = VideoModes.Mode6_Graphic_Color_640x200, 8, 4)
@@ -399,21 +399,21 @@ Public MustInherit Class CGAAdapter
                 Return CRT6845DataRegister(CRT6845IndexRegister)
 
             Case &H3D8 ' CGA mode control register  (except PCjr)
-                Return x8086.BitsArrayToWord(CGAModeControlRegister)
+                Return X8086.BitsArrayToWord(CGAModeControlRegister)
 
             Case &H3D9 ' CGA palette register
-                Return x8086.BitsArrayToWord(CGAPaletteRegister)
+                Return X8086.BitsArrayToWord(CGAPaletteRegister)
 
             Case &H3DA ' CGA status register
                 UpdateStatusRegister()
-                Return x8086.BitsArrayToWord(CGAStatusRegister)
+                Return X8086.BitsArrayToWord(CGAStatusRegister)
 
             Case &H3DF ' CRT/CPU page register  (PCjr only)
 #If DEBUG Then
                 Stop
 #End If
             Case Else
-                mCPU.RaiseException("CGA: Unknown In Port: " + port.ToHex(x8086.DataSize.Word))
+                mCPU.RaiseException("CGA: Unknown In Port: " + port.ToHex(X8086.DataSize.Word))
         End Select
 
         Return &HFF
@@ -441,15 +441,15 @@ Public MustInherit Class CGAAdapter
                 '    videoTextSegment = &HB800
                 '    InitVideoMemory(True)
                 'End If
-                x8086.WordToBitsArray(value, CGAModeControlRegister)
+                X8086.WordToBitsArray(value, CGAModeControlRegister)
                 OnModeControlRegisterChanged()
 
             Case &H3D9 ' CGA palette register
-                x8086.WordToBitsArray(value, CGAPaletteRegister)
+                X8086.WordToBitsArray(value, CGAPaletteRegister)
                 OnPaletteRegisterChanged()
 
             Case &H3DA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
-                x8086.WordToBitsArray(value, CGAStatusRegister)
+                X8086.WordToBitsArray(value, CGAStatusRegister)
 
             Case &H3DB ' The trigger is cleared by writing any value to port 03DBh (undocumented)
                 CGAStatusRegister(CGAStatusRegisters.light_pen_trigger_set) = False
@@ -457,7 +457,7 @@ Public MustInherit Class CGAAdapter
             Case &H3DF ' CRT/CPU page register  (PCjr only)
                 Stop
             Case Else
-                mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToHex(x8086.DataSize.Word))
+                mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToHex(X8086.DataSize.Word))
         End Select
     End Sub
 
@@ -486,7 +486,7 @@ Public MustInherit Class CGAAdapter
 
     Protected Overridable Sub OnModeControlRegisterChanged()
         ' http://www.seasip.info/VintagePC/cga.html
-        Dim v As UInteger = x8086.BitsArrayToWord(CGAModeControlRegister)
+        Dim v As UInteger = X8086.BitsArrayToWord(CGAModeControlRegister)
         Dim newMode As VideoModes = CType(v And &H17, VideoModes) ' 10111
         ' 00100101
 
@@ -500,8 +500,8 @@ Public MustInherit Class CGAAdapter
             CGAPalette = CType(CGABasePalette.Clone(), Color())
         Else
             Dim colors() As Color = Nothing
-            Dim cgaModeReg As UInteger = x8086.BitsArrayToWord(CGAModeControlRegister)
-            Dim cgaColorReg As UInteger = x8086.BitsArrayToWord(CGAPaletteRegister)
+            Dim cgaModeReg As UInteger = X8086.BitsArrayToWord(CGAModeControlRegister)
+            Dim cgaColorReg As UInteger = X8086.BitsArrayToWord(CGAPaletteRegister)
 
             'Dim burts As Boolean = (cgaModeReg And &H4) <> 0
             'Dim pal As Boolean = (cgaColorReg And &H20) <> 0

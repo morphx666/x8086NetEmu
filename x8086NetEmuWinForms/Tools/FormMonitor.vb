@@ -14,14 +14,14 @@ Public Class FormMonitor
     End Structure
 
     Public Class State
-        Public Registers As x8086.GPRegisters
-        Public Flags As x8086.GPFlags
+        Public Registers As X8086.GPRegisters
+        Public Flags As X8086.GPFlags
         'Public RAM(x8086.ROMStart - 1) As Byte
 
-        Private cpu As x8086
+        Private cpu As X8086
         Private includeRAM As Boolean
 
-        Public Sub New(cpu As x8086, includeRAM As Boolean)
+        Public Sub New(cpu As X8086, includeRAM As Boolean)
             Me.cpu = cpu
 
             Registers = cpu.Registers.Clone()
@@ -56,7 +56,7 @@ Public Class FormMonitor
     Private history(2 ^ 18) As State
     Private historyPointer As Integer
 
-    Private mEmulator As x8086
+    Private mEmulator As X8086
     Private currentCSIP As String
     Private currentSSSP As String
     Private ignoreEvents As Boolean
@@ -78,7 +78,7 @@ Public Class FormMonitor
     Private abortThreads As Boolean
 
     Private Const numberSufixes As String = "hbo" ' hEX / bINARY / oCTAL
-    Private activeInstruction As x8086.Instruction
+    Private activeInstruction As X8086.Instruction
 
     Private navigator As System.Xml.XPath.XPathNavigator = New System.Xml.XPath.XPathDocument(New IO.StringReader("<r/>")).CreateNavigator()
     Private rex As System.Text.RegularExpressions.Regex = New System.Text.RegularExpressions.Regex("([\+\-\*])")
@@ -193,7 +193,7 @@ Public Class FormMonitor
             Dim previous = Emulator.Decode(CS, IP - i)
             If previous.IsValid AndAlso previous.Size = i Then
                 If Emulator.Decode(CS, IP - i + previous.Size) = activeInstruction Then
-                    txtIP.Text = (IP - 1).ToHex(x8086.DataSize.Word, "")
+                    txtIP.Text = (IP - 1).ToHex(X8086.DataSize.Word, "")
                     Exit For
                 End If
             End If
@@ -226,11 +226,11 @@ Public Class FormMonitor
 
 #End Region
 
-    Public Property Emulator As x8086
+    Public Property Emulator As X8086
         Get
             Return mEmulator
         End Get
-        Set(value As x8086)
+        Set(value As X8086)
             mEmulator = value
             AddHandler mEmulator.InstructionDecoded, Sub()
                                                          If Not (ignoreEvents OrElse isRunning) Then UpdateUI()
@@ -279,7 +279,7 @@ Public Class FormMonitor
         If Not isInit Then Exit Sub
 
         Try
-            Dim address As Integer = x8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
+            Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
 
             Dim b As Byte
             Dim res As String = ""
@@ -303,38 +303,38 @@ Public Class FormMonitor
         End Try
     End Sub
 
-    Private Function StringToRegister(value As String) As x8086.GPRegisters.RegistersTypes
+    Private Function StringToRegister(value As String) As X8086.GPRegisters.RegistersTypes
         Select Case value.ToUpper()
-            Case "AL" : Return x8086.GPRegisters.RegistersTypes.AL
-            Case "AH" : Return x8086.GPRegisters.RegistersTypes.AH
-            Case "AX" : Return x8086.GPRegisters.RegistersTypes.AX
+            Case "AL" : Return X8086.GPRegisters.RegistersTypes.AL
+            Case "AH" : Return X8086.GPRegisters.RegistersTypes.AH
+            Case "AX" : Return X8086.GPRegisters.RegistersTypes.AX
 
-            Case "BL" : Return x8086.GPRegisters.RegistersTypes.BL
-            Case "BH" : Return x8086.GPRegisters.RegistersTypes.BH
-            Case "BX" : Return x8086.GPRegisters.RegistersTypes.BX
+            Case "BL" : Return X8086.GPRegisters.RegistersTypes.BL
+            Case "BH" : Return X8086.GPRegisters.RegistersTypes.BH
+            Case "BX" : Return X8086.GPRegisters.RegistersTypes.BX
 
-            Case "CL" : Return x8086.GPRegisters.RegistersTypes.CL
-            Case "CH" : Return x8086.GPRegisters.RegistersTypes.CH
-            Case "CX" : Return x8086.GPRegisters.RegistersTypes.CX
+            Case "CL" : Return X8086.GPRegisters.RegistersTypes.CL
+            Case "CH" : Return X8086.GPRegisters.RegistersTypes.CH
+            Case "CX" : Return X8086.GPRegisters.RegistersTypes.CX
 
-            Case "DL" : Return x8086.GPRegisters.RegistersTypes.DL
-            Case "DH" : Return x8086.GPRegisters.RegistersTypes.DH
-            Case "DX" : Return x8086.GPRegisters.RegistersTypes.DX
+            Case "DL" : Return X8086.GPRegisters.RegistersTypes.DL
+            Case "DH" : Return X8086.GPRegisters.RegistersTypes.DH
+            Case "DX" : Return X8086.GPRegisters.RegistersTypes.DX
 
-            Case "CS" : Return x8086.GPRegisters.RegistersTypes.CS
-            Case "IP" : Return x8086.GPRegisters.RegistersTypes.IP
-            Case "SS" : Return x8086.GPRegisters.RegistersTypes.SS
-            Case "SP" : Return x8086.GPRegisters.RegistersTypes.SP
-            Case "BP" : Return x8086.GPRegisters.RegistersTypes.BP
-            Case "SI" : Return x8086.GPRegisters.RegistersTypes.SI
-            Case "DI" : Return x8086.GPRegisters.RegistersTypes.DI
-            Case "DS" : Return x8086.GPRegisters.RegistersTypes.DS
-            Case "ES" : Return x8086.GPRegisters.RegistersTypes.ES
+            Case "CS" : Return X8086.GPRegisters.RegistersTypes.CS
+            Case "IP" : Return X8086.GPRegisters.RegistersTypes.IP
+            Case "SS" : Return X8086.GPRegisters.RegistersTypes.SS
+            Case "SP" : Return X8086.GPRegisters.RegistersTypes.SP
+            Case "BP" : Return X8086.GPRegisters.RegistersTypes.BP
+            Case "SI" : Return X8086.GPRegisters.RegistersTypes.SI
+            Case "DI" : Return X8086.GPRegisters.RegistersTypes.DI
+            Case "DS" : Return X8086.GPRegisters.RegistersTypes.DS
+            Case "ES" : Return X8086.GPRegisters.RegistersTypes.ES
 
             Case "AS" : Return mEmulator.Registers.Val(mEmulator.Registers.ActiveSegmentRegister)
 
             Case Else
-                Return x8086.GPRegisters.RegistersTypes.NONE
+                Return X8086.GPRegisters.RegistersTypes.NONE
         End Select
     End Function
 
@@ -345,7 +345,7 @@ Public Class FormMonitor
         If value.Contains("AS") Then
             value = value.Replace("AS", mEmulator.Registers.Val(mEmulator.Registers.ActiveSegmentRegister).ToString() + "d")
         Else
-            For Each reg In [Enum].GetNames(GetType(x8086.GPRegisters.RegistersTypes))
+            For Each reg In [Enum].GetNames(GetType(X8086.GPRegisters.RegistersTypes))
                 If value.Contains(reg) Then
                     value = value.Replace(reg, mEmulator.Registers.Val(StringToRegister(reg)).ToString() + "d")
                 End If
@@ -468,7 +468,7 @@ Public Class FormMonitor
         End If
 
         With Emulator
-            currentSSSP = x8086.SegOffToAbs(.Registers.SS, .Registers.SP).ToString("X")
+            currentSSSP = X8086.SegOffToAbs(.Registers.SS, .Registers.SP).ToString("X")
 
             Dim offset As Integer = 0
             If .Registers.SP Mod 2 = 0 Then offset = 1
@@ -477,7 +477,7 @@ Public Class FormMonitor
             Dim endOffset As Integer = Math.Max(Math.Min(.Registers.SP + 0, .Registers.SP - 128), 0 + offset)
 
             For ptr As Integer = startOffset To endOffset Step -2
-                Dim address As String = x8086.SegOffToAbs(.Registers.SS, ptr).ToString("X")
+                Dim address As String = X8086.SegOffToAbs(.Registers.SS, ptr).ToString("X")
                 Dim value As Integer = .RAM16(.Registers.SS, ptr)
 
                 Dim item As ListViewItem
@@ -487,8 +487,8 @@ Public Class FormMonitor
                     item = lvStack.Items.Add(address, "", 0)
                     item.SubItems.Add("")
                 End If
-                item.Text = .Registers.SS.ToHex(x8086.DataSize.Word, "") + ":" + ptr.ToHex(x8086.DataSize.Word, "")
-                item.SubItems(1).Text = value.ToHex(x8086.DataSize.Word, "")
+                item.Text = .Registers.SS.ToHex(X8086.DataSize.Word, "") + ":" + ptr.ToHex(X8086.DataSize.Word, "")
+                item.SubItems(1).Text = value.ToHex(X8086.DataSize.Word, "")
                 If ptr = .Registers.SP Then
                     item.BackColor = Color.DarkSlateBlue
                     item.EnsureVisible()
@@ -520,10 +520,10 @@ Public Class FormMonitor
             End With
         End If
 
-        currentCSIP = x8086.SegOffToAbs(CS, IP).ToString("X")
+        currentCSIP = X8086.SegOffToAbs(CS, IP).ToString("X")
         ignoreEvents = True
         Do
-            Dim address As String = x8086.SegOffToAbs(CS, IP).ToString("X")
+            Dim address As String = X8086.SegOffToAbs(CS, IP).ToString("X")
 
             insIndex = -1
             If ListViewCode.Items.ContainsKey(address) Then
@@ -556,15 +556,15 @@ Public Class FormMonitor
             End If
 
             If Emulator.IsExecuting Then Exit Do
-            Dim info As x8086.Instruction = mEmulator.Decode(CS, IP)
+            Dim info As X8086.Instruction = mEmulator.Decode(CS, IP)
             If Not info.IsValid Then Exit Do
 
-            Dim curIP As String = IP.ToHex(x8086.DataSize.Word, "")
+            Dim curIP As String = IP.ToHex(X8086.DataSize.Word, "")
             If CInt(IP) + info.Size > &HFFFF Then Exit Do
             IP = (IP + info.Size) Mod &HFFFF
 
             If Not isRunning OrElse item.Text = "" Then
-                item.Text = info.CS.ToHex(x8086.DataSize.Word, "") + ":" + info.IP.ToHex(x8086.DataSize.Word, "")
+                item.Text = info.CS.ToHex(X8086.DataSize.Word, "") + ":" + info.IP.ToHex(X8086.DataSize.Word, "")
                 item.SubItems(1).Text = GetBytesString(info.Bytes)
                 item.SubItems(2).Text = info.Mnemonic
                 If info.Message = "" Then
@@ -823,8 +823,8 @@ Public Class FormMonitor
         ButtonSearch.Enabled = False
         TextBoxSearch.Enabled = False
 
-        Dim startIndex As Integer = x8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
-        Dim endIndex As Integer = x8086.MemSize - 1 - str.Length
+        Dim startIndex As Integer = X8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
+        Dim endIndex As Integer = X8086.MemSize - 1 - str.Length
 
         If startIndex <> 0 Then startIndex += 1
 
@@ -835,7 +835,7 @@ Public Class FormMonitor
                     found = True
 
                     For j = 0 To str.Length - 1 Step 2
-                        If i + j * 2 >= x8086.MemSize Then
+                        If i + j * 2 >= X8086.MemSize Then
                             found = False
                             Exit For
                         End If
@@ -847,8 +847,8 @@ Public Class FormMonitor
                     Next
 
                     If found Then
-                        txtMemSeg.Text = x8086.AbsToSeg(i).ToHex(x8086.DataSize.Word, "")
-                        txtMemOff.Text = x8086.AbsoluteToOff(i).ToHex(x8086.DataSize.Word, "")
+                        txtMemSeg.Text = X8086.AbsToSeg(i).ToHex(X8086.DataSize.Word, "")
+                        txtMemOff.Text = X8086.AbsoluteToOff(i).ToHex(X8086.DataSize.Word, "")
 
                         Exit Do
                     End If
@@ -857,8 +857,8 @@ Public Class FormMonitor
                 For i As Integer = startIndex To endIndex
                     Array.Copy(mEmulator.Memory, i, buffer, 0, str.Length)
                     If ASCIIEncoding.ASCII.GetString(buffer).ToLower() = str Then
-                        txtMemSeg.Text = x8086.AbsToSeg(i).ToHex(x8086.DataSize.Word, "")
-                        txtMemOff.Text = x8086.AbsoluteToOff(i).ToHex(x8086.DataSize.Word, "")
+                        txtMemSeg.Text = X8086.AbsToSeg(i).ToHex(X8086.DataSize.Word, "")
+                        txtMemOff.Text = X8086.AbsoluteToOff(i).ToHex(X8086.DataSize.Word, "")
 
                         found = True
                         Exit Do
@@ -887,19 +887,19 @@ Public Class FormMonitor
     End Sub
 
     Private Sub ButtonMemBack_Click(sender As Object, e As EventArgs) Handles ButtonMemBack.Click
-        Dim address As Integer = x8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
+        Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
         address -= 256
-        txtMemSeg.Text = x8086.AbsToSeg(address).ToHex(x8086.DataSize.Word)
-        txtMemOff.Text = x8086.AbsoluteToOff(address).ToHex(x8086.DataSize.Word)
+        txtMemSeg.Text = X8086.AbsToSeg(address).ToHex(X8086.DataSize.Word)
+        txtMemOff.Text = X8086.AbsoluteToOff(address).ToHex(X8086.DataSize.Word)
 
         UpdateMemory()
     End Sub
 
     Private Sub ButtonMemForward_Click(sender As Object, e As EventArgs) Handles ButtonMemForward.Click
-        Dim address As Integer = x8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
+        Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
         address += 256
-        txtMemSeg.Text = x8086.AbsToSeg(address).ToHex(x8086.DataSize.Word)
-        txtMemOff.Text = x8086.AbsoluteToOff(address).ToHex(x8086.DataSize.Word)
+        txtMemSeg.Text = X8086.AbsToSeg(address).ToHex(X8086.DataSize.Word)
+        txtMemOff.Text = X8086.AbsoluteToOff(address).ToHex(X8086.DataSize.Word)
 
         UpdateMemory()
     End Sub

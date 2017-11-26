@@ -1,14 +1,14 @@
 ﻿Imports x8086NetEmu
 
 Public Class FormMediaManager
-    Private mEmulator As x8086
+    Private mEmulator As X8086
     Private mHardDiskMode As Boolean
 
-    Public Property Emulator As x8086
+    Public Property Emulator As X8086
         Get
             Return mEmulator
         End Get
-        Set(value As x8086)
+        Set(value As X8086)
             mEmulator = value
 
             DiskImgCtrlA.Emulator = mEmulator

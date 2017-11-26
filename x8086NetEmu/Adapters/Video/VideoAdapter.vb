@@ -54,7 +54,7 @@ Public MustInherit Class VideoAdapter
     Protected mTextResolution As Size = New Size(40, 25)
     Protected mVideoResolution As Size = New Size(0, 0)
 
-    Private Memory(x8086.MemSize - 1) As Boolean
+    Private Memory(X8086.MemSize - 1) As Boolean
 
     Protected Overridable Sub OnKeyDown(sender As Object, e As KeyEventArgs)
         RaiseEvent KeyDown(sender, e)

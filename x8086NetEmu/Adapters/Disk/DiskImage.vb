@@ -78,7 +78,7 @@ Public Class DiskImage
     End Property
 
     Public Sub New(fileName As String, Optional mountInReadOnlyMode As Boolean = False, Optional isHardDisk As Boolean = False)
-        mFileName = x8086.FixPath(fileName)
+        mFileName = X8086.FixPath(fileName)
 
         mCylinders = -1
         mHeads = -1
@@ -111,7 +111,7 @@ Public Class DiskImage
             End Try
         End If
 
-        x8086.Notify("DiskImage '{0}': {1}", x8086.NotificationReasons.Info, mFileName, mStatus.ToString())
+        X8086.Notify("DiskImage '{0}': {1}", X8086.NotificationReasons.Info, mFileName, mStatus.ToString())
     End Sub
 
     ' Guess the image's disk geometry based on its size

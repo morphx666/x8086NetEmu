@@ -1,11 +1,11 @@
 ﻿Imports x8086NetEmu
 
 Module MainModule
-    Private cpu As x8086
+    Private cpu As X8086
 
     Sub Main()
-        x8086.LogToConsole = False
-        cpu = New x8086(True)
+        X8086.LogToConsole = False
+        cpu = New X8086(True)
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAConsole(cpu))

@@ -2,7 +2,7 @@
 Imports System.Threading
 
 Public Class FormConsole
-    Private mEmulator As x8086
+    Private mEmulator As X8086
 
     Private rtfTextStd As String = "{\rtf1\ansi {\colortbl;" +
                             "\red000\green192\blue000;" +
@@ -18,7 +18,7 @@ Public Class FormConsole
 
     Private Sub FormConsole_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SyncLock Me
-            RemoveHandler x8086.Output, AddressOf Output
+            RemoveHandler X8086.Output, AddressOf Output
         End SyncLock
 
         refreshTimer.Dispose()
@@ -28,27 +28,27 @@ Public Class FormConsole
         RichTextBoxConsole.Text = ""
     End Sub
 
-    Public Property Emulator As x8086
+    Public Property Emulator As X8086
         Get
             Return mEmulator
         End Get
-        Set(value As x8086)
+        Set(value As X8086)
             mEmulator = value
 
-            AddHandler x8086.Output, AddressOf Output
+            AddHandler X8086.Output, AddressOf Output
         End Set
     End Property
 
-    Private Sub Output(message As String, reason As x8086.NotificationReasons, arg() As Object)
+    Private Sub Output(message As String, reason As X8086.NotificationReasons, arg() As Object)
         message = message.Replace("\", "\\")
         rtfText += "\cf1 " + MillTime + ": "
 
         Select Case reason
-            Case x8086.NotificationReasons.Info : rtfText += "\cf2 "
-            Case x8086.NotificationReasons.Warn : rtfText += "\cf3 "
-            Case x8086.NotificationReasons.Err : rtfText += "\cf4 "
-            Case x8086.NotificationReasons.Fck : rtfText += "\cf5 "
-            Case x8086.NotificationReasons.Dbg : rtfText += "\cf6 "
+            Case X8086.NotificationReasons.Info : rtfText += "\cf2 "
+            Case X8086.NotificationReasons.Warn : rtfText += "\cf3 "
+            Case X8086.NotificationReasons.Err : rtfText += "\cf4 "
+            Case X8086.NotificationReasons.Fck : rtfText += "\cf5 "
+            Case X8086.NotificationReasons.Dbg : rtfText += "\cf6 "
         End Select
 
         rtfText += String.Format(message.Replace("{", "\b {").Replace("}", "}\b0 ") + " \par ", arg)

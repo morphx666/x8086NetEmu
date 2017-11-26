@@ -3,7 +3,7 @@
 'The MAIN Guide: http://docs.huihoo.com/help-pc/index.html
 ' http://www.delorie.com/djgpp/doc/rbinter/ix/
 
-Partial Public Class x8086
+Partial Public Class X8086
     Private lastAH(256 - 1) As UInteger
     Private lastCF(256 - 1) As UShort
 

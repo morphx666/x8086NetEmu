@@ -48,14 +48,14 @@ Public Class x8087
         Public Rounding As ROUNDe
     End Class
 
-    Private cpu As x8086
+    Private cpu As X8086
     Private fpu As New FPUc
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         Me.cpu = cpu
     End Sub
 
-    Public Sub Execute(opCode As Byte, am As x8086.AddressingMode)
+    Public Sub Execute(opCode As Byte, am As X8086.AddressingMode)
         Dim opCode2 As Integer = cpu.RAM8(cpu.Registers.CS, cpu.Registers.IP + 1)
 
         ' 10/87 instructions implemented

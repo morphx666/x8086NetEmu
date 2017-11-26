@@ -7,7 +7,7 @@ Public Class FormEmulator
     End Function
 #End If
 
-    Private cpu As x8086
+    Private cpu As X8086
     Private cpuState As EmulatorState
 
     Private fMonitor As FormMonitor
@@ -204,7 +204,7 @@ Public Class FormEmulator
 
         Me.Text = String.Format("x8086NetEmu [Menu: {0}]      {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5} {6}",
                                     sysMenIntegercut,
-                                    cpu.Clock / x8086.MHz,
+                                    cpu.Clock / X8086.MHz,
                                     cpu.SimulationMultiplier * 100,
                                     cpu.VideoAdapter.Zoom * 100,
                                     cpu.MIPs,
@@ -225,7 +225,7 @@ Public Class FormEmulator
     Private Sub StartEmulation()
         StopEmulation()
 
-        cpu = New x8086(v20Emulation, int13Emulation)
+        cpu = New X8086(v20Emulation, int13Emulation)
         cpuState = New EmulatorState(cpu)
 
         videoPort = New RenderCtrlGDI()
@@ -246,7 +246,7 @@ Public Class FormEmulator
 
         cpu.VideoAdapter.AutoSize()
 
-        x8086.LogToConsole = False
+        X8086.LogToConsole = False
 
         cpu.Run(False)
 
@@ -273,7 +273,7 @@ Public Class FormEmulator
 
                                             Dim GetFileName = Function() As String
                                                                   Dim b As New List(Of Byte)
-                                                                  Dim addr As UInteger = x8086.SegOffToAbs(cpu.Registers.DS, cpu.Registers.DX)
+                                                                  Dim addr As UInteger = X8086.SegOffToAbs(cpu.Registers.DS, cpu.Registers.DX)
                                                                   While cpu.RAM(addr) <> 0
                                                                       b.Add(cpu.RAM(addr))
                                                                       addr += 1
@@ -301,7 +301,7 @@ Public Class FormEmulator
                                                 Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
                                             End Select
 
-                                            x8086.Notify($"DOS {mode}: {GetFileName()} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", x8086.NotificationReasons.Dbg)
+                                            X8086.Notify($"DOS {mode}: {GetFileName()} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.
@@ -446,7 +446,7 @@ Public Class FormEmulator
 
         Dim speedText As String = CType(sender, ToolStripMenuItem).Text
         Dim speedValue As Double = Double.Parse(speedText.Replace(" MHz", ""))
-        SetCPUClockSpeed(speedValue * x8086.MHz)
+        SetCPUClockSpeed(speedValue * X8086.MHz)
     End Sub
 
     Private Sub ExitToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExitToolStripMenuItem.Click
@@ -528,7 +528,7 @@ Public Class FormEmulator
 
     Private Sub SetCPUClockSpeed(value As Double)
         cpu.Clock = value
-        Dim clockSpeedText As String = (cpu.Clock / x8086.MHz).ToString("0.00") + " MHz"
+        Dim clockSpeedText As String = (cpu.Clock / X8086.MHz).ToString("0.00") + " MHz"
         For Each ddi As ToolStripItem In CPUClockToolStripMenuItem.DropDownItems
             If TypeOf ddi Is ToolStripMenuItem Then
                 Dim mi = CType(ddi, ToolStripMenuItem)
@@ -619,7 +619,7 @@ Public Class FormEmulator
         cpu.Registers.ES = xml.<registers>.<ES>.Value
         cpu.Registers.DI = xml.<registers>.<DI>.Value
         cpu.Registers.BP = xml.<registers>.<BP>.Value
-        cpu.Registers.ActiveSegmentRegister = [Enum].Parse(GetType(x8086.GPRegisters.RegistersTypes), xml.<registers>.<AS>.Value)
+        cpu.Registers.ActiveSegmentRegister = [Enum].Parse(GetType(X8086.GPRegisters.RegistersTypes), xml.<registers>.<AS>.Value)
 
         cpu.Memory = Convert.FromBase64String(xml.<memory>.Value)
         cpu.DebugMode = Boolean.Parse(xml.<debugMode>.Value)

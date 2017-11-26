@@ -1,4 +1,4 @@
-﻿Partial Public Class x8086
+﻿Partial Public Class X8086
     Private isVideoAdapterAvailable As Boolean
     Private tmpCF As UInteger
     Private portsCache As New Dictionary(Of Integer, IOPortHandler)
@@ -276,7 +276,7 @@
             For Each p As IOPortHandler In mPorts
                 If p.ValidPortAddress.Contains(portAddress) Then
                     p.Out(portAddress, value)
-                    x8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToHex(DataSize.Byte).TrimEnd("h"), portAddress.ToHex(DataSize.Word).TrimEnd("h"), p.Name), NotificationReasons.Info)
+                    X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToHex(DataSize.Byte).TrimEnd("h"), portAddress.ToHex(DataSize.Word).TrimEnd("h"), p.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, p)
                     Exit Sub
@@ -286,7 +286,7 @@
             For Each a As Adapter In mAdapters
                 If a.ValidPortAddress.Contains(portAddress) Then
                     a.Out(portAddress, value)
-                    x8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToHex(DataSize.Byte).TrimEnd("h"), portAddress.ToHex(DataSize.Word).TrimEnd("h"), a.Name), NotificationReasons.Info)
+                    X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToHex(DataSize.Byte).TrimEnd("h"), portAddress.ToHex(DataSize.Word).TrimEnd("h"), a.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, a)
                     Exit Sub
@@ -305,7 +305,7 @@
         Else
             For Each p As IOPortHandler In mPorts
                 If p.ValidPortAddress.Contains(portAddress) Then
-                    x8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToHex(DataSize.Word).TrimEnd("h"), p.Name), NotificationReasons.Info)
+                    X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToHex(DataSize.Word).TrimEnd("h"), p.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, p)
                     Return p.In(portAddress)
@@ -314,7 +314,7 @@
 
             For Each a As Adapter In mAdapters
                 If a.ValidPortAddress.Contains(portAddress) Then
-                    x8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToHex(DataSize.Word).TrimEnd("h"), a.Name), NotificationReasons.Info)
+                    X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToHex(DataSize.Word).TrimEnd("h"), a.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, a)
                     Return a.In(portAddress)
@@ -511,13 +511,13 @@
     End Sub
 
     Private Sub PrintRegisters()
-        x8086.Notify("AX: {0}   SP: {1} ", NotificationReasons.Info, mRegisters.AX.ToHex(DataSize.Word), mRegisters.SP.ToHex(DataSize.Word))
-        x8086.Notify("BX: {0}   DI: {1} ", NotificationReasons.Info, mRegisters.BX.ToHex(DataSize.Word), mRegisters.DI.ToHex(DataSize.Word))
-        x8086.Notify("CX: {0}   BP: {1} ", NotificationReasons.Info, mRegisters.CX.ToHex(DataSize.Word), mRegisters.BP.ToHex(DataSize.Word))
-        x8086.Notify("DX: {0}   SI: {1} ", NotificationReasons.Info, mRegisters.DX.ToHex(DataSize.Word), mRegisters.SI.ToHex(DataSize.Word))
-        x8086.Notify("ES: {0}   CS: {1} ", NotificationReasons.Info, mRegisters.ES.ToHex(DataSize.Word), mRegisters.CS.ToHex(DataSize.Word))
-        x8086.Notify("SS: {0}   DS: {1} ", NotificationReasons.Info, mRegisters.SS.ToHex(DataSize.Word), mRegisters.DS.ToHex(DataSize.Word))
-        x8086.Notify("IP: {0} FLGS: {1}{2}{3}{4}{5}{6}{7}{8}", NotificationReasons.Info,
+        X8086.Notify("AX: {0}   SP: {1} ", NotificationReasons.Info, mRegisters.AX.ToHex(DataSize.Word), mRegisters.SP.ToHex(DataSize.Word))
+        X8086.Notify("BX: {0}   DI: {1} ", NotificationReasons.Info, mRegisters.BX.ToHex(DataSize.Word), mRegisters.DI.ToHex(DataSize.Word))
+        X8086.Notify("CX: {0}   BP: {1} ", NotificationReasons.Info, mRegisters.CX.ToHex(DataSize.Word), mRegisters.BP.ToHex(DataSize.Word))
+        X8086.Notify("DX: {0}   SI: {1} ", NotificationReasons.Info, mRegisters.DX.ToHex(DataSize.Word), mRegisters.SI.ToHex(DataSize.Word))
+        X8086.Notify("ES: {0}   CS: {1} ", NotificationReasons.Info, mRegisters.ES.ToHex(DataSize.Word), mRegisters.CS.ToHex(DataSize.Word))
+        X8086.Notify("SS: {0}   DS: {1} ", NotificationReasons.Info, mRegisters.SS.ToHex(DataSize.Word), mRegisters.DS.ToHex(DataSize.Word))
+        X8086.Notify("IP: {0} FLGS: {1}{2}{3}{4}{5}{6}{7}{8}", NotificationReasons.Info,
                                                         mRegisters.IP.ToHex(DataSize.Word),
                                                         mFlags.CF,
                                                         mFlags.ZF,
@@ -527,14 +527,14 @@
                                                         mFlags.AF,
                                                         mFlags.IF,
                                                         mFlags.DF)
-        x8086.Notify("                CZSOPAID", NotificationReasons.Info)
+        X8086.Notify("                CZSOPAID", NotificationReasons.Info)
         For i As Integer = 0 To 3
             Debug.Write(RAM8(mRegisters.CS, mRegisters.IP + i).ToHex().TrimEnd("h") + " ")
         Next
     End Sub
 
     Private Sub PrintFlags()
-        x8086.Notify("{0}{1}{2}{3}{4}{5}{6}{7}", NotificationReasons.Info,
+        X8086.Notify("{0}{1}{2}{3}{4}{5}{6}{7}", NotificationReasons.Info,
                         mFlags.CF,
                         mFlags.ZF,
                         mFlags.SF,
@@ -543,7 +543,7 @@
                         mFlags.AF,
                         mFlags.IF,
                         mFlags.DF)
-        x8086.Notify("CZSOPAID", NotificationReasons.Info)
+        X8086.Notify("CZSOPAID", NotificationReasons.Info)
     End Sub
 
     Private Sub PrintStack()
@@ -551,7 +551,7 @@
         Dim t As Integer = Math.Max(0, mRegisters.SP - 10)
 
         For i As Integer = f To t Step -2
-            x8086.Notify("{0}:{1}  {2}{3}", NotificationReasons.Info,
+            X8086.Notify("{0}:{1}  {2}{3}", NotificationReasons.Info,
                                     mRegisters.SS.ToHex(DataSize.Word),
                                     i.ToHex(DataSize.Word),
                                     RAM16(mRegisters.SS, i).ToHex(DataSize.Word),

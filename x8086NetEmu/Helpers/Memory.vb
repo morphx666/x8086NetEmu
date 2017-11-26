@@ -1,4 +1,4 @@
-﻿Partial Public Class x8086
+﻿Partial Public Class X8086
     Public Const MemSize As UInteger = &H100000
     Public Const ROMStart As UInteger = &HC0000
 
@@ -333,7 +333,7 @@
     End Class
 
     Public Sub LoadBIN(fileName As String, segment As UInteger, offset As UInteger)
-        fileName = x8086.FixPath(fileName)
+        fileName = X8086.FixPath(fileName)
 
         If IO.File.Exists(fileName) Then
             CopyToRAM(IO.File.ReadAllBytes(fileName), segment, offset)
@@ -343,7 +343,7 @@
     End Sub
 
     Public Sub CopyToRAM(bytes() As Byte, segment As UInteger, offset As UInteger)
-        CopyToRAM(bytes, x8086.SegOffToAbs(segment, offset))
+        CopyToRAM(bytes, X8086.SegOffToAbs(segment, offset))
     End Sub
 
     Public Sub CopyToRAM(bytes() As Byte, address As UInteger)

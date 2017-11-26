@@ -180,17 +180,17 @@ Public Class FormDiskExplorer
     End Sub
 
     Private Sub DecodeBootStrapCode()
-        Dim emu As New x8086(True)
-        Dim ins As x8086.Instruction
+        Dim emu As New X8086(True)
+        Dim ins As X8086.Instruction
         Dim address As String
         Dim bsc() As Byte = sdf.BootSector(selectedParitionIndex).BootStrapCode
         Array.Copy(bsc, 0, emu.Memory, 0, bsc.Length)
 
         For i As Integer = 0 To bsc.Length - 1
-            address = x8086.SegOffToAbs(0, i).ToString("X")
+            address = X8086.SegOffToAbs(0, i).ToString("X")
             ins = emu.Decode(0, i)
 
-            With ListViewCode.Items.Add(address, ins.CS.ToHex(x8086.DataSize.Word, "") + ":" + ins.IP.ToHex(x8086.DataSize.Word, ""), 0)
+            With ListViewCode.Items.Add(address, ins.CS.ToHex(X8086.DataSize.Word, "") + ":" + ins.IP.ToHex(X8086.DataSize.Word, ""), 0)
                 With .SubItems
                     .Add(GetBytesString(ins.Bytes))
                     .Add(ins.Mnemonic)

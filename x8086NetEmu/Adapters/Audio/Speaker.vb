@@ -49,7 +49,7 @@ Public Class SpeakerAdpater
 
     Public Const SampleRate As Integer = 44100
 
-    Private mCPU As x8086
+    Private mCPU As X8086
     Private mEnabled As Boolean
 
     Private mFrequency As Double
@@ -59,7 +59,7 @@ Public Class SpeakerAdpater
 
     Private mVolume As Double
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         mCPU = cpu
         If mCPU.PIT IsNot Nothing Then mCPU.PIT.Speaker = Me
         mVolume = 0.05
@@ -184,7 +184,7 @@ Public Class SpeakerAdpater
     End Property
 
     Public Overrides Sub Run()
-        x8086.Notify("Speaker Running", x8086.NotificationReasons.Info)
+        X8086.Notify("Speaker Running", X8086.NotificationReasons.Info)
     End Sub
 
     Public Overrides ReadOnly Property Type As Adapter.AdapterType

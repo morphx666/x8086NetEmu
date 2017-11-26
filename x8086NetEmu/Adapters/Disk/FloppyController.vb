@@ -94,7 +94,7 @@ Public Class FloppyControllerAdapter
         SEEK = &HF
     End Enum
 
-    Private mCPU As x8086
+    Private mCPU As X8086
 
     Private Class TaskSC
         Inherits Scheduler.Task
@@ -115,7 +115,7 @@ Public Class FloppyControllerAdapter
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         mCPU = cpu
 
         Me.sched = cpu.Sched

@@ -1,4 +1,4 @@
-﻿Partial Public Class x8086
+﻿Partial Public Class X8086
     Public ReadOnly Property V20 As Boolean
         Get
             Return mVic20
@@ -103,7 +103,7 @@
         End Get
     End Property
 
-    Public ReadOnly Property Model As x8086.Models
+    Public ReadOnly Property Model As X8086.Models
         Get
             Return mModel
         End Get

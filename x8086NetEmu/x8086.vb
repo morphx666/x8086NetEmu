@@ -5,7 +5,7 @@
 
 Imports System.Threading
 
-Public Class x8086
+Public Class X8086
     Public Enum Models
         IBMPC_5150
         IBMPC_5160

@@ -295,10 +295,10 @@
 
     Protected lockObject As New Object()
 
-    Private mCPU As x8086
+    Private mCPU As X8086
     Private mMainMode As MainModes
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         mCPU = cpu
 
         'ValidPortAddress.Clear()

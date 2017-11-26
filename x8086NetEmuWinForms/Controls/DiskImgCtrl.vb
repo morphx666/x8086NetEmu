@@ -2,7 +2,7 @@
 
 Public Class DiskImgCtrl
     Private mIndex As Integer
-    Private mEmulator As x8086
+    Private mEmulator As X8086
     Private mHardDiskMode As Boolean
 
     Private devName As String
@@ -17,11 +17,11 @@ Public Class DiskImgCtrl
         End Set
     End Property
 
-    Public Property Emulator As x8086
+    Public Property Emulator As X8086
         Get
             Return mEmulator
         End Get
-        Set(value As x8086)
+        Set(value As X8086)
             mEmulator = value
             UpdateUI()
         End Set

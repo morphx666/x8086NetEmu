@@ -5,9 +5,9 @@ Public Class KeyboardAdapter
     Inherits Adapter
     Implements IExternalInputHandler
 
-    Private mCPU As x8086
+    Private mCPU As X8086
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         mCPU = cpu
     End Sub
 

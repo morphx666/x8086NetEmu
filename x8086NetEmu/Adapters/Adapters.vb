@@ -1,10 +1,10 @@
 ﻿Public Class Adapters
     Implements IList(Of Adapter)
 
-    Private emulator As x8086
+    Private emulator As X8086
     Private list As List(Of Adapter)
 
-    Public Sub New(emulator As x8086)
+    Public Sub New(emulator As X8086)
         Me.emulator = emulator
         list = New List(Of Adapter)
     End Sub

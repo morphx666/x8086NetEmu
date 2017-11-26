@@ -9,7 +9,7 @@ Public Class Scheduler
     Private Shared STOPPING As Long = Long.MinValue
 
     ' Number of scheduler time units per simulated second (1.0 GHz)
-    Public Const CLOCKRATE As Long = 1 * x8086.GHz
+    Public Const CLOCKRATE As Long = 1 * X8086.GHz
 
     ' Current simulation time in scheduler time units (ns)
     Private mCurrentTime As Long
@@ -39,7 +39,7 @@ Public Class Scheduler
     Public pendingInput As ArrayList
 
     ' The Cpu component controlled by this Scheduler
-    Private mCPU As x8086
+    Private mCPU As X8086
 
     Private sw As New Stopwatch()
 
@@ -107,7 +107,7 @@ Public Class Scheduler
         Public MustOverride Overrides Sub Run()
     End Class
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         mCPU = cpu
         pq = New PriorityQueue()
         pendingInput = New ArrayList()
@@ -397,9 +397,9 @@ Public Class Scheduler
                 Try
                     mCPU.PreExecute()
                 Catch ex As Exception
-                    x8086.Notify("Shit happens at {0}:{1}: {2}", x8086.NotificationReasons.Fck,
-                                                                 mCPU.Registers.CS.ToHex(x8086.DataSize.Word, ""),
-                                                                 mCPU.Registers.IP.ToHex(x8086.DataSize.Word, ""),
+                    X8086.Notify("Shit happens at {0}:{1}: {2}", X8086.NotificationReasons.Fck,
+                                                                 mCPU.Registers.CS.ToHex(X8086.DataSize.Word, ""),
+                                                                 mCPU.Registers.IP.ToHex(X8086.DataSize.Word, ""),
                                                                  ex.Message)
                 End Try
 
@@ -440,7 +440,7 @@ Public Class Scheduler
             If isCtrlDown AndAlso isAltDown AndAlso (theEvent.KeyCode And Keys.Insert) = Keys.Insert Then
                 cadCounter = 3 ' Ignore the next three events, which will be the release of CTRL, ALT and DEL
                 e.TheEvent = New KeyEventArgs(Keys.Delete)
-                x8086.Notify("Sending CTRL+ALT+DEL", x8086.NotificationReasons.Info)
+                X8086.Notify("Sending CTRL+ALT+DEL", X8086.NotificationReasons.Info)
             End If
             'ElseIf TypeOf e.TheEvent Is MouseEventArgs Then
             '    If mCPU.Mouse IsNot Nothing Then

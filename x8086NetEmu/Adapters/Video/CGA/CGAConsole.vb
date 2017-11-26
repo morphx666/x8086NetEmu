@@ -13,7 +13,7 @@ Public Class CGAConsole
     Private ratio As New Size(3, 4)
     Private frameRate As Integer = 27
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         MyBase.New(cpu)
         InitiAdapter()
 

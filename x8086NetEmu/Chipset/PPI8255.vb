@@ -17,7 +17,7 @@ Public Class PPI8255
     Private keyMap As KeyMap
     Private keyUpStates(16 - 1) As Boolean
 
-    Private cpu As x8086
+    Private cpu As X8086
 
     Private Class TaskSC
         Inherits Scheduler.Task
@@ -38,7 +38,7 @@ Public Class PPI8255
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Public Sub New(cpu As x8086, irq As InterruptRequest)
+    Public Sub New(cpu As X8086, irq As InterruptRequest)
         For i As Integer = &H60 To &H6F
             ValidPortAddress.Add(i)
         Next

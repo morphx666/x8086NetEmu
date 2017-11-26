@@ -28,7 +28,7 @@ Public Class HostFolderAsDisk
         'mIsHardDisk = CType(image.Partitions(0).FileSystem, FAT12_16.BootSector).BIOSParameterBlock.MediaDescriptor = &HF8
         'mStatus = ImageStatus.DiskLoaded
 
-        x8086.Notify("DiskImage '{0}': {1}", x8086.NotificationReasons.Info, mFileName, mStatus.ToString())
+        X8086.Notify("DiskImage '{0}': {1}", X8086.NotificationReasons.Info, mFileName, mStatus.ToString())
     End Sub
 
     Public Overrides Function Read(offset As Long, data() As Byte) As Integer

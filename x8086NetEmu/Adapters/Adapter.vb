@@ -1,7 +1,7 @@
 ﻿Public MustInherit Class Adapter
     Inherits IOPortHandler
 
-    Private mCPU As x8086
+    Private mCPU As X8086
 
     Public Enum AdapterType
         Video
@@ -17,11 +17,11 @@
     Public Sub New()
     End Sub
 
-    Public Property CPU As x8086
+    Public Property CPU As X8086
         Get
             Return mCPU
         End Get
-        Set(value As x8086)
+        Set(value As X8086)
             mCPU = value
             InitiAdapter()
         End Set

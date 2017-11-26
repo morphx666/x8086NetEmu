@@ -105,7 +105,7 @@ Public Class CGAWinForms
 
     Private scale As New SizeF(1, 1)
 
-    Private mCPU As x8086
+    Private mCPU As X8086
     Private mRenderControl As Control
     Private mHideHostCursor As Boolean = True
 
@@ -131,7 +131,7 @@ Public Class CGAWinForms
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Public Sub New(cpu As x8086, renderControl As Control, Optional tryUseCGAFont As Boolean = True)
+    Public Sub New(cpu As X8086, renderControl As Control, Optional tryUseCGAFont As Boolean = True)
         MyBase.New(cpu)
         useCGAFont = tryUseCGAFont
         mCPU = cpu
@@ -144,7 +144,7 @@ Public Class CGAWinForms
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs) OnMouseMove(Me, e)
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, e)
 
-        Dim fontCGAPath As String = x8086.FixPath("roms\asciivga.dat")
+        Dim fontCGAPath As String = X8086.FixPath("roms\asciivga.dat")
         Dim fontCGAError As String = ""
 
         If useCGAFont Then

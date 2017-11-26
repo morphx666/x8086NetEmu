@@ -517,7 +517,7 @@
     End Class
 
     ' Global counter clock rate (1.19318 MHz) 
-    Public Const COUNTRATE As Long = 1.19318 * x8086.MHz
+    Public Const COUNTRATE As Long = 1.19318 * X8086.MHz
 
     ' Three counters in the I8254 chip 
     Private channels(3 - 1) As Counter
@@ -531,7 +531,7 @@
     ' Current time mirrored from Scheduler
     Private currentTime As Long
 
-    Private cpu As x8086
+    Private cpu As X8086
 
     Private Class TaskSC
         Inherits Scheduler.Task
@@ -552,7 +552,7 @@
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Public Sub New(cpu As x8086, irq As InterruptRequest)
+    Public Sub New(cpu As X8086, irq As InterruptRequest)
         Me.cpu = cpu
         Me.irq = irq
         Me.currentTime = cpu.Sched.CurrentTime

@@ -26,7 +26,7 @@
     Private channels() As Channel
 
     ' CPU
-    Private cpu As x8086
+    Private cpu As X8086
 
     ' True if the background task is currently scheduled
     Private pendingTask As Boolean
@@ -109,7 +109,7 @@
         TryHandleRequest()
     End Sub
 
-    Public Sub New(cpu As x8086)
+    Public Sub New(cpu As X8086)
         Me.cpu = cpu
         ReDim channels(4)
         For i As Integer = 0 To 4 - 1

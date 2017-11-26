@@ -48,7 +48,7 @@
         End Sub
     End Class
 
-    Public Sub New(cpu As x8086, Optional master As PIC8259 = Nothing)
+    Public Sub New(cpu As X8086, Optional master As PIC8259 = Nothing)
         ReDim slave(8 - 1)
 
         If master Is Nothing Then

@@ -1,4 +1,4 @@
-﻿Partial Public Class x8086
+﻿Partial Public Class X8086
     Public Structure Instruction
         Public decOpCode As Byte
         Public Mnemonic As String
@@ -92,7 +92,7 @@
         Return inst
     End Function
 
-    Public Function Decode(emulator As x8086, Optional force As Boolean = False) As Instruction
+    Public Function Decode(emulator As X8086, Optional force As Boolean = False) As Instruction
         Return Decode(emulator.Registers.CS, emulator.Registers.IP, force)
     End Function
 

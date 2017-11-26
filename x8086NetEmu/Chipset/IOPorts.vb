@@ -1,10 +1,10 @@
 ﻿Public Class IOPorts
     Implements IList(Of IOPortHandler)
 
-    Private emulator As x8086
+    Private emulator As X8086
     Private list As List(Of IOPortHandler)
 
-    Public Sub New(emulator As x8086)
+    Public Sub New(emulator As X8086)
         Me.emulator = emulator
         list = New List(Of IOPortHandler)
     End Sub

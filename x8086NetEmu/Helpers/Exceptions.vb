@@ -1,4 +1,4 @@
-﻿Partial Public Class x8086
+﻿Partial Public Class X8086
     Public Class EmulatorErrorEventArgs
         Inherits EventArgs
 
@@ -63,7 +63,7 @@
     End Sub
 
     Private Sub NoIOPort(port As Integer)
-        x8086.Notify("No IO port responding from {0} called at {1}:{2}", NotificationReasons.Warn,
+        X8086.Notify("No IO port responding from {0} called at {1}:{2}", NotificationReasons.Warn,
                         port.ToHex(DataSize.Word),
                         mRegisters.CS.ToHex(DataSize.Word).TrimEnd("h"),
                         mRegisters.IP.ToHex(DataSize.Word).TrimEnd("h"))
@@ -78,7 +78,7 @@
         If mEnableExceptions Then
             Throw New Exception(message)
         Else
-            x8086.Notify(message, NotificationReasons.Err)
+            X8086.Notify(message, NotificationReasons.Err)
             RaiseEvent Error(Me, New EmulatorErrorEventArgs(message))
         End If
     End Sub

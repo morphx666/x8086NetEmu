@@ -13,7 +13,7 @@ Public Class PPI8255_ALT
     Private keyMap As KeyMap
     Private keyUpStates(16 - 1) As Boolean
 
-    Private cpu As x8086
+    Private cpu As X8086
 
     Private Delegate Function ReadFunction() As Byte
     Private Delegate Sub WriteFunction(v As Byte)
@@ -56,7 +56,7 @@ Public Class PPI8255_ALT
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Public Sub New(cpu As x8086, irq As InterruptRequest)
+    Public Sub New(cpu As X8086, irq As InterruptRequest)
         Me.cpu = cpu
         Me.sched = cpu.Sched
         Me.irq = irq
@@ -99,7 +99,7 @@ Public Class PPI8255_ALT
                                                        End Sub)
                 Case 2 ' C
                     ports(i).Read = New ReadFunction(Function()
-                                                         If cpu.Model = x8086.Models.IBMPC_5160 Then
+                                                         If cpu.Model = X8086.Models.IBMPC_5160 Then
                                                              If (PortB And &H8) <> 0 Then
                                                                  Return PortC(1)
                                                              Else
