@@ -51,7 +51,7 @@ Public Class EmulatorState
 
                     If Not di.IsHardDisk Then
                         xml.Add(<floppy>
-                                    <letter><%= Chr(65 + i) %></letter>
+                                    <letter><%= Convert.ToChar(65 + i) %></letter>
                                     <index><%= i %></index>
                                     <image><%= di.FileName.Replace(curPath, "") %></image>
                                     <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
@@ -74,7 +74,7 @@ Public Class EmulatorState
 
                 If di.IsHardDisk Then
                     xml.Add(<disk>
-                                <letter><%= Chr(67 + (i - 128)) %></letter>
+                                <letter><%= Convert.ToChar(67 + (i - 128)) %></letter>
                                 <index><%= i %></index>
                                 <image><%= di.FileName.Replace(curPath, "") %></image>
                                 <readOnly><%= di.IsReadOnly.ToString() %></readOnly>

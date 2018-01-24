@@ -128,7 +128,7 @@ Public MustInherit Class CGAAdapter
 
         For i As Integer = 0 To 255
             If i >= 32 AndAlso i < 255 Then
-                chars(i) = Chr(i)
+                chars(i) = Convert.ToChar(i)
             Else
                 chars(i) = " "
             End If

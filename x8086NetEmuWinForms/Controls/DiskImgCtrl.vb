@@ -84,9 +84,9 @@ Public Class DiskImgCtrl
         If mEmulator Is Nothing Then Exit Sub
 
         If mHardDiskMode Then
-            If mIndex >= 128 Then LabelDriveInfo.Text = $"{devName} Drive {Chr(67 + mIndex - 128)}:"
+            If mIndex >= 128 Then LabelDriveInfo.Text = $"{devName} Drive {Convert.ToChar(67 + mIndex - 128)}:"
         Else
-            LabelDriveInfo.Text = $"{devName} Drive {Chr(65 + mIndex)}:"
+            LabelDriveInfo.Text = $"{devName} Drive {Convert.ToChar(65 + mIndex)}:"
         End If
 
         If mEmulator.FloppyContoller.DiskImage(mIndex) Is Nothing Then
