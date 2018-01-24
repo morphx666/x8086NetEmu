@@ -337,13 +337,11 @@
 
     Private ReadOnly Property ParamNOPS(index As SelPrmIndex, Optional ipOffset As UInteger = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInteger
         Get
-            If size = DataSize.UseAddressingMode Then size = addrMode.Size
-
             ' Extra cycles for address misalignment
-            ' This is too CPU expensive, with very few benefits... not worth it
+            ' This is too CPU expensive, with few benefits, if any... not worth it
             'If (mRegisters.IP Mod 2) <> 0 Then clkCyc += 4
-            
-            If size = DataSize.Byte Then
+
+            If size = DataSize.Byte OrElse (size = DataSize.UseAddressingMode AndAlso addrMode.Size = DataSize.Byte) Then
                 Return RAM8(mRegisters.CS, mRegisters.IP + ipOffset + index)
             Else
                 Return RAM16(mRegisters.CS, mRegisters.IP + ipOffset + index * 2)
@@ -355,8 +353,8 @@
         mRegisters.IP = AddValues(mRegisters.IP, value, DataSize.Word)
     End Sub
 
-    Private Function OffsetIP(paramSize As DataSize) As UInteger
-        If paramSize = DataSize.Byte Then
+    Private Function OffsetIP(size As DataSize) As UInteger
+        If size = DataSize.Byte Then
             Return AddValues(mRegisters.IP, To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte)) + opCodeSize, DataSize.Word)
         Else
             Return AddValues(mRegisters.IP, Param(SelPrmIndex.First, , DataSize.Word) + opCodeSize, DataSize.Word)

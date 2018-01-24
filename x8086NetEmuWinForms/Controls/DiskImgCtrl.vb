@@ -103,7 +103,7 @@ Public Class DiskImgCtrl
             ButtonLoad.Enabled = False
             CheckBoxReadOnly.Enabled = True
         End If
-        ButtonView.Enabled = ButtonEject.Enabled
+        ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyContoller.DiskImage(mIndex).FileName)
     End Sub
 
     Private Sub CheckBoxReadOnly_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxReadOnly.CheckedChanged

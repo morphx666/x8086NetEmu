@@ -75,6 +75,15 @@ Public Class DirectBitmap
         Return dbmp.Bitmap
     End Operator
 
+    Public Property Pixel(p As Point) As Color
+        Get
+            Return Pixel(p.X, p.Y)
+        End Get
+        Set(value As Color)
+            Pixel(p.X, p.Y) = value
+        End Set
+    End Property
+
     Public Property Pixel(x As Integer, y As Integer) As Color
         Get
             If x < 0 OrElse x >= Width OrElse y < 0 OrElse y >= Height Then Exit Property
