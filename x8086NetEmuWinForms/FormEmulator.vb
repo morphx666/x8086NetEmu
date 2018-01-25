@@ -10,7 +10,7 @@ Public Class FormEmulator
     Private cpu As X8086
     Private cpuState As EmulatorState
 
-    Private fMonitor As FormMonitor
+    Private fDebugger As FormDebugger
     Private fConsole As FormConsole
 
     Private videoPort As Control
@@ -51,7 +51,7 @@ Public Class FormEmulator
     End Sub
 
     Private Sub SetupEventHandlers()
-        AddHandler MonitorToolStripMenuItem.Click, Sub() ShowMonitor()
+        AddHandler DebuggerToolStripMenuItem.Click, Sub() ShowDebugger()
         AddHandler ConsoleToolStripMenuItem.Click, Sub() ShowConsole()
         AddHandler SoftResetToolStripMenuItem.Click, Sub()
                                                          runningApp = ""
@@ -214,7 +214,7 @@ Public Class FormEmulator
 
     Private Sub StopEmulation()
         If cpu IsNot Nothing Then
-            If fMonitor IsNot Nothing Then fMonitor.Close()
+            If fDebugger IsNot Nothing Then fDebugger.Close()
             If fConsole IsNot Nothing Then fConsole.Close()
 
             cpu.Close()
@@ -397,17 +397,17 @@ Public Class FormEmulator
         End If
     End Sub
 
-    Private Sub ShowMonitor()
-        If fMonitor Is Nothing Then
-            fMonitor = New FormMonitor()
-            fMonitor.Show()
-            fMonitor.Emulator = cpu
-            fMonitor.BringToFront()
+    Private Sub ShowDebugger()
+        If fDebugger Is Nothing Then
+            fDebugger = New FormDebugger()
+            fDebugger.Show()
+            fDebugger.Emulator = cpu
+            fDebugger.BringToFront()
 
-            AddHandler fMonitor.FormClosed, Sub()
-                                                fMonitor.Dispose()
-                                                fMonitor = Nothing
-                                            End Sub
+            AddHandler fDebugger.FormClosed, Sub()
+                                                 fDebugger.Dispose()
+                                                 fDebugger = Nothing
+                                             End Sub
         End If
     End Sub
 
@@ -513,7 +513,7 @@ Public Class FormEmulator
 
             Try
                 If Boolean.Parse(xml.<extras>.<consoleVisible>.Value) Then ShowConsole()
-                If Boolean.Parse(xml.<extras>.<monitorVisible>.Value) Then ShowMonitor()
+                If Boolean.Parse(xml.<extras>.<debuggerVisible>.Value) Then ShowDebugger()
             Catch
             End Try
 
@@ -564,7 +564,7 @@ Public Class FormEmulator
         cpuState.SaveSettings("settings.dat",
                               <extras>
                                   <consoleVisible><%= fConsole IsNot Nothing %></consoleVisible>
-                                  <monitorVisible><%= fMonitor IsNot Nothing %></monitorVisible>
+                                  <debuggerVisible><%= fDebugger IsNot Nothing %></debuggerVisible>
                                   <emulateINT13><%= int13Emulation %></emulateINT13>
                                   <vic20><%= v20Emulation %></vic20>
                               </extras>)

@@ -25,7 +25,7 @@ Partial Class FormEmulator
         Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FormEmulator))
         Me.ViewToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.MonitorToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.DebuggerToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ConsoleToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripMenuItem4 = New System.Windows.Forms.ToolStripSeparator()
         Me.CopyTextToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -71,39 +71,39 @@ Partial Class FormEmulator
         '
         'ViewToolStripMenuItem
         '
-        Me.ViewToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.MonitorToolStripMenuItem, Me.ConsoleToolStripMenuItem, Me.ToolStripMenuItem4, Me.CopyTextToolStripMenuItem, Me.PasteTextToolStripMenuItem})
+        Me.ViewToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.DebuggerToolStripMenuItem, Me.ConsoleToolStripMenuItem, Me.ToolStripMenuItem4, Me.CopyTextToolStripMenuItem, Me.PasteTextToolStripMenuItem})
         Me.ViewToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.tools_icon
         Me.ViewToolStripMenuItem.Name = "ViewToolStripMenuItem"
         Me.ViewToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.ViewToolStripMenuItem.Text = "Tools"
         '
-        'MonitorToolStripMenuItem
+        'DebuggerToolStripMenuItem
         '
-        Me.MonitorToolStripMenuItem.Name = "MonitorToolStripMenuItem"
-        Me.MonitorToolStripMenuItem.Size = New System.Drawing.Size(126, 22)
-        Me.MonitorToolStripMenuItem.Text = "Monitor..."
+        Me.DebuggerToolStripMenuItem.Name = "DebuggerToolStripMenuItem"
+        Me.DebuggerToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
+        Me.DebuggerToolStripMenuItem.Text = "Debugger..."
         '
         'ConsoleToolStripMenuItem
         '
         Me.ConsoleToolStripMenuItem.Name = "ConsoleToolStripMenuItem"
-        Me.ConsoleToolStripMenuItem.Size = New System.Drawing.Size(126, 22)
+        Me.ConsoleToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.ConsoleToolStripMenuItem.Text = "Console..."
         '
         'ToolStripMenuItem4
         '
         Me.ToolStripMenuItem4.Name = "ToolStripMenuItem4"
-        Me.ToolStripMenuItem4.Size = New System.Drawing.Size(123, 6)
+        Me.ToolStripMenuItem4.Size = New System.Drawing.Size(149, 6)
         '
         'CopyTextToolStripMenuItem
         '
         Me.CopyTextToolStripMenuItem.Name = "CopyTextToolStripMenuItem"
-        Me.CopyTextToolStripMenuItem.Size = New System.Drawing.Size(126, 22)
+        Me.CopyTextToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.CopyTextToolStripMenuItem.Text = "Copy Text"
         '
         'PasteTextToolStripMenuItem
         '
         Me.PasteTextToolStripMenuItem.Name = "PasteTextToolStripMenuItem"
-        Me.PasteTextToolStripMenuItem.Size = New System.Drawing.Size(126, 22)
+        Me.PasteTextToolStripMenuItem.Size = New System.Drawing.Size(152, 22)
         Me.PasteTextToolStripMenuItem.Text = "Paste Text"
         '
         'ContextMenuStripMain
@@ -356,7 +356,7 @@ Partial Class FormEmulator
     Friend WithEvents Zoom200ToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents Zoom400ToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ViewToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
-    Friend WithEvents MonitorToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents DebuggerToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ConsoleToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents MediaToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents EmulatorToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem

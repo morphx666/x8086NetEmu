@@ -2,7 +2,7 @@
 Imports x8086NetEmu
 Imports System.Text
 
-Public Class FormMonitor
+Public Class FormDebugger
     Private Structure Breakpoint
         Public Segment As Integer
         Public Offset As Integer
@@ -88,7 +88,7 @@ Public Class FormMonitor
     Private segmentTextBoxes As New List(Of TextBox)
 
 #Region "Controls Event Handlers"
-    Private Sub FormMonitor_Load(sender As System.Object, e As EventArgs) Handles MyBase.Load
+    Private Sub FormDebugger_Load(sender As System.Object, e As EventArgs) Handles MyBase.Load
         InitLV(ListViewStack)
         AutoSizeLastColumn(ListViewStack)
 
@@ -122,7 +122,7 @@ Public Class FormMonitor
         uiRefreshThread.Start()
     End Sub
 
-    Private Sub FormMonitor_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
+    Private Sub FormDebugger_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
         isInit = False
         ignoreEvents = True
         abortThreads = True
@@ -137,7 +137,7 @@ Public Class FormMonitor
         End If
     End Sub
 
-    Private Sub FormMonitor_KeyDown(sender As Object, e As System.Windows.Forms.KeyEventArgs) Handles Me.KeyDown
+    Private Sub FormDebugger_KeyDown(sender As Object, e As System.Windows.Forms.KeyEventArgs) Handles Me.KeyDown
         Select Case e.KeyCode
             Case Keys.F5
                 StartStopRunMode()

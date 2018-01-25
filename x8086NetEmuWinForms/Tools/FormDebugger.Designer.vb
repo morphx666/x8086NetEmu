@@ -1,5 +1,5 @@
 ﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
-Partial Class FormMonitor
+Partial Class FormDebugger
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
@@ -23,7 +23,7 @@ Partial Class FormMonitor
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FormMonitor))
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FormDebugger))
         Me.GroupBoxFlags = New System.Windows.Forms.GroupBox()
         Me.CheckBoxTF = New System.Windows.Forms.CheckBox()
         Me.CheckBoxDF = New System.Windows.Forms.CheckBox()
@@ -898,7 +898,7 @@ Partial Class FormMonitor
         Me.ButtonMemBack.Text = "<"
         Me.ButtonMemBack.UseVisualStyleBackColor = True
         '
-        'FormMonitor
+        'FormDebugger
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
@@ -929,8 +929,8 @@ Partial Class FormMonitor
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.KeyPreview = True
         Me.MinimumSize = New System.Drawing.Size(1095, 687)
-        Me.Name = "FormMonitor"
-        Me.Text = "Monitor"
+        Me.Name = "FormDebugger"
+        Me.Text = "Debugger"
         Me.GroupBoxFlags.ResumeLayout(False)
         Me.GroupBoxRegisters.ResumeLayout(False)
         Me.GroupBoxRegisters.PerformLayout()
