@@ -16,7 +16,7 @@ Public Class FormDebugger
     Public Class State
         Public Registers As X8086.GPRegisters
         Public Flags As X8086.GPFlags
-        'Public RAM(x8086.ROMStart - 1) As Byte
+        Public RAM(X8086.ROMStart - 1) As Byte
 
         Private cpu As X8086
         Private includeRAM As Boolean
@@ -27,7 +27,7 @@ Public Class FormDebugger
             Registers = cpu.Registers.Clone()
             Flags = cpu.Flags.Clone()
 
-            'If includeRAM Then Array.Copy(cpu.Memory, RAM, RAM.Length)
+            If includeRAM Then Array.Copy(cpu.Memory, RAM, RAM.Length)
         End Sub
 
         Public Sub Restore()
@@ -95,21 +95,19 @@ Public Class FormDebugger
 
 #Region "Controls Event Handlers"
     Private Sub FormDebugger_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        InitLV(ListViewStack)
+        InitListView(ListViewStack)
         AutoSizeLastColumn(ListViewStack)
 
-        InitLV(ListViewCode)
+        InitListView(ListViewCode)
         AutoSizeLastColumn(ListViewCode)
         ListViewCode.BackColor = Color.FromArgb(34, 40, 42)
         ListViewCode.ForeColor = Color.FromArgb(102, 80, 15)
 
         loopWaiter = New AutoResetEvent(False)
         ohpWaiter = New AutoResetEvent(False)
-        ohpThreadLoop = New Thread(AddressOf OffsetHistoryLoopSub)
-        ohpThreadLoop.Start()
+        'ohpThreadLoop = New Thread(AddressOf OffsetHistoryLoopSub)
+        'ohpThreadLoop.Start()
 
-        'txtBreakCS.Text = "F600"
-        'txtBreakIP.Text = "0F1E"
         TextBoxBreakCS.Text = "0000"
         TextBoxBreakIP.Text = "0000"
 
@@ -126,17 +124,27 @@ Public Class FormDebugger
                                             .IsBackground = True
                                           }
         uiRefreshThread.Start()
+
+        ' History is disabled until it can be re-written to improve performance and avoid Out Of Memory exceptions
+        ButtonForward.Enabled = False
+        ButtonBack.Enabled = False
     End Sub
 
     Private Sub FormDebugger_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        isInit = False
-        ignoreEvents = True
-        abortThreads = True
+        While ignoreEvents
+            Application.DoEvents()
+        End While
 
-        ohpWaiter.Set()
-        loopWaiter.Set()
+        SyncLock syncObject
+            isInit = False
+            ignoreEvents = True
+            abortThreads = True
 
-        mEmulator.DebugMode = False
+            ohpWaiter.Set()
+            loopWaiter.Set()
+
+            mEmulator.DebugMode = False
+        End SyncLock
     End Sub
 
     Private Sub FormDebugger_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -241,7 +249,6 @@ Public Class FormDebugger
     Private Sub ButtonForward_MouseUp(sender As Object, e As MouseEventArgs) Handles ButtonForward.MouseUp
         offsetHistoryDirection = 0
     End Sub
-
 #End Region
 
     Public Property Emulator As X8086
@@ -631,18 +638,20 @@ Public Class FormDebugger
     End Sub
 
     Private Sub DoStep()
-        Try
-            If Not mEmulator.IsHalted Then
-                If historyPointer = history.Length - 1 Then
-                    Array.Copy(history, 1, history, 0, history.Length - 1)
-                Else
-                    historyPointer += 1
-                End If
-                history(historyPointer) = New State(mEmulator, True)
-            End If
-        Catch ex As Exception
-            ' TODO: Implement a better solution to the case when this code is executed and historyPointer is set to -1
-        End Try
+        'Try
+        '    ' FIXME: This is too slow
+
+        '    If Not mEmulator.IsHalted Then
+        '        If historyPointer = history.Length - 1 Then
+        '            Array.Copy(history, 1, history, 0, history.Length - 1)
+        '        Else
+        '            historyPointer += 1
+        '        End If
+        '        history(historyPointer) = New State(mEmulator, True)
+        '    End If
+        'Catch ex As Exception
+        '    ' TODO: Implement a better solution to the case when this code is executed and historyPointer is set to -1
+        'End Try
 
         mEmulator.StepInto()
     End Sub
@@ -656,6 +665,7 @@ Public Class FormDebugger
         Do
             DoStep()
             loopWaiter.WaitOne()
+            If abortThreads Then Exit Do
 
             ignoreEvents = True
 
@@ -667,7 +677,8 @@ Public Class FormDebugger
 
                 If breakIP = mEmulator.Registers.IP AndAlso breakCS = mEmulator.Registers.CS Then
                     Beep()
-                    abortThreads = True
+                    StartStopRunMode()
+                    ignoreEvents = False
                     Continue Do
                 End If
 
@@ -675,7 +686,8 @@ Public Class FormDebugger
                     For Each bp In breakPoints
                         If bp.Offset = mEmulator.Registers.IP AndAlso bp.Segment = mEmulator.Registers.CS Then
                             Beep()
-                            abortThreads = True
+                            StartStopRunMode()
+                            ignoreEvents = False
                             Continue Do
                         End If
                     Next
@@ -686,7 +698,7 @@ Public Class FormDebugger
         Loop Until abortThreads OrElse debugMode = DebugModes.Step
     End Sub
 
-    Private Sub InitLV(lv As ListView)
+    Private Sub InitListView(lv As ListView)
         ListViewHelper.EnableDoubleBuffer(lv)
 
         Dim item As ListViewItem = Nothing
