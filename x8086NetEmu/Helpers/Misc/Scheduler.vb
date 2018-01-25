@@ -121,6 +121,7 @@ Public Class Scheduler
 
     Public ReadOnly Property CurrentTimeMillis As Long
         Get
+            ' TODO: Perhaps we could change the scheduler's time resolution from ms to Ticks and avoid dividing by 10,000
             Return Now.Ticks / 10000 * mSimulationMultiplier
         End Get
     End Property
@@ -147,7 +148,16 @@ Public Class Scheduler
         syncSimTimePerWallMs = simTimePerWallMs
         syncTimeSaldo = 0
         syncWallTimeMillis = CurrentTimeMillis()
+
+        ' Handle changes in time in order to avoid getting stuck in the Wait function
+        Dim ct1 As Long
+        Dim ct2 As Long
+
+        ct1 = CurrentTimeMillis
         mSimulationMultiplier = simulationMultiplier
+        ct2 = CurrentTimeMillis
+
+        AdvanceTime(ct2 - ct1)
     End Sub
 
     Public Sub RunTaskAt(tsk As Task, t As Long)
