@@ -70,7 +70,6 @@ Public Class FormDebugger
     Private breakIP As Integer = -1
     Private breakCS As Integer = -1
     Private breakPoints As List(Of Breakpoint) = New List(Of Breakpoint)
-    Private isRunning As Boolean
     Private baseCS As Integer
     Private baseIP As Integer
 
@@ -137,11 +136,9 @@ Public Class FormDebugger
         ohpWaiter.Set()
         loopWaiter.Set()
 
-        If isRunning Then
-            e.Cancel = True
-        Else
+        SyncLock syncObject
             mEmulator.DebugMode = False
-        End If
+        End SyncLock
     End Sub
 
     Private Sub FormDebugger_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
@@ -259,7 +256,7 @@ Public Class FormDebugger
                                                          If debugMode = DebugModes.Step Then UpdateUI()
                                                          loopWaiter.Set()
                                                      End Sub
-            AddHandler mEmulator.EmulationTerminated, Sub() If isRunning Then StartStopRunMode()
+            'AddHandler mEmulator.EmulationTerminated, Sub() If isRunning Then StartStopRunMode()
             isInit = True
 
             StepInto()
@@ -267,7 +264,7 @@ Public Class FormDebugger
     End Property
 
     Private Sub UpdateUI()
-        If ignoreEvents OrElse isRunning OrElse Not isInit Then Exit Sub
+        If ignoreEvents OrElse Not isInit Then Exit Sub
 
         SyncLock syncObject
             ignoreEvents = True
@@ -522,6 +519,8 @@ Public Class FormDebugger
     End Sub
 
     Private Sub GenCodeAhead()
+        ' TODO: This code listview should probably be implemented as a virtual listview
+
         Dim item As ListViewItem
         Dim CS As Integer = mEmulator.Registers.CS
         Dim IP As Integer = mEmulator.Registers.IP
@@ -580,7 +579,7 @@ Public Class FormDebugger
             If CInt(IP) + info.Size > &HFFFF Then Exit Do
             IP = (IP + info.Size) Mod &HFFFF
 
-            If Not isRunning OrElse item.Text = "" Then
+            If item.Text = "" Then
                 item.Text = info.CS.ToHex(X8086.DataSize.Word, "") + ":" + info.IP.ToHex(X8086.DataSize.Word, "")
                 item.SubItems(1).Text = GetBytesString(info.Bytes)
                 item.SubItems(2).Text = info.Mnemonic
@@ -634,14 +633,18 @@ Public Class FormDebugger
     End Sub
 
     Private Sub DoStep()
-        If Not mEmulator.IsHalted Then
-            If historyPointer = history.Length - 1 Then
-                Array.Copy(history, 1, history, 0, history.Length - 1)
-            Else
-                historyPointer += 1
+        Try
+            If Not mEmulator.IsHalted Then
+                If historyPointer = history.Length - 1 Then
+                    Array.Copy(history, 1, history, 0, history.Length - 1)
+                Else
+                    historyPointer += 1
+                End If
+                history(historyPointer) = New State(mEmulator, True)
             End If
-            history(historyPointer) = New State(mEmulator, True)
-        End If
+        Catch ex As Exception
+            ' TODO: Implement a better solution to the case when this code is executed and historyPointer is set to -1
+        End Try
 
         mEmulator.StepInto()
     End Sub
@@ -656,7 +659,6 @@ Public Class FormDebugger
             DoStep()
             loopWaiter.WaitOne()
 
-            isRunning = True
             ignoreEvents = True
 
             If mEmulator.IsHalted Then StartStopRunMode()
@@ -682,7 +684,6 @@ Public Class FormDebugger
                 End If
             End SyncLock
 
-            isRunning = False
             ignoreEvents = False
         Loop Until abortThreads OrElse debugMode = DebugModes.Step
     End Sub
