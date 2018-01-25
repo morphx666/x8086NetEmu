@@ -66,13 +66,12 @@ Public Class X8086
     End Property
     Private useIPAddrOff As Boolean
 
-    Private clkCyc As Long = 0
-
     Public Const KHz As Long = 1000
     Public Const MHz As Long = KHz * KHz
     Public Const GHz As Long = KHz * MHz
     Private Const BaseClock As Long = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
     Private mCyclesPerSecond As Long = BaseClock
+    Private clkCyc As Long = 0
 
     Private mDoReSchedule As Boolean
     Private mSimulationMultiplier As Double = 1.0
@@ -439,8 +438,9 @@ Public Class X8086
     End Property
 
     Private Sub SetSynchronization()
-        Dim syncQuantum As Double = 0.05
-        Sched.SetSynchronization(True, Scheduler.CLOCKRATE * syncQuantum, Scheduler.CLOCKRATE * mSimulationMultiplier / 1000)
+        Const syncQuantum As Double = 0.05
+        'Sched.SetSynchronization(True, Scheduler.CLOCKRATE * syncQuantum, Scheduler.CLOCKRATE * mSimulationMultiplier / 1000.0)
+        Sched.SetSynchronization(True, Scheduler.CLOCKRATE * syncQuantum, Scheduler.CLOCKRATE * mSimulationMultiplier / 1000.0, mSimulationMultiplier)
     End Sub
 
     Public Sub PreExecute()

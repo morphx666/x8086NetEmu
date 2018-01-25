@@ -41,6 +41,8 @@ Public Class Scheduler
     ' The Cpu component controlled by this Scheduler
     Private mCPU As X8086
 
+    Private mSimulationMultiplier As Double
+
     Private sw As New Stopwatch()
 
     ' The dispatcher for external input events
@@ -122,7 +124,7 @@ Public Class Scheduler
 
     Public ReadOnly Property CurrentTimeMillis As Long
         Get
-            Return sw.ElapsedMilliseconds
+            Return sw.ElapsedMilliseconds * mSimulationMultiplier
         End Get
     End Property
 
@@ -138,14 +140,15 @@ Public Class Scheduler
     ' @param simTimePerWallMs Determines the speed of the simulation
     '   (in simulated nanoseconds per real millisecond).
     '
-    Public Sub SetSynchronization(enabled As Boolean, quantum As Long, simTimePerWallMs As Long)
-        If enabled And quantum < 1 Then Throw New ArgumentException("Invalid value for SyncQuantum")
-        If enabled And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid value for SyncSimTimePerWallMs")
+    Public Sub SetSynchronization(enabled As Boolean, quantum As Long, simTimePerWallMs As Long, simulationMultiplier As Double)
+        If enabled And quantum < 1 Then Throw New ArgumentException("Invalid value for quantum")
+        If enabled And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid value for simTimePerWallMs")
         syncScheduler = enabled
         syncQuantum = quantum
         syncSimTimePerWallMs = simTimePerWallMs
         syncTimeSaldo = 0
         syncWallTimeMillis = CurrentTimeMillis()
+        mSimulationMultiplier = simulationMultiplier
     End Sub
 
     Public Sub RunTaskAt(tsk As Task, t As Long)
