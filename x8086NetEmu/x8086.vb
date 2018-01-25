@@ -2262,7 +2262,7 @@ Public Class X8086
                             Exit While
                         End If
                     End If
-                    If mDebugMode Then
+                    If mDebugMode Then ' TODO: Need to add a parameter to make this optional
                         IncIP(-opCodeSize)
                         Exit Sub
                     End If

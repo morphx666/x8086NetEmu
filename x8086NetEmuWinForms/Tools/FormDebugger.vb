@@ -810,7 +810,7 @@ Public Class FormDebugger
             Case TextBoxMemOff.Name : UpdateMemory()
 
             Case Else
-                mEmulator.Registers.Val(StringToRegister(tb.Name.Substring(3, 2))) = evalRes.Value
+                mEmulator.Registers.Val(StringToRegister(tb.Name.Substring(7, 2))) = evalRes.Value
         End Select
 
         If evalRes.IsValid Then
