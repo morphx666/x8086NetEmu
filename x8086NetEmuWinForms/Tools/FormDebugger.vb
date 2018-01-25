@@ -53,6 +53,11 @@ Public Class FormDebugger
         End Sub
     End Class
 
+    Private Enum DebugModes
+        [Step]
+        Run
+    End Enum
+
     Private history(2 ^ 18) As State
     Private historyPointer As Integer
 
@@ -68,6 +73,8 @@ Public Class FormDebugger
     Private isRunning As Boolean
     Private baseCS As Integer
     Private baseIP As Integer
+
+    Private debugMode As DebugModes = DebugModes.Step
 
     Private loopWaiter As AutoResetEvent
     Private threadLoop As Thread
@@ -88,7 +95,7 @@ Public Class FormDebugger
     Private segmentTextBoxes As New List(Of TextBox)
 
 #Region "Controls Event Handlers"
-    Private Sub FormDebugger_Load(sender As System.Object, e As EventArgs) Handles MyBase.Load
+    Private Sub FormDebugger_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         InitLV(ListViewStack)
         AutoSizeLastColumn(ListViewStack)
 
@@ -113,7 +120,7 @@ Public Class FormDebugger
 
         Dim uiRefreshThread As New Thread(Sub()
                                               Do
-                                                  UpdateUI(Now.Second Mod 2 = 0)
+                                                  UpdateUI()
                                                   Thread.Sleep(500)
                                               Loop Until abortThreads
                                           End Sub) With {
@@ -122,7 +129,7 @@ Public Class FormDebugger
         uiRefreshThread.Start()
     End Sub
 
-    Private Sub FormDebugger_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
+    Private Sub FormDebugger_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         isInit = False
         ignoreEvents = True
         abortThreads = True
@@ -137,27 +144,33 @@ Public Class FormDebugger
         End If
     End Sub
 
-    Private Sub FormDebugger_KeyDown(sender As Object, e As System.Windows.Forms.KeyEventArgs) Handles Me.KeyDown
+    Private Sub FormDebugger_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
         Select Case e.KeyCode
             Case Keys.F5
-                StartStopRunMode()
+                If debugMode = DebugModes.Step Then StartStopRunMode()
             Case Keys.F8
+                If debugMode = DebugModes.Run Then debugMode = DebugModes.Step
                 StepInto()
         End Select
     End Sub
 
-    Private Sub ButtonStep_Click(sender As System.Object, e As System.EventArgs) Handles ButtonStep.Click
+    Private Sub ButtonStep_Click(sender As Object, e As EventArgs) Handles ButtonStep.Click
+        debugMode = DebugModes.Step
         StepInto()
     End Sub
 
-    Private Sub ListViewCode_DoubleClick(sender As Object, e As System.EventArgs) Handles ListViewCode.DoubleClick
+    Private Sub ButtonRun_Click(sender As Object, e As EventArgs) Handles ButtonRun.Click
+        StartStopRunMode()
+    End Sub
+
+    Private Sub ListViewCode_DoubleClick(sender As Object, e As EventArgs) Handles ListViewCode.DoubleClick
         If ListViewCode.SelectedItems.Count = 0 Then Exit Sub
         Dim address As String = ListViewCode.SelectedItems(0).Text
         TextBoxCS.Text = address.Split(":")(0)
         TextBoxIP.Text = address.Split(":")(1)
     End Sub
 
-    Private Sub ListViewCode_ItemChecked(sender As Object, e As System.Windows.Forms.ItemCheckedEventArgs) Handles ListViewCode.ItemChecked
+    Private Sub ListViewCode_ItemChecked(sender As Object, e As ItemCheckedEventArgs) Handles ListViewCode.ItemChecked
         If e.Item.Text = "" OrElse e.Item.SubItems.Count <> 4 Then Exit Sub
 
         Dim segment As Integer = (Val("&h" + e.Item.Text.Split(":")(0)) And &HFFFF)
@@ -181,25 +194,21 @@ Public Class FormDebugger
         e.Item.SubItems(3).BackColor = e.Item.BackColor
     End Sub
 
-    Private Sub ButtonRun_Click(sender As System.Object, e As System.EventArgs) Handles ButtonRun.Click
-        StartStopRunMode()
-    End Sub
-
-    Private Sub ListViewCode_ClientSizeChanged(sender As Object, e As System.EventArgs) Handles ListViewCode.ClientSizeChanged
+    Private Sub ListViewCode_ClientSizeChanged(sender As Object, e As EventArgs) Handles ListViewCode.ClientSizeChanged
         AutoSizeLastColumn(ListViewCode)
     End Sub
 
-    Private Sub ButtonRefresh_Click(sender As System.Object, e As System.EventArgs) Handles ButtonRefresh.Click
+    Private Sub ButtonRefresh_Click(sender As Object, e As EventArgs) Handles ButtonRefresh.Click
         RefreshCodeListing()
     End Sub
 
-    Private Sub ButtonReboot_Click(sender As System.Object, e As System.EventArgs) Handles ButtonReboot.Click
+    Private Sub ButtonReboot_Click(sender As Object, e As EventArgs) Handles ButtonReboot.Click
         Emulator.HardReset()
         historyPointer = -1
         RefreshCodeListing()
     End Sub
 
-    Private Sub ButtonDecIP_Click(sender As System.Object, e As System.EventArgs) Handles ButtonDecIP.Click
+    Private Sub ButtonDecIP_Click(sender As Object, e As EventArgs) Handles ButtonDecIP.Click
         Dim IP As Integer = Val("&h" + TextBoxIP.Text) And &HFFFF
         Dim CS As Integer = Val("&h" + TextBoxCS.Text) And &HFFFF
 
@@ -214,7 +223,7 @@ Public Class FormDebugger
         Next
     End Sub
 
-    Private Sub ButtonBack_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles ButtonBack.MouseDown
+    Private Sub ButtonBack_MouseDown(sender As Object, e As MouseEventArgs) Handles ButtonBack.MouseDown
         If e.Button = Windows.Forms.MouseButtons.Left Then
             offsetHistoryDirection = -1
         ElseIf e.Button = Windows.Forms.MouseButtons.Right Then
@@ -222,11 +231,11 @@ Public Class FormDebugger
         End If
     End Sub
 
-    Private Sub ButtonBack_MouseUp(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles ButtonBack.MouseUp
+    Private Sub ButtonBack_MouseUp(sender As Object, e As MouseEventArgs) Handles ButtonBack.MouseUp
         offsetHistoryDirection = 0
     End Sub
 
-    Private Sub ButtonForward_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles ButtonForward.MouseDown
+    Private Sub ButtonForward_MouseDown(sender As Object, e As MouseEventArgs) Handles ButtonForward.MouseDown
         If e.Button = Windows.Forms.MouseButtons.Left Then
             offsetHistoryDirection = 1
         ElseIf e.Button = Windows.Forms.MouseButtons.Right Then
@@ -234,7 +243,7 @@ Public Class FormDebugger
         End If
     End Sub
 
-    Private Sub ButtonForward_MouseUp(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles ButtonForward.MouseUp
+    Private Sub ButtonForward_MouseUp(sender As Object, e As MouseEventArgs) Handles ButtonForward.MouseUp
         offsetHistoryDirection = 0
     End Sub
 
@@ -246,7 +255,10 @@ Public Class FormDebugger
         End Get
         Set(value As X8086)
             mEmulator = value
-            AddHandler mEmulator.InstructionDecoded, Sub() loopWaiter.Set()
+            AddHandler mEmulator.InstructionDecoded, Sub()
+                                                         If debugMode = DebugModes.Step Then UpdateUI()
+                                                         loopWaiter.Set()
+                                                     End Sub
             AddHandler mEmulator.EmulationTerminated, Sub() If isRunning Then StartStopRunMode()
             isInit = True
 
@@ -254,16 +266,17 @@ Public Class FormDebugger
         End Set
     End Property
 
-    Private Sub UpdateUI(Optional doFastUpdate As Boolean = False)
+    Private Sub UpdateUI()
         If ignoreEvents OrElse isRunning OrElse Not isInit Then Exit Sub
 
         SyncLock syncObject
             ignoreEvents = True
+
             Me.Invoke(New MethodInvoker(Sub()
                                             GenCodeAhead()
                                             UpdateFlagsAndRegisters()
 
-                                            If Not doFastUpdate Then
+                                            If Now.Second Mod 2 = 0 Then
                                                 UpdateMemory()
                                                 SetSegmentTextBoxesState()
                                                 UpdateStack()
@@ -599,12 +612,7 @@ Public Class FormDebugger
 
     Private Sub StepInto()
         If Not mEmulator.DebugMode Then mEmulator.DebugMode = True
-
-        If isRunning Then
-            StartStopRunMode()
-        Else
-            DoStep()
-        End If
+        DoStep()
     End Sub
 
     Private Sub RefreshCodeListing()
@@ -615,10 +623,10 @@ Public Class FormDebugger
     Private Sub StartStopRunMode()
         If Not mEmulator.DebugMode Then mEmulator.DebugMode = True
 
-        If isRunning Then
-            abortThreads = True
+        If debugMode = DebugModes.Run Then
+            debugMode = DebugModes.Step
         Else
-            abortThreads = False
+            debugMode = DebugModes.Run
 
             threadLoop = New Thread(AddressOf RunLoop)
             threadLoop.Start()
@@ -676,7 +684,7 @@ Public Class FormDebugger
 
             isRunning = False
             ignoreEvents = False
-        Loop Until abortThreads
+        Loop Until abortThreads OrElse debugMode = DebugModes.Step
     End Sub
 
     Private Sub InitLV(lv As ListView)
