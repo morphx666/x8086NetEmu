@@ -5,8 +5,8 @@
 Public Class Scheduler
     Implements IExternalInputHandler
 
-    Private Shared NOTASK As Long = Long.MaxValue
-    Private Shared STOPPING As Long = Long.MinValue
+    Private Const NOTASK As Long = Long.MaxValue
+    Private Const STOPPING As Long = Long.MinValue
 
     ' Number of scheduler time units per simulated second (1.0 GHz)
     Public Const CLOCKRATE As Long = 1 * X8086.GHz
@@ -38,12 +38,10 @@ Public Class Scheduler
     ' Ordered list of pending asynchronous events (external input events)
     Public pendingInput As ArrayList
 
-    ' The Cpu component controlled by this Scheduler
+    ' The CPU component controlled by this Scheduler
     Private mCPU As X8086
 
     Private mSimulationMultiplier As Double
-
-    Private sw As New Stopwatch()
 
     ' The dispatcher for external input events
     'Private inputHandler As ExternalInputHandler
@@ -113,7 +111,6 @@ Public Class Scheduler
         mCPU = cpu
         pq = New PriorityQueue()
         pendingInput = New ArrayList()
-        sw.Start()
     End Sub
 
     Public ReadOnly Property CurrentTime As Long
@@ -124,7 +121,7 @@ Public Class Scheduler
 
     Public ReadOnly Property CurrentTimeMillis As Long
         Get
-            Return sw.ElapsedMilliseconds * mSimulationMultiplier
+            Return Now.Ticks / 10000 * mSimulationMultiplier
         End Get
     End Property
 
