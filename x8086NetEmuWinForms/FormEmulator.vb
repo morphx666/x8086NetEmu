@@ -41,9 +41,9 @@ Public Class FormEmulator
         VIC20EmulationToolStripMenuItem.Checked = True
         v20Emulation = True
 
-        LoadSettings(True)  ' For pre-emulation settings
+        LoadSettings(False)  ' For pre-emulation settings
         StartEmulation()
-        LoadSettings(False) ' For post-emulation settings
+        LoadSettings(True) ' For post-emulation settings
 
         SetupEventHandlers()
 
@@ -467,7 +467,7 @@ Public Class FormEmulator
                     RunMediaManager()
                 End If
             End If
-            ShowConsole()
+            'ShowConsole()
         End If
     End Sub
 

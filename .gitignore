@@ -244,3 +244,12 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+# ROMS
+!*/**/bin/
+*/**/bin/disks
+*/**/bin/*.dll
+*/**/bin/*.xml
+*/**/bin/*.exe
+*/**/bin/*.config
+*/**/bin/settings.dat

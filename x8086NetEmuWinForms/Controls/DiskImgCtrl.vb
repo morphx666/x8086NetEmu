@@ -39,6 +39,11 @@ Public Class DiskImgCtrl
 
     Private Sub ButtonLoad_Click(sender As Object, e As EventArgs) Handles ButtonLoad.Click
         Using dlg As New OpenFileDialog()
+            If IO.Directory.Exists(TextBoxImageFileName.Text) Then
+                dlg.FileName = TextBoxImageFileName.Text
+            Else
+                dlg.InitialDirectory = My.Application.Info.DirectoryPath
+            End If
             dlg.Title = "Select " + devName + " Disk Image"
             dlg.Filter = "Supported " + devName + " Disk Images|*.ima;*.img;*.vfd;*.flp|All Files|*.*"
             If dlg.ShowDialog(Me) = Windows.Forms.DialogResult.OK Then

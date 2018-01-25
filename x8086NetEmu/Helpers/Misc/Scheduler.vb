@@ -43,6 +43,8 @@ Public Class Scheduler
 
     Private mSimulationMultiplier As Double
 
+    Private loopThread As Thread
+
     ' The dispatcher for external input events
     'Private inputHandler As ExternalInputHandler
 
@@ -150,6 +152,8 @@ Public Class Scheduler
         syncWallTimeMillis = CurrentTimeMillis()
 
         ' Handle changes in time in order to avoid getting stuck in the Wait function
+        ' TODO: Need to synclock access to mSimulationMultiplier
+        '       Or, better yet, re-write this whole mess...
         Dim ct1 As Long
         Dim ct2 As Long
 
@@ -358,7 +362,6 @@ Public Class Scheduler
         Return tsk
     End Function
 
-    Private loopThread As Thread
     Public Sub Start()
         mCurrentTime = 0
         nextTime = NOTASK
@@ -470,7 +473,7 @@ Public Class Scheduler
         If pendingInput.Count = 0 Then
             ' Wake up the scheduler in case it is sleeping
             Notify()
-            ' Kick the Cpu simulation to make it yield
+            ' Kick the CPU simulation to make it yield
             mCPU.DoReschedule = True
         End If
 

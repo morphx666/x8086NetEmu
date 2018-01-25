@@ -136,9 +136,7 @@ Public Class FormDebugger
         ohpWaiter.Set()
         loopWaiter.Set()
 
-        SyncLock syncObject
-            mEmulator.DebugMode = False
-        End SyncLock
+        mEmulator.DebugMode = False
     End Sub
 
     Private Sub FormDebugger_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
