@@ -2,9 +2,22 @@
 
 Public Class FormEmulator
 #If Win32 Then
-    <System.Runtime.InteropServices.DllImport("user32.dll")>
+    <Runtime.InteropServices.DllImport("user32.dll")>
     Private Shared Function GetAsyncKeyState(vKey As Keys) As Short
     End Function
+
+    Private Const WM_NCRBUTTONDOWN As Long = &HA4
+    Private Const WM_NCRBUTTONUP As Long = &HA5
+
+    Protected Overrides Sub WndProc(ByRef m As Message)
+        Select Case m.Msg
+            Case WM_NCRBUTTONUP
+                ContextMenuStripMain.Show(Cursor.Position)
+            Case WM_NCRBUTTONDOWN
+            Case Else
+                MyBase.WndProc(m)
+        End Select
+    End Sub
 #End If
 
     Private cpu As X8086
