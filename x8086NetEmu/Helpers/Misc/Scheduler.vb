@@ -141,8 +141,10 @@ Public Class Scheduler
     '   (in simulated nanoseconds per real millisecond).
     '
     Public Sub SetSynchronization(enabled As Boolean, quantum As Long, simTimePerWallMs As Long, simulationMultiplier As Double)
+#If DEBUG Then
         If enabled And quantum < 1 Then Throw New ArgumentException("Invalid value for quantum")
         If enabled And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid value for simTimePerWallMs")
+#End If
         syncScheduler = enabled
         syncQuantum = quantum
         syncSimTimePerWallMs = simTimePerWallMs
@@ -153,7 +155,9 @@ Public Class Scheduler
 
     Public Sub RunTaskAt(tsk As Task, t As Long)
         SyncLock tsk
+#If DEBUG Then
             If tsk.NextTime <> Task.NOSCHED Then Throw New Exception("Task already scheduled")
+#End If
             tsk.NextTime = t
         End SyncLock
 
@@ -165,7 +169,9 @@ Public Class Scheduler
         Dim t As Long = mCurrentTime + d
 
         SyncLock tsk
+#If DEBUG Then
             If tsk.NextTime <> Task.NOSCHED Then Throw New Exception("Task already scheduled")
+#End If
             tsk.NextTime = t
         End SyncLock
 
@@ -177,7 +183,9 @@ Public Class Scheduler
         Dim t As Long = mCurrentTime + interval
 
         SyncLock tsk
+#If DEBUG Then
             If tsk.NextTime <> Task.NOSCHED Then Throw New Exception("Task already scheduled")
+#End If
             tsk.NextTime = t
             tsk.Interval = interval
         End SyncLock
