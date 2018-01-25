@@ -24,424 +24,424 @@ Partial Class FormMonitor
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(FormMonitor))
-        Me.gbFlags = New System.Windows.Forms.GroupBox()
-        Me.chkTF = New System.Windows.Forms.CheckBox()
-        Me.chkDF = New System.Windows.Forms.CheckBox()
-        Me.chkIF = New System.Windows.Forms.CheckBox()
-        Me.chkAF = New System.Windows.Forms.CheckBox()
-        Me.chkPF = New System.Windows.Forms.CheckBox()
-        Me.chkOF = New System.Windows.Forms.CheckBox()
-        Me.chkSF = New System.Windows.Forms.CheckBox()
-        Me.chkZF = New System.Windows.Forms.CheckBox()
-        Me.chkCF = New System.Windows.Forms.CheckBox()
-        Me.gbRegisters = New System.Windows.Forms.GroupBox()
-        Me.btnForward = New System.Windows.Forms.Button()
-        Me.btnBack = New System.Windows.Forms.Button()
-        Me.btnDecIP = New System.Windows.Forms.Button()
-        Me.txtSI = New System.Windows.Forms.TextBox()
-        Me.txtDL = New System.Windows.Forms.TextBox()
-        Me.txtES = New System.Windows.Forms.TextBox()
-        Me.txtBP = New System.Windows.Forms.TextBox()
-        Me.txtCL = New System.Windows.Forms.TextBox()
-        Me.txtDH = New System.Windows.Forms.TextBox()
-        Me.txtDI = New System.Windows.Forms.TextBox()
-        Me.txtDS = New System.Windows.Forms.TextBox()
-        Me.txtSP = New System.Windows.Forms.TextBox()
-        Me.txtSS = New System.Windows.Forms.TextBox()
-        Me.txtCH = New System.Windows.Forms.TextBox()
+        Me.GroupBoxFlags = New System.Windows.Forms.GroupBox()
+        Me.CheckBoxTF = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxDF = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxIF = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxAF = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxPF = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxOF = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxSF = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxZF = New System.Windows.Forms.CheckBox()
+        Me.CheckBoxCF = New System.Windows.Forms.CheckBox()
+        Me.GroupBoxRegisters = New System.Windows.Forms.GroupBox()
+        Me.ButtonForward = New System.Windows.Forms.Button()
+        Me.ButtonBack = New System.Windows.Forms.Button()
+        Me.ButtonDecIP = New System.Windows.Forms.Button()
+        Me.TextBoxSI = New System.Windows.Forms.TextBox()
+        Me.TextBoxDL = New System.Windows.Forms.TextBox()
+        Me.TextBoxES = New System.Windows.Forms.TextBox()
+        Me.TextBoxBP = New System.Windows.Forms.TextBox()
+        Me.TextBoxCL = New System.Windows.Forms.TextBox()
+        Me.TextBoxDH = New System.Windows.Forms.TextBox()
+        Me.TextBoxDI = New System.Windows.Forms.TextBox()
+        Me.TextBoxDS = New System.Windows.Forms.TextBox()
+        Me.TextBoxSP = New System.Windows.Forms.TextBox()
+        Me.TextBoxSS = New System.Windows.Forms.TextBox()
+        Me.TextBoxCH = New System.Windows.Forms.TextBox()
         Me.Label8 = New System.Windows.Forms.Label()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Label13 = New System.Windows.Forms.Label()
-        Me.txtBL = New System.Windows.Forms.TextBox()
+        Me.TextBoxBL = New System.Windows.Forms.TextBox()
         Me.Label7 = New System.Windows.Forms.Label()
         Me.Label12 = New System.Windows.Forms.Label()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.Label10 = New System.Windows.Forms.Label()
         Me.Label11 = New System.Windows.Forms.Label()
-        Me.txtBH = New System.Windows.Forms.TextBox()
+        Me.TextBoxBH = New System.Windows.Forms.TextBox()
         Me.Label6 = New System.Windows.Forms.Label()
         Me.Label2 = New System.Windows.Forms.Label()
-        Me.txtIP = New System.Windows.Forms.TextBox()
-        Me.txtCS = New System.Windows.Forms.TextBox()
-        Me.txtAL = New System.Windows.Forms.TextBox()
+        Me.TextBoxIP = New System.Windows.Forms.TextBox()
+        Me.TextBoxCS = New System.Windows.Forms.TextBox()
+        Me.TextBoxAL = New System.Windows.Forms.TextBox()
         Me.Label9 = New System.Windows.Forms.Label()
-        Me.txtAH = New System.Windows.Forms.TextBox()
+        Me.TextBoxAH = New System.Windows.Forms.TextBox()
         Me.Label5 = New System.Windows.Forms.Label()
         Me.Label1 = New System.Windows.Forms.Label()
-        Me.GroupBox3 = New System.Windows.Forms.GroupBox()
-        Me.lvStack = New System.Windows.Forms.ListView()
-        Me.chAddress = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.chValue = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.btnStep = New System.Windows.Forms.Button()
+        Me.GroupBoxStack = New System.Windows.Forms.GroupBox()
+        Me.ListViewStack = New System.Windows.Forms.ListView()
+        Me.ColumnHeaderAddress = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ColumnHeaderValue = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ButtonStep = New System.Windows.Forms.Button()
         Me.ListViewCode = New System.Windows.Forms.ListView()
-        Me.chCodeAddress = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.chBytes = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.chMnemonic = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.chParameters = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
-        Me.btnRefresh = New System.Windows.Forms.Button()
+        Me.ColumnHeaderCodeAddress = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ColumnHeaderBytes = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ColumnHeaderMnemonic = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ColumnHeaderParameters = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.ButtonRefresh = New System.Windows.Forms.Button()
         Me.Label14 = New System.Windows.Forms.Label()
-        Me.txtBreakIP = New System.Windows.Forms.TextBox()
-        Me.txtMem = New System.Windows.Forms.TextBox()
-        Me.txtMemSeg = New System.Windows.Forms.TextBox()
-        Me.txtMemOff = New System.Windows.Forms.TextBox()
-        Me.btnRun = New System.Windows.Forms.Button()
-        Me.btnReboot = New System.Windows.Forms.Button()
-        Me.txtBreakCS = New System.Windows.Forms.TextBox()
-        Me.ttValueInfo = New System.Windows.Forms.ToolTip(Me.components)
+        Me.TextBoxBreakIP = New System.Windows.Forms.TextBox()
+        Me.TextBoxMem = New System.Windows.Forms.TextBox()
+        Me.TextBoxMemSeg = New System.Windows.Forms.TextBox()
+        Me.TextBoxMemOff = New System.Windows.Forms.TextBox()
+        Me.ButtonRun = New System.Windows.Forms.Button()
+        Me.ButtonReboot = New System.Windows.Forms.Button()
+        Me.TextBoxBreakCS = New System.Windows.Forms.TextBox()
+        Me.ToolTipValueInfo = New System.Windows.Forms.ToolTip(Me.components)
         Me.CheckBoxTextVideoMemory = New System.Windows.Forms.CheckBox()
         Me.CheckBoxBytesOrChars = New System.Windows.Forms.CheckBox()
         Me.TextBoxSearch = New System.Windows.Forms.TextBox()
         Me.ButtonSearch = New System.Windows.Forms.Button()
         Me.ButtonMemForward = New System.Windows.Forms.Button()
         Me.ButtonMemBack = New System.Windows.Forms.Button()
-        Me.gbFlags.SuspendLayout()
-        Me.gbRegisters.SuspendLayout()
-        Me.GroupBox3.SuspendLayout()
+        Me.GroupBoxFlags.SuspendLayout()
+        Me.GroupBoxRegisters.SuspendLayout()
+        Me.GroupBoxStack.SuspendLayout()
         Me.SuspendLayout()
         '
-        'gbFlags
+        'GroupBoxFlags
         '
-        Me.gbFlags.Controls.Add(Me.chkTF)
-        Me.gbFlags.Controls.Add(Me.chkDF)
-        Me.gbFlags.Controls.Add(Me.chkIF)
-        Me.gbFlags.Controls.Add(Me.chkAF)
-        Me.gbFlags.Controls.Add(Me.chkPF)
-        Me.gbFlags.Controls.Add(Me.chkOF)
-        Me.gbFlags.Controls.Add(Me.chkSF)
-        Me.gbFlags.Controls.Add(Me.chkZF)
-        Me.gbFlags.Controls.Add(Me.chkCF)
-        Me.gbFlags.ForeColor = System.Drawing.Color.WhiteSmoke
-        Me.gbFlags.Location = New System.Drawing.Point(12, 12)
-        Me.gbFlags.Name = "gbFlags"
-        Me.gbFlags.Size = New System.Drawing.Size(103, 309)
-        Me.gbFlags.TabIndex = 0
-        Me.gbFlags.TabStop = False
-        Me.gbFlags.Text = "Flags"
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxTF)
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxDF)
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxIF)
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxAF)
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxPF)
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxOF)
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxSF)
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxZF)
+        Me.GroupBoxFlags.Controls.Add(Me.CheckBoxCF)
+        Me.GroupBoxFlags.ForeColor = System.Drawing.Color.WhiteSmoke
+        Me.GroupBoxFlags.Location = New System.Drawing.Point(12, 12)
+        Me.GroupBoxFlags.Name = "GroupBoxFlags"
+        Me.GroupBoxFlags.Size = New System.Drawing.Size(103, 309)
+        Me.GroupBoxFlags.TabIndex = 0
+        Me.GroupBoxFlags.TabStop = False
+        Me.GroupBoxFlags.Text = "Flags"
         '
-        'chkTF
+        'CheckBoxTF
         '
-        Me.chkTF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkTF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkTF.Location = New System.Drawing.Point(6, 259)
-        Me.chkTF.Name = "chkTF"
-        Me.chkTF.Size = New System.Drawing.Size(91, 24)
-        Me.chkTF.TabIndex = 8
-        Me.chkTF.Text = "TF: Trap"
-        Me.chkTF.UseVisualStyleBackColor = True
+        Me.CheckBoxTF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxTF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxTF.Location = New System.Drawing.Point(6, 259)
+        Me.CheckBoxTF.Name = "CheckBoxTF"
+        Me.CheckBoxTF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxTF.TabIndex = 8
+        Me.CheckBoxTF.Text = "TF: Trap"
+        Me.CheckBoxTF.UseVisualStyleBackColor = True
         '
-        'chkDF
+        'CheckBoxDF
         '
-        Me.chkDF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkDF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkDF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkDF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkDF.Location = New System.Drawing.Point(6, 229)
-        Me.chkDF.Name = "chkDF"
-        Me.chkDF.Size = New System.Drawing.Size(91, 24)
-        Me.chkDF.TabIndex = 7
-        Me.chkDF.Text = "DF: Direction"
-        Me.chkDF.UseVisualStyleBackColor = True
+        Me.CheckBoxDF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxDF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxDF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxDF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxDF.Location = New System.Drawing.Point(6, 229)
+        Me.CheckBoxDF.Name = "CheckBoxDF"
+        Me.CheckBoxDF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxDF.TabIndex = 7
+        Me.CheckBoxDF.Text = "DF: Direction"
+        Me.CheckBoxDF.UseVisualStyleBackColor = True
         '
-        'chkIF
+        'CheckBoxIF
         '
-        Me.chkIF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkIF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkIF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkIF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkIF.Location = New System.Drawing.Point(6, 199)
-        Me.chkIF.Name = "chkIF"
-        Me.chkIF.Size = New System.Drawing.Size(91, 24)
-        Me.chkIF.TabIndex = 6
-        Me.chkIF.Text = "IF: Interrupt"
-        Me.chkIF.UseVisualStyleBackColor = True
+        Me.CheckBoxIF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxIF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxIF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxIF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxIF.Location = New System.Drawing.Point(6, 199)
+        Me.CheckBoxIF.Name = "CheckBoxIF"
+        Me.CheckBoxIF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxIF.TabIndex = 6
+        Me.CheckBoxIF.Text = "IF: Interrupt"
+        Me.CheckBoxIF.UseVisualStyleBackColor = True
         '
-        'chkAF
+        'CheckBoxAF
         '
-        Me.chkAF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkAF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkAF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkAF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkAF.Location = New System.Drawing.Point(6, 169)
-        Me.chkAF.Name = "chkAF"
-        Me.chkAF.Size = New System.Drawing.Size(91, 24)
-        Me.chkAF.TabIndex = 5
-        Me.chkAF.Text = "AF: Aux"
-        Me.chkAF.UseVisualStyleBackColor = True
+        Me.CheckBoxAF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxAF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxAF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxAF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxAF.Location = New System.Drawing.Point(6, 169)
+        Me.CheckBoxAF.Name = "CheckBoxAF"
+        Me.CheckBoxAF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxAF.TabIndex = 5
+        Me.CheckBoxAF.Text = "AF: Aux"
+        Me.CheckBoxAF.UseVisualStyleBackColor = True
         '
-        'chkPF
+        'CheckBoxPF
         '
-        Me.chkPF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkPF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkPF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkPF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkPF.Location = New System.Drawing.Point(6, 139)
-        Me.chkPF.Name = "chkPF"
-        Me.chkPF.Size = New System.Drawing.Size(91, 24)
-        Me.chkPF.TabIndex = 4
-        Me.chkPF.Text = "PF: Parity"
-        Me.chkPF.UseVisualStyleBackColor = True
+        Me.CheckBoxPF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxPF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxPF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxPF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxPF.Location = New System.Drawing.Point(6, 139)
+        Me.CheckBoxPF.Name = "CheckBoxPF"
+        Me.CheckBoxPF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxPF.TabIndex = 4
+        Me.CheckBoxPF.Text = "PF: Parity"
+        Me.CheckBoxPF.UseVisualStyleBackColor = True
         '
-        'chkOF
+        'CheckBoxOF
         '
-        Me.chkOF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkOF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkOF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkOF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkOF.Location = New System.Drawing.Point(6, 109)
-        Me.chkOF.Name = "chkOF"
-        Me.chkOF.Size = New System.Drawing.Size(91, 24)
-        Me.chkOF.TabIndex = 3
-        Me.chkOF.Text = "OF: Overflow"
-        Me.chkOF.UseVisualStyleBackColor = True
+        Me.CheckBoxOF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxOF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxOF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxOF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxOF.Location = New System.Drawing.Point(6, 109)
+        Me.CheckBoxOF.Name = "CheckBoxOF"
+        Me.CheckBoxOF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxOF.TabIndex = 3
+        Me.CheckBoxOF.Text = "OF: Overflow"
+        Me.CheckBoxOF.UseVisualStyleBackColor = True
         '
-        'chkSF
+        'CheckBoxSF
         '
-        Me.chkSF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkSF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkSF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkSF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkSF.Location = New System.Drawing.Point(6, 79)
-        Me.chkSF.Name = "chkSF"
-        Me.chkSF.Size = New System.Drawing.Size(91, 24)
-        Me.chkSF.TabIndex = 2
-        Me.chkSF.Text = "SF: Sign"
-        Me.chkSF.UseVisualStyleBackColor = True
+        Me.CheckBoxSF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxSF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxSF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxSF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxSF.Location = New System.Drawing.Point(6, 79)
+        Me.CheckBoxSF.Name = "CheckBoxSF"
+        Me.CheckBoxSF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxSF.TabIndex = 2
+        Me.CheckBoxSF.Text = "SF: Sign"
+        Me.CheckBoxSF.UseVisualStyleBackColor = True
         '
-        'chkZF
+        'CheckBoxZF
         '
-        Me.chkZF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkZF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkZF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkZF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkZF.Location = New System.Drawing.Point(6, 49)
-        Me.chkZF.Name = "chkZF"
-        Me.chkZF.Size = New System.Drawing.Size(91, 24)
-        Me.chkZF.TabIndex = 1
-        Me.chkZF.Text = "ZF: Zero"
-        Me.chkZF.UseVisualStyleBackColor = True
+        Me.CheckBoxZF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxZF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxZF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxZF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxZF.Location = New System.Drawing.Point(6, 49)
+        Me.CheckBoxZF.Name = "CheckBoxZF"
+        Me.CheckBoxZF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxZF.TabIndex = 1
+        Me.CheckBoxZF.Text = "ZF: Zero"
+        Me.CheckBoxZF.UseVisualStyleBackColor = True
         '
-        'chkCF
+        'CheckBoxCF
         '
-        Me.chkCF.Appearance = System.Windows.Forms.Appearance.Button
-        Me.chkCF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.chkCF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
-        Me.chkCF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.chkCF.Location = New System.Drawing.Point(6, 19)
-        Me.chkCF.Name = "chkCF"
-        Me.chkCF.Size = New System.Drawing.Size(91, 24)
-        Me.chkCF.TabIndex = 0
-        Me.chkCF.Text = "CF: Carry"
-        Me.chkCF.UseVisualStyleBackColor = True
+        Me.CheckBoxCF.Appearance = System.Windows.Forms.Appearance.Button
+        Me.CheckBoxCF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.CheckBoxCF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
+        Me.CheckBoxCF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.CheckBoxCF.Location = New System.Drawing.Point(6, 19)
+        Me.CheckBoxCF.Name = "CheckBoxCF"
+        Me.CheckBoxCF.Size = New System.Drawing.Size(91, 24)
+        Me.CheckBoxCF.TabIndex = 0
+        Me.CheckBoxCF.Text = "CF: Carry"
+        Me.CheckBoxCF.UseVisualStyleBackColor = True
         '
-        'gbRegisters
+        'GroupBoxRegisters
         '
-        Me.gbRegisters.Controls.Add(Me.btnForward)
-        Me.gbRegisters.Controls.Add(Me.btnBack)
-        Me.gbRegisters.Controls.Add(Me.btnDecIP)
-        Me.gbRegisters.Controls.Add(Me.txtSI)
-        Me.gbRegisters.Controls.Add(Me.txtDL)
-        Me.gbRegisters.Controls.Add(Me.txtES)
-        Me.gbRegisters.Controls.Add(Me.txtBP)
-        Me.gbRegisters.Controls.Add(Me.txtCL)
-        Me.gbRegisters.Controls.Add(Me.txtDH)
-        Me.gbRegisters.Controls.Add(Me.txtDI)
-        Me.gbRegisters.Controls.Add(Me.txtDS)
-        Me.gbRegisters.Controls.Add(Me.txtSP)
-        Me.gbRegisters.Controls.Add(Me.txtSS)
-        Me.gbRegisters.Controls.Add(Me.txtCH)
-        Me.gbRegisters.Controls.Add(Me.Label8)
-        Me.gbRegisters.Controls.Add(Me.Label4)
-        Me.gbRegisters.Controls.Add(Me.Label13)
-        Me.gbRegisters.Controls.Add(Me.txtBL)
-        Me.gbRegisters.Controls.Add(Me.Label7)
-        Me.gbRegisters.Controls.Add(Me.Label12)
-        Me.gbRegisters.Controls.Add(Me.Label3)
-        Me.gbRegisters.Controls.Add(Me.Label10)
-        Me.gbRegisters.Controls.Add(Me.Label11)
-        Me.gbRegisters.Controls.Add(Me.txtBH)
-        Me.gbRegisters.Controls.Add(Me.Label6)
-        Me.gbRegisters.Controls.Add(Me.Label2)
-        Me.gbRegisters.Controls.Add(Me.txtIP)
-        Me.gbRegisters.Controls.Add(Me.txtCS)
-        Me.gbRegisters.Controls.Add(Me.txtAL)
-        Me.gbRegisters.Controls.Add(Me.Label9)
-        Me.gbRegisters.Controls.Add(Me.txtAH)
-        Me.gbRegisters.Controls.Add(Me.Label5)
-        Me.gbRegisters.Controls.Add(Me.Label1)
-        Me.gbRegisters.ForeColor = System.Drawing.Color.WhiteSmoke
-        Me.gbRegisters.Location = New System.Drawing.Point(121, 12)
-        Me.gbRegisters.Name = "gbRegisters"
-        Me.gbRegisters.Size = New System.Drawing.Size(218, 309)
-        Me.gbRegisters.TabIndex = 1
-        Me.gbRegisters.TabStop = False
-        Me.gbRegisters.Text = "Registers"
+        Me.GroupBoxRegisters.Controls.Add(Me.ButtonForward)
+        Me.GroupBoxRegisters.Controls.Add(Me.ButtonBack)
+        Me.GroupBoxRegisters.Controls.Add(Me.ButtonDecIP)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxSI)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxDL)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxES)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxBP)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxCL)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxDH)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxDI)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxDS)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxSP)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxSS)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxCH)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label8)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label4)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label13)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxBL)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label7)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label12)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label3)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label10)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label11)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxBH)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label6)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label2)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxIP)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxCS)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxAL)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label9)
+        Me.GroupBoxRegisters.Controls.Add(Me.TextBoxAH)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label5)
+        Me.GroupBoxRegisters.Controls.Add(Me.Label1)
+        Me.GroupBoxRegisters.ForeColor = System.Drawing.Color.WhiteSmoke
+        Me.GroupBoxRegisters.Location = New System.Drawing.Point(121, 12)
+        Me.GroupBoxRegisters.Name = "GroupBoxRegisters"
+        Me.GroupBoxRegisters.Size = New System.Drawing.Size(218, 309)
+        Me.GroupBoxRegisters.TabIndex = 1
+        Me.GroupBoxRegisters.TabStop = False
+        Me.GroupBoxRegisters.Text = "Registers"
         '
-        'btnForward
+        'ButtonForward
         '
-        Me.btnForward.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.btnForward.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnForward.Location = New System.Drawing.Point(181, 88)
-        Me.btnForward.Name = "btnForward"
-        Me.btnForward.Size = New System.Drawing.Size(25, 23)
-        Me.btnForward.TabIndex = 13
-        Me.btnForward.Text = ">"
-        Me.btnForward.UseVisualStyleBackColor = True
+        Me.ButtonForward.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonForward.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonForward.Location = New System.Drawing.Point(181, 88)
+        Me.ButtonForward.Name = "ButtonForward"
+        Me.ButtonForward.Size = New System.Drawing.Size(25, 23)
+        Me.ButtonForward.TabIndex = 13
+        Me.ButtonForward.Text = ">"
+        Me.ButtonForward.UseVisualStyleBackColor = True
         '
-        'btnBack
+        'ButtonBack
         '
-        Me.btnBack.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.btnBack.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnBack.Location = New System.Drawing.Point(137, 89)
-        Me.btnBack.Name = "btnBack"
-        Me.btnBack.Size = New System.Drawing.Size(25, 23)
-        Me.btnBack.TabIndex = 12
-        Me.btnBack.Text = "<"
-        Me.btnBack.UseVisualStyleBackColor = True
+        Me.ButtonBack.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonBack.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonBack.Location = New System.Drawing.Point(137, 89)
+        Me.ButtonBack.Name = "ButtonBack"
+        Me.ButtonBack.Size = New System.Drawing.Size(25, 23)
+        Me.ButtonBack.TabIndex = 12
+        Me.ButtonBack.Text = "<"
+        Me.ButtonBack.UseVisualStyleBackColor = True
         '
-        'btnDecIP
+        'ButtonDecIP
         '
-        Me.btnDecIP.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.btnDecIP.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnDecIP.Location = New System.Drawing.Point(137, 117)
-        Me.btnDecIP.Name = "btnDecIP"
-        Me.btnDecIP.Size = New System.Drawing.Size(69, 23)
-        Me.btnDecIP.TabIndex = 14
-        Me.btnDecIP.Text = "<<"
-        Me.btnDecIP.UseVisualStyleBackColor = True
+        Me.ButtonDecIP.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonDecIP.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonDecIP.Location = New System.Drawing.Point(137, 117)
+        Me.ButtonDecIP.Name = "ButtonDecIP"
+        Me.ButtonDecIP.Size = New System.Drawing.Size(69, 23)
+        Me.ButtonDecIP.TabIndex = 14
+        Me.ButtonDecIP.Text = "<<"
+        Me.ButtonDecIP.UseVisualStyleBackColor = True
         '
-        'txtSI
+        'TextBoxSI
         '
-        Me.txtSI.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtSI.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtSI.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtSI.Location = New System.Drawing.Point(136, 210)
-        Me.txtSI.Name = "txtSI"
-        Me.txtSI.Size = New System.Drawing.Size(70, 26)
-        Me.txtSI.TabIndex = 17
-        Me.txtSI.Text = "0000"
-        Me.txtSI.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxSI.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxSI.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxSI.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxSI.Location = New System.Drawing.Point(136, 210)
+        Me.TextBoxSI.Name = "TextBoxSI"
+        Me.TextBoxSI.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxSI.TabIndex = 17
+        Me.TextBoxSI.Text = "0000"
+        Me.TextBoxSI.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtDL
+        'TextBoxDL
         '
-        Me.txtDL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtDL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtDL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtDL.Location = New System.Drawing.Point(68, 114)
-        Me.txtDL.Name = "txtDL"
-        Me.txtDL.Size = New System.Drawing.Size(35, 26)
-        Me.txtDL.TabIndex = 7
-        Me.txtDL.Text = "00"
-        Me.txtDL.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxDL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxDL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxDL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxDL.Location = New System.Drawing.Point(68, 114)
+        Me.TextBoxDL.Name = "TextBoxDL"
+        Me.TextBoxDL.Size = New System.Drawing.Size(35, 26)
+        Me.TextBoxDL.TabIndex = 7
+        Me.TextBoxDL.Text = "00"
+        Me.TextBoxDL.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtES
+        'TextBoxES
         '
-        Me.txtES.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtES.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtES.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtES.Location = New System.Drawing.Point(33, 242)
-        Me.txtES.Name = "txtES"
-        Me.txtES.Size = New System.Drawing.Size(70, 26)
-        Me.txtES.TabIndex = 11
-        Me.txtES.Text = "0000"
-        Me.txtES.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxES.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxES.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxES.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxES.Location = New System.Drawing.Point(33, 242)
+        Me.TextBoxES.Name = "TextBoxES"
+        Me.TextBoxES.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxES.TabIndex = 11
+        Me.TextBoxES.Text = "0000"
+        Me.TextBoxES.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtBP
+        'TextBoxBP
         '
-        Me.txtBP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtBP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtBP.Location = New System.Drawing.Point(136, 274)
-        Me.txtBP.Name = "txtBP"
-        Me.txtBP.Size = New System.Drawing.Size(70, 26)
-        Me.txtBP.TabIndex = 19
-        Me.txtBP.Text = "0000"
-        Me.txtBP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxBP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxBP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxBP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxBP.Location = New System.Drawing.Point(136, 274)
+        Me.TextBoxBP.Name = "TextBoxBP"
+        Me.TextBoxBP.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxBP.TabIndex = 19
+        Me.TextBoxBP.Text = "0000"
+        Me.TextBoxBP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtCL
+        'TextBoxCL
         '
-        Me.txtCL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtCL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtCL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtCL.Location = New System.Drawing.Point(68, 82)
-        Me.txtCL.Name = "txtCL"
-        Me.txtCL.Size = New System.Drawing.Size(35, 26)
-        Me.txtCL.TabIndex = 5
-        Me.txtCL.Text = "00"
-        Me.txtCL.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxCL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxCL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxCL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxCL.Location = New System.Drawing.Point(68, 82)
+        Me.TextBoxCL.Name = "TextBoxCL"
+        Me.TextBoxCL.Size = New System.Drawing.Size(35, 26)
+        Me.TextBoxCL.TabIndex = 5
+        Me.TextBoxCL.Text = "00"
+        Me.TextBoxCL.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtDH
+        'TextBoxDH
         '
-        Me.txtDH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtDH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtDH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtDH.Location = New System.Drawing.Point(33, 114)
-        Me.txtDH.Name = "txtDH"
-        Me.txtDH.Size = New System.Drawing.Size(35, 26)
-        Me.txtDH.TabIndex = 6
-        Me.txtDH.Text = "00"
-        Me.txtDH.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxDH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxDH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxDH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxDH.Location = New System.Drawing.Point(33, 114)
+        Me.TextBoxDH.Name = "TextBoxDH"
+        Me.TextBoxDH.Size = New System.Drawing.Size(35, 26)
+        Me.TextBoxDH.TabIndex = 6
+        Me.TextBoxDH.Text = "00"
+        Me.TextBoxDH.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtDI
+        'TextBoxDI
         '
-        Me.txtDI.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtDI.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtDI.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtDI.Location = New System.Drawing.Point(136, 242)
-        Me.txtDI.Name = "txtDI"
-        Me.txtDI.Size = New System.Drawing.Size(70, 26)
-        Me.txtDI.TabIndex = 18
-        Me.txtDI.Text = "0000"
-        Me.txtDI.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxDI.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxDI.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxDI.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxDI.Location = New System.Drawing.Point(136, 242)
+        Me.TextBoxDI.Name = "TextBoxDI"
+        Me.TextBoxDI.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxDI.TabIndex = 18
+        Me.TextBoxDI.Text = "0000"
+        Me.TextBoxDI.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtDS
+        'TextBoxDS
         '
-        Me.txtDS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtDS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtDS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtDS.Location = New System.Drawing.Point(33, 210)
-        Me.txtDS.Name = "txtDS"
-        Me.txtDS.Size = New System.Drawing.Size(70, 26)
-        Me.txtDS.TabIndex = 10
-        Me.txtDS.Text = "0000"
-        Me.txtDS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxDS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxDS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxDS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxDS.Location = New System.Drawing.Point(33, 210)
+        Me.TextBoxDS.Name = "TextBoxDS"
+        Me.TextBoxDS.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxDS.TabIndex = 10
+        Me.TextBoxDS.Text = "0000"
+        Me.TextBoxDS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtSP
+        'TextBoxSP
         '
-        Me.txtSP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtSP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtSP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtSP.Location = New System.Drawing.Point(136, 178)
-        Me.txtSP.Name = "txtSP"
-        Me.txtSP.Size = New System.Drawing.Size(70, 26)
-        Me.txtSP.TabIndex = 16
-        Me.txtSP.Text = "0000"
-        Me.txtSP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxSP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxSP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxSP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxSP.Location = New System.Drawing.Point(136, 178)
+        Me.TextBoxSP.Name = "TextBoxSP"
+        Me.TextBoxSP.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxSP.TabIndex = 16
+        Me.TextBoxSP.Text = "0000"
+        Me.TextBoxSP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtSS
+        'TextBoxSS
         '
-        Me.txtSS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtSS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtSS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtSS.Location = New System.Drawing.Point(33, 178)
-        Me.txtSS.Name = "txtSS"
-        Me.txtSS.Size = New System.Drawing.Size(70, 26)
-        Me.txtSS.TabIndex = 9
-        Me.txtSS.Text = "0000"
-        Me.txtSS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxSS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxSS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxSS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxSS.Location = New System.Drawing.Point(33, 178)
+        Me.TextBoxSS.Name = "TextBoxSS"
+        Me.TextBoxSS.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxSS.TabIndex = 9
+        Me.TextBoxSS.Text = "0000"
+        Me.TextBoxSS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtCH
+        'TextBoxCH
         '
-        Me.txtCH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtCH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtCH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtCH.Location = New System.Drawing.Point(33, 82)
-        Me.txtCH.Name = "txtCH"
-        Me.txtCH.Size = New System.Drawing.Size(35, 26)
-        Me.txtCH.TabIndex = 4
-        Me.txtCH.Text = "00"
-        Me.txtCH.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxCH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxCH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxCH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxCH.Location = New System.Drawing.Point(33, 82)
+        Me.TextBoxCH.Name = "TextBoxCH"
+        Me.TextBoxCH.Size = New System.Drawing.Size(35, 26)
+        Me.TextBoxCH.TabIndex = 4
+        Me.TextBoxCH.Text = "00"
+        Me.TextBoxCH.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'Label8
         '
@@ -470,17 +470,17 @@ Partial Class FormMonitor
         Me.Label13.TabIndex = 3
         Me.Label13.Text = "ES"
         '
-        'txtBL
+        'TextBoxBL
         '
-        Me.txtBL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtBL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtBL.Location = New System.Drawing.Point(68, 50)
-        Me.txtBL.Name = "txtBL"
-        Me.txtBL.Size = New System.Drawing.Size(35, 26)
-        Me.txtBL.TabIndex = 3
-        Me.txtBL.Text = "00"
-        Me.txtBL.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxBL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxBL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxBL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxBL.Location = New System.Drawing.Point(68, 50)
+        Me.TextBoxBL.Name = "TextBoxBL"
+        Me.TextBoxBL.Size = New System.Drawing.Size(35, 26)
+        Me.TextBoxBL.TabIndex = 3
+        Me.TextBoxBL.Text = "00"
+        Me.TextBoxBL.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'Label7
         '
@@ -527,17 +527,17 @@ Partial Class FormMonitor
         Me.Label11.TabIndex = 3
         Me.Label11.Text = "DS"
         '
-        'txtBH
+        'TextBoxBH
         '
-        Me.txtBH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtBH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtBH.Location = New System.Drawing.Point(33, 50)
-        Me.txtBH.Name = "txtBH"
-        Me.txtBH.Size = New System.Drawing.Size(35, 26)
-        Me.txtBH.TabIndex = 2
-        Me.txtBH.Text = "00"
-        Me.txtBH.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxBH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxBH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxBH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxBH.Location = New System.Drawing.Point(33, 50)
+        Me.TextBoxBH.Name = "TextBoxBH"
+        Me.TextBoxBH.Size = New System.Drawing.Size(35, 26)
+        Me.TextBoxBH.TabIndex = 2
+        Me.TextBoxBH.Text = "00"
+        Me.TextBoxBH.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'Label6
         '
@@ -557,41 +557,41 @@ Partial Class FormMonitor
         Me.Label2.TabIndex = 3
         Me.Label2.Text = "BX"
         '
-        'txtIP
+        'TextBoxIP
         '
-        Me.txtIP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtIP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtIP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtIP.Location = New System.Drawing.Point(136, 146)
-        Me.txtIP.Name = "txtIP"
-        Me.txtIP.Size = New System.Drawing.Size(70, 26)
-        Me.txtIP.TabIndex = 15
-        Me.txtIP.Text = "0000"
-        Me.txtIP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxIP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxIP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxIP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxIP.Location = New System.Drawing.Point(136, 146)
+        Me.TextBoxIP.Name = "TextBoxIP"
+        Me.TextBoxIP.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxIP.TabIndex = 15
+        Me.TextBoxIP.Text = "0000"
+        Me.TextBoxIP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtCS
+        'TextBoxCS
         '
-        Me.txtCS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtCS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtCS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtCS.Location = New System.Drawing.Point(33, 146)
-        Me.txtCS.Name = "txtCS"
-        Me.txtCS.Size = New System.Drawing.Size(70, 26)
-        Me.txtCS.TabIndex = 8
-        Me.txtCS.Text = "0000"
-        Me.txtCS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxCS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxCS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxCS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxCS.Location = New System.Drawing.Point(33, 146)
+        Me.TextBoxCS.Name = "TextBoxCS"
+        Me.TextBoxCS.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxCS.TabIndex = 8
+        Me.TextBoxCS.Text = "0000"
+        Me.TextBoxCS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtAL
+        'TextBoxAL
         '
-        Me.txtAL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtAL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtAL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtAL.Location = New System.Drawing.Point(68, 18)
-        Me.txtAL.Name = "txtAL"
-        Me.txtAL.Size = New System.Drawing.Size(35, 26)
-        Me.txtAL.TabIndex = 1
-        Me.txtAL.Text = "00"
-        Me.txtAL.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxAL.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxAL.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxAL.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxAL.Location = New System.Drawing.Point(68, 18)
+        Me.TextBoxAL.Name = "TextBoxAL"
+        Me.TextBoxAL.Size = New System.Drawing.Size(35, 26)
+        Me.TextBoxAL.TabIndex = 1
+        Me.TextBoxAL.Text = "00"
+        Me.TextBoxAL.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'Label9
         '
@@ -602,17 +602,17 @@ Partial Class FormMonitor
         Me.Label9.TabIndex = 0
         Me.Label9.Text = "IP"
         '
-        'txtAH
+        'TextBoxAH
         '
-        Me.txtAH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtAH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtAH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtAH.Location = New System.Drawing.Point(33, 18)
-        Me.txtAH.Name = "txtAH"
-        Me.txtAH.Size = New System.Drawing.Size(35, 26)
-        Me.txtAH.TabIndex = 0
-        Me.txtAH.Text = "00"
-        Me.txtAH.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxAH.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxAH.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxAH.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxAH.Location = New System.Drawing.Point(33, 18)
+        Me.TextBoxAH.Name = "TextBoxAH"
+        Me.TextBoxAH.Size = New System.Drawing.Size(35, 26)
+        Me.TextBoxAH.TabIndex = 0
+        Me.TextBoxAH.Text = "00"
+        Me.TextBoxAH.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'Label5
         '
@@ -632,52 +632,52 @@ Partial Class FormMonitor
         Me.Label1.TabIndex = 0
         Me.Label1.Text = "AX"
         '
-        'GroupBox3
+        'GroupBoxStack
         '
-        Me.GroupBox3.Controls.Add(Me.lvStack)
-        Me.GroupBox3.ForeColor = System.Drawing.Color.WhiteSmoke
-        Me.GroupBox3.Location = New System.Drawing.Point(345, 12)
-        Me.GroupBox3.Name = "GroupBox3"
-        Me.GroupBox3.Size = New System.Drawing.Size(200, 309)
-        Me.GroupBox3.TabIndex = 2
-        Me.GroupBox3.TabStop = False
-        Me.GroupBox3.Text = "Stack"
+        Me.GroupBoxStack.Controls.Add(Me.ListViewStack)
+        Me.GroupBoxStack.ForeColor = System.Drawing.Color.WhiteSmoke
+        Me.GroupBoxStack.Location = New System.Drawing.Point(345, 12)
+        Me.GroupBoxStack.Name = "GroupBoxStack"
+        Me.GroupBoxStack.Size = New System.Drawing.Size(200, 309)
+        Me.GroupBoxStack.TabIndex = 2
+        Me.GroupBoxStack.TabStop = False
+        Me.GroupBoxStack.Text = "Stack"
         '
-        'lvStack
+        'ListViewStack
         '
-        Me.lvStack.BackColor = System.Drawing.Color.FromArgb(CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer))
-        Me.lvStack.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-        Me.lvStack.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.chAddress, Me.chValue})
-        Me.lvStack.Font = New System.Drawing.Font("Consolas", 11.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lvStack.ForeColor = System.Drawing.Color.Gainsboro
-        Me.lvStack.FullRowSelect = True
-        Me.lvStack.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
-        Me.lvStack.Location = New System.Drawing.Point(6, 18)
-        Me.lvStack.Name = "lvStack"
-        Me.lvStack.Size = New System.Drawing.Size(188, 285)
-        Me.lvStack.TabIndex = 0
-        Me.lvStack.UseCompatibleStateImageBehavior = False
-        Me.lvStack.View = System.Windows.Forms.View.Details
+        Me.ListViewStack.BackColor = System.Drawing.Color.FromArgb(CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer))
+        Me.ListViewStack.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+        Me.ListViewStack.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeaderAddress, Me.ColumnHeaderValue})
+        Me.ListViewStack.Font = New System.Drawing.Font("Consolas", 11.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.ListViewStack.ForeColor = System.Drawing.Color.Gainsboro
+        Me.ListViewStack.FullRowSelect = True
+        Me.ListViewStack.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
+        Me.ListViewStack.Location = New System.Drawing.Point(6, 18)
+        Me.ListViewStack.Name = "ListViewStack"
+        Me.ListViewStack.Size = New System.Drawing.Size(188, 285)
+        Me.ListViewStack.TabIndex = 0
+        Me.ListViewStack.UseCompatibleStateImageBehavior = False
+        Me.ListViewStack.View = System.Windows.Forms.View.Details
         '
-        'chAddress
+        'ColumnHeaderAddress
         '
-        Me.chAddress.Text = "Address"
+        Me.ColumnHeaderAddress.Text = "Address"
         '
-        'chValue
+        'ColumnHeaderValue
         '
-        Me.chValue.Text = "Value"
+        Me.ColumnHeaderValue.Text = "Value"
         '
-        'btnStep
+        'ButtonStep
         '
-        Me.btnStep.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnStep.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.btnStep.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnStep.Location = New System.Drawing.Point(882, 604)
-        Me.btnStep.Name = "btnStep"
-        Me.btnStep.Size = New System.Drawing.Size(97, 32)
-        Me.btnStep.TabIndex = 13
-        Me.btnStep.Text = "Step"
-        Me.btnStep.UseVisualStyleBackColor = True
+        Me.ButtonStep.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.ButtonStep.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonStep.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonStep.Location = New System.Drawing.Point(882, 604)
+        Me.ButtonStep.Name = "ButtonStep"
+        Me.ButtonStep.Size = New System.Drawing.Size(97, 32)
+        Me.ButtonStep.TabIndex = 13
+        Me.ButtonStep.Text = "Step"
+        Me.ButtonStep.UseVisualStyleBackColor = True
         '
         'ListViewCode
         '
@@ -685,7 +685,7 @@ Partial Class FormMonitor
             Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ListViewCode.CheckBoxes = True
-        Me.ListViewCode.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.chCodeAddress, Me.chBytes, Me.chMnemonic, Me.chParameters})
+        Me.ListViewCode.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.ColumnHeaderCodeAddress, Me.ColumnHeaderBytes, Me.ColumnHeaderMnemonic, Me.ColumnHeaderParameters})
         Me.ListViewCode.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ListViewCode.FullRowSelect = True
         Me.ListViewCode.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None
@@ -697,21 +697,33 @@ Partial Class FormMonitor
         Me.ListViewCode.UseCompatibleStateImageBehavior = False
         Me.ListViewCode.View = System.Windows.Forms.View.Details
         '
-        'chCodeAddress
+        'ColumnHeaderCodeAddress
         '
-        Me.chCodeAddress.Text = "Address"
+        Me.ColumnHeaderCodeAddress.Text = "Address"
         '
-        'btnRefresh
+        'ColumnHeaderBytes
         '
-        Me.btnRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnRefresh.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnRefresh.Location = New System.Drawing.Point(779, 604)
-        Me.btnRefresh.Name = "btnRefresh"
-        Me.btnRefresh.Size = New System.Drawing.Size(97, 32)
-        Me.btnRefresh.TabIndex = 12
-        Me.btnRefresh.Text = "Refresh"
-        Me.btnRefresh.UseVisualStyleBackColor = True
+        Me.ColumnHeaderBytes.Text = "Bytes"
+        '
+        'ColumnHeaderMnemonic
+        '
+        Me.ColumnHeaderMnemonic.Text = "Mnemonic"
+        '
+        'ColumnHeaderParameters
+        '
+        Me.ColumnHeaderParameters.Text = "Parameters"
+        '
+        'ButtonRefresh
+        '
+        Me.ButtonRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.ButtonRefresh.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonRefresh.Location = New System.Drawing.Point(779, 604)
+        Me.ButtonRefresh.Name = "ButtonRefresh"
+        Me.ButtonRefresh.Size = New System.Drawing.Size(97, 32)
+        Me.ButtonRefresh.TabIndex = 12
+        Me.ButtonRefresh.Text = "Refresh"
+        Me.ButtonRefresh.UseVisualStyleBackColor = True
         '
         'Label14
         '
@@ -722,100 +734,100 @@ Partial Class FormMonitor
         Me.Label14.TabIndex = 6
         Me.Label14.Text = "Break At"
         '
-        'txtBreakIP
+        'TextBoxBreakIP
         '
-        Me.txtBreakIP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtBreakIP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBreakIP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtBreakIP.Location = New System.Drawing.Point(475, 327)
-        Me.txtBreakIP.Name = "txtBreakIP"
-        Me.txtBreakIP.Size = New System.Drawing.Size(70, 26)
-        Me.txtBreakIP.TabIndex = 6
-        Me.txtBreakIP.Text = "0000"
-        Me.txtBreakIP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxBreakIP.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxBreakIP.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxBreakIP.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxBreakIP.Location = New System.Drawing.Point(475, 327)
+        Me.TextBoxBreakIP.Name = "TextBoxBreakIP"
+        Me.TextBoxBreakIP.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxBreakIP.TabIndex = 6
+        Me.TextBoxBreakIP.Text = "0000"
+        Me.TextBoxBreakIP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtMem
+        'TextBoxMem
         '
-        Me.txtMem.BackColor = System.Drawing.Color.FromArgb(CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer))
-        Me.txtMem.Cursor = System.Windows.Forms.Cursors.Arrow
-        Me.txtMem.Font = New System.Drawing.Font("Consolas", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtMem.ForeColor = System.Drawing.Color.Gainsboro
-        Me.txtMem.Location = New System.Drawing.Point(12, 359)
-        Me.txtMem.Multiline = True
-        Me.txtMem.Name = "txtMem"
-        Me.txtMem.ReadOnly = True
-        Me.txtMem.Size = New System.Drawing.Size(533, 237)
-        Me.txtMem.TabIndex = 7
+        Me.TextBoxMem.BackColor = System.Drawing.Color.FromArgb(CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer))
+        Me.TextBoxMem.Cursor = System.Windows.Forms.Cursors.Arrow
+        Me.TextBoxMem.Font = New System.Drawing.Font("Consolas", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxMem.ForeColor = System.Drawing.Color.Gainsboro
+        Me.TextBoxMem.Location = New System.Drawing.Point(12, 359)
+        Me.TextBoxMem.Multiline = True
+        Me.TextBoxMem.Name = "TextBoxMem"
+        Me.TextBoxMem.ReadOnly = True
+        Me.TextBoxMem.Size = New System.Drawing.Size(533, 237)
+        Me.TextBoxMem.TabIndex = 7
         '
-        'txtMemSeg
+        'TextBoxMemSeg
         '
-        Me.txtMemSeg.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtMemSeg.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtMemSeg.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtMemSeg.Location = New System.Drawing.Point(12, 327)
-        Me.txtMemSeg.Name = "txtMemSeg"
-        Me.txtMemSeg.Size = New System.Drawing.Size(70, 26)
-        Me.txtMemSeg.TabIndex = 1
-        Me.txtMemSeg.Text = "0000"
-        Me.txtMemSeg.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxMemSeg.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxMemSeg.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxMemSeg.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxMemSeg.Location = New System.Drawing.Point(12, 327)
+        Me.TextBoxMemSeg.Name = "TextBoxMemSeg"
+        Me.TextBoxMemSeg.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxMemSeg.TabIndex = 1
+        Me.TextBoxMemSeg.Text = "0000"
+        Me.TextBoxMemSeg.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'txtMemOff
+        'TextBoxMemOff
         '
-        Me.txtMemOff.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtMemOff.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtMemOff.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtMemOff.Location = New System.Drawing.Point(88, 327)
-        Me.txtMemOff.Name = "txtMemOff"
-        Me.txtMemOff.Size = New System.Drawing.Size(70, 26)
-        Me.txtMemOff.TabIndex = 2
-        Me.txtMemOff.Text = "0000"
-        Me.txtMemOff.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxMemOff.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxMemOff.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxMemOff.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxMemOff.Location = New System.Drawing.Point(88, 327)
+        Me.TextBoxMemOff.Name = "TextBoxMemOff"
+        Me.TextBoxMemOff.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxMemOff.TabIndex = 2
+        Me.TextBoxMemOff.Text = "0000"
+        Me.TextBoxMemOff.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'btnRun
+        'ButtonRun
         '
-        Me.btnRun.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnRun.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.btnRun.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnRun.Location = New System.Drawing.Point(985, 604)
-        Me.btnRun.Name = "btnRun"
-        Me.btnRun.Size = New System.Drawing.Size(97, 32)
-        Me.btnRun.TabIndex = 14
-        Me.btnRun.Text = "Run"
-        Me.btnRun.UseVisualStyleBackColor = True
+        Me.ButtonRun.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.ButtonRun.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonRun.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonRun.Location = New System.Drawing.Point(985, 604)
+        Me.ButtonRun.Name = "ButtonRun"
+        Me.ButtonRun.Size = New System.Drawing.Size(97, 32)
+        Me.ButtonRun.TabIndex = 14
+        Me.ButtonRun.Text = "Run"
+        Me.ButtonRun.UseVisualStyleBackColor = True
         '
-        'btnReboot
+        'ButtonReboot
         '
-        Me.btnReboot.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
-        Me.btnReboot.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
-        Me.btnReboot.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.btnReboot.Location = New System.Drawing.Point(551, 604)
-        Me.btnReboot.Name = "btnReboot"
-        Me.btnReboot.Size = New System.Drawing.Size(97, 32)
-        Me.btnReboot.TabIndex = 10
-        Me.btnReboot.Text = "Reboot"
-        Me.btnReboot.UseVisualStyleBackColor = True
+        Me.ButtonReboot.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
+        Me.ButtonReboot.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
+        Me.ButtonReboot.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+        Me.ButtonReboot.Location = New System.Drawing.Point(551, 604)
+        Me.ButtonReboot.Name = "ButtonReboot"
+        Me.ButtonReboot.Size = New System.Drawing.Size(97, 32)
+        Me.ButtonReboot.TabIndex = 10
+        Me.ButtonReboot.Text = "Reboot"
+        Me.ButtonReboot.UseVisualStyleBackColor = True
         '
-        'txtBreakCS
+        'TextBoxBreakCS
         '
-        Me.txtBreakCS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
-        Me.txtBreakCS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.txtBreakCS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.txtBreakCS.Location = New System.Drawing.Point(399, 327)
-        Me.txtBreakCS.Name = "txtBreakCS"
-        Me.txtBreakCS.Size = New System.Drawing.Size(70, 26)
-        Me.txtBreakCS.TabIndex = 5
-        Me.txtBreakCS.Text = "0000"
-        Me.txtBreakCS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
+        Me.TextBoxBreakCS.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
+        Me.TextBoxBreakCS.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxBreakCS.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
+        Me.TextBoxBreakCS.Location = New System.Drawing.Point(399, 327)
+        Me.TextBoxBreakCS.Name = "TextBoxBreakCS"
+        Me.TextBoxBreakCS.Size = New System.Drawing.Size(70, 26)
+        Me.TextBoxBreakCS.TabIndex = 5
+        Me.TextBoxBreakCS.Text = "0000"
+        Me.TextBoxBreakCS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
-        'ttValueInfo
+        'ToolTipValueInfo
         '
-        Me.ttValueInfo.AutomaticDelay = 100
-        Me.ttValueInfo.AutoPopDelay = 10000
-        Me.ttValueInfo.InitialDelay = 100
-        Me.ttValueInfo.IsBalloon = True
-        Me.ttValueInfo.ReshowDelay = 20
-        Me.ttValueInfo.UseAnimation = False
-        Me.ttValueInfo.UseFading = False
+        Me.ToolTipValueInfo.AutomaticDelay = 100
+        Me.ToolTipValueInfo.AutoPopDelay = 10000
+        Me.ToolTipValueInfo.InitialDelay = 100
+        Me.ToolTipValueInfo.IsBalloon = True
+        Me.ToolTipValueInfo.ReshowDelay = 20
+        Me.ToolTipValueInfo.UseAnimation = False
+        Me.ToolTipValueInfo.UseFading = False
         '
         'CheckBoxTextVideoMemory
         '
@@ -826,7 +838,7 @@ Partial Class FormMonitor
         Me.CheckBoxTextVideoMemory.Name = "CheckBoxTextVideoMemory"
         Me.CheckBoxTextVideoMemory.Size = New System.Drawing.Size(12, 11)
         Me.CheckBoxTextVideoMemory.TabIndex = 8
-        Me.ttValueInfo.SetToolTip(Me.CheckBoxTextVideoMemory, "Enable Text Video Memory compatibility search")
+        Me.ToolTipValueInfo.SetToolTip(Me.CheckBoxTextVideoMemory, "Enable Text Video Memory compatibility search")
         Me.CheckBoxTextVideoMemory.UseVisualStyleBackColor = True
         '
         'CheckBoxBytesOrChars
@@ -838,7 +850,7 @@ Partial Class FormMonitor
         Me.CheckBoxBytesOrChars.Name = "CheckBoxBytesOrChars"
         Me.CheckBoxBytesOrChars.Size = New System.Drawing.Size(12, 11)
         Me.CheckBoxBytesOrChars.TabIndex = 11
-        Me.ttValueInfo.SetToolTip(Me.CheckBoxBytesOrChars, "Toggle bytes/chars display")
+        Me.ToolTipValueInfo.SetToolTip(Me.CheckBoxBytesOrChars, "Toggle bytes/chars display")
         Me.CheckBoxBytesOrChars.UseVisualStyleBackColor = True
         '
         'TextBoxSearch
@@ -898,20 +910,20 @@ Partial Class FormMonitor
         Me.Controls.Add(Me.CheckBoxTextVideoMemory)
         Me.Controls.Add(Me.ButtonSearch)
         Me.Controls.Add(Me.TextBoxSearch)
-        Me.Controls.Add(Me.btnReboot)
-        Me.Controls.Add(Me.txtMem)
+        Me.Controls.Add(Me.ButtonReboot)
+        Me.Controls.Add(Me.TextBoxMem)
         Me.Controls.Add(Me.Label14)
         Me.Controls.Add(Me.ListViewCode)
-        Me.Controls.Add(Me.btnRun)
-        Me.Controls.Add(Me.btnRefresh)
-        Me.Controls.Add(Me.btnStep)
-        Me.Controls.Add(Me.GroupBox3)
-        Me.Controls.Add(Me.gbRegisters)
-        Me.Controls.Add(Me.gbFlags)
-        Me.Controls.Add(Me.txtBreakCS)
-        Me.Controls.Add(Me.txtBreakIP)
-        Me.Controls.Add(Me.txtMemSeg)
-        Me.Controls.Add(Me.txtMemOff)
+        Me.Controls.Add(Me.ButtonRun)
+        Me.Controls.Add(Me.ButtonRefresh)
+        Me.Controls.Add(Me.ButtonStep)
+        Me.Controls.Add(Me.GroupBoxStack)
+        Me.Controls.Add(Me.GroupBoxRegisters)
+        Me.Controls.Add(Me.GroupBoxFlags)
+        Me.Controls.Add(Me.TextBoxBreakCS)
+        Me.Controls.Add(Me.TextBoxBreakIP)
+        Me.Controls.Add(Me.TextBoxMemSeg)
+        Me.Controls.Add(Me.TextBoxMemOff)
         Me.Font = New System.Drawing.Font("Segoe UI", 8.25!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ForeColor = System.Drawing.Color.WhiteSmoke
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
@@ -919,78 +931,78 @@ Partial Class FormMonitor
         Me.MinimumSize = New System.Drawing.Size(1095, 687)
         Me.Name = "FormMonitor"
         Me.Text = "Monitor"
-        Me.gbFlags.ResumeLayout(False)
-        Me.gbRegisters.ResumeLayout(False)
-        Me.gbRegisters.PerformLayout()
-        Me.GroupBox3.ResumeLayout(False)
+        Me.GroupBoxFlags.ResumeLayout(False)
+        Me.GroupBoxRegisters.ResumeLayout(False)
+        Me.GroupBoxRegisters.PerformLayout()
+        Me.GroupBoxStack.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
     End Sub
-    Friend WithEvents gbFlags As System.Windows.Forms.GroupBox
-    Friend WithEvents chkOF As System.Windows.Forms.CheckBox
-    Friend WithEvents chkSF As System.Windows.Forms.CheckBox
-    Friend WithEvents chkZF As System.Windows.Forms.CheckBox
-    Friend WithEvents chkCF As System.Windows.Forms.CheckBox
-    Friend WithEvents chkAF As System.Windows.Forms.CheckBox
-    Friend WithEvents chkPF As System.Windows.Forms.CheckBox
-    Friend WithEvents chkDF As System.Windows.Forms.CheckBox
-    Friend WithEvents chkIF As System.Windows.Forms.CheckBox
-    Friend WithEvents gbRegisters As System.Windows.Forms.GroupBox
-    Friend WithEvents txtAL As System.Windows.Forms.TextBox
-    Friend WithEvents txtAH As System.Windows.Forms.TextBox
+    Friend WithEvents GroupBoxFlags As System.Windows.Forms.GroupBox
+    Friend WithEvents CheckBoxOF As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBoxSF As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBoxZF As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBoxCF As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBoxAF As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBoxPF As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBoxDF As System.Windows.Forms.CheckBox
+    Friend WithEvents CheckBoxIF As System.Windows.Forms.CheckBox
+    Friend WithEvents GroupBoxRegisters As System.Windows.Forms.GroupBox
+    Friend WithEvents TextBoxAL As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxAH As System.Windows.Forms.TextBox
     Friend WithEvents Label1 As System.Windows.Forms.Label
-    Friend WithEvents txtBL As System.Windows.Forms.TextBox
-    Friend WithEvents txtBH As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxBL As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxBH As System.Windows.Forms.TextBox
     Friend WithEvents Label2 As System.Windows.Forms.Label
-    Friend WithEvents txtDL As System.Windows.Forms.TextBox
-    Friend WithEvents txtCL As System.Windows.Forms.TextBox
-    Friend WithEvents txtDH As System.Windows.Forms.TextBox
-    Friend WithEvents txtCH As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxDL As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxCL As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxDH As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxCH As System.Windows.Forms.TextBox
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents Label3 As System.Windows.Forms.Label
-    Friend WithEvents txtSI As System.Windows.Forms.TextBox
-    Friend WithEvents txtBP As System.Windows.Forms.TextBox
-    Friend WithEvents txtSS As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxSI As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxBP As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxSS As System.Windows.Forms.TextBox
     Friend WithEvents Label8 As System.Windows.Forms.Label
     Friend WithEvents Label7 As System.Windows.Forms.Label
     Friend WithEvents Label6 As System.Windows.Forms.Label
-    Friend WithEvents txtCS As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxCS As System.Windows.Forms.TextBox
     Friend WithEvents Label5 As System.Windows.Forms.Label
-    Friend WithEvents txtSP As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxSP As System.Windows.Forms.TextBox
     Friend WithEvents Label10 As System.Windows.Forms.Label
-    Friend WithEvents txtIP As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxIP As System.Windows.Forms.TextBox
     Friend WithEvents Label9 As System.Windows.Forms.Label
-    Friend WithEvents txtES As System.Windows.Forms.TextBox
-    Friend WithEvents txtDI As System.Windows.Forms.TextBox
-    Friend WithEvents txtDS As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxES As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxDI As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxDS As System.Windows.Forms.TextBox
     Friend WithEvents Label13 As System.Windows.Forms.Label
     Friend WithEvents Label12 As System.Windows.Forms.Label
     Friend WithEvents Label11 As System.Windows.Forms.Label
-    Friend WithEvents GroupBox3 As System.Windows.Forms.GroupBox
-    Friend WithEvents lvStack As System.Windows.Forms.ListView
-    Friend WithEvents chAddress As System.Windows.Forms.ColumnHeader
-    Friend WithEvents chValue As System.Windows.Forms.ColumnHeader
-    Friend WithEvents btnStep As System.Windows.Forms.Button
+    Friend WithEvents GroupBoxStack As System.Windows.Forms.GroupBox
+    Friend WithEvents ListViewStack As System.Windows.Forms.ListView
+    Friend WithEvents ColumnHeaderAddress As System.Windows.Forms.ColumnHeader
+    Friend WithEvents ColumnHeaderValue As System.Windows.Forms.ColumnHeader
+    Friend WithEvents ButtonStep As System.Windows.Forms.Button
     Friend WithEvents ListViewCode As System.Windows.Forms.ListView
-    Friend WithEvents chCodeAddress As System.Windows.Forms.ColumnHeader
-    Friend WithEvents btnRefresh As System.Windows.Forms.Button
+    Friend WithEvents ColumnHeaderCodeAddress As System.Windows.Forms.ColumnHeader
+    Friend WithEvents ButtonRefresh As System.Windows.Forms.Button
     Friend WithEvents Label14 As System.Windows.Forms.Label
-    Friend WithEvents txtBreakIP As System.Windows.Forms.TextBox
-    Friend WithEvents txtMem As System.Windows.Forms.TextBox
-    Friend WithEvents txtMemSeg As System.Windows.Forms.TextBox
-    Friend WithEvents txtMemOff As System.Windows.Forms.TextBox
-    Friend WithEvents btnRun As System.Windows.Forms.Button
-    Friend WithEvents chBytes As System.Windows.Forms.ColumnHeader
-    Friend WithEvents chMnemonic As System.Windows.Forms.ColumnHeader
-    Friend WithEvents chParameters As System.Windows.Forms.ColumnHeader
-    Friend WithEvents btnReboot As System.Windows.Forms.Button
-    Friend WithEvents btnDecIP As System.Windows.Forms.Button
-    Friend WithEvents txtBreakCS As System.Windows.Forms.TextBox
-    Friend WithEvents btnForward As System.Windows.Forms.Button
-    Friend WithEvents btnBack As System.Windows.Forms.Button
-    Friend WithEvents chkTF As System.Windows.Forms.CheckBox
-    Friend WithEvents ttValueInfo As System.Windows.Forms.ToolTip
+    Friend WithEvents TextBoxBreakIP As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxMem As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxMemSeg As System.Windows.Forms.TextBox
+    Friend WithEvents TextBoxMemOff As System.Windows.Forms.TextBox
+    Friend WithEvents ButtonRun As System.Windows.Forms.Button
+    Friend WithEvents ColumnHeaderBytes As System.Windows.Forms.ColumnHeader
+    Friend WithEvents ColumnHeaderMnemonic As System.Windows.Forms.ColumnHeader
+    Friend WithEvents ColumnHeaderParameters As System.Windows.Forms.ColumnHeader
+    Friend WithEvents ButtonReboot As System.Windows.Forms.Button
+    Friend WithEvents ButtonDecIP As System.Windows.Forms.Button
+    Friend WithEvents TextBoxBreakCS As System.Windows.Forms.TextBox
+    Friend WithEvents ButtonForward As System.Windows.Forms.Button
+    Friend WithEvents ButtonBack As System.Windows.Forms.Button
+    Friend WithEvents CheckBoxTF As System.Windows.Forms.CheckBox
+    Friend WithEvents ToolTipValueInfo As System.Windows.Forms.ToolTip
     Friend WithEvents TextBoxSearch As System.Windows.Forms.TextBox
     Friend WithEvents ButtonSearch As System.Windows.Forms.Button
     Friend WithEvents CheckBoxTextVideoMemory As System.Windows.Forms.CheckBox

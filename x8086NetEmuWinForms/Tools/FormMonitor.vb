@@ -60,6 +60,7 @@ Public Class FormMonitor
     Private currentCSIP As String
     Private currentSSSP As String
     Private ignoreEvents As Boolean
+    Private syncObject As New Object()
     Private isInit As Boolean
     Private breakIP As Integer = -1
     Private breakCS As Integer = -1
@@ -80,14 +81,16 @@ Public Class FormMonitor
     Private Const numberSufixes As String = "hbo" ' hEX / bINARY / oCTAL
     Private activeInstruction As X8086.Instruction
 
-    Private navigator As System.Xml.XPath.XPathNavigator = New System.Xml.XPath.XPathDocument(New IO.StringReader("<r/>")).CreateNavigator()
-    Private rex As System.Text.RegularExpressions.Regex = New System.Text.RegularExpressions.Regex("([\+\-\*])")
+    Private navigator As Xml.XPath.XPathNavigator = New Xml.XPath.XPathDocument(New IO.StringReader("<r/>")).CreateNavigator()
+    Private rex As New RegularExpressions.Regex("([\+\-\*])")
     Private Evaluator As Func(Of String, Double) = Function(exp) CDbl(navigator.Evaluate("number(" + rex.Replace(exp, " ${1} ").Replace("/", " div ").Replace("%", " mod ") + ")"))
 
+    Private segmentTextBoxes As New List(Of TextBox)
+
 #Region "Controls Event Handlers"
-    Private Sub frmMonitor_Load(sender As System.Object, e As System.EventArgs) Handles MyBase.Load
-        InitLV(lvStack)
-        AutoSizeLastColumn(lvStack)
+    Private Sub FormMonitor_Load(sender As System.Object, e As EventArgs) Handles MyBase.Load
+        InitLV(ListViewStack)
+        AutoSizeLastColumn(ListViewStack)
 
         InitLV(ListViewCode)
         AutoSizeLastColumn(ListViewCode)
@@ -101,14 +104,25 @@ Public Class FormMonitor
 
         'txtBreakCS.Text = "F600"
         'txtBreakIP.Text = "0F1E"
-        txtBreakCS.Text = "0000"
-        txtBreakIP.Text = "0000"
+        TextBoxBreakCS.Text = "0000"
+        TextBoxBreakIP.Text = "0000"
 
         SetupControls(Me)
         SetupCheckBoxes()
+        CacheSegmentTextBoxes()
+
+        Dim uiRefreshThread As New Thread(Sub()
+                                              Do
+                                                  UpdateUI(Now.Second Mod 2 = 0)
+                                                  Thread.Sleep(500)
+                                              Loop Until abortThreads
+                                          End Sub) With {
+                                            .IsBackground = True
+                                          }
+        uiRefreshThread.Start()
     End Sub
 
-    Private Sub frmMonitor_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
+    Private Sub FormMonitor_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
         isInit = False
         ignoreEvents = True
         abortThreads = True
@@ -123,7 +137,7 @@ Public Class FormMonitor
         End If
     End Sub
 
-    Private Sub frmMonitor_KeyDown(sender As Object, e As System.Windows.Forms.KeyEventArgs) Handles Me.KeyDown
+    Private Sub FormMonitor_KeyDown(sender As Object, e As System.Windows.Forms.KeyEventArgs) Handles Me.KeyDown
         Select Case e.KeyCode
             Case Keys.F5
                 StartStopRunMode()
@@ -132,18 +146,18 @@ Public Class FormMonitor
         End Select
     End Sub
 
-    Private Sub btnStep_Click(sender As System.Object, e As System.EventArgs) Handles btnStep.Click
+    Private Sub ButtonStep_Click(sender As System.Object, e As System.EventArgs) Handles ButtonStep.Click
         StepInto()
     End Sub
 
-    Private Sub lvCode_DoubleClick(sender As Object, e As System.EventArgs) Handles ListViewCode.DoubleClick
+    Private Sub ListViewCode_DoubleClick(sender As Object, e As System.EventArgs) Handles ListViewCode.DoubleClick
         If ListViewCode.SelectedItems.Count = 0 Then Exit Sub
         Dim address As String = ListViewCode.SelectedItems(0).Text
-        txtCS.Text = address.Split(":")(0)
-        txtIP.Text = address.Split(":")(1)
+        TextBoxCS.Text = address.Split(":")(0)
+        TextBoxIP.Text = address.Split(":")(1)
     End Sub
 
-    Private Sub lvCode_ItemChecked(sender As Object, e As System.Windows.Forms.ItemCheckedEventArgs) Handles ListViewCode.ItemChecked
+    Private Sub ListViewCode_ItemChecked(sender As Object, e As System.Windows.Forms.ItemCheckedEventArgs) Handles ListViewCode.ItemChecked
         If e.Item.Text = "" OrElse e.Item.SubItems.Count <> 4 Then Exit Sub
 
         Dim segment As Integer = (Val("&h" + e.Item.Text.Split(":")(0)) And &HFFFF)
@@ -167,40 +181,40 @@ Public Class FormMonitor
         e.Item.SubItems(3).BackColor = e.Item.BackColor
     End Sub
 
-    Private Sub btnRun_Click(sender As System.Object, e As System.EventArgs) Handles btnRun.Click
+    Private Sub ButtonRun_Click(sender As System.Object, e As System.EventArgs) Handles ButtonRun.Click
         StartStopRunMode()
     End Sub
 
-    Private Sub lvCode_ClientSizeChanged(sender As Object, e As System.EventArgs) Handles ListViewCode.ClientSizeChanged
+    Private Sub ListViewCode_ClientSizeChanged(sender As Object, e As System.EventArgs) Handles ListViewCode.ClientSizeChanged
         AutoSizeLastColumn(ListViewCode)
     End Sub
 
-    Private Sub btnRefresh_Click(sender As System.Object, e As System.EventArgs) Handles btnRefresh.Click
+    Private Sub ButtonRefresh_Click(sender As System.Object, e As System.EventArgs) Handles ButtonRefresh.Click
         RefreshCodeListing()
     End Sub
 
-    Private Sub btnReboot_Click(sender As System.Object, e As System.EventArgs) Handles btnReboot.Click
+    Private Sub ButtonReboot_Click(sender As System.Object, e As System.EventArgs) Handles ButtonReboot.Click
         Emulator.HardReset()
         historyPointer = -1
         RefreshCodeListing()
     End Sub
 
-    Private Sub btnDecIP_Click(sender As System.Object, e As System.EventArgs) Handles btnDecIP.Click
-        Dim IP As Integer = Val("&h" + txtIP.Text) And &HFFFF
-        Dim CS As Integer = Val("&h" + txtCS.Text) And &HFFFF
+    Private Sub ButtonDecIP_Click(sender As System.Object, e As System.EventArgs) Handles ButtonDecIP.Click
+        Dim IP As Integer = Val("&h" + TextBoxIP.Text) And &HFFFF
+        Dim CS As Integer = Val("&h" + TextBoxCS.Text) And &HFFFF
 
         For i As Integer = 1 To 7
             Dim previous = Emulator.Decode(CS, IP - i)
             If previous.IsValid AndAlso previous.Size = i Then
                 If Emulator.Decode(CS, IP - i + previous.Size) = activeInstruction Then
-                    txtIP.Text = (IP - 1).ToHex(X8086.DataSize.Word, "")
+                    TextBoxIP.Text = (IP - 1).ToHex(X8086.DataSize.Word, "")
                     Exit For
                 End If
             End If
         Next
     End Sub
 
-    Private Sub btnBack_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles btnBack.MouseDown
+    Private Sub ButtonBack_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles ButtonBack.MouseDown
         If e.Button = Windows.Forms.MouseButtons.Left Then
             offsetHistoryDirection = -1
         ElseIf e.Button = Windows.Forms.MouseButtons.Right Then
@@ -208,11 +222,11 @@ Public Class FormMonitor
         End If
     End Sub
 
-    Private Sub btnBack_MouseUp(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles btnBack.MouseUp
+    Private Sub ButtonBack_MouseUp(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles ButtonBack.MouseUp
         offsetHistoryDirection = 0
     End Sub
 
-    Private Sub btnForward_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles btnForward.MouseDown
+    Private Sub ButtonForward_MouseDown(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles ButtonForward.MouseDown
         If e.Button = Windows.Forms.MouseButtons.Left Then
             offsetHistoryDirection = 1
         ElseIf e.Button = Windows.Forms.MouseButtons.Right Then
@@ -220,7 +234,7 @@ Public Class FormMonitor
         End If
     End Sub
 
-    Private Sub btnForward_MouseUp(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles btnForward.MouseUp
+    Private Sub ButtonForward_MouseUp(sender As Object, e As System.Windows.Forms.MouseEventArgs) Handles ButtonForward.MouseUp
         offsetHistoryDirection = 0
     End Sub
 
@@ -232,10 +246,7 @@ Public Class FormMonitor
         End Get
         Set(value As X8086)
             mEmulator = value
-            AddHandler mEmulator.InstructionDecoded, Sub()
-                                                         If Not (ignoreEvents OrElse isRunning) Then UpdateUI()
-                                                         loopWaiter.Set()
-                                                     End Sub
+            AddHandler mEmulator.InstructionDecoded, Sub() loopWaiter.Set()
             AddHandler mEmulator.EmulationTerminated, Sub() If isRunning Then StartStopRunMode()
             isInit = True
 
@@ -244,33 +255,32 @@ Public Class FormMonitor
     End Property
 
     Private Sub UpdateUI(Optional doFastUpdate As Boolean = False)
-        If ignoreEvents OrElse Not isInit Then Exit Sub
+        If ignoreEvents OrElse isRunning OrElse Not isInit Then Exit Sub
 
-        Me.Invoke(New MethodInvoker(Sub()
-                                        GenCodeAhead()
-                                        UpdateFlagsAndRegisters()
+        SyncLock syncObject
+            ignoreEvents = True
+            Me.Invoke(New MethodInvoker(Sub()
+                                            GenCodeAhead()
+                                            UpdateFlagsAndRegisters()
 
-                                        If Not doFastUpdate Then
-                                            UpdateMemory()
-                                            SetTextBoxesState(Me)
-                                            UpdateStack()
-                                        End If
-                                    End Sub))
+                                            If Not doFastUpdate Then
+                                                UpdateMemory()
+                                                SetSegmentTextBoxesState()
+                                                UpdateStack()
+                                            End If
+                                        End Sub))
+            ignoreEvents = False
+        End SyncLock
     End Sub
 
-    Private Sub SetTextBoxesState(container As Control)
-        For Each ctrl As Control In container.Controls
-            If TypeOf ctrl Is GroupBox Then
-                SetTextBoxesState(ctrl)
-            Else
-                If TypeOf ctrl Is TextBox Then
-                    If Emulator.Registers.ActiveSegmentRegister.ToString() = ctrl.Name.Substring(3) Then
-                        ctrl.ForeColor = Color.Blue 
-                    ElseIf ctrl.Name <> txtMem.Name Then
-                        ctrl.ForeColor = Color.Black
-                    End If
-                    ctrl.Refresh()
-                End If
+    Private Sub SetSegmentTextBoxesState()
+        Dim asr As String = Emulator.Registers.ActiveSegmentRegister.ToString()
+
+        For Each tb As TextBox In segmentTextBoxes
+            If asr = tb.Name.Substring(7) Then
+                tb.ForeColor = Color.Blue
+            ElseIf tb.Name <> TextBoxMem.Name Then
+                tb.ForeColor = Color.Black
             End If
         Next
     End Sub
@@ -279,7 +289,7 @@ Public Class FormMonitor
         If Not isInit Then Exit Sub
 
         Try
-            Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
+            Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
 
             Dim b As Byte
             Dim res As String = ""
@@ -289,7 +299,7 @@ Public Class FormMonitor
                 For k = 0 To 15
                     b = mEmulator.RAM(address + i + k)
                     If k = 8 Then mem += "- "
-                    mem +=$"{b:X2} "
+                    mem += $"{b:X2} "
                     If b <= 31 OrElse b > 122 Then
                         bcr += "."
                     Else
@@ -298,7 +308,7 @@ Public Class FormMonitor
                 Next
                 res += mem + bcr + vbCrLf
             Next
-            txtMem.Text = res
+            TextBoxMem.Text = res
         Catch
         End Try
     End Sub
@@ -409,61 +419,56 @@ Public Class FormMonitor
     End Function
 
     Private Sub UpdateFlagsAndRegisters()
-        Dim oldIgnoreEvents As Boolean = ignoreEvents
-        ignoreEvents = True
-
         With mEmulator
             With .Registers
-                If Not txtAH.Focused Then txtAH.Text = $"{ .AH:X2}"
-                If Not txtAL.Focused Then txtAL.Text = $"{ .AL:X2}"
+                If Not TextBoxAH.Focused Then TextBoxAH.Text = $"{ .AH:X2}"
+                If Not TextBoxAL.Focused Then TextBoxAL.Text = $"{ .AL:X2}"
 
-                If Not txtBH.Focused Then txtBH.Text = $"{ .BH:X2}"
-                If Not txtBL.Focused Then txtBL.Text = $"{ .BL:X2}"
+                If Not TextBoxBH.Focused Then TextBoxBH.Text = $"{ .BH:X2}"
+                If Not TextBoxBL.Focused Then TextBoxBL.Text = $"{ .BL:X2}"
 
-                If Not txtCH.Focused Then txtCH.Text = $"{ .CH:X2}"
-                If Not txtCL.Focused Then txtCL.Text = $"{ .CL:X2}"
+                If Not TextBoxCH.Focused Then TextBoxCH.Text = $"{ .CH:X2}"
+                If Not TextBoxCL.Focused Then TextBoxCL.Text = $"{ .CL:X2}"
 
-                If Not txtDH.Focused Then txtDH.Text = $"{ .DH:X2}"
-                If Not txtDL.Focused Then txtDL.Text = $"{ .DL:X2}"
+                If Not TextBoxDH.Focused Then TextBoxDH.Text = $"{ .DH:X2}"
+                If Not TextBoxDL.Focused Then TextBoxDL.Text = $"{ .DL:X2}"
 
-                If Not txtCS.Focused Then txtCS.Text = $"{ .CS:X2}"
-                If Not txtIP.Focused Then txtIP.Text = $"{ .IP:X2}"
+                If Not TextBoxCS.Focused Then TextBoxCS.Text = $"{ .CS:X2}"
+                If Not TextBoxIP.Focused Then TextBoxIP.Text = $"{ .IP:X2}"
 
-                If Not txtSS.Focused Then txtSS.Text = $"{ .SS:X2}"
-                If Not txtSP.Focused Then txtSP.Text = $"{ .SP:X2}"
+                If Not TextBoxSS.Focused Then TextBoxSS.Text = $"{ .SS:X2}"
+                If Not TextBoxSP.Focused Then TextBoxSP.Text = $"{ .SP:X2}"
 
-                If Not txtBP.Focused Then txtBP.Text = $"{ .BP:X2}"
-                If Not txtSI.Focused Then txtSI.Text = $"{ .SI:X2}"
+                If Not TextBoxBP.Focused Then TextBoxBP.Text = $"{ .BP:X2}"
+                If Not TextBoxSI.Focused Then TextBoxSI.Text = $"{ .SI:X2}"
 
-                If Not txtDS.Focused Then txtDS.Text = $"{ .DS:X2}"
-                If Not txtDI.Focused Then txtDI.Text = $"{ .DI:X2}"
+                If Not TextBoxDS.Focused Then TextBoxDS.Text = $"{ .DS:X2}"
+                If Not TextBoxDI.Focused Then TextBoxDI.Text = $"{ .DI:X2}"
 
-                If Not txtES.Focused Then txtES.Text = $"{ .ES:X2}"
+                If Not TextBoxES.Focused Then TextBoxES.Text = $"{ .ES:X2}"
             End With
 
             With Emulator.Flags
-                chkAF.Checked = (.AF = 1)
-                chkCF.Checked = (.CF = 1)
-                chkDF.Checked = (.DF = 1)
-                chkIF.Checked = (.IF = 1)
-                chkOF.Checked = (.OF = 1)
-                chkPF.Checked = (.PF = 1)
-                chkSF.Checked = (.SF = 1)
-                chkZF.Checked = (.ZF = 1)
-                chkTF.Checked = (.TF = 1)
+                CheckBoxAF.Checked = (.AF = 1)
+                CheckBoxCF.Checked = (.CF = 1)
+                CheckBoxDF.Checked = (.DF = 1)
+                CheckBoxIF.Checked = (.IF = 1)
+                CheckBoxOF.Checked = (.OF = 1)
+                CheckBoxPF.Checked = (.PF = 1)
+                CheckBoxSF.Checked = (.SF = 1)
+                CheckBoxZF.Checked = (.ZF = 1)
+                CheckBoxTF.Checked = (.TF = 1)
             End With
         End With
-
-        ignoreEvents = oldIgnoreEvents
     End Sub
 
     Private Sub UpdateStack()
         Dim index As Integer = 0
 
-        If lvStack.Items.ContainsKey(currentSSSP) Then
-            With lvStack.Items(currentSSSP)
-                .BackColor = lvStack.BackColor
-                .SubItems(1).BackColor = lvStack.BackColor
+        If ListViewStack.Items.ContainsKey(currentSSSP) Then
+            With ListViewStack.Items(currentSSSP)
+                .BackColor = ListViewStack.BackColor
+                .SubItems(1).BackColor = ListViewStack.BackColor
             End With
         End If
 
@@ -481,10 +486,10 @@ Public Class FormMonitor
                 Dim value As Integer = .RAM16(.Registers.SS, ptr)
 
                 Dim item As ListViewItem
-                If index < lvStack.Items.Count Then
-                    item = lvStack.Items(index)
+                If index < ListViewStack.Items.Count Then
+                    item = ListViewStack.Items(index)
                 Else
-                    item = lvStack.Items.Add(address, "", 0)
+                    item = ListViewStack.Items.Add(address, "", 0)
                     item.SubItems.Add("")
                 End If
                 item.Text = .Registers.SS.ToHex(X8086.DataSize.Word, "") + ":" + ptr.ToHex(X8086.DataSize.Word, "")
@@ -498,8 +503,8 @@ Public Class FormMonitor
             Next
         End With
 
-        Do While lvStack.Items.Count > index
-            lvStack.Items.RemoveAt(lvStack.Items.Count - 1)
+        Do While ListViewStack.Items.Count > index
+            ListViewStack.Items.RemoveAt(ListViewStack.Items.Count - 1)
         Loop
     End Sub
 
@@ -521,7 +526,6 @@ Public Class FormMonitor
         End If
 
         currentCSIP = X8086.SegOffToAbs(CS, IP).ToString("X")
-        ignoreEvents = True
         Do
             Dim address As String = X8086.SegOffToAbs(CS, IP).ToString("X")
 
@@ -591,8 +595,6 @@ Public Class FormMonitor
                 item.SubItems(3).BackColor = item.BackColor
             End If
         Loop Until (newCount >= 100) OrElse (insertedCount >= 100) OrElse (ListViewCode.Items.Count >= 1000)
-
-        ignoreEvents = False
     End Sub
 
     Private Sub StepInto()
@@ -606,9 +608,8 @@ Public Class FormMonitor
     End Sub
 
     Private Sub RefreshCodeListing()
-        lvStack.Items.Clear()
+        ListViewStack.Items.Clear()
         ListViewCode.Items.Clear()
-        UpdateUI()
     End Sub
 
     Private Sub StartStopRunMode()
@@ -638,11 +639,8 @@ Public Class FormMonitor
     End Sub
 
     Private Sub RunLoop()
-        isRunning = True
-        ignoreEvents = True
-
         Dim count As Integer = 0
-        Dim maxSteps As Integer = 1000 ' Execute 1000 instructions before updating the UI
+        Dim maxSteps As Integer = 1000 ' Execute 'maxSteps' instructions before updating the UI
         Dim lastAddress As Integer = -1
         'Dim instructions As New List(Of x8086.Instruction)
 
@@ -650,42 +648,35 @@ Public Class FormMonitor
             DoStep()
             loopWaiter.WaitOne()
 
+            isRunning = True
+            ignoreEvents = True
+
             If mEmulator.IsHalted Then StartStopRunMode()
 
-            'Dim instruction = mEmulator.Decode(mEmulator)
-            'If Not instructions.Contains(instruction) Then instructions.Add(instruction)
+            SyncLock syncObject
+                'Dim instruction = mEmulator.Decode(mEmulator)
+                'If Not instructions.Contains(instruction) Then instructions.Add(instruction)
 
-            If breakIP = mEmulator.Registers.IP AndAlso breakCS = mEmulator.Registers.CS Then
-                Beep()
-                abortThreads = True
-                Continue Do
-            End If
-
-            For Each bp In breakPoints
-                If bp.Offset = mEmulator.Registers.IP AndAlso bp.Segment = mEmulator.Registers.CS Then
+                If breakIP = mEmulator.Registers.IP AndAlso breakCS = mEmulator.Registers.CS Then
                     Beep()
                     abortThreads = True
                     Continue Do
                 End If
-            Next
 
-            If count = 0 Then
-                ignoreEvents = False
-                UpdateUI(Now.Second Mod 2 = 0) ' Do a full update only when Seconds are even
-                ignoreEvents = True
-                count = maxSteps
-            Else
-                count -= 1
-            End If
+                If breakPoints.Count > 0 Then
+                    For Each bp In breakPoints
+                        If bp.Offset = mEmulator.Registers.IP AndAlso bp.Segment = mEmulator.Registers.CS Then
+                            Beep()
+                            abortThreads = True
+                            Continue Do
+                        End If
+                    Next
+                End If
+            End SyncLock
+
+            isRunning = False
+            ignoreEvents = False
         Loop Until abortThreads
-
-        If Not abortThreads Then UpdateUI()
-
-        isRunning = False
-        abortThreads = False
-        ignoreEvents = False
-
-        If Not isInit Then Me.Invoke(New MethodInvoker(Sub() Me.Close()))
     End Sub
 
     Private Sub InitLV(lv As ListView)
@@ -700,7 +691,7 @@ Public Class FormMonitor
                     .SubItems.Add("FFFFFF".Replace("F", " "))
                     .SubItems.Add("FFFFFFFFFFFFFFFFFFFF".Replace("F", " "))
                 End With
-            Case lvStack.Name
+            Case ListViewStack.Name
                 item = lv.Items.Add("FFFF FFFF".Replace("F", " "))
                 item.SubItems.Add("FFFF".Replace("F", " "))
         End Select
@@ -762,8 +753,8 @@ Public Class FormMonitor
         For Each c As Control In container.Controls
             If TypeOf c Is TextBox Then
                 Dim tb = CType(c, TextBox)
-                If tb.Name <> txtMem.Name AndAlso tb.Name <> TextBoxSearch.Name Then
-                    AddHandler tb.MouseEnter, Sub() ttValueInfo.SetToolTip(tb, TextBoxValueToHuman(tb))
+                If tb.Name <> TextBoxMem.Name AndAlso tb.Name <> TextBoxSearch.Name Then
+                    AddHandler tb.MouseEnter, Sub() ToolTipValueInfo.SetToolTip(tb, TextBoxValueToHuman(tb))
                     AddHandler tb.KeyUp, Sub() SetItemValue(tb)
                 End If
             ElseIf c.Controls.Count > 0 Then
@@ -773,15 +764,22 @@ Public Class FormMonitor
     End Sub
 
     Public Sub SetupCheckBoxes()
-        AddHandler chkCF.CheckedChanged, Sub() mEmulator.Flags.CF = If(chkCF.Checked, 1, 0)
-        AddHandler chkZF.CheckedChanged, Sub() mEmulator.Flags.ZF = If(chkZF.Checked, 1, 0)
-        AddHandler chkSF.CheckedChanged, Sub() mEmulator.Flags.SF = If(chkSF.Checked, 1, 0)
-        AddHandler chkOF.CheckedChanged, Sub() mEmulator.Flags.OF = If(chkOF.Checked, 1, 0)
-        AddHandler chkPF.CheckedChanged, Sub() mEmulator.Flags.PF = If(chkPF.Checked, 1, 0)
-        AddHandler chkAF.CheckedChanged, Sub() mEmulator.Flags.AF = If(chkAF.Checked, 1, 0)
-        AddHandler chkIF.CheckedChanged, Sub() mEmulator.Flags.IF = If(chkIF.Checked, 1, 0)
-        AddHandler chkDF.CheckedChanged, Sub() mEmulator.Flags.DF = If(chkDF.Checked, 1, 0)
-        AddHandler chkTF.CheckedChanged, Sub() mEmulator.Flags.TF = If(chkTF.Checked, 1, 0)
+        AddHandler CheckBoxCF.CheckedChanged, Sub() mEmulator.Flags.CF = If(CheckBoxCF.Checked, 1, 0)
+        AddHandler CheckBoxZF.CheckedChanged, Sub() mEmulator.Flags.ZF = If(CheckBoxZF.Checked, 1, 0)
+        AddHandler CheckBoxSF.CheckedChanged, Sub() mEmulator.Flags.SF = If(CheckBoxSF.Checked, 1, 0)
+        AddHandler CheckBoxOF.CheckedChanged, Sub() mEmulator.Flags.OF = If(CheckBoxOF.Checked, 1, 0)
+        AddHandler CheckBoxPF.CheckedChanged, Sub() mEmulator.Flags.PF = If(CheckBoxPF.Checked, 1, 0)
+        AddHandler CheckBoxAF.CheckedChanged, Sub() mEmulator.Flags.AF = If(CheckBoxAF.Checked, 1, 0)
+        AddHandler CheckBoxIF.CheckedChanged, Sub() mEmulator.Flags.IF = If(CheckBoxIF.Checked, 1, 0)
+        AddHandler CheckBoxDF.CheckedChanged, Sub() mEmulator.Flags.DF = If(CheckBoxDF.Checked, 1, 0)
+        AddHandler CheckBoxTF.CheckedChanged, Sub() mEmulator.Flags.TF = If(CheckBoxTF.Checked, 1, 0)
+    End Sub
+
+    Private Sub CacheSegmentTextBoxes()
+        segmentTextBoxes.Add(TextBoxCS)
+        segmentTextBoxes.Add(TextBoxSS)
+        segmentTextBoxes.Add(TextBoxDS)
+        segmentTextBoxes.Add(TextBoxES)
     End Sub
 
     Private Function TextBoxValueToHuman(tb As TextBox) As String
@@ -797,11 +795,11 @@ Public Class FormMonitor
         Dim evalRes As EvaluateResult = EvaluateExpression(tb.Text)
 
         Select Case tb.Name
-            Case txtBreakCS.Name : breakCS = evalRes.Value
-            Case txtBreakIP.Name : breakIP = evalRes.Value
+            Case TextBoxBreakCS.Name : breakCS = evalRes.Value
+            Case TextBoxBreakIP.Name : breakIP = evalRes.Value
 
-            Case txtMemSeg.Name : UpdateMemory()
-            Case txtMemOff.Name : UpdateMemory()
+            Case TextBoxMemSeg.Name : UpdateMemory()
+            Case TextBoxMemOff.Name : UpdateMemory()
 
             Case Else
                 mEmulator.Registers.Val(StringToRegister(tb.Name.Substring(3, 2))) = evalRes.Value
@@ -823,7 +821,7 @@ Public Class FormMonitor
         ButtonSearch.Enabled = False
         TextBoxSearch.Enabled = False
 
-        Dim startIndex As Integer = X8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
+        Dim startIndex As Integer = X8086.SegOffToAbs(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         Dim endIndex As Integer = X8086.MemSize - 1 - str.Length
 
         If startIndex <> 0 Then startIndex += 1
@@ -847,8 +845,8 @@ Public Class FormMonitor
                     Next
 
                     If found Then
-                        txtMemSeg.Text = X8086.AbsToSeg(i).ToHex(X8086.DataSize.Word, "")
-                        txtMemOff.Text = X8086.AbsoluteToOff(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemSeg.Text = X8086.AbsToSeg(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemOff.Text = X8086.AbsoluteToOff(i).ToHex(X8086.DataSize.Word, "")
 
                         Exit Do
                     End If
@@ -857,8 +855,8 @@ Public Class FormMonitor
                 For i As Integer = startIndex To endIndex
                     Array.Copy(mEmulator.Memory, i, buffer, 0, str.Length)
                     If ASCIIEncoding.ASCII.GetString(buffer).ToLower() = str Then
-                        txtMemSeg.Text = X8086.AbsToSeg(i).ToHex(X8086.DataSize.Word, "")
-                        txtMemOff.Text = X8086.AbsoluteToOff(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemSeg.Text = X8086.AbsToSeg(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemOff.Text = X8086.AbsoluteToOff(i).ToHex(X8086.DataSize.Word, "")
 
                         found = True
                         Exit Do
@@ -887,19 +885,19 @@ Public Class FormMonitor
     End Sub
 
     Private Sub ButtonMemBack_Click(sender As Object, e As EventArgs) Handles ButtonMemBack.Click
-        Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
+        Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         address -= 256
-        txtMemSeg.Text = X8086.AbsToSeg(address).ToHex(X8086.DataSize.Word)
-        txtMemOff.Text = X8086.AbsoluteToOff(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemSeg.Text = X8086.AbsToSeg(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemOff.Text = X8086.AbsoluteToOff(address).ToHex(X8086.DataSize.Word)
 
         UpdateMemory()
     End Sub
 
     Private Sub ButtonMemForward_Click(sender As Object, e As EventArgs) Handles ButtonMemForward.Click
-        Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(txtMemSeg.Text).Value, EvaluateExpression(txtMemOff.Text).Value)
+        Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         address += 256
-        txtMemSeg.Text = X8086.AbsToSeg(address).ToHex(X8086.DataSize.Word)
-        txtMemOff.Text = X8086.AbsoluteToOff(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemSeg.Text = X8086.AbsToSeg(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemOff.Text = X8086.AbsoluteToOff(address).ToHex(X8086.DataSize.Word)
 
         UpdateMemory()
     End Sub
@@ -910,6 +908,5 @@ Public Class FormMonitor
 
     Private Sub CheckBoxBytesOrChars_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxBytesOrChars.CheckedChanged
         ListViewCode.Items.Clear()
-        UpdateUI()
     End Sub
 End Class

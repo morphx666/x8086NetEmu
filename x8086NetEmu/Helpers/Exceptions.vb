@@ -63,7 +63,7 @@
     End Sub
 
     Private Sub NoIOPort(port As Integer)
-        X8086.Notify("No IO port responding from {0} called at {1}:{2}", NotificationReasons.Warn,
+        X8086.Notify("No IO port response from {0} called at {1}:{2}", NotificationReasons.Warn,
                         port.ToHex(DataSize.Word),
                         mRegisters.CS.ToHex(DataSize.Word).TrimEnd("h"),
                         mRegisters.IP.ToHex(DataSize.Word).TrimEnd("h"))
