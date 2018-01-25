@@ -1,6 +1,4 @@
-﻿Imports System.Threading
-
-'The MAIN Guide: http://docs.huihoo.com/help-pc/index.html
+﻿'The MAIN Guide: http://docs.huihoo.com/help-pc/index.html
 ' http://www.delorie.com/djgpp/doc/rbinter/ix/
 
 Partial Public Class X8086
@@ -44,7 +42,7 @@ Partial Public Class X8086
                 PushIntoStack(AddValues(mRegisters.IP, opCodeSize, DataSize.Word))
             End If
 
-            Dim intOffset As Integer = intNum * 4
+            Dim intOffset As UInteger = intNum * 4
             IPAddrOff = RAM16(0, intOffset)
             mRegisters.CS = RAM16(0, AddValues(intOffset, 2, DataSize.Word))
 

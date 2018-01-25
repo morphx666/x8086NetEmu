@@ -253,3 +253,4 @@ ModelManifest.xml
 */**/bin/*.exe
 */**/bin/*.config
 */**/bin/settings.dat
+*/**/bin/*.manifest

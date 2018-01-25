@@ -2,6 +2,7 @@
 ' http://en.wikibooks.org/wiki/X86_Assembly/Machine_Language_Conversion
 ' http://www.xs4all.nl/~ganswijk/chipdir/iset/8086bin.txt
 ' The Intel 8086 / 8088/ 80186 / 80286 / 80386 / 80486 Instruction Set: http://zsmith.co/intel.html
+' http://www.felixcloutier.com/x86/
 
 Imports System.Threading
 
@@ -821,7 +822,7 @@ Public Class X8086
 
             Case &H50 To &H57 ' push reg
                 If opCode = &H54 Then ' SP
-                    ' The 8086/8088 pushes the value of SP after it is incremented
+                    ' The 8086/8088 pushes the value of SP after it has been decremented
                     ' http://css.csail.mit.edu/6.858/2013/readings/i386/s15_06.htm
                     PushIntoStack(AddValues(mRegisters.SP, -2, DataSize.Word))
                 Else
@@ -877,8 +878,6 @@ Public Class X8086
                     clkCyc += 34
                 End If
 
-            ' Case &H66 ' hook
-
             Case &H68 ' push (80186)
                 ' PRE ALPHA CODE - UNTESTED
                 If mVic20 Then
@@ -893,9 +892,9 @@ Public Class X8086
                     Dim tmp1 As UInteger = mRegisters.Val(addrMode.Register1)
                     Dim tmp2 As UInteger = Param(SelPrmIndex.First, , DataSize.Word)
                     If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
-                    If (tmp2 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
+                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
                     Dim tmp3 As UInteger = tmp1 * tmp2
-                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFL
+                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFUI
                     If (tmp3 And &HFFFF0000UI) <> 0 Then
                         mFlags.CF = 1
                         mFlags.OF = 1
@@ -922,7 +921,7 @@ Public Class X8086
                     If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
                     If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
                     Dim tmp3 As UInteger = tmp1 * tmp2
-                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFL
+                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFUI
                     If (tmp3 And &HFFFF0000UI) <> 0 Then
                         mFlags.CF = 1
                         mFlags.OF = 1
@@ -1202,11 +1201,11 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9C ' pushf
-                PushIntoStack((mFlags.EFlags And &HFD5) Or &HF000)
+                PushIntoStack(mFlags.EFlags And &HFD5)
                 clkCyc += 10
 
             Case &H9D ' popf
-                mFlags.EFlags = (PopFromStack() And &HFD5) Or &HF000
+                mFlags.EFlags = PopFromStack() And &HFD5
                 clkCyc += 8
 
             Case &H9E ' sahf
@@ -1318,7 +1317,7 @@ Public Class X8086
                     clkCyc += 8
                 End If
 
-            Case &HCA ' ret intersegment adding imm to sp (retf)
+            Case &HCA ' ret intersegment adding imm to sp (ret n /retf)
                 tmpVal = Param(SelPrmIndex.First, , DataSize.Word)
                 IPAddrOff = PopFromStack()
                 mRegisters.CS = PopFromStack()
@@ -1547,11 +1546,7 @@ Public Class X8086
             IncIP(opCodeSize)
         End If
 
-#If DEBUG Then
-        clkCyc += opCodeSize * 6 ' This an approximation for an i7 960
-#Else
         clkCyc += opCodeSize * 4
-#End If
 
         If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
             Select Case opCode
@@ -1856,7 +1851,7 @@ Public Class X8086
             Exit Sub
         Else
             ' 80186/V20 class CPUs limit shift count to 31 (fake86)
-            If mVic20 Then count = count And &H1F
+            If mVic20 Then count = (count And &H1F) Mod (mask8_16 + 1)
 
             clkCyc += 4 * count
         End If
@@ -1909,7 +1904,7 @@ Public Class X8086
         End If
 
         ' http://x86.renejeschke.de/html/file_module_x86_id_285.html
-        If (count And &H1F) = 1 Then
+        If count = 1 Then
             Select Case addrMode.Reg
                 Case 4, 6 : mFlags.OF = If(newValue And mask100_10000 <> 0, 1, 0) Xor mFlags.OF
                 Case 7 : mFlags.OF = 0
@@ -1989,7 +1984,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                If Not mVic20 Then mFlags.ZF = If(tmpVal = 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (80186)
+                If Not mVic20 Then mFlags.ZF = If(tmpVal = 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
 
             Case 5 ' 101    --  imul
                 If addrMode.IsDirect Then
@@ -2001,10 +1996,8 @@ Public Class X8086
                         mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 70
                     Else
-                        Dim m1 As UInteger = mRegisters.AX
-                        If (m1 And &H8000) = &H8000 Then m1 = m1 Or &HFFFF0000UI
-                        Dim m2 As UInteger = mRegisters.Val(addrMode.Register2)
-                        If (m2 And &H8000) = &H8000 Then m2 = m2 Or &HFFFF0000UI
+                        Dim m1 As UInteger = To32bitsWithSign(mRegisters.AX)
+                        Dim m2 As UInteger = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         tmpVal = m1 * m2
                         mRegisters.AX = tmpVal And &HFFFF
@@ -2020,10 +2013,8 @@ Public Class X8086
                         mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 76
                     Else
-                        Dim m1 As UInteger = mRegisters.AX
-                        If (m1 And &H8000) = &H8000 Then m1 = m1 Or &HFFFF0000UI
-                        Dim m2 As UInteger = addrMode.IndMem
-                        If (m2 And &H8000) = &H8000 Then m2 = m2 Or &HFFFF0000UI
+                        Dim m1 As UInteger = To32bitsWithSign(mRegisters.AX)
+                        Dim m2 As UInteger = To32bitsWithSign(addrMode.IndMem)
 
                         tmpVal = m1 * m2
                         mRegisters.AX = tmpVal And &HFFFF
@@ -2032,6 +2023,7 @@ Public Class X8086
                     End If
                 End If
 
+                mFlags.SF = If((tmpVal And If(addrMode.Size = DataSize.Byte, &H80, &H8000)) <> 0, 1, 0)
                 Dim mask As UInteger = If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)
                 tmpVal = tmpVal And mask
                 If tmpVal <> 0 AndAlso tmpVal <> mask Then
@@ -2067,7 +2059,6 @@ Public Class X8086
                     Exit Select
                 End If
 
-                ' If (num - (div * Int(num / div))) <> (num Mod div) Then Stop
                 result = num \ div
                 remain = num Mod div
 
@@ -2098,7 +2089,7 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     div = mRegisters.Val(addrMode.Register2)
                     If addrMode.Size = DataSize.Byte Then
-                        num = mRegisters.AX
+                        num = To16bitsWithSign(mRegisters.AX)
                         div = To16bitsWithSign(div)
 
                         sign1 = (num And &H8000) <> 0
@@ -2108,8 +2099,8 @@ Public Class X8086
 
                         clkCyc += 80
                     Else
-                        num = (mRegisters.DX << 16) Or mRegisters.AX
-                        div = If(div And &H8000, div Or &HFFFF0000UI, div)
+                        num = To32bitsWithSign((mRegisters.DX << 16) Or mRegisters.AX)
+                        div = To32bitsWithSign(div)
 
                         sign1 = (num And &H80000000UI) <> 0
                         sign2 = (div And &H80000000UI) <> 0
@@ -2121,7 +2112,7 @@ Public Class X8086
                 Else
                     div = addrMode.IndMem
                     If addrMode.Size = DataSize.Byte Then
-                        num = mRegisters.AX
+                        num = To16bitsWithSign(mRegisters.AX)
                         div = To16bitsWithSign(div)
 
                         sign1 = (num And &H8000) <> 0
@@ -2131,8 +2122,8 @@ Public Class X8086
 
                         clkCyc += 86
                     Else
-                        num = (mRegisters.DX << 16) Or mRegisters.AX
-                        div = If(div And &H8000, div Or &HFFFF0000UI, div)
+                        num = To32bitsWithSign((mRegisters.DX << 16) Or mRegisters.AX)
+                        div = To32bitsWithSign(div)
 
                         sign1 = (num And &H80000000UI) <> 0
                         sign2 = (div And &H80000000UI) <> 0
@@ -2162,7 +2153,7 @@ Public Class X8086
                     Exit Select
                 End If
 
-                If sign1 Then remain = ((Not remain) + 1) And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)
+                If sign1 Then remain = ((Not remain) + 1)
 
                 If addrMode.Size = DataSize.Byte Then
                     mRegisters.AL = result And &HFF
@@ -2246,7 +2237,7 @@ Public Class X8086
     End Sub
 
     Private Sub HandleREPMode()
-        ' This will incorrectly increase the instrucionsCounter by one additional instruction than actually executed.
+        ' This will incorrectly increase the instructionsCounter by one additional instruction than actually executed.
         ' Not a big deal ;)
         If repeLoopMode = REPLoopModes.None Then
             ExecStringOpCode()

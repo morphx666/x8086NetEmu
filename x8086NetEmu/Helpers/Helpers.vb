@@ -97,13 +97,9 @@
             Select Case addrMode.Rm
                 Case 2, 3 : mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
                 Case 6
-                    If addrMode.Modifier = 0 Then
-                        mRegisters.ResetActiveSegment()
-                    Else
+                    If addrMode.Modifier <> 0 Then
                         mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
                     End If
-                Case Else
-                    mRegisters.ResetActiveSegment()
             End Select
         End If
 

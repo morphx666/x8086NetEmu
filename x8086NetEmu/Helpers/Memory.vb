@@ -1,6 +1,6 @@
 ﻿Partial Public Class X8086
-    Public Const MemSize As UInteger = &H100000
-    Public Const ROMStart As UInteger = &HC0000
+    Public Const MemSize As UInteger = &H100000UI  ' 1MB
+    Public Const ROMStart As UInteger = &HC0000UI
 
     Public Memory(MemSize - 1) As Byte
 
@@ -310,7 +310,8 @@
                        TF * FlagsTypes.TF Or
                      [IF] * FlagsTypes.IF Or
                        DF * FlagsTypes.DF Or
-                     [OF] * FlagsTypes.OF
+                     [OF] * FlagsTypes.OF Or
+                            &HF000 ' IOPL, NT and bit 15 are always "1" on 8086
             End Get
             Set(value As UInteger)
                 CF = If((value And FlagsTypes.CF) = FlagsTypes.CF, 1, 0)
@@ -325,10 +326,8 @@
             End Set
         End Property
 
-        Public Function Clone() As Object Implements System.ICloneable.Clone
-            Dim f As GPFlags = New GPFlags()
-            f.EFlags = EFlags
-            Return f
+        Public Function Clone() As Object Implements ICloneable.Clone
+            Return New GPFlags With {.EFlags = EFlags}
         End Function
     End Class
 
@@ -387,7 +386,7 @@
     End Function
 
     Public Shared Function SegOffToAbs(segment As UInteger, offset As UInteger) As UInteger
-        Return (segment << 4) + offset
+        Return ((segment << 4) + offset) And &HFFFFFUI ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
     End Function
 
     Public Shared Function AbsToSeg(address As UInteger) As UInteger
@@ -402,14 +401,13 @@
         Get
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
             'Return FromPreftch(address)
-            Return Memory(address And &HFFFFF) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
+            Return Memory(address)
         End Get
         Set(value As Byte)
-            address = address And &HFFFFF
             If address < ROMStart AndAlso Memory(address) <> value Then
                 Memory(address) = value
 
-                ' FIXME: This will not work until the rendering engine(s) uses a persistent surface (such as a DirectBitmap)
+                ' FIXME: This will not work until the rendering engine(s) use a persistent surface (such as a DirectBitmap)
                 If isVideoAdapterAvailable AndAlso
                         ((address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) OrElse
                         (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndGraphicsVideoAddress)) Then
