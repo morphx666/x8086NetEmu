@@ -1201,11 +1201,11 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9C ' pushf
-                PushIntoStack(mFlags.EFlags And &HFD5)
+                PushIntoStack((mFlags.EFlags And &HFD5) Or &HF000)
                 clkCyc += 10
 
             Case &H9D ' popf
-                mFlags.EFlags = PopFromStack() And &HFD5
+                mFlags.EFlags = (PopFromStack() And &HFD5) Or &HF000
                 clkCyc += 8
 
             Case &H9E ' sahf

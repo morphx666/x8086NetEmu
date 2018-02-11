@@ -378,10 +378,10 @@ Public MustInherit Class CGAAdapter
 
         X8086.Notify("Set Video Mode: {0} @ {1}", X8086.NotificationReasons.Info, mVideoMode, videoTextSegment.ToHex(X8086.DataSize.Word))
 
-        mStartTextVideoAddress = X8086.SegOffToAbs(videoTextSegment, 0)
+        mStartTextVideoAddress = X8086.SegmentOffetToAbsolute(videoTextSegment, 0)
         mEndTextVideoAddress = mStartTextVideoAddress + &H4000
 
-        mStartGraphicsVideoAddress = X8086.SegOffToAbs(videoGraphicsSegment, 0)
+        mStartGraphicsVideoAddress = X8086.SegmentOffetToAbsolute(videoGraphicsSegment, 0)
         mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + &H4000
 
         mPixelsPerByte = If(VideoMode = VideoModes.Mode6_Graphic_Color_640x200, 8, 4)

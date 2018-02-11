@@ -5,7 +5,7 @@
 '    Private mAddress As Integer
 
 '    Public Sub Prefetch()
-'        mAddress = SegOffToAbs(mRegisters.CS, mRegisters.IP)
+'        mAddress = SegmentOffetToAbsolute(mRegisters.CS, mRegisters.IP)
 
 '        For i As Integer = 0 To Size - 1
 '            mBuffer(i) = Memory((mAddress + i) Mod MemSize)

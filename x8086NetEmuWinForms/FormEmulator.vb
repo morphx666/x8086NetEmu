@@ -286,7 +286,7 @@ Public Class FormEmulator
 
                                             Dim GetFileName = Function() As String
                                                                   Dim b As New List(Of Byte)
-                                                                  Dim addr As UInteger = X8086.SegOffToAbs(cpu.Registers.DS, cpu.Registers.DX)
+                                                                  Dim addr As UInteger = X8086.SegmentOffetToAbsolute(cpu.Registers.DS, cpu.Registers.DX)
                                                                   While cpu.RAM(addr) <> 0
                                                                       b.Add(cpu.RAM(addr))
                                                                       addr += 1

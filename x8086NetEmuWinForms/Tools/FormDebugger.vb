@@ -304,7 +304,7 @@ Public Class FormDebugger
         If Not isInit Then Exit Sub
 
         Try
-            Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
+            Dim address As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
 
             Dim b As Byte
             Dim res As String = ""
@@ -488,7 +488,7 @@ Public Class FormDebugger
         End If
 
         With Emulator
-            currentSSSP = X8086.SegOffToAbs(.Registers.SS, .Registers.SP).ToString("X")
+            currentSSSP = X8086.SegmentOffetToAbsolute(.Registers.SS, .Registers.SP).ToString("X")
 
             Dim offset As Integer = 0
             If .Registers.SP Mod 2 = 0 Then offset = 1
@@ -497,7 +497,7 @@ Public Class FormDebugger
             Dim endOffset As Integer = Math.Max(Math.Min(.Registers.SP + 0, .Registers.SP - 128), 0 + offset)
 
             For ptr As Integer = startOffset To endOffset Step -2
-                Dim address As String = X8086.SegOffToAbs(.Registers.SS, ptr).ToString("X")
+                Dim address As String = X8086.SegmentOffetToAbsolute(.Registers.SS, ptr).ToString("X")
                 Dim value As Integer = .RAM16(.Registers.SS, ptr)
 
                 Dim item As ListViewItem
@@ -542,9 +542,9 @@ Public Class FormDebugger
             End With
         End If
 
-        currentCSIP = X8086.SegOffToAbs(CS, IP).ToString("X")
+        currentCSIP = X8086.SegmentOffetToAbsolute(CS, IP).ToString("X")
         Do
-            Dim address As String = X8086.SegOffToAbs(CS, IP).ToString("X")
+            Dim address As String = X8086.SegmentOffetToAbsolute(CS, IP).ToString("X")
 
             insIndex = -1
             If ListViewCode.Items.ContainsKey(address) Then
@@ -840,7 +840,7 @@ Public Class FormDebugger
         ButtonSearch.Enabled = False
         TextBoxSearch.Enabled = False
 
-        Dim startIndex As Integer = X8086.SegOffToAbs(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
+        Dim startIndex As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         Dim endIndex As Integer = X8086.MemSize - 1 - str.Length
 
         If startIndex <> 0 Then startIndex += 1
@@ -864,8 +864,8 @@ Public Class FormDebugger
                     Next
 
                     If found Then
-                        TextBoxMemSeg.Text = X8086.AbsToSeg(i).ToHex(X8086.DataSize.Word, "")
-                        TextBoxMemOff.Text = X8086.AbsoluteToOff(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemOff.Text = X8086.AbsoluteToOffset(i).ToHex(X8086.DataSize.Word, "")
 
                         Exit Do
                     End If
@@ -874,8 +874,8 @@ Public Class FormDebugger
                 For i As Integer = startIndex To endIndex
                     Array.Copy(mEmulator.Memory, i, buffer, 0, str.Length)
                     If ASCIIEncoding.ASCII.GetString(buffer).ToLower() = str Then
-                        TextBoxMemSeg.Text = X8086.AbsToSeg(i).ToHex(X8086.DataSize.Word, "")
-                        TextBoxMemOff.Text = X8086.AbsoluteToOff(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemOff.Text = X8086.AbsoluteToOffset(i).ToHex(X8086.DataSize.Word, "")
 
                         found = True
                         Exit Do
@@ -904,19 +904,19 @@ Public Class FormDebugger
     End Sub
 
     Private Sub ButtonMemBack_Click(sender As Object, e As EventArgs) Handles ButtonMemBack.Click
-        Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
+        Dim address As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         address -= 256
-        TextBoxMemSeg.Text = X8086.AbsToSeg(address).ToHex(X8086.DataSize.Word)
-        TextBoxMemOff.Text = X8086.AbsoluteToOff(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemSeg.Text = X8086.AbsoluteToOffset(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemOff.Text = X8086.AbsoluteToOffset(address).ToHex(X8086.DataSize.Word)
 
         UpdateMemory()
     End Sub
 
     Private Sub ButtonMemForward_Click(sender As Object, e As EventArgs) Handles ButtonMemForward.Click
-        Dim address As Integer = X8086.SegOffToAbs(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
+        Dim address As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         address += 256
-        TextBoxMemSeg.Text = X8086.AbsToSeg(address).ToHex(X8086.DataSize.Word)
-        TextBoxMemOff.Text = X8086.AbsoluteToOff(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemOff.Text = X8086.AbsoluteToOffset(address).ToHex(X8086.DataSize.Word)
 
         UpdateMemory()
     End Sub

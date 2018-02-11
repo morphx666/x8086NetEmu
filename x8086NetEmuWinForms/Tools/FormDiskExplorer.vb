@@ -187,7 +187,7 @@ Public Class FormDiskExplorer
         Array.Copy(bsc, 0, emu.Memory, 0, bsc.Length)
 
         For i As Integer = 0 To bsc.Length - 1
-            address = X8086.SegOffToAbs(0, i).ToString("X")
+            address = X8086.SegmentOffetToAbsolute(0, i).ToString("X")
             ins = emu.Decode(0, i)
 
             With ListViewCode.Items.Add(address, ins.CS.ToHex(X8086.DataSize.Word, "") + ":" + ins.IP.ToHex(X8086.DataSize.Word, ""), 0)

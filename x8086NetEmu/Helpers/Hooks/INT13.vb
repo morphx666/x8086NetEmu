@@ -32,7 +32,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
+                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
@@ -78,7 +78,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
+                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
@@ -118,7 +118,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
+                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
@@ -147,7 +147,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
+                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
@@ -242,7 +242,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegOffToAbs(mRegisters.ES, mRegisters.BX)
+                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
@@ -345,11 +345,11 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim dap As UInteger = X8086.SegOffToAbs(mRegisters.DS, mRegisters.SI)
+                Dim dap As UInteger = X8086.SegmentOffetToAbsolute(mRegisters.DS, mRegisters.SI)
                 bufSize = RAM(dap + 3) << 8 Or RAM(dap + 2)
                 Dim seg As Integer = RAM(dap + 7) << 8 Or RAM(dap + 6)
                 Dim off As Integer = RAM(dap + 5) << 8 Or RAM(dap + 4)
-                Dim address As UInteger = X8086.SegOffToAbs(seg, off)
+                Dim address As UInteger = X8086.SegmentOffetToAbsolute(seg, off)
                 Dim offset As Long = RAM(dap + &HF) << 56 Or RAM(dap + &HE) << 48 Or
                                      RAM(dap + &HD) << 40 Or RAM(dap + &HC) << 32 Or
                                      RAM(dap + &HB) << 24 Or RAM(dap + &HA) << 16 Or
@@ -389,11 +389,11 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim dap As UInteger = X8086.SegOffToAbs(mRegisters.DS, mRegisters.SI)
+                Dim dap As UInteger = X8086.SegmentOffetToAbsolute(mRegisters.DS, mRegisters.SI)
                 bufSize = RAM(dap + 3) << 8 Or RAM(dap + 2)
                 Dim seg As Integer = RAM(dap + 7) << 8 Or RAM(dap + 6)
                 Dim off As Integer = RAM(dap + 5) << 8 Or RAM(dap + 4)
-                Dim address As UInteger = X8086.SegOffToAbs(seg, off)
+                Dim address As UInteger = X8086.SegmentOffetToAbsolute(seg, off)
                 Dim offset As Long = RAM(dap + &HF) << 56 Or RAM(dap + &HE) << 48 Or
                                      RAM(dap + &HD) << 40 Or RAM(dap + &HC) << 32 Or
                                      RAM(dap + &HB) << 24 Or RAM(dap + &HA) << 16 Or

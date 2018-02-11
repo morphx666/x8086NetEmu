@@ -254,20 +254,21 @@
         End Property
 
         Public Function Clone() As Object Implements ICloneable.Clone
-            Dim reg = New GPRegisters()
-            reg.AX = AX
-            reg.BX = BX
-            reg.CX = CX
-            reg.DX = DX
-            reg.ES = ES
-            reg.CS = CS
-            reg.SS = SS
-            reg.DS = DS
-            reg.SP = SP
-            reg.BP = BP
-            reg.SI = SI
-            reg.DI = DI
-            reg.IP = IP
+            Dim reg = New GPRegisters With {
+                .AX = AX,
+                .BX = BX,
+                .CX = CX,
+                .DX = DX,
+                .ES = ES,
+                .CS = CS,
+                .SS = SS,
+                .DS = DS,
+                .SP = SP,
+                .BP = BP,
+                .SI = SI,
+                .DI = DI,
+                .IP = IP
+            }
             Return reg
         End Function
     End Class
@@ -287,15 +288,96 @@
             [OF] = 2 ^ 11
         End Enum
 
-        Public Property CF As UInteger
+        Private mPF As UInteger
+        Private mAF As UInteger
+        Private mZF As UInteger
+        Private mSF As UInteger
+        Private mCF As UInteger
+        Private mIF As UInteger
+        Private mDF As UInteger
+        Private mOF As UInteger
+        Private mTF As UInteger
+
         Public Property PF As UInteger
+            Get
+                Return mPF
+            End Get
+            Set(value As UInteger)
+                mPF = If(value <> 0, 1, 0)
+            End Set
+        End Property
+
         Public Property AF As UInteger
+            Get
+                Return mAF
+            End Get
+            Set(value As UInteger)
+                mAF = If(value <> 0, 1, 0)
+            End Set
+        End Property
+
         Public Property ZF As UInteger
+            Get
+                Return mZF
+            End Get
+            Set(value As UInteger)
+                mZF = If(value <> 0, 1, 0)
+            End Set
+        End Property
+
         Public Property SF As UInteger
+            Get
+                Return mSF
+            End Get
+            Set(value As UInteger)
+                mSF = If(value <> 0, 1, 0)
+            End Set
+        End Property
+
+        Public Property CF As UInteger
+            Get
+                Return mCF
+            End Get
+            Set(value As UInteger)
+                mCF = If(value <> 0, 1, 0)
+            End Set
+        End Property
+
         Public Property [IF] As UInteger
+            Get
+                Return mIF
+            End Get
+            Set(value As UInteger)
+                mIF = If(value <> 0, 1, 0)
+            End Set
+        End Property
+
         Public Property DF As UInteger
+            Get
+                Return mDF
+            End Get
+            Set(value As UInteger)
+                mDF = If(value <> 0, 1, 0)
+            End Set
+        End Property
+
         Public Property [OF] As UInteger
+            Get
+                Return mOF
+            End Get
+            Set(value As UInteger)
+                mOF = If(value <> 0, 1, 0)
+            End Set
+        End Property
+
         Public Property TF As UInteger
+            Get
+                Return mTF
+            End Get
+            Set(value As UInteger)
+                mTF = If(value <> 0, 1, 0)
+            End Set
+        End Property
 
         Public Property EFlags() As UInteger
             Get
@@ -342,7 +424,7 @@
     End Sub
 
     Public Sub CopyToRAM(bytes() As Byte, segment As UInteger, offset As UInteger)
-        CopyToRAM(bytes, X8086.SegOffToAbs(segment, offset))
+        CopyToRAM(bytes, X8086.SegmentOffetToAbsolute(segment, offset))
     End Sub
 
     Public Sub CopyToRAM(bytes() As Byte, address As UInteger)
@@ -385,15 +467,15 @@
         Return value
     End Function
 
-    Public Shared Function SegOffToAbs(segment As UInteger, offset As UInteger) As UInteger
-        Return ((segment << 4) + offset) And &HFFFFFUI ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
+    Public Shared Function SegmentOffetToAbsolute(segment As UInteger, offset As UInteger) As UInteger
+        Return (segment << 4) + offset
     End Function
 
-    Public Shared Function AbsToSeg(address As UInteger) As UInteger
+    Public Shared Function AbsoluteToSegment(address As UInteger) As UInteger
         Return (address >> 4) And &HFFF00
     End Function
 
-    Public Shared Function AbsoluteToOff(address As UInteger) As UInteger
+    Public Shared Function AbsoluteToOffset(address As UInteger) As UInteger
         Return address And &HFFF
     End Function
 
@@ -401,7 +483,7 @@
         Get
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
             'Return FromPreftch(address)
-            Return Memory(address)
+            Return Memory(address And &HFFFFFUI) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
         End Get
         Set(value As Byte)
             If address < ROMStart AndAlso Memory(address) <> value Then
@@ -409,8 +491,8 @@
 
                 ' FIXME: This will not work until the rendering engine(s) use a persistent surface (such as a DirectBitmap)
                 If isVideoAdapterAvailable AndAlso
-                        ((address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) OrElse
-                        (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndGraphicsVideoAddress)) Then
+                    ((address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) OrElse
+                    (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndGraphicsVideoAddress)) Then
                     mVideoAdapter.IsDirty(address) = True
                 End If
             End If
@@ -420,20 +502,20 @@
 
     Public Property RAM8(segment As UInteger, offset As UInteger, Optional inc As UInteger = 0) As Byte
         Get
-            Return RAM(SegOffToAbs(segment, offset + inc))
+            Return RAM(SegmentOffetToAbsolute(segment, offset + inc))
         End Get
         Set(value As Byte)
-            RAM(SegOffToAbs(segment, offset + inc)) = value
+            RAM(SegmentOffetToAbsolute(segment, offset + inc)) = value
         End Set
     End Property
 
     Public Property RAM16(segment As UInteger, offset As UInteger, Optional inc As UInteger = 0) As UInteger
         Get
-            Dim address As UInteger = SegOffToAbs(segment, offset + inc)
-            Return CUInt(RAM(address + 1UI)) << 8UI Or RAM(address)
+            Dim address As UInteger = SegmentOffetToAbsolute(segment, offset + inc)
+            Return (CUInt(RAM(address + 1UI)) << 8UI Or RAM(address))
         End Get
         Set(value As UInteger)
-            Dim address As UInteger = SegOffToAbs(segment, offset + inc)
+            Dim address As UInteger = SegmentOffetToAbsolute(segment, offset + inc)
             RAM(address) = value 'And &HFF
             RAM(address + 1UI) = (value >> 8UI)
         End Set

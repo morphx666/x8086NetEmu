@@ -18,8 +18,8 @@
     Private Sub OpCodeNotImplemented(opCode As Byte, Optional comment As String = "")
         Dim originalOpCodeSize As Integer = opCodeSize
         ThrowException(String.Format("OpCode '{0}' at {1} Not Implemented{2}", Decode(Me, True).Mnemonic.Replace("h:", ""),
-                                                                                        mRegisters.PointerAddressToString().Replace("h", ""),
-                                                                                        If(comment = "", "", ": " + comment)))
+                                                                               mRegisters.PointerAddressToString().Replace("h", ""),
+                                                                               If(comment = "", "", ": " + comment)))
         opCodeSize = originalOpCodeSize
     End Sub
 
