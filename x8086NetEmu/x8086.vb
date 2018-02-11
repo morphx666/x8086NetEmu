@@ -1858,39 +1858,74 @@ Public Class X8086
 
         Select Case addrMode.Reg
             Case 0 ' 000    --  rol
-                newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
-                mFlags.CF = newValue And &H1
+                If count = 1 Then
+                    newValue = (oldValue << 1) Or (oldValue >> mask07_15)
+                    mFlags.CF = oldValue And mask80_8000
+                Else
+                    newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
+                    mFlags.CF = newValue And &H1
+                End If
 
             Case 1 ' 001    --  ror
-                newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
-                mFlags.CF = If((newValue And mask80_8000) = mask80_8000, 1, 0)
+                If count = 1 Then
+                    newValue = (oldValue >> 1) Or (oldValue << mask07_15)
+                    mFlags.CF = oldValue And &H1
+                Else
+                    newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
+                    mFlags.CF = If((newValue And mask80_8000) = mask80_8000, 1, 0)
+                End If
 
             Case 2 ' 010    --  rcl
-                oldValue = oldValue Or (mFlags.CF << mask8_16)
-                newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
-                mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                If count = 1 Then
+                    newValue = (oldValue << 1) Or mFlags.CF
+                    mFlags.CF = oldValue And mask80_8000
+                Else
+                    oldValue = oldValue Or (mFlags.CF << mask8_16)
+                    newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
+                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                End If
 
             Case 3 ' 011    --  rcr
-                oldValue = oldValue Or (mFlags.CF << mask8_16)
-                newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
-                mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                If count = 1 Then
+                    newValue = (oldValue >> 1) Or (mFlags.CF << mask07_15)
+                    mFlags.CF = oldValue And &H1
+                Else
+                    oldValue = oldValue Or (mFlags.CF << mask8_16)
+                    newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
+                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                End If
 
             Case 4, 6 ' 100/110    --  shl/sal
-                newValue = If(count > mask8_16, 0, (oldValue << count))
-                mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                If count = 1 Then
+                    newValue = oldValue << 1
+                    mFlags.CF = oldValue And mask80_8000
+                Else
+                    newValue = If(count > mask8_16, 0, (oldValue << count))
+                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                End If
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 5 ' 101    --  shr
-                newValue = If(count > mask8_16, 0, (oldValue >> (count - 1)))
+                If count = 1 Then
+                    newValue = oldValue >> 1
+                    mFlags.CF = oldValue And &H1
+                Else
+                    newValue = If(count > mask8_16, 0, (oldValue >> (count - 1)))
                 mFlags.CF = newValue And &H1
-                newValue = (newValue >> 1)
+                    newValue = (newValue >> 1)
+                End If
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 7 ' 111    --  sar
-                oldValue = oldValue Or If((oldValue And mask80_8000) = mask80_8000, maskFF00_FFFF0000, 0)
-                newValue = oldValue >> If(count >= mask8_16, mask07_15, count - 1)
-                mFlags.CF = newValue And &H1
-                newValue = (newValue >> 1) And maskFF_FFFF
+                If count = 1 Then
+                    newValue = (oldValue >> 1) Or (oldValue And mask80_8000)
+                    mFlags.CF = oldValue And &H1
+                Else
+                    oldValue = oldValue Or If((oldValue And mask80_8000) = mask80_8000, maskFF00_FFFF0000, 0)
+                    newValue = oldValue >> If(count >= mask8_16, mask07_15, count - 1)
+                    mFlags.CF = newValue And &H1
+                    newValue = (newValue >> 1) And maskFF_FFFF
+                End If
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case Else
