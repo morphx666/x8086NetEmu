@@ -68,10 +68,12 @@ Public Class FormEmulator
         AddHandler ConsoleToolStripMenuItem.Click, Sub() ShowConsole()
         AddHandler SoftResetToolStripMenuItem.Click, Sub()
                                                          runningApp = ""
+                                                         Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
                                                          cpu.SoftReset()
                                                      End Sub
         AddHandler HardResetToolStripMenuItem.Click, Sub()
                                                          runningApp = ""
+                                                         Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
                                                          cpu.HardReset()
                                                      End Sub
         AddHandler MediaToolStripMenuItem.Click, Sub() RunMediaManager()
@@ -271,6 +273,11 @@ Public Class FormEmulator
     ' Code demonstration on how to attach hooks to the CPU
     ' http://stanislavs.org/helppc/int_21.html
     Private Sub AddCustomHooks()
+        cpu.TryAttachHook(&H19, Function() ' Reset running program on bootstrap
+                                    runningApp = ""
+                                    Return False
+                                End Function)
+
         cpu.TryAttachHook(&H20, Function() As Boolean ' Older programs still rely on INT20 to terminate (http://stanislavs.org/helppc/int_20.html)
                                     runningApp = ""
                                     Return False
