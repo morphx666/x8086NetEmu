@@ -96,10 +96,7 @@
         If Not mRegisters.ActiveSegmentChanged Then
             Select Case addrMode.Rm
                 Case 2, 3 : mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
-                Case 6
-                    If addrMode.Modifier <> 0 Then
-                        mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
-                    End If
+                Case 6 : If addrMode.Modifier <> 0 Then mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
             End Select
         End If
 
@@ -115,7 +112,7 @@
                     Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7                          ' 011 [BP+DI]
                     Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5                                          ' 100 [SI]
                     Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5                                          ' 101 [DI]
-                    Case 6 : addrMode.IndAdr = Param(SelPrmIndex.First, 2, DataSize.Word) : clkCyc += 9             ' 110 Direct Addressing
+                    Case 6 : addrMode.IndAdr = To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word)) : clkCyc += 9             ' 110 Direct Addressing
                     Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
                 End Select
                 addrMode.IndAdr = addrMode.IndAdr And &HFFFF
@@ -254,13 +251,13 @@
         End If
     End Function
 
-    'Private Function FixByteSign(v As Integer) As Integer
-    '    If addrMode.Size = DataSize.Byte Then
-    '        Return To16bitsWithSign(v)
-    '    Else
-    '        Return To32bitsWithSign(v)
-    '    End If
-    'End Function
+    Private Function ToXbitsWithSign(v As Integer) As Integer
+        If addrMode.Size = DataSize.Byte Then
+            Return To16bitsWithSign(v)
+        Else
+            Return To32bitsWithSign(v)
+        End If
+    End Function
 
     Private Sub SendToPort(portAddress As UInteger, value As UInteger)
         FlushCycles()
@@ -353,7 +350,7 @@
         If size = DataSize.Byte Then
             Return AddValues(mRegisters.IP, To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte)) + opCodeSize, DataSize.Word)
         Else
-            Return AddValues(mRegisters.IP, Param(SelPrmIndex.First, , DataSize.Word) + opCodeSize, DataSize.Word)
+            Return AddValues(mRegisters.IP, To32bitsWithSign(Param(SelPrmIndex.First, , DataSize.Word)) + opCodeSize, DataSize.Word)
         End If
     End Function
 
@@ -430,9 +427,8 @@
                 mFlags.SF = If((result And &H80) <> 0, 1, 0)
             End If
         Else
-            result = result And &HFFFF
             mFlags.PF = parityLUT(result And &HFF)
-            If result = 0 Then
+            If (result And &HFFFF) = 0 Then
                 mFlags.ZF = 1
                 mFlags.SF = 0
             Else

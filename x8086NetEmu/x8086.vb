@@ -31,7 +31,7 @@ Public Class X8086
     Private hooks As New Dictionary(Of Byte, IntHandler)
 
     Private opCode As Byte
-    Private opCodeSize As Byte = 0
+    Private opCodeSize As UInteger = 0
 
     Private tmpVal As UInteger
 
@@ -366,7 +366,7 @@ Public Class X8086
         picIsAvailable = (PIC IsNot Nothing)
 
 #If Win32 Then
-        If PIT IsNot Nothing Then PIT.Speaker.Enabled = False
+        If PIT IsNot Nothing AndAlso PIT.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
         If mVideoAdapter IsNot Nothing Then mVideoAdapter.Reset()
 #End If
 
@@ -440,7 +440,6 @@ Public Class X8086
 
     Private Sub SetSynchronization()
         Const syncQuantum As Double = 0.05
-        'Sched.SetSynchronization(True, Scheduler.CLOCKRATE * syncQuantum, Scheduler.CLOCKRATE * mSimulationMultiplier / 1000.0)
         Sched.SetSynchronization(True, Scheduler.CLOCKRATE * syncQuantum, Scheduler.CLOCKRATE * mSimulationMultiplier / 1000.0, mSimulationMultiplier)
     End Sub
 
@@ -457,11 +456,7 @@ Public Class X8086
             While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)
                 debugWaiter.WaitOne()
 
-                If isDecoding Then
-                    Thread.Sleep(1)
-                Else
-                    Execute()
-                End If
+                If Not isDecoding Then Execute()
 
                 RaiseEvent InstructionDecoded()
             End While
@@ -492,6 +487,15 @@ Public Class X8086
         'opCode = Prefetch.Buffer(0)
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
+
+        ' I Think this makes sense, although I'm not 100% sure...
+        If repeLoopMode <> REPLoopModes.None Then
+            If Not ((opCode >= &HA4 AndAlso opCode <= &HA7) OrElse (opCode >= &HAA AndAlso opCode <= &HAF)) Then
+                If Not (opCode = &H26 OrElse opCode = &H2E OrElse opCode = &H36 OrElse opCode = &H3E) Then
+                    repeLoopMode = REPLoopModes.None
+                End If
+            End If
+        End If
 
         Select Case opCode
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
@@ -760,15 +764,16 @@ Public Class X8086
 
             Case &H37 ' aaa
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
-                    mRegisters.AL = AddValues(mRegisters.AL, 6, DataSize.Byte) And &HF
-                    mRegisters.AH = AddValues(mRegisters.AH, 1 + ((mRegisters.AL > &HF9) And &HFF), DataSize.Byte)
+                    mRegisters.AX = AddValues(mRegisters.AX, &H106, DataSize.Word)
                     mFlags.AF = 1
                     mFlags.CF = 1
                 Else
-                    mRegisters.AL = mRegisters.AL And &HF
                     mFlags.AF = 0
                     mFlags.CF = 0
                 End If
+                mRegisters.AL = mRegisters.AL And &HF
+                mFlags.OF = 0
+                mFlags.SF = 0
                 clkCyc += 8
 
             Case &H38 To &H3B ' cmp reg/mem and reg
@@ -799,15 +804,16 @@ Public Class X8086
 
             Case &H3F ' aas
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
-                    mRegisters.AL = AddValues(mRegisters.AL, -6, DataSize.Byte) And &HF
-                    mRegisters.AH = AddValues(mRegisters.AH, -1 - ((mRegisters.AL < 6) And &HFF), DataSize.Byte)
+                    mRegisters.AX = AddValues(mRegisters.AX, -&H106, DataSize.Word)
                     mFlags.AF = 1
                     mFlags.CF = 1
                 Else
                     mFlags.AF = 0
                     mFlags.CF = 0
-                    mRegisters.AL = mRegisters.AL And &HF
                 End If
+                mRegisters.AL = mRegisters.AL And &HF
+                mFlags.OF = 0
+                mFlags.SF = 0
                 clkCyc += 8
 
             Case &H40 To &H47 ' inc reg
@@ -1109,17 +1115,17 @@ Public Class X8086
             Case &H88 To &H8C ' mov ind <-> reg8/reg16
                 SetAddressing()
 
-                If opCode = &H8C Then
-                    If (addrMode.Register1 And &H4) = &H4 Then
-                        addrMode.Register1 = addrMode.Register1 And (Not shl2)
+                If opCode = &H8C Then ' mov r/m16, sreg
+                    'If (addrMode.Register1 And &H4) = &H4 Then
+                    'addrMode.Register1 = addrMode.Register1 And (Not shl2)
+                    'Else
+                    addrMode.Register1 += GPRegisters.RegistersTypes.ES
+                    If addrMode.Register2 > &H3 Then
+                        addrMode.Register2 = (addrMode.Register2 + GPRegisters.RegistersTypes.ES) Or shl3
                     Else
-                        addrMode.Register1 += GPRegisters.RegistersTypes.ES
-                        If addrMode.Register2 > &H3 Then
-                            addrMode.Register2 = (addrMode.Register2 + GPRegisters.RegistersTypes.ES) Or shl3
-                        Else
-                            addrMode.Register2 += GPRegisters.RegistersTypes.AX
-                        End If
+                        addrMode.Register2 += GPRegisters.RegistersTypes.AX
                     End If
+                    'End If
                 End If
 
                 addrMode.Size = If(addrMode.Register1 < GPRegisters.RegistersTypes.AX, DataSize.Byte, DataSize.Word)
@@ -1142,12 +1148,7 @@ Public Class X8086
 
             Case &H8D ' lea
                 SetAddressing()
-                'If addrMode.IsDirect Then
-                'OpCodeNotImplemented(opCode)
-                'If mVic20 Then HandleInterrupt(6, False)
-                'Else
                 mRegisters.Val(addrMode.Register1) = addrMode.IndAdr
-                'End If
                 clkCyc += 2
 
             Case &H8E  ' mov reg/mem to seg reg
@@ -1201,19 +1202,21 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9C ' pushf
-                PushIntoStack((mFlags.EFlags And &HFD5) Or &HF000)
+                'PushIntoStack(mFlags.EFlags And &HFFF) ' <-- This is supposed to be the correct emulation but breaks SysCheck
+                'PushIntoStack((mFlags.EFlags And &HFFF) Or &HF800) ' <-- This is how fake86 does it, but breaks the branch.com tests
+                PushIntoStack(mFlags.EFlags) ' <-- This should also be correct, but breaks some of the checks
                 clkCyc += 10
 
             Case &H9D ' popf
-                mFlags.EFlags = (PopFromStack() And &HFD5) Or &HF000
+                mFlags.EFlags = PopFromStack()
                 clkCyc += 8
 
             Case &H9E ' sahf
-                mFlags.EFlags = (mFlags.EFlags And &HFF00) Or (mRegisters.AH And &HD5)
+                mFlags.EFlags = (mFlags.EFlags And &HFF00) Or mRegisters.AH
                 clkCyc += 4
 
             Case &H9F ' lahf
-                mRegisters.AH = (mFlags.EFlags And &HD5)
+                mRegisters.AH = mFlags.EFlags And &HFF
                 clkCyc += 4
 
             Case &HA0 To &HA3 ' mov mem to acc | mov acc to mem
@@ -1356,7 +1359,7 @@ Public Class X8086
             Case &HD4 ' aam
                 Dim div As UInteger = Param(SelPrmIndex.First, , DataSize.Byte)
                 If div = 0 Then
-                    HandleInterrupt(0, False)
+                    HandleInterrupt(0, True)
                     Exit Select
                 End If
                 mRegisters.AH = mRegisters.AL \ div
@@ -1396,7 +1399,7 @@ Public Class X8086
 
             Case &HE0 ' loopne/loopnz
                 mRegisters.CX = AddValues(mRegisters.CX, -1, DataSize.Word)
-                If mRegisters.CX <> 0 AndAlso mFlags.ZF = 0 Then
+                If mRegisters.CX > 0 AndAlso mFlags.ZF = 0 Then
                     IPAddrOff = OffsetIP(DataSize.Byte)
                     clkCyc += 19
                 Else
@@ -1406,7 +1409,7 @@ Public Class X8086
 
             Case &HE1 ' loope/loopz
                 mRegisters.CX = AddValues(mRegisters.CX, -1, DataSize.Word)
-                If mRegisters.CX <> 0 AndAlso mFlags.ZF = 1 Then
+                If mRegisters.CX > 0 AndAlso mFlags.ZF = 1 Then
                     IPAddrOff = OffsetIP(DataSize.Byte)
                     clkCyc += 18
                 Else
@@ -1416,7 +1419,7 @@ Public Class X8086
 
             Case &HE2 ' loop
                 mRegisters.CX = AddValues(mRegisters.CX, -1, DataSize.Word)
-                If mRegisters.CX <> 0 Then
+                If mRegisters.CX > 0 Then
                     IPAddrOff = OffsetIP(DataSize.Byte)
                     clkCyc += 17
                 Else
@@ -1550,7 +1553,7 @@ Public Class X8086
 
         If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
             Select Case opCode
-                Case &H26, &H2E, &H36, &H3E ' Keep Active Segment / Do Not Reset
+                Case &H26, &H2E, &H36, &H3E ' ES/CS/SS/DS -> Active Segment has just been set, do not reset
                 Case Else
                     mRegisters.ResetActiveSegment()
                     clkCyc += 2
@@ -1638,158 +1641,156 @@ Public Class X8086
         End Select
     End Sub
 
-    'Private Sub ExecuteGroup2_SLOW() ' &HD0 To &HD3 (fake86 version)
-    '    SetAddressing()
+    Private Sub ExecuteGroup2_SLOW() ' &HD0 To &HD3
+        SetAddressing()
 
-    '    Dim value As UInteger
-    '    Dim count As UInteger
+        Dim value As UInteger
+        Dim count As UInteger
 
-    '    Dim mask80_8000 As UInteger
-    '    Dim mask07_15 As UInteger
-    '    Dim maskFF_FFFF As UInteger
+        Dim mask80_8000 As UInteger
+        Dim mask07_15 As UInteger
+        Dim maskFF_FFFF As UInteger
 
-    '    If addrMode.Size = DataSize.Byte Then
-    '        mask80_8000 = &H80
-    '        mask07_15 = &H7
-    '        maskFF_FFFF = &HFF
-    '    Else
-    '        mask80_8000 = &H8000
-    '        mask07_15 = &HF
-    '        maskFF_FFFF = &HFFFF
-    '    End If
+        If addrMode.Size = DataSize.Byte Then
+            mask80_8000 = &H80
+            mask07_15 = &H7
+            maskFF_FFFF = &HFF
+        Else
+            mask80_8000 = &H8000
+            mask07_15 = &HF
+            maskFF_FFFF = &HFFFF
+        End If
 
-    '    If addrMode.IsDirect Then
-    '        value = mRegisters.Val(addrMode.Register2)
-    '        If opCode >= &HD2 Then
-    '            clkCyc += 8
-    '        Else
-    '            clkCyc += 2
-    '        End If
-    '    Else
-    '        value = addrMode.IndMem
-    '        If opCode >= &HD2 Then
-    '            clkCyc += 20
-    '        Else
-    '            clkCyc += 13
-    '        End If
-    '    End If
+        If addrMode.IsDirect Then
+            value = mRegisters.Val(addrMode.Register2)
+            If opCode >= &HD2 Then
+                clkCyc += 8
+            Else
+                clkCyc += 2
+            End If
+        Else
+            value = addrMode.IndMem
+            If opCode >= &HD2 Then
+                clkCyc += 20
+            Else
+                clkCyc += 13
+            End If
+        End If
 
-    '    If opCode >= &HD2 Then
-    '        count = mRegisters.CL
-    '        If count = 0 Then
-    '            clkCyc += 8
-    '            Exit Sub
-    '        Else
-    '            clkCyc += 4 * count
-    '        End If
-    '    Else
-    '        count = 1
-    '        clkCyc += 2
-    '    End If
+        If opCode >= &HD2 Then
+            count = mRegisters.CL
+            If count = 0 Then
+                clkCyc += 8
+                Exit Sub
+            Else
+                clkCyc += 4 * count
+            End If
+        Else
+            count = 1
+            clkCyc += 2
+        End If
 
-    '    ' 80186/V20 class CPUs limit shift count to 31
-    '    If mVic20 Then count = count And &H1F
+        ' 80186/V20 class CPUs limit shift count to 31
+        If mVic20 Then count = count And &H1F
 
-    '    Dim shift As UInteger
-    '    Dim oldCF As UInteger
-    '    Dim msb As UInteger
+        Dim shift As UInteger
+        Dim oldCF As UInteger
+        Dim msb As UInteger
 
-    '    Select Case addrMode.Reg
-    '        Case 0 ' 000    --  rol
-    '            For shift = 1 To count
-    '                If (value And mask80_8000) = mask80_8000 Then
-    '                    mFlags.CF = 1
-    '                Else
-    '                    mFlags.CF = 0
-    '                End If
+        Select Case addrMode.Reg
+            Case 0 ' 000    --  rol
+                For shift = 1 To count
+                    If (value And mask80_8000) = mask80_8000 Then
+                        mFlags.CF = 1
+                    Else
+                        mFlags.CF = 0
+                    End If
 
-    '                value = value << 1
-    '                value = value Or mFlags.CF
-    '            Next
-    '            If count = 1 Then mFlags.OF = mFlags.CF Xor ((value >> mask07_15) And 1)
+                    value = value << 1
+                    value = value Or mFlags.CF
+                Next
+                If count = 1 Then mFlags.OF = mFlags.CF Xor ((value >> mask07_15) And 1)
 
-    '        Case 1 ' 001    --  ror
-    '            For shift = 1 To count
-    '                mFlags.CF = value And 1
-    '                value = (value >> 1) Or (mFlags.CF << mask07_15)
-    '            Next
-    '            If count = 1 Then mFlags.OF = (value >> mask07_15) Xor ((value >> (mask07_15 - 1)) And 1)
+            Case 1 ' 001    --  ror
+                For shift = 1 To count
+                    mFlags.CF = value And 1
+                    value = (value >> 1) Or (mFlags.CF << mask07_15)
+                Next
+                If count = 1 Then mFlags.OF = (value >> mask07_15) Xor ((value >> (mask07_15 - 1)) And 1)
 
-    '        Case 2 ' 010    --  rcl
-    '            For shift = 1 To count
-    '                oldCF = mFlags.CF
-    '                If (value And mask80_8000) = mask80_8000 Then
-    '                    mFlags.CF = 1
-    '                Else
-    '                    mFlags.CF = 0
-    '                End If
+            Case 2 ' 010    --  rcl
+                For shift = 1 To count
+                    oldCF = mFlags.CF
+                    If (value And mask80_8000) = mask80_8000 Then
+                        mFlags.CF = 1
+                    Else
+                        mFlags.CF = 0
+                    End If
 
-    '                value = value << 1
-    '                value = value Or oldCF
-    '            Next
-    '            If count = 1 Then mFlags.OF = mFlags.CF Xor ((value >> mask07_15) And 1)
+                    value = value << 1
+                    value = value Or oldCF
+                Next
+                If count = 1 Then mFlags.OF = mFlags.CF Xor ((value >> mask07_15) And 1)
 
-    '        Case 3 ' 011    --  rcr
-    '            For shift = 1 To count
-    '                oldCF = mFlags.CF
-    '                mFlags.CF = value And 1
-    '                value = (value >> 1) Or (oldCF << mask07_15)
-    '            Next
-    '            If count = 1 Then mFlags.OF = (value >> mask07_15) Xor ((value >> (mask07_15 - 1)) And 1)
+            Case 3 ' 011    --  rcr
+                For shift = 1 To count
+                    oldCF = mFlags.CF
+                    mFlags.CF = value And 1
+                    value = (value >> 1) Or (oldCF << mask07_15)
+                Next
+                If count = 1 Then mFlags.OF = (value >> mask07_15) Xor ((value >> (mask07_15 - 1)) And 1)
 
-    '        Case 4, 6 ' 100/110    --  shl/sal
-    '            For shift = 1 To count
-    '                If (value And mask80_8000) = mask80_8000 Then
-    '                    mFlags.CF = 1
-    '                Else
-    '                    mFlags.CF = 0
-    '                End If
+            Case 4, 6 ' 100/110    --  shl/sal
+                For shift = 1 To count
+                    If (value And mask80_8000) = mask80_8000 Then
+                        mFlags.CF = 1
+                    Else
+                        mFlags.CF = 0
+                    End If
 
-    '                value = (value << 1) And maskFF_FFFF
-    '            Next
-    '            If (count = 1) AndAlso (mFlags.CF = (value >> mask07_15)) Then
-    '                mFlags.OF = 0
-    '            Else
-    '                mFlags.OF = 1
-    '            End If
-    '            SetSZPFlags(value, addrMode.Size)
+                    value = (value << 1) And maskFF_FFFF
+                Next
+                If (count = 1) AndAlso (mFlags.CF = (value >> mask07_15)) Then
+                    mFlags.OF = 0
+                Else
+                    mFlags.OF = 1
+                End If
+                SetSZPFlags(value, addrMode.Size)
 
-    '        Case 5 ' 101    --  shr
-    '            If (count = 1) AndAlso ((value And mask80_8000) = mask80_8000) Then
-    '                mFlags.OF = 1
-    '            Else
-    '                mFlags.OF = 0
-    '            End If
-    '            For shift = 1 To count
-    '                mFlags.CF = value And 1
-    '                value = value >> 1
-    '            Next
-    '            SetSZPFlags(value, addrMode.Size)
+            Case 5 ' 101    --  shr
+                If (count = 1) AndAlso ((value And mask80_8000) = mask80_8000) Then
+                    mFlags.OF = 1
+                Else
+                    mFlags.OF = 0
+                End If
+                For shift = 1 To count
+                    mFlags.CF = value And 1
+                    value = value >> 1
+                Next
+                SetSZPFlags(value, addrMode.Size)
 
-    '        Case 7 ' 111    --  sar
-    '            For shift = 1 To count
-    '                msb = value And mask80_8000
-    '                mFlags.CF = value And 1
-    '                value = (value >> 1) Or msb
-    '            Next
-    '            mFlags.OF = 0
-    '            SetSZPFlags(value, addrMode.Size)
+            Case 7 ' 111    --  sar
+                For shift = 1 To count
+                    msb = value And mask80_8000
+                    mFlags.CF = value And 1
+                    value = (value >> 1) Or msb
+                Next
+                mFlags.OF = 0
+                SetSZPFlags(value, addrMode.Size)
 
-    '        Case Else
-    '            OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group2)")
-    '    End Select
+            Case Else
+                OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group2)")
+        End Select
 
-    '    If addrMode.IsDirect Then
-    '        mRegisters.Val(addrMode.Register2) = value And maskFF_FFFF
-    '    Else
-    '        RAMn = value And maskFF_FFFF
-    '    End If
-    'End Sub
+        If addrMode.IsDirect Then
+            mRegisters.Val(addrMode.Register2) = value And maskFF_FFFF
+        Else
+            RAMn = value And maskFF_FFFF
+        End If
+    End Sub
 
     Private Sub ExecuteGroup2() ' &HD0 To &HD3 / &HC0 To &HC1
         SetAddressing()
-
-        ' Other Emulators & Resources\PCE - PC Emulator\src\src\cpu\e8086\opcodes.c
 
         Dim newValue As UInteger
         Dim count As UInteger
@@ -1850,9 +1851,8 @@ Public Class X8086
             clkCyc += 8
             Exit Sub
         Else
-            ' 80186/V20 class CPUs limit shift count to 31 (fake86)
-            If mVic20 Then count = (count And &H1F) Mod (mask8_16 + 1)
-
+            ' 80186/V20 class CPUs limit shift count to 31
+            If mVic20 Then count = count And &H1F
             clkCyc += 4 * count
         End If
 
@@ -1860,58 +1860,64 @@ Public Class X8086
             Case 0 ' 000    --  rol
                 If count = 1 Then
                     newValue = (oldValue << 1) Or (oldValue >> mask07_15)
-                    mFlags.CF = oldValue And mask80_8000
+                    mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = mFlags.CF Xor ((newValue >> mask07_15) And 1)
                 Else
                     newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
-                    mFlags.CF = newValue And &H1
+                    mFlags.CF = newValue And 1
                 End If
 
             Case 1 ' 001    --  ror
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue << mask07_15)
-                    mFlags.CF = oldValue And &H1
+                    mFlags.CF = oldValue And 1
+                    mFlags.OF = (newValue >> mask07_15) Xor ((newValue >> (mask07_15 - 1)) And 1)
                 Else
                     newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
-                    mFlags.CF = If((newValue And mask80_8000) = mask80_8000, 1, 0)
+                    mFlags.CF = If((newValue And mask80_8000) <> 0, 1, 0)
                 End If
 
             Case 2 ' 010    --  rcl
                 If count = 1 Then
                     newValue = (oldValue << 1) Or mFlags.CF
-                    mFlags.CF = oldValue And mask80_8000
+                    mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = mFlags.CF Xor ((newValue >> mask07_15) And 1)
                 Else
                     oldValue = oldValue Or (mFlags.CF << mask8_16)
                     newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
-                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                    mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
                 End If
 
             Case 3 ' 011    --  rcr
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (mFlags.CF << mask07_15)
-                    mFlags.CF = oldValue And &H1
+                    mFlags.CF = oldValue And 1
+                    mFlags.OF = (newValue >> mask07_15) Xor ((newValue >> (mask07_15 - 1)) And 1)
                 Else
                     oldValue = oldValue Or (mFlags.CF << mask8_16)
                     newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
-                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                    mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
                 End If
 
             Case 4, 6 ' 100/110    --  shl/sal
                 If count = 1 Then
                     newValue = oldValue << 1
-                    mFlags.CF = oldValue And mask80_8000
+                    mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = If(mFlags.CF = (newValue >> mask07_15), 0, 1)
                 Else
                     newValue = If(count > mask8_16, 0, (oldValue << count))
-                    mFlags.CF = If((newValue And mask100_10000) = mask100_10000, 1, 0)
+                    mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 5 ' 101    --  shr
                 If count = 1 Then
                     newValue = oldValue >> 1
-                    mFlags.CF = oldValue And &H1
+                    mFlags.CF = oldValue And 1
+                    mFlags.OF = If((oldValue And mask80_8000) <> 0, 1, 0)
                 Else
                     newValue = If(count > mask8_16, 0, (oldValue >> (count - 1)))
-                mFlags.CF = newValue And &H1
+                    mFlags.CF = newValue And 1
                     newValue = (newValue >> 1)
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
@@ -1919,12 +1925,13 @@ Public Class X8086
             Case 7 ' 111    --  sar
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue And mask80_8000)
-                    mFlags.CF = oldValue And &H1
+                    mFlags.CF = oldValue And 1
+                    mFlags.OF = 0
                 Else
-                    oldValue = oldValue Or If((oldValue And mask80_8000) = mask80_8000, maskFF00_FFFF0000, 0)
+                    oldValue = oldValue Or If((oldValue And mask80_8000) <> 0, maskFF00_FFFF0000, 0)
                     newValue = oldValue >> If(count >= mask8_16, mask07_15, count - 1)
-                    mFlags.CF = newValue And &H1
-                    newValue = (newValue >> 1) And maskFF_FFFF
+                    mFlags.CF = newValue And 1
+                    newValue = newValue >> 1
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
 
@@ -1937,19 +1944,6 @@ Public Class X8086
         Else
             RAMn = newValue And maskFF_FFFF
         End If
-
-        ' http://x86.renejeschke.de/html/file_module_x86_id_285.html
-        If count = 1 Then
-            Select Case addrMode.Reg
-                Case 4, 6 : mFlags.OF = If(newValue And mask100_10000 <> 0, 1, 0) Xor mFlags.OF
-                Case 7 : mFlags.OF = 0
-                Case Else : mFlags.OF = If(oldValue And mask100_10000 <> 0, 1, 0)
-            End Select
-        End If
-
-        ''If addrMode.Reg <> 7 Then ' sar
-        'mFlags.OF = If(((newValue Xor oldValue) And mask80_8000) <> 0, 1, 0)
-        ''End If
     End Sub
 
     Private Sub ExecuteGroup3() ' &HF6 To &HF7
@@ -1958,10 +1952,10 @@ Public Class X8086
         Select Case addrMode.Reg
             Case 0, 1 ' 000    --  test
                 If addrMode.IsDirect Then
-                    Eval(mRegisters.Val(addrMode.Register2), Param(SelPrmIndex.First, opCodeSize), Operation.Test, addrMode.Size)
+                    Eval(mRegisters.Val(addrMode.Register2), ToXbitsWithSign(Param(SelPrmIndex.First, opCodeSize)), Operation.Test, addrMode.Size)
                     clkCyc += 5
                 Else
-                    Eval(addrMode.IndMem, Param(SelPrmIndex.First, opCodeSize), Operation.Test, addrMode.Size)
+                    Eval(addrMode.IndMem, ToXbitsWithSign(Param(SelPrmIndex.First, opCodeSize)), Operation.Test, addrMode.Size)
                     clkCyc += 11
                 End If
 
@@ -2012,6 +2006,7 @@ Public Class X8086
                     End If
                 End If
 
+                SetSZPFlags(tmpVal, addrMode.Size)
                 If (tmpVal And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
@@ -2027,12 +2022,18 @@ Public Class X8086
                         Dim m1 As UInteger = To16bitsWithSign(mRegisters.AL)
                         Dim m2 As UInteger = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
 
+                        m1 = If((m1 And &H80) <> 0, m1 Or &HFFFFFF00UI, m1)
+                        m2 = If((m2 And &H80) <> 0, m2 Or &HFFFFFF00UI, m2)
+
                         tmpVal = m1 * m2
                         mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 70
                     Else
                         Dim m1 As UInteger = To32bitsWithSign(mRegisters.AX)
                         Dim m2 As UInteger = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
+
+                        m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF0000UI, m1)
+                        m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
 
                         tmpVal = m1 * m2
                         mRegisters.AX = tmpVal And &HFFFF
@@ -2044,12 +2045,18 @@ Public Class X8086
                         Dim m1 As UInteger = To16bitsWithSign(mRegisters.AL)
                         Dim m2 As UInteger = To16bitsWithSign(addrMode.IndMem)
 
+                        m1 = If((m1 And &H80) <> 0, m1 Or &HFFFFFF00UI, m1)
+                        m2 = If((m2 And &H80) <> 0, m2 Or &HFFFFFF00UI, m2)
+
                         tmpVal = m1 * m2
                         mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 76
                     Else
                         Dim m1 As UInteger = To32bitsWithSign(mRegisters.AX)
                         Dim m2 As UInteger = To32bitsWithSign(addrMode.IndMem)
+
+                        m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF0000UI, m1)
+                        m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
 
                         tmpVal = m1 * m2
                         mRegisters.AX = tmpVal And &HFFFF
@@ -2068,6 +2075,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
+                If Not mVic20 Then mFlags.ZF = 0
 
             Case 6 ' 110    --  div
                 Dim div As UInteger
@@ -2090,7 +2098,7 @@ Public Class X8086
                 End If
 
                 If div = 0 Then
-                    HandleInterrupt(0, False)
+                    HandleInterrupt(0, True)
                     Exit Select
                 End If
 
@@ -2098,15 +2106,15 @@ Public Class X8086
                 remain = num Mod div
 
                 If addrMode.Size = DataSize.Byte Then
-                    If (result And &HFF00) <> 0 Then
-                        HandleInterrupt(0, False)
+                    If result > &HFF Then
+                        HandleInterrupt(0, True)
                         Exit Select
                     End If
                     mRegisters.AL = result And &HFF
                     mRegisters.AH = remain And &HFF
                 Else
-                    If (result And &HFFFF0000UI) <> 0 Then
-                        HandleInterrupt(0, False)
+                    If result > &HFFFF Then
+                        HandleInterrupt(0, True)
                         Exit Select
                     End If
                     mRegisters.AX = result And &HFFFF
@@ -2118,77 +2126,67 @@ Public Class X8086
                 Dim num As UInteger
                 Dim result As UInteger
                 Dim remain As UInteger
-                Dim sign1 As Boolean
-                Dim sign2 As Boolean
+                Dim sign As Boolean
 
                 If addrMode.IsDirect Then
                     div = mRegisters.Val(addrMode.Register2)
                     If addrMode.Size = DataSize.Byte Then
-                        num = To16bitsWithSign(mRegisters.AX)
-                        div = To16bitsWithSign(div)
+                        num = mRegisters.AX
 
-                        sign1 = (num And &H8000) <> 0
-                        sign2 = (div And &H8000) <> 0
-                        num = If(sign1, ((Not num) + 1) And &HFFFF, num)
-                        div = If(sign2, ((Not div) + 1) And &HFFFF, div)
+                        sign = ((num Xor div) And &H8000) <> 0
+                        num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
+                        div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
 
                         clkCyc += 80
                     Else
-                        num = To32bitsWithSign((mRegisters.DX << 16) Or mRegisters.AX)
-                        div = To32bitsWithSign(div)
+                        num = (mRegisters.DX << 16) Or mRegisters.AX
+                        div = If((div And &H8000) <> 0, div Or &HFFFF0000UI, div)
 
-                        sign1 = (num And &H80000000UI) <> 0
-                        sign2 = (div And &H80000000UI) <> 0
-                        num = If(sign1, ((Not num) + 1) And &HFFFFFFFFL, num)
-                        div = If(sign2, ((Not div) + 1) And &HFFFFFFFFL, div)
+                        sign = ((num Xor div) And &H80000000UI) <> 0
+                        num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
+                        div = If(div < &H80000000UI, div, ((Not div) + 1) And &HFFFFFFFFUI)
 
                         clkCyc += 144
                     End If
                 Else
                     div = addrMode.IndMem
                     If addrMode.Size = DataSize.Byte Then
-                        num = To16bitsWithSign(mRegisters.AX)
-                        div = To16bitsWithSign(div)
+                        num = mRegisters.AX
 
-                        sign1 = (num And &H8000) <> 0
-                        sign2 = (div And &H8000) <> 0
-                        num = If(sign1, ((Not num) + 1) And &HFFFF, num)
-                        div = If(sign2, ((Not div) + 1) And &HFFFF, div)
+                        sign = ((num Xor div) And &H8000) <> 0
+                        num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
+                        div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
 
                         clkCyc += 86
                     Else
-                        num = To32bitsWithSign((mRegisters.DX << 16) Or mRegisters.AX)
-                        div = To32bitsWithSign(div)
+                        num = (mRegisters.DX << 16) Or mRegisters.AX
+                        div = If((div And &H8000) <> 0, div Or &HFFFF0000UI, div)
 
-                        sign1 = (num And &H80000000UI) <> 0
-                        sign2 = (div And &H80000000UI) <> 0
-                        num = If(sign1, ((Not num) + 1) And &HFFFFFFFFL, num)
-                        div = If(sign2, ((Not div) + 1) And &HFFFFFFFFL, div)
+                        sign = ((num Xor div) And &H80000000UI) <> 0
+                        num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
+                        div = If(div < &H80000000UI, div, ((Not div) + 1) And &HFFFFFFFFUI)
 
                         clkCyc += 150
                     End If
                 End If
 
                 If div = 0 Then
-                    HandleInterrupt(0, False)
+                    HandleInterrupt(0, True)
                     Exit Select
                 End If
 
                 result = num \ div
                 remain = num Mod div
 
-                If sign1 <> sign2 Then
-                    If result > If(addrMode.Size = DataSize.Byte, &H80, &H8000) Then
-                        HandleInterrupt(0, False)
-                        Exit Select
-                    End If
-                    result = ((Not result) + 1) And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)
-                ElseIf result > If(addrMode.Size = DataSize.Byte, &H7F, &H7FFF) Then
-                    HandleInterrupt(0, False)
+                If (result And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
+                    HandleInterrupt(0, True)
                     Exit Select
                 End If
 
-                If sign1 Then remain = ((Not remain) + 1)
+                If sign Then
+                    result = ((Not result) + 1)
+                    remain = ((Not remain) + 1)
+                End If
 
                 If addrMode.Size = DataSize.Byte Then
                     mRegisters.AL = result And &HFF
@@ -2281,7 +2279,7 @@ Public Class X8086
                 repeLoopMode = REPLoopModes.None
             Else
                 While mRegisters.CX > 0
-                    mRegisters.CX = AddValues(mRegisters.CX, -1, DataSize.Word)
+                    mRegisters.CX -= 1 ' We don't really need all the safety checks from AddValues(mRegisters.CX, -1, DataSize.Word)
                     If ExecStringOpCode() Then
                         If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
                            (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
@@ -2391,7 +2389,7 @@ Public Class X8086
                 Return False
 
             Case &HAE ' scasb
-                Eval(RAM8(mRegisters.ES, mRegisters.DI), mRegisters.AL, Operation.Compare, DataSize.Byte)
+                Eval(mRegisters.AL, RAM8(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Byte)
                 If mFlags.DF = 0 Then
                     mRegisters.DI = AddValues(mRegisters.DI, 1, DataSize.Word)
                 Else
@@ -2401,7 +2399,7 @@ Public Class X8086
                 Return True
 
             Case &HAF ' scasw
-                Eval(RAM16(mRegisters.ES, mRegisters.DI), mRegisters.AX, Operation.Compare, DataSize.Word)
+                Eval(mRegisters.AX, RAM16(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Word)
                 If mFlags.DF = 0 Then
                     mRegisters.DI = AddValues(mRegisters.DI, 2, DataSize.Word)
                 Else

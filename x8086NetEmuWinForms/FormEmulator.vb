@@ -48,6 +48,8 @@ Public Class FormEmulator
     Private Sub FormEmulator_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.BackColor = Color.Black
 
+        'RunChecks()
+
         ' New settings that are recommend to be turned on
         INT13EmulationToolStripMenuItem.Checked = True
         int13Emulation = True
@@ -241,6 +243,7 @@ Public Class FormEmulator
         StopEmulation()
 
         cpu = New X8086(v20Emulation, int13Emulation)
+
         cpuState = New EmulatorState(cpu)
 
         videoPort = New RenderCtrlGDI()
@@ -254,7 +257,6 @@ Public Class FormEmulator
 
         AddSupportForTextCopy()
 
-        ' FIXME: Use BASS to provide cross-platform audio support
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
 #End If
@@ -646,4 +648,64 @@ Public Class FormEmulator
 
         cpu.VideoAdapter.VideoMode = [Enum].Parse(GetType(CGAAdapter.VideoModes), xml.<videoMode>.Value)
     End Sub
+
+    Private Sub RunChecks()
+        cpu = New X8086(True, False)
+
+        Dim skipCount As Integer = 16
+        Dim failed As Boolean
+
+        For Each file In (New IO.DirectoryInfo("D:\Users\Xavier\Downloads\80186_tests\").GetFiles("*.bin")).ToList()
+            If file.Name = "datatrnf.bin" OrElse file.Name.StartsWith("res_") Then
+                Continue For
+            End If
+
+            If skipCount > 0 Then
+                skipCount -= 1
+                Continue For
+            End If
+
+            cpu.FPU = Nothing
+            cpu.PIC = Nothing
+            cpu.DMA = Nothing
+            cpu.PIT = Nothing
+            cpu.PPI = Nothing
+            cpu.Ports.Clear()
+            cpu.Adapters.Clear()
+
+            MsgBox($"Test Program: {file.Name}")
+
+            cpu.Run(True)
+            cpu.LoadBIN(file.FullName, &HF000, &H0)
+            cpu.Registers.CS = &HF000
+            cpu.Registers.IP = &H0
+            cpu.Flags.EFlags = 0
+            ShowDebugger()
+            Do
+                Application.DoEvents()
+            Loop Until cpu.IsHalted
+
+            Dim expectedFileName As String = IO.Path.Combine(file.DirectoryName, "res_" + file.Name)
+            If IO.File.Exists(expectedFileName) Then
+                failed = False
+                Dim expectedData() As Byte = IO.File.ReadAllBytes(expectedFileName)
+                For i As Integer = 0 To expectedData.Length - 1
+                    'If expectedData(i) <> 0 Then
+                    If expectedData(i) <> cpu.RAM8(0, i) Then
+                        failed = True
+                        MsgBox($"{file.Name} failed at offset {i}{Environment.NewLine}Expected: {expectedData(i):X2}{Environment.NewLine}Found: {cpu.RAM8(0, i):X2}")
+                    End If
+                    'End If
+                Next
+
+                If failed Then
+                    MsgBox($"{file.Name} failed to run correctly")
+                Else
+                    MsgBox($"{file.Name} has executed successfully")
+                End If
+            End If
+        Next
+        Exit Sub
+    End Sub
 End Class
+

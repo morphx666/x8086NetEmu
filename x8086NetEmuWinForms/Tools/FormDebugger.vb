@@ -118,7 +118,7 @@ Public Class FormDebugger
         Dim uiRefreshThread As New Thread(Sub()
                                               Do
                                                   UpdateUI()
-                                                  Thread.Sleep(500)
+                                                  Thread.Sleep(1000)
                                               Loop Until abortThreads
                                           End Sub) With {
                                             .IsBackground = True
@@ -448,19 +448,19 @@ Public Class FormDebugger
                 If Not TextBoxDH.Focused Then TextBoxDH.Text = $"{ .DH:X2}"
                 If Not TextBoxDL.Focused Then TextBoxDL.Text = $"{ .DL:X2}"
 
-                If Not TextBoxCS.Focused Then TextBoxCS.Text = $"{ .CS:X2}"
-                If Not TextBoxIP.Focused Then TextBoxIP.Text = $"{ .IP:X2}"
+                If Not TextBoxCS.Focused Then TextBoxCS.Text = $"{ .CS:X4}"
+                If Not TextBoxIP.Focused Then TextBoxIP.Text = $"{ .IP:X4}"
 
-                If Not TextBoxSS.Focused Then TextBoxSS.Text = $"{ .SS:X2}"
-                If Not TextBoxSP.Focused Then TextBoxSP.Text = $"{ .SP:X2}"
+                If Not TextBoxSS.Focused Then TextBoxSS.Text = $"{ .SS:X4}"
+                If Not TextBoxSP.Focused Then TextBoxSP.Text = $"{ .SP:X4}"
 
-                If Not TextBoxBP.Focused Then TextBoxBP.Text = $"{ .BP:X2}"
-                If Not TextBoxSI.Focused Then TextBoxSI.Text = $"{ .SI:X2}"
+                If Not TextBoxBP.Focused Then TextBoxBP.Text = $"{ .BP:X4}"
+                If Not TextBoxSI.Focused Then TextBoxSI.Text = $"{ .SI:X4}"
 
-                If Not TextBoxDS.Focused Then TextBoxDS.Text = $"{ .DS:X2}"
-                If Not TextBoxDI.Focused Then TextBoxDI.Text = $"{ .DI:X2}"
+                If Not TextBoxDS.Focused Then TextBoxDS.Text = $"{ .DS:X4}"
+                If Not TextBoxDI.Focused Then TextBoxDI.Text = $"{ .DI:X4}"
 
-                If Not TextBoxES.Focused Then TextBoxES.Text = $"{ .ES:X2}"
+                If Not TextBoxES.Focused Then TextBoxES.Text = $"{ .ES:X4}"
             End With
 
             With Emulator.Flags
@@ -480,12 +480,12 @@ Public Class FormDebugger
     Private Sub UpdateStack()
         Dim index As Integer = 0
 
-        If ListViewStack.Items.ContainsKey(currentSSSP) Then
-            With ListViewStack.Items(currentSSSP)
-                .BackColor = ListViewStack.BackColor
-                .SubItems(1).BackColor = ListViewStack.BackColor
-            End With
-        End If
+        'If ListViewStack.Items.ContainsKey(currentSSSP) Then
+        '    With ListViewStack.Items(currentSSSP)
+        '        .BackColor = ListViewStack.BackColor
+        '        .SubItems(1).BackColor = ListViewStack.BackColor
+        '    End With
+        'End If
 
         With Emulator
             currentSSSP = X8086.SegmentOffetToAbsolute(.Registers.SS, .Registers.SP).ToString("X")
@@ -512,6 +512,9 @@ Public Class FormDebugger
                 If ptr = .Registers.SP Then
                     item.BackColor = Color.DarkSlateBlue
                     item.EnsureVisible()
+                Else
+                    item.BackColor = ListViewStack.BackColor
+                    'item.SubItems(1).BackColor = ListViewStack.BackColor
                 End If
 
                 index += 1

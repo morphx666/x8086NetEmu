@@ -124,7 +124,7 @@ Partial Class FormDebugger
         Me.CheckBoxTF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.CheckBoxTF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
         Me.CheckBoxTF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxTF.Location = New System.Drawing.Point(6, 259)
+        Me.CheckBoxTF.Location = New System.Drawing.Point(6, 169)
         Me.CheckBoxTF.Name = "CheckBoxTF"
         Me.CheckBoxTF.Size = New System.Drawing.Size(91, 24)
         Me.CheckBoxTF.TabIndex = 8
@@ -163,7 +163,7 @@ Partial Class FormDebugger
         Me.CheckBoxAF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.CheckBoxAF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
         Me.CheckBoxAF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxAF.Location = New System.Drawing.Point(6, 169)
+        Me.CheckBoxAF.Location = New System.Drawing.Point(6, 79)
         Me.CheckBoxAF.Name = "CheckBoxAF"
         Me.CheckBoxAF.Size = New System.Drawing.Size(91, 24)
         Me.CheckBoxAF.TabIndex = 5
@@ -176,7 +176,7 @@ Partial Class FormDebugger
         Me.CheckBoxPF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.CheckBoxPF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
         Me.CheckBoxPF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxPF.Location = New System.Drawing.Point(6, 139)
+        Me.CheckBoxPF.Location = New System.Drawing.Point(6, 49)
         Me.CheckBoxPF.Name = "CheckBoxPF"
         Me.CheckBoxPF.Size = New System.Drawing.Size(91, 24)
         Me.CheckBoxPF.TabIndex = 4
@@ -189,7 +189,7 @@ Partial Class FormDebugger
         Me.CheckBoxOF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.CheckBoxOF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
         Me.CheckBoxOF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxOF.Location = New System.Drawing.Point(6, 109)
+        Me.CheckBoxOF.Location = New System.Drawing.Point(6, 259)
         Me.CheckBoxOF.Name = "CheckBoxOF"
         Me.CheckBoxOF.Size = New System.Drawing.Size(91, 24)
         Me.CheckBoxOF.TabIndex = 3
@@ -202,7 +202,7 @@ Partial Class FormDebugger
         Me.CheckBoxSF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.CheckBoxSF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
         Me.CheckBoxSF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxSF.Location = New System.Drawing.Point(6, 79)
+        Me.CheckBoxSF.Location = New System.Drawing.Point(6, 139)
         Me.CheckBoxSF.Name = "CheckBoxSF"
         Me.CheckBoxSF.Size = New System.Drawing.Size(91, 24)
         Me.CheckBoxSF.TabIndex = 2
@@ -215,7 +215,7 @@ Partial Class FormDebugger
         Me.CheckBoxZF.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.CheckBoxZF.FlatAppearance.CheckedBackColor = System.Drawing.Color.DarkSlateBlue
         Me.CheckBoxZF.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxZF.Location = New System.Drawing.Point(6, 49)
+        Me.CheckBoxZF.Location = New System.Drawing.Point(6, 109)
         Me.CheckBoxZF.Name = "CheckBoxZF"
         Me.CheckBoxZF.Size = New System.Drawing.Size(91, 24)
         Me.CheckBoxZF.TabIndex = 1
@@ -750,7 +750,7 @@ Partial Class FormDebugger
         '
         Me.TextBoxMem.BackColor = System.Drawing.Color.FromArgb(CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer))
         Me.TextBoxMem.Cursor = System.Windows.Forms.Cursors.Arrow
-        Me.TextBoxMem.Font = New System.Drawing.Font("Consolas", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxMem.Font = New System.Drawing.Font("Consolas", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBoxMem.ForeColor = System.Drawing.Color.Gainsboro
         Me.TextBoxMem.Location = New System.Drawing.Point(12, 359)
         Me.TextBoxMem.Multiline = True
