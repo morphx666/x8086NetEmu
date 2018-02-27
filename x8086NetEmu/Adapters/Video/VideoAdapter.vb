@@ -17,6 +17,12 @@ Public MustInherit Class VideoAdapter
         Undefined = &HFF
     End Enum
 
+    Public Enum MainModes
+        Unknown = -1
+        Text = 0
+        Graphics = 2
+    End Enum
+
     Public Event KeyDown(sender As Object, e As KeyEventArgs)
     Public Event KeyUp(sender As Object, e As KeyEventArgs)
 
@@ -50,6 +56,7 @@ Public MustInherit Class VideoAdapter
 
     Protected mStartGraphicsVideoAddress As Integer
     Protected mEndGraphicsVideoAddress As Integer
+    Protected mMainMode As MainModes
 
     Protected mTextResolution As Size = New Size(40, 25)
     Protected mVideoResolution As Size = New Size(0, 0)
@@ -109,5 +116,11 @@ Public MustInherit Class VideoAdapter
         Set(value As Boolean)
             Memory(address) = value
         End Set
+    End Property
+
+    Public ReadOnly Property MainMode As MainModes
+        Get
+            Return mMainMode
+        End Get
     End Property
 End Class

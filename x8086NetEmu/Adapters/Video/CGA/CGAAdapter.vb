@@ -9,12 +9,6 @@ Public MustInherit Class CGAAdapter
     Private ht As Long = Scheduler.CLOCKRATE \ HORIZSYNC
     Private vt As Long = (Scheduler.CLOCKRATE \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
 
-    Public Enum MainModes
-        Unknown = -1
-        Text = 0
-        Graphics = 2
-    End Enum
-
     Private CGABasePalette() As Color = {
         Color.FromArgb(&H0, &H0, &H0),
         Color.FromArgb(&H0, &H0, &HAA),
@@ -93,7 +87,6 @@ Public MustInherit Class CGAAdapter
 
     Private mVideoEnabled As Boolean = True
     Private mVideoMode As VideoModes = VideoModes.Undefined
-    Private mMainMode As MainModes
     Private mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
     Private mBlinkCharOn As Boolean
     Private mCursorStart As Integer = 0
@@ -314,12 +307,6 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public ReadOnly Property MainMode As MainModes
-        Get
-            Return mMainMode
-        End Get
-    End Property
-
     Public Overrides Property VideoMode() As VideoModes
         Get
             Return mVideoMode
@@ -410,7 +397,7 @@ Public MustInherit Class CGAAdapter
 
             Case &H3DF ' CRT/CPU page register  (PCjr only)
 #If DEBUG Then
-                Stop
+                'stop
 #End If
             Case Else
                 mCPU.RaiseException("CGA: Unknown In Port: " + port.ToHex(X8086.DataSize.Word))
@@ -455,7 +442,7 @@ Public MustInherit Class CGAAdapter
                 CGAStatusRegister(CGAStatusRegisters.light_pen_trigger_set) = False
 
             Case &H3DF ' CRT/CPU page register  (PCjr only)
-                Stop
+                'Stop
             Case Else
                 mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToHex(X8086.DataSize.Word))
         End Select

@@ -95,25 +95,36 @@
         If lastX = Integer.MinValue Then lastX = m.X
         If lastY = Integer.MinValue Then lastY = m.Y
 
-        Dim rX As Integer = (m.X - lastX) / (mCPU.VideoAdapter.Zoom * 2)
-        Dim rY As Integer = (m.Y - lastY) / (mCPU.VideoAdapter.Zoom * 2)
+        Dim rw As Double = CType(mCPU.VideoAdapter, CGAWinForms).RenderControl.Width / If(mCPU.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, mCPU.VideoAdapter.TextResolution.Width, mCPU.VideoAdapter.GraphicsResolution.Width)
+        Dim rh As Double = CType(mCPU.VideoAdapter, CGAWinForms).RenderControl.Height / If(mCPU.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, mCPU.VideoAdapter.TextResolution.Height, mCPU.VideoAdapter.GraphicsResolution.Height)
 
-        'Debug.WriteLine($"{m.X}, {m.Y}")
+        Dim rX As Integer = 1
+        Dim ry As Integer = 1
 
-        Dim highbits As Integer = 0
-        If rX < 0 Then highbits = 3
-        If rY < 0 Then highbits = highbits Or &HC
+        Dim p As New Point(m.X / rw, m.Y / rh)
 
-        Dim btns As Integer = 0
-        If (m.Button And MouseButtons.Left) = MouseButtons.Left Then btns = btns Or 2
-        If (m.Button And MouseButtons.Right) = MouseButtons.Right Then btns = btns Or 1
+        Dim sX As Integer = Math.Sign(p.X - lastX)
+        Dim sy As Integer = Math.Sign(p.Y - lastY)
 
-        BufSerMouseData(&H40 Or (btns << 4) Or highbits)
-        BufSerMouseData(rX And &H3F)
-        BufSerMouseData(rY And &H3F)
+        Do
+            rX = If(p.X = lastX, 0, sX)
+            ry = If(p.Y = lastY, 0, sy)
 
-        lastX = m.X
-        lastY = m.Y
+            Dim highbits As Integer = 0
+            If rX < 0 Then highbits = 3
+            If ry < 0 Then highbits = highbits Or &HC
+
+            Dim btns As Integer = 0
+            If (m.Button And MouseButtons.Left) = MouseButtons.Left Then btns = btns Or 2
+            If (m.Button And MouseButtons.Right) = MouseButtons.Right Then btns = btns Or 1
+
+            BufSerMouseData(&H40 Or (btns << 4) Or highbits)
+            BufSerMouseData(rX And &H3F)
+            BufSerMouseData(ry And &H3F)
+
+            lastX += rX
+            lastY += ry
+        Loop Until P.X = lastX AndAlso p.Y = lastY
     End Sub
 
     Public Overrides Sub CloseAdapter()

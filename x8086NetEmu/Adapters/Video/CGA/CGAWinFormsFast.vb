@@ -213,7 +213,6 @@ Public Class CGAWinForms
     Protected Sub DetachRenderControl()
         If mRenderControl IsNot Nothing Then RemoveHandler mRenderControl.Paint, AddressOf Paint
     End Sub
-
     Public Overrides Sub CloseAdapter()
         MyBase.CloseAdapter()
 

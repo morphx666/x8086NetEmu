@@ -311,14 +311,6 @@ Public Class X8086
         'LoadBIN("..\..\Other Emulators & Resources\phoenix-2.51.rom", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\PCE - PC Emulator\bin\rom\ibm-pc-1982.rom", &HFE00, &H0)
 
-        ' VGA
-        If mVideoAdapter?.Name.StartsWith("VGA") Then
-            LoadBIN("roms\ET4000.BIN", &HC000, &H0)
-            'LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-            'LoadBIN("..\..\Other Emulators & Resources\xtbios2\TEST\ET4000.BIN", &HC000, &H0)
-            'LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
-        End If
-
         ' BASIC C1.10
         LoadBIN("roms\BASICC11.BIN", &HF600, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicf6.rom", &HF600, &H0)
@@ -1202,9 +1194,11 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9C ' pushf
-                'PushIntoStack(mFlags.EFlags And &HFFF) ' <-- This is supposed to be the correct emulation but breaks SysCheck
+                ' I have deiced this mode is the correct one. While installing Windows 3.0, in this mode, Windows displays the cursor.
+                PushIntoStack(mFlags.EFlags And &HFFF) ' <-- This is supposed to be the correct emulation but breaks SysCheck
+
                 'PushIntoStack((mFlags.EFlags And &HFFF) Or &HF800) ' <-- This is how fake86 does it, but breaks the branch.com tests
-                PushIntoStack(mFlags.EFlags) ' <-- This should also be correct, but breaks some of the checks
+                'PushIntoStack(mFlags.EFlags) ' <-- This should also be correct, but breaks some of the checks
                 clkCyc += 10
 
             Case &H9D ' popf

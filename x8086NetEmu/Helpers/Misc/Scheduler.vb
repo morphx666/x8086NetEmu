@@ -395,7 +395,7 @@ Public Class Scheduler
                 ' Fetch the next pending task
                 tsk = NextTask()
                 If tsk Is Nothing Then
-                    ' This task was cancelled, go round again
+                    ' This task was canceled, go round again
                     Continue While
                 End If
             End If
@@ -406,7 +406,6 @@ Public Class Scheduler
                     Dim evt As ExternalInputEvent = CType(inputBuf.Item(i), ExternalInputEvent)
                     evt.TimeStamp = mCurrentTime
                     evt.Handler.HandleInput(evt)
-                    'inputHandler.HandleInput(evt)
                 Next
                 inputBuf.Clear()
                 cleanInputBuf = inputBuf

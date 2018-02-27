@@ -301,6 +301,11 @@
     Public Sub New(cpu As X8086)
         mCPU = cpu
 
+        mCPU.LoadBIN("roms\ET4000.BIN", &HC000, &H0)
+        'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
+        'mCPU.LoadBIN("..\..\Other Emulators & Resources\xtbios2\TEST\ET4000.BIN", &HC000, &H0)
+        'mCPU.LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
+
         'ValidPortAddress.Clear()
         For i As UInteger = &H3C0 To &H3DF
             ValidPortAddress.Add(i)
