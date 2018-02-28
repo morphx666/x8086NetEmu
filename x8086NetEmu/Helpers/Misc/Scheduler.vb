@@ -45,6 +45,10 @@ Public Class Scheduler
 
     Private loopThread As Thread
 
+    Private isCtrlDown As Boolean
+    Private isAltDown As Boolean
+    Private cadCounter As Integer
+
     ' The dispatcher for external input events
     'Private inputHandler As ExternalInputHandler
 
@@ -378,9 +382,6 @@ Public Class Scheduler
         Dim tsk As Task = Nothing
 
         While True
-            inputBuf.Clear()
-            If tsk IsNot Nothing Then tsk = Nothing
-
             ' Detect the end of the simulation run
             If nextTime = STOPPING Then
                 nextTime = pq.MinPriority()
@@ -398,6 +399,9 @@ Public Class Scheduler
                     ' This task was canceled, go round again
                     Continue While
                 End If
+                inputBuf.Clear()
+            Else
+                tsk = Nothing
             End If
 
             If inputBuf.Count > 0 Then
@@ -405,6 +409,7 @@ Public Class Scheduler
                 For i As Integer = 0 To inputBuf.Count - 1
                     Dim evt As ExternalInputEvent = CType(inputBuf.Item(i), ExternalInputEvent)
                     evt.TimeStamp = mCurrentTime
+                    ' Tasks.Task.Run(Sub() evt.Handler.HandleInput(evt)) ' <- This freezes Windows 10!!!!
                     evt.Handler.HandleInput(evt)
                 Next
                 inputBuf.Clear()
@@ -413,7 +418,7 @@ Public Class Scheduler
                 ' Run the first pending task
                 tsk.Start()
             Else
-                ' Run the CPU simulation for a bit
+                ' Run the CPU simulation for a bit (maxRunCycl)
                 Try
                     mCPU.PreExecute()
                 Catch ex As Exception
@@ -430,10 +435,6 @@ Public Class Scheduler
             End If
         End While
     End Sub
-
-    Private isCtrlDown As Boolean
-    Private isAltDown As Boolean
-    Private cadCounter As Integer
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         If e.Handler Is Nothing Then Exit Sub
@@ -462,11 +463,6 @@ Public Class Scheduler
                 e.TheEvent = New KeyEventArgs(Keys.Delete)
                 X8086.Notify("Sending CTRL+ALT+DEL", X8086.NotificationReasons.Info)
             End If
-            'ElseIf TypeOf e.TheEvent Is MouseEventArgs Then
-            '    If mCPU.Mouse IsNot Nothing Then
-            '        Dim theEvent = CType(e.TheEvent, MouseEventArgs)
-
-            '    End If
         End If
 
         If pendingInput.Count = 0 Then

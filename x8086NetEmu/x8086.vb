@@ -506,7 +506,7 @@ Public Class X8086
             End While
         End If
 
-        If clkCyc > 0 Then FlushCycles()
+        FlushCycles()
     End Sub
 
     Public Sub Execute()
@@ -1194,7 +1194,7 @@ Public Class X8086
                     mRegisters.Val(addrMode.Register2) = addrMode.IndMem
                     clkCyc += 8
                 End If
-                ignoreINTs =  ignoreINTs Or (addrMode.Register2 = GPRegisters.RegistersTypes.CS)
+                ignoreINTs = ignoreINTs Or (addrMode.Register2 = GPRegisters.RegistersTypes.CS)
 
             Case &H8F ' pop reg/mem
                 SetAddressing()

@@ -74,7 +74,15 @@
     End Sub
 
     Private Sub ThrowException(message As String)
-        Debug.WriteLine(message)
+#If DEBUG Then
+        Static lastTimeStamp As Date = Date.MinValue
+
+        If (Now - lastTimeStamp).TotalSeconds > 1 Then
+            lastTimeStamp = Now
+            Debug.WriteLine(message)
+        End If
+#End If
+
         If mEnableExceptions Then
             Throw New Exception(message)
         Else
