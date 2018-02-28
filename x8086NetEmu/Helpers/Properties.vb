@@ -115,7 +115,6 @@
         End Get
     End Property
 
-
     Public ReadOnly Property EmulateINT13 As Boolean
         Get
             Return mEmulateINT13

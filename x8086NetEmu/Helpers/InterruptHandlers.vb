@@ -5,8 +5,6 @@ Partial Public Class X8086
     Private lastAH(256 - 1) As UInteger
     Private lastCF(256 - 1) As UShort
 
-    Private pendingIntNum As Integer
-
     Public Sub HandleHardwareInterrupt(intNum As Byte)
         HandleInterrupt(intNum, True)
         mRegisters.IP = IPAddrOff
@@ -19,9 +17,10 @@ Partial Public Class X8086
         If mFlags.IF = 1 AndAlso
            mFlags.TF = 0 AndAlso
            Not mRegisters.ActiveSegmentChanged AndAlso
+           repeLoopMode = REPLoopModes.None AndAlso
            picIsAvailable Then
 
-            pendingIntNum = PIC.GetPendingInterrupt()
+            Dim pendingIntNum As Integer = PIC.GetPendingInterrupt()
             If pendingIntNum >= 0 Then
                 mIsHalted = False
                 HandleHardwareInterrupt(pendingIntNum)

@@ -40,8 +40,6 @@
                     If sm.bufPtr > 0 Then irq.Raise(True)
 
                     sm.reg(4) = (Not sm.reg(4)) And 1
-
-                    Return tmp
                 End If
 
                 Return tmp
@@ -74,6 +72,7 @@
                     BufSerMouseData(M) '                  actually a mouse connected to the port.
                     BufSerMouseData(M)
                 End If
+                mCPU.Flags.OF = 1
         End Select
     End Sub
 
@@ -95,13 +94,15 @@
         If lastX = Integer.MinValue Then lastX = m.X
         If lastY = Integer.MinValue Then lastY = m.Y
 
-        Dim rw As Double = CType(mCPU.VideoAdapter, CGAWinForms).RenderControl.Width / If(mCPU.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, mCPU.VideoAdapter.TextResolution.Width, mCPU.VideoAdapter.GraphicsResolution.Width)
-        Dim rh As Double = CType(mCPU.VideoAdapter, CGAWinForms).RenderControl.Height / If(mCPU.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, mCPU.VideoAdapter.TextResolution.Height, mCPU.VideoAdapter.GraphicsResolution.Height)
+        Dim va As VideoAdapter = mCPU.VideoAdapter
+        Dim rc As Control = CType(va, CGAWinForms).RenderControl
+        Dim rw As Double = rc.Width / If(va.MainMode = VideoAdapter.MainModes.Text, rc.Width, va.GraphicsResolution.Width)
+        Dim rh As Double = rc.Height / If(va.MainMode = VideoAdapter.MainModes.Text, rc.Height, va.GraphicsResolution.Height)
 
         Dim rX As Integer = 1
         Dim ry As Integer = 1
 
-        Dim p As New Point(m.X / rw, m.Y / rh)
+        Dim p As New Point(m.X / va.Zoom, m.Y / va.Zoom / (rh / rw))
 
         Dim sX As Integer = Math.Sign(p.X - lastX)
         Dim sy As Integer = Math.Sign(p.Y - lastY)
@@ -124,7 +125,7 @@
 
             lastX += rX
             lastY += ry
-        Loop Until P.X = lastX AndAlso p.Y = lastY
+        Loop Until p.X = lastX AndAlso p.Y = lastY
     End Sub
 
     Public Overrides Sub CloseAdapter()

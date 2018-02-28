@@ -408,14 +408,6 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides Sub Out(port As UInteger, value As UInteger)
         Select Case port
-            'Case &H3B8
-            '    If value And &H80 Then
-            '        videoTextSegment = &HB800
-            '    Else
-            '        videoTextSegment = &HB000
-            '    End If
-            '    InitVideoMemory(True)
-
             Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
                 CRT6845IndexRegister = value And &HFF
 
@@ -424,10 +416,6 @@ Public MustInherit Class CGAAdapter
                 OnDataRegisterChanged()
 
             Case &H3D8 ' CGA mode control register  (except PCjr)
-                'If videoTextSegment <> &HB800 Then
-                '    videoTextSegment = &HB800
-                '    InitVideoMemory(True)
-                'End If
                 X8086.WordToBitsArray(value, CGAModeControlRegister)
                 OnModeControlRegisterChanged()
 

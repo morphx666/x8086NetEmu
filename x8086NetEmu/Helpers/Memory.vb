@@ -397,8 +397,11 @@
             End Get
             Set(value As UInteger)
                 CF = If((value And FlagsTypes.CF) = FlagsTypes.CF, 1, 0)
+                ' Reserved 1
                 PF = If((value And FlagsTypes.PF) = FlagsTypes.PF, 1, 0)
+                ' Reserved 0
                 AF = If((value And FlagsTypes.AF) = FlagsTypes.AF, 1, 0)
+                ' Reserved 0
                 ZF = If((value And FlagsTypes.ZF) = FlagsTypes.ZF, 1, 0)
                 SF = If((value And FlagsTypes.SF) = FlagsTypes.SF, 1, 0)
                 TF = If((value And FlagsTypes.TF) = FlagsTypes.TF, 1, 0)
@@ -483,6 +486,7 @@
         Get
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
             'Return FromPreftch(address)
+
             Return Memory(address And &HFFFFFUI) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
         End Get
         Set(value As Byte)

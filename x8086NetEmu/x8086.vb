@@ -3,6 +3,7 @@
 ' http://www.xs4all.nl/~ganswijk/chipdir/iset/8086bin.txt
 ' The Intel 8086 / 8088/ 80186 / 80286 / 80386 / 80486 Instruction Set: http://zsmith.co/intel.html
 ' http://www.felixcloutier.com/x86/
+' https://c9x.me/x86/
 
 Imports System.Threading
 
@@ -111,7 +112,7 @@ Public Class X8086
 
         Sched = New Scheduler(Me)
 
-        FPU = New x8087(Me)
+        'FPU = New x8087(Me)
         PIC = New PIC8259(Me)
         DMA = New DMAI8237(Me)
         PIT = New PIT8254(Me, PIC.GetIrqLine(0))
@@ -127,7 +128,52 @@ Public Class X8086
 
         If mEmulateINT13 Then hooks.Add(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
 
+        BuildSZPTables()
         Init()
+    End Sub
+
+    Private Sub BuildSZPTables()
+        Dim d As UInteger
+
+        For c As Integer = 0 To szpLUT8.Length - 1
+            d = 0
+            If (c And 1) <> 0 Then d += 1
+            If (c And 2) <> 0 Then d += 1
+            If (c And 4) <> 0 Then d += 1
+            If (c And 8) <> 0 Then d += 1
+            If (c And 16) <> 0 Then d += 1
+            If (c And 32) <> 0 Then d += 1
+            If (c And 64) <> 0 Then d += 1
+            If (c And 128) <> 0 Then d += 1
+
+            If ((d And 1) <> 0) Then
+                szpLUT8(c) = 0
+            Else
+                szpLUT8(c) = GPFlags.FlagsTypes.PF
+            End If
+            If c = 0 Then szpLUT8(c) = szpLUT8(c) Or GPFlags.FlagsTypes.ZF
+            If (c And &H80) <> 0 Then szpLUT8(c) = szpLUT8(c) Or GPFlags.FlagsTypes.SF
+        Next
+
+        For c As Integer = 0 To szpLUT16.Length - 1
+            d = 0
+            If (c And 1) <> 0 Then d += 1
+            If (c And 2) <> 0 Then d += 1
+            If (c And 4) <> 0 Then d += 1
+            If (c And 8) <> 0 Then d += 1
+            If (c And 16) <> 0 Then d += 1
+            If (c And 32) <> 0 Then d += 1
+            If (c And 64) <> 0 Then d += 1
+            If (c And 128) <> 0 Then d += 1
+
+            If ((d And 1) <> 0) Then
+                szpLUT16(c) = 0
+            Else
+                szpLUT16(c) = GPFlags.FlagsTypes.PF
+            End If
+            If c = 0 Then szpLUT16(c) = szpLUT16(c) Or GPFlags.FlagsTypes.ZF
+            If (c And &H8000) <> 0 Then szpLUT16(c) = szpLUT16(c) Or GPFlags.FlagsTypes.SF
+        Next
     End Sub
 
     ' If necessary, in future versions we could implement support for
@@ -319,6 +365,8 @@ Public Class X8086
         'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicfc.rom", &HFC00, &H0)
 
         ' Lots of ROMs: http://www.hampa.ch/pce/download.html
+
+        'LoadBIN("..\..\Other Emulators & Resources\PCemV13.1\roms\ide_xt.bin", &HC800, &H0)
     End Sub
 
     Public Sub Close()
@@ -453,7 +501,7 @@ Public Class X8086
                 RaiseEvent InstructionDecoded()
             End While
         Else
-            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule) OrElse repeLoopMode <> REPLoopModes.None
+            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule)
                 Execute()
             End While
         End If
@@ -479,15 +527,6 @@ Public Class X8086
         'opCode = Prefetch.Buffer(0)
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
-
-        ' I Think this makes sense, although I'm not 100% sure...
-        If repeLoopMode <> REPLoopModes.None Then
-            If Not ((opCode >= &HA4 AndAlso opCode <= &HA7) OrElse (opCode >= &HAA AndAlso opCode <= &HAF)) Then
-                If Not (opCode = &H26 OrElse opCode = &H2E OrElse opCode = &H36 OrElse opCode = &H3E) Then
-                    repeLoopMode = REPLoopModes.None
-                End If
-            End If
-        End If
 
         Select Case opCode
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
@@ -665,6 +704,7 @@ Public Class X8086
             Case &H26, &H2E, &H36, &H3E ' ES, CS, SS and DS segment override prefix
                 addrMode.Decode(opCode, opCode)
                 mRegisters.ActiveSegmentRegister = (addrMode.Register1 - GPRegisters.RegistersTypes.AH) + GPRegisters.RegistersTypes.ES
+                clkCyc += 2
 
             Case &H27 ' daa
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
@@ -1154,7 +1194,7 @@ Public Class X8086
                     mRegisters.Val(addrMode.Register2) = addrMode.IndMem
                     clkCyc += 8
                 End If
-                ignoreINTs = ignoreINTs Or (addrMode.Register2 = GPRegisters.RegistersTypes.CS)
+                ignoreINTs =  ignoreINTs Or (addrMode.Register2 = GPRegisters.RegistersTypes.CS)
 
             Case &H8F ' pop reg/mem
                 SetAddressing()
@@ -1194,15 +1234,11 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9C ' pushf
-                ' I have deiced this mode is the correct one. While installing Windows 3.0, in this mode, Windows displays the cursor.
-                PushIntoStack(mFlags.EFlags And &HFFF) ' <-- This is supposed to be the correct emulation but breaks SysCheck
-
-                'PushIntoStack((mFlags.EFlags And &HFFF) Or &HF800) ' <-- This is how fake86 does it, but breaks the branch.com tests
-                'PushIntoStack(mFlags.EFlags) ' <-- This should also be correct, but breaks some of the checks
+                PushIntoStack(mFlags.EFlags)
                 clkCyc += 10
 
             Case &H9D ' popf
-                mFlags.EFlags = PopFromStack()
+                mFlags.EFlags = PopFromStack() And &HFFF
                 clkCyc += 8
 
             Case &H9E ' sahf
@@ -1286,13 +1322,14 @@ Public Class X8086
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     Dim stackSize = Param(SelPrmIndex.First, , DataSize.Word)
-                    Dim nestLevel = Param(SelPrmIndex.Second, 2, DataSize.Byte) And &H1F
+                    Dim nestLevel = Param(SelPrmIndex.Second, , DataSize.Byte) And &H1F
                     PushIntoStack(mRegisters.BP)
                     Dim frameTemp = mRegisters.SP
                     If nestLevel > 0 Then
                         For i As Integer = 1 To nestLevel - 1
                             mRegisters.BP = AddValues(mRegisters.BP, -2, DataSize.Word)
-                            PushIntoStack(RAM16(frameTemp, mRegisters.BP))
+                            'PushIntoStack(RAM16(frameTemp, mRegisters.BP))
+                            PushIntoStack(mRegisters.BP)
                         Next
                         PushIntoStack(frameTemp)
                     End If
@@ -1308,7 +1345,6 @@ Public Class X8086
 
             Case &HC9 ' leave (80186)
                 If mVic20 Then
-                    ' PRE ALPHA CODE - UNTESTED
                     mRegisters.SP = mRegisters.BP
                     mRegisters.BP = PopFromStack()
                     clkCyc += 8
@@ -2264,30 +2300,26 @@ Public Class X8086
     End Sub
 
     Private Sub HandleREPMode()
-        ' This will incorrectly increase the instructionsCounter by one additional instruction than actually executed.
-        ' Not a big deal ;)
         If repeLoopMode = REPLoopModes.None Then
             ExecStringOpCode()
         Else
-            If mRegisters.CX = 0 Then
-                repeLoopMode = REPLoopModes.None
-            Else
-                While mRegisters.CX > 0
-                    mRegisters.CX -= 1 ' We don't really need all the safety checks from AddValues(mRegisters.CX, -1, DataSize.Word)
-                    If ExecStringOpCode() Then
-                        If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
-                           (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
-                            Exit While
-                        End If
+            While mRegisters.CX > 0
+                mRegisters.CX -= 1 ' We don't really need all the safety checks from AddValues(mRegisters.CX, -1, DataSize.Word)
+                If ExecStringOpCode() Then
+                    If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
+                        (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
+                        Exit While
                     End If
-                    If mDebugMode Then ' TODO: Need to add a parameter to make this optional
-                        IncIP(-opCodeSize)
-                        Exit Sub
-                    End If
-                End While
-                repeLoopMode = REPLoopModes.None
-            End If
+                End If
+                If mDebugMode Then ' TODO: Need to add a parameter to make this optional
+                    IncIP(-opCodeSize)
+                    Exit Sub
+                End If
+            End While
+            repeLoopMode = REPLoopModes.None
         End If
+
+        mRegisters.ResetActiveSegment()
     End Sub
 
     Private Function ExecStringOpCode() As Boolean
@@ -2401,6 +2433,7 @@ Public Class X8086
                 End If
                 clkCyc += 15
                 Return True
+
         End Select
 
         Return False

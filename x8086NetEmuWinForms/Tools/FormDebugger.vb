@@ -84,7 +84,9 @@ Public Class FormDebugger
 
     Private abortThreads As Boolean
 
-    Private Const numberSufixes As String = "hbo" ' hEX / bINARY / oCTAL
+    Private defaultSegmentBackColor As Color = Color.FromArgb(230, 230, 230)
+
+    Private Const numberSufixes As String = "hbo" ' hEX / bINARY / oCTAL (No dragons were invoked here...)
     Private activeInstruction As X8086.Instruction
 
     Private navigator As Xml.XPath.XPathNavigator = New Xml.XPath.XPathDocument(New IO.StringReader("<r/>")).CreateNavigator()
@@ -289,15 +291,20 @@ Public Class FormDebugger
     End Sub
 
     Private Sub SetSegmentTextBoxesState()
-        Dim asr As String = Emulator.Registers.ActiveSegmentRegister.ToString()
+        Static asr As String
 
-        For Each tb As TextBox In segmentTextBoxes
-            If asr = tb.Name.Substring(7) Then
-                tb.ForeColor = Color.Blue
-            ElseIf tb.Name <> TextBoxMem.Name Then
-                tb.ForeColor = Color.Black
-            End If
-        Next
+        Dim newAsr As String = Emulator.Registers.ActiveSegmentRegister.ToString()
+        If newAsr <> asr Then
+            asr = newAsr
+
+            For Each tb As TextBox In segmentTextBoxes
+                If asr = tb.Name.Substring(7) Then
+                    tb.BackColor = Color.LightSkyBlue
+                ElseIf tb.Name <> TextBoxMem.Name Then
+                    tb.BackColor = defaultSegmentBackColor
+                End If
+            Next
+        End If
     End Sub
 
     Private Sub UpdateMemory()
@@ -593,9 +600,9 @@ Public Class FormDebugger
                 item.SubItems(2).Text = info.Mnemonic
                 If info.Message = "" Then
                     If info.Parameter2 = "" Then
-                        item.SubItems(3).Text = info.Parameter1
+                        item.SubItems(3).Text = info.Parameter1?.Replace("[", "[" + info.SegmentOverride)
                     Else
-                        item.SubItems(3).Text = info.Parameter1 + ", " + info.Parameter2
+                        item.SubItems(3).Text = info.Parameter1?.Replace("[", "[" + info.SegmentOverride) + ", " + info.Parameter2?.Replace("[", "[" + info.SegmentOverride)
                     End If
                 Else
                     item.SubItems(3).Text = info.Message

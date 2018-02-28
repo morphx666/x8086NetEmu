@@ -39,7 +39,7 @@ Public Class DiskImgCtrl
 
     Private Sub ButtonLoad_Click(sender As Object, e As EventArgs) Handles ButtonLoad.Click
         Using dlg As New OpenFileDialog()
-            If IO.Directory.Exists(TextBoxImageFileName.Text) Then
+            If IO.File.Exists(TextBoxImageFileName.Text) Then
                 dlg.FileName = TextBoxImageFileName.Text
             Else
                 dlg.InitialDirectory = My.Application.Info.DirectoryPath
@@ -98,14 +98,12 @@ Public Class DiskImgCtrl
             TextBoxImageFileName.Text = ""
 
             ButtonEject.Enabled = False
-            ButtonLoad.Enabled = True
             CheckBoxReadOnly.Enabled = False
         Else
             TextBoxImageFileName.Text = mEmulator.FloppyContoller.DiskImage(mIndex).FileName
             CheckBoxReadOnly.Checked = mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly
 
             ButtonEject.Enabled = True
-            ButtonLoad.Enabled = False
             CheckBoxReadOnly.Enabled = True
         End If
         ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyContoller.DiskImage(mIndex).FileName)

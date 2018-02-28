@@ -369,6 +369,7 @@ Public Class FormEmulator
                                                 Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
                                                 If cgawf.MainMode <> CGAAdapter.MainModes.Text Then
                                                     MsgBox("Text copying is only supported in Text video modes", MsgBoxStyle.Information)
+                                                    isSelectingText = False
                                                     Exit Sub
                                                 End If
 

@@ -14,6 +14,7 @@
         Public Bytes() As Byte
         Public IsValid As Boolean
         Public ClockCycles As Byte
+        Public SegmentOverride As String
 
         Private str As String
         Private strFull As String
@@ -26,17 +27,17 @@
                     Dim r As String = ""
                     If Bytes IsNot Nothing Then
                         For i As Integer = 0 To Bytes.Length - 1
-                            r += Bytes(i).ToHex().TrimEnd("h") + " "
+                            r += Bytes(i).ToHex("") + " "
                         Next
                     End If
 
-                    s1 = String.Format("{0}:{1} {2} {3}", CS.ToHex(DataSize.Word).TrimEnd("h"),
-                                                                        IP.ToHex(DataSize.Word).TrimEnd("h"),
+                    s1 = String.Format("{0}:{1} {2} {3}", CS.ToHex(DataSize.Word, ""),
+                                                                        IP.ToHex(DataSize.Word, ""),
                                                                         r.PadRight(6 * 3),
                                                                         Mnemonic.PadRight(6, " "))
                 Else
-                    s1 = String.Format("{0}:{1} {2}", CS.ToHex(DataSize.Word).TrimEnd("h"),
-                                                                        IP.ToHex(DataSize.Word).TrimEnd("h"),
+                    s1 = String.Format("{0}:{1} {2}", CS.ToHex(DataSize.Word, ""),
+                                                                        IP.ToHex(DataSize.Word, ""),
                                                                         Mnemonic.PadRight(6, " "))
                 End If
 
@@ -80,15 +81,17 @@
 
     Private indASM As String
     Private opCodeASM As String
+    Private segOvr As String = ""
     Private decOpCode As Byte
     Private isDecoding As Boolean
     Private clkCycDecoder As Byte
     Private ipAddrOffDecoder As Integer
 
     Private Function InvalidOpCode() As Instruction
-        Dim inst = New Instruction()
-        inst.Mnemonic = ""
-        inst.IsValid = False
+        Dim inst = New Instruction With {
+            .Mnemonic = "",
+            .IsValid = False
+        }
         Return inst
     End Function
 
@@ -389,7 +392,8 @@
                 addrMode.Decode(decOpCode, decOpCode)
                 addrMode.Register1 = (addrMode.Register1 - GPRegisters.RegistersTypes.AH) + GPRegisters.RegistersTypes.ES
                 opCodeASM = addrMode.Register1.ToString() + ":"
-                clkCycDecoder += 0 ' TODO: Need to investigate this...
+                segOvr = opCodeASM
+                clkCycDecoder += 2
 
             Case &H40 To &H47 ' inc reg
                 SetRegister1Alt(decOpCode)
@@ -930,16 +934,18 @@
             Throw New Exception("Decoding error for decOpCode " + decOpCode.ToHex())
         End If
 
-        Dim info As Instruction = New Instruction()
-        info.IsValid = True
-        info.decOpCode = decOpCode
-        info.CS = mRegisters.CS
-        info.IP = mRegisters.IP
-        info.Size = opCodeSize
-        info.JumpAddress = ipAddrOffDecoder
-        info.IndMemoryData = addrMode.IndMem
-        info.IndAddress = addrMode.IndAdr
-        info.ClockCycles = clkCycDecoder
+        Dim info As Instruction = New Instruction With {
+            .IsValid = True,
+            .decOpCode = decOpCode,
+            .CS = mRegisters.CS,
+            .IP = mRegisters.IP,
+            .Size = opCodeSize,
+            .JumpAddress = ipAddrOffDecoder,
+            .IndMemoryData = addrMode.IndMem,
+            .IndAddress = addrMode.IndAdr,
+            .ClockCycles = clkCycDecoder,
+            .SegmentOverride = segOvr
+        }
 
         If opCodeASM <> "" Then
             If opCodeSize > 0 Then
@@ -967,6 +973,7 @@
                 info.Mnemonic = opCodeASM
             End If
         End If
+        If segOvr <> "" AndAlso info.Mnemonic <> segOvr Then segOvr = ""
         clkCycDecoder += opCodeSize * 4
 
         mRegisters.CS = CS
@@ -1242,7 +1249,7 @@
                 Else
                     s = 1
                 End If
-                indASM += IIf(s = -1, " - ", " + ") + p.ToHex()
+                indASM = indASM.Replace("]", If(s = -1, " - ", " + ") + p.ToHex() + "]")
                 addrMode.IndAdr = AddValues(addrMode.IndAdr, s * p, DataSize.Word)
                 addrMode.IndMem = RAMn
                 opCodeSize += 1
@@ -1260,7 +1267,7 @@
                     Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCyc += 5                                               ' 111 [BX]
                 End Select
 
-                indASM += " + " + ParamNOPS(SelPrmIndex.First, 2, DataSize.Word).ToHex(DataSize.Word)
+                indASM = indASM.Replace("]", " + " + ParamNOPS(SelPrmIndex.First, 2, DataSize.Word).ToHex(DataSize.Word) + "]")
                 addrMode.IndAdr = AddValues(addrMode.IndAdr, ParamNOPS(SelPrmIndex.First, 2, DataSize.Word), DataSize.Word)
                 addrMode.IndMem = RAMn
                 opCodeSize += 2
