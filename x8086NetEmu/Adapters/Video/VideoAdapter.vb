@@ -3,20 +3,6 @@
 Public MustInherit Class VideoAdapter
     Inherits Adapter
 
-    Public Enum VideoModes
-        Mode0_Text_BW_40x25 = &H4
-        Mode1_Text_Color_40x25 = &H0
-        Mode2_Text_BW_80x25 = &H5
-        Mode3_Text_Color_80x25 = &H1
-
-        Mode4_Graphic_Color_320x200 = &H2
-        Mode5_Graphic_BW_320x200 = &H6
-        Mode6_Graphic_Color_640x200 = &H16
-        Mode6_Graphic_Color_640x200_Alt = &H12
-
-        Undefined = &HFF
-    End Enum
-
     Public Enum MainModes
         Unknown = -1
         Text = 0
@@ -39,8 +25,8 @@ Public MustInherit Class VideoAdapter
     Public MustOverride Overrides ReadOnly Property VersionMinor As Integer
     Public MustOverride Overrides ReadOnly Property VersionRevision As Integer
 
+    Public MustOverride Property VideoMode As UInteger
     Public MustOverride Property Zoom As Double
-    Public MustOverride Property VideoMode As VideoModes
 
     Public MustOverride Overrides Sub CloseAdapter()
     Public MustOverride Overrides Sub InitiAdapter()

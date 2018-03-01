@@ -85,7 +85,7 @@ Public Class CGAWinForms
         End Function
     End Class
     Private cgaCharsCache As New List(Of CGAChar)
-    Private videoBMP As DirectBitmap
+    Private videoBMP As DirectBitmap = New DirectBitmap(1, 1)
 
     Private charSize As Size
     Private blinkCounter As Integer

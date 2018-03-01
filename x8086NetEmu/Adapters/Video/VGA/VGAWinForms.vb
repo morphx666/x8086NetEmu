@@ -270,6 +270,29 @@
     End Sub
 
     Private Sub RenderGraphics()
+        Dim b As Byte
+        Dim address As UInteger
+        Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
+
+        For y As Integer = 0 To GraphicsResolution.Height - 1
+            For x As Integer = 0 To GraphicsResolution.Width - 1
+                address = StartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
+                b = CPU.Memory(address)
+
+                If PixelsPerByte = 4 Then
+                    Select Case x And 3
+                        Case 3 : b = b And 3
+                        Case 2 : b = (b >> 2) And 3
+                        Case 1 : b = (b >> 4) And 3
+                        Case 0 : b = (b >> 6) And 3
+                    End Select
+                Else
+                    b = (b >> (7 - (x And 7))) And 1
+                End If
+
+                videoBMP.Pixel(x, y) = CGAPalette(b)
+            Next
+        Next
     End Sub
 
     Private Sub RenderText()

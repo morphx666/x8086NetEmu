@@ -529,7 +529,7 @@ Public Class X8086
             HandlePendingInterrupt()
         End If
 
-        RAM(&H410) = &H41 ' ugly hack to make BIOS always believe we have an EGA/VGA card installed
+        'RAM(&H410) = &H41 ' ugly hack to make BIOS always believe we have an EGA/VGA card installed
         'If mRegisters.CS = &HF000 AndAlso mRegisters.IP > &HE2C3 AndAlso mRegisters.IP <= &HE2C6 Then
         '    FlushCycles()
         '    DebugMode = True

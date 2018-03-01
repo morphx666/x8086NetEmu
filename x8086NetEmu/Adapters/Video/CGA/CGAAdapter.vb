@@ -9,6 +9,20 @@ Public MustInherit Class CGAAdapter
     Private ht As Long = Scheduler.CLOCKRATE \ HORIZSYNC
     Private vt As Long = (Scheduler.CLOCKRATE \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
 
+    Public Enum VideoModes
+        Mode0_Text_BW_40x25 = &H4
+        Mode1_Text_Color_40x25 = &H0
+        Mode2_Text_BW_80x25 = &H5
+        Mode3_Text_Color_80x25 = &H1
+
+        Mode4_Graphic_Color_320x200 = &H2
+        Mode5_Graphic_BW_320x200 = &H6
+        Mode6_Graphic_Color_640x200 = &H16
+        Mode6_Graphic_Color_640x200_Alt = &H12
+
+        Undefined = &HFF
+    End Enum
+
     Private CGABasePalette() As Color = {
         Color.FromArgb(&H0, &H0, &H0),
         Color.FromArgb(&H0, &H0, &HAA),
@@ -253,8 +267,6 @@ Public MustInherit Class CGAAdapter
     Public Overrides Sub InitiAdapter()
         isInit = (mCPU IsNot Nothing)
         If isInit Then
-            VideoMode = VideoModes.Mode3_Text_Color_80x25
-
             If useInternalTimer Then
                 loopThread = New Thread(AddressOf MainLoop)
                 loopThread.Start()
@@ -307,12 +319,11 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public Overrides Property VideoMode As VideoModes
+    Public Overrides Property VideoMode As UInteger
         Get
             Return mVideoMode
         End Get
-        Set(value As VideoModes)
-            Dim clearScreen As Boolean = False ' (value And &H80) OrElse (mVideoMode <> (value And (Not &H80)))
+        Set(value As UInteger)
             mVideoMode = (value And (Not &H80))
 
             Select Case value
@@ -356,7 +367,7 @@ Public MustInherit Class CGAAdapter
                     mVideoMode = VideoModes.Undefined
             End Select
 
-            InitVideoMemory(clearScreen)
+            InitVideoMemory(False)
         End Set
     End Property
 
