@@ -1,5 +1,7 @@
-﻿Public MustInherit Class VGAAdapter
-    Inherits VideoAdapter
+﻿Imports System.Threading
+
+Public MustInherit Class VGAAdapter
+    Inherits CGAAdapter
 
     Private VGABasePalette() As Color = {
         Color.FromArgb(0, 0, 0),
@@ -260,15 +262,6 @@
         Color.FromArgb(0, 0, 0)
     }
 
-    Public Enum MainModes
-        Unknown = -1
-        Text = 0
-        Graphics = 2
-    End Enum
-
-    Public MustOverride Overrides Sub AutoSize()
-    Protected MustOverride Sub Render()
-
     Private VGA_SC(&H100 - 1) As Byte
     Private VGA_CRTC(&H100 - 1) As Byte
     Private VGA_ATTR(&H100 - 1) As Byte
@@ -282,7 +275,7 @@
     Private latchReadPal As Integer = 0
     Private RAM(&H3DF - &H3C0 - 1) As Byte
     Private tempRGB As Integer
-    Private palettevga(256 - 1) As Integer
+    Protected VGAPalette(VGABasePalette.Length - 1) As Integer
     Private curX As Integer
     Private curY As Integer
     Private cols As Integer = 80
@@ -295,16 +288,30 @@
 
     Protected lockObject As New Object()
 
+    Private mCursorCol As Integer = 0
+    Private mCursorRow As Integer = 0
+    Private mCursorVisible As Boolean
+    Private mCursorStart As Integer = 0
+    Private mCursorEnd As Integer = 1
+
+    Private mVideoEnabled As Boolean = True
+    Private mVideoMode As VideoModes = VideoModes.Undefined
+    Private mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
+    Private mBlinkCharOn As Boolean
+    Private mPixelsPerByte As Integer
+
+    Private mZoom As Double = 1.0
+
     Private mCPU As X8086
-    Private mMainMode As MainModes
 
     Public Sub New(cpu As X8086)
+        MyBase.New(cpu)
         mCPU = cpu
 
-        mCPU.LoadBIN("roms\ET4000.BIN", &HC000, &H0)
+        'mCPU.LoadBIN("roms\ET4000.BIN", &HC000, &H0)
         'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-        'mCPU.LoadBIN("..\..\Other Emulators & Resources\xtbios2\TEST\ET4000.BIN", &HC000, &H0)
-        'mCPU.LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
+        'mCPU.LoadBIN("..\..\Other Emulators & Resources\xtbios31\test\ET4000.BIN", &HC000, &H0)
+        mCPU.LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
 
         'ValidPortAddress.Clear()
         For i As UInteger = &H3C0 To &H3DF
@@ -312,54 +319,13 @@
         Next
 
         For i As Integer = 0 To VGABasePalette.Length - 1
-            palettevga(i) = VGABasePalette(i).ToArgb()
+            VGAPalette(i) = VGABasePalette(i).ToArgb()
         Next
     End Sub
 
-    Public Overrides Sub Run()
-
-    End Sub
-
-    Public Overrides Sub CloseAdapter()
-        'isInit = False
-        'cancelAllThreads = True
-
-        Application.DoEvents()
-    End Sub
-
-    Public ReadOnly Property MainMode As MainModes
-        Get
-            Return mMainMode
-        End Get
-    End Property
-
-    Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
-        MyBase.OnKeyDown(Me, e)
-        If e.Handled Then Exit Sub
-        'Debug.WriteLine("KEY DOWN: " + e.KeyCode.ToString() + " | " + e.Modifiers.ToString())
-        If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, False))
-        e.Handled = True
-    End Sub
-
-    Public Sub HandleKeyUp(sender As Object, e As KeyEventArgs)
-        MyBase.OnKeyUp(Me, e)
-        If e.Handled Then Exit Sub
-        'Debug.WriteLine("KEY UP:   " + e.KeyCode.ToString() + " | " + e.Modifiers.ToString())
-        If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, True))
-        e.Handled = True
-    End Sub
-
-    Public Sub OnMouseDown(sender As Object, e As MouseEventArgs)
-        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, True))
-    End Sub
-
-    Public Sub OnMouseMove(sender As Object, e As MouseEventArgs)
-        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, Nothing))
-    End Sub
-
-    Public Sub OnMouseUp(sender As Object, e As MouseEventArgs)
-        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, False))
-    End Sub
+    Private lastScanLineTick As Long
+    Private scanLineTiming As Long = Scheduler.CLOCKRATE / (31500 * X8086.MHz)
+    Private curScanLine As Long
 
     Public Overrides Function [In](port As UInteger) As UInteger
         Select Case port
@@ -381,18 +347,31 @@
             Case &H3C9
                 Select Case latchReadRGB
                     Case 0 ' R
-                        Return (palettevga(latchReadPal) >> 2) And 63
+                        Return (VGAPalette(latchReadPal) >> 2) And 63
                     Case 1 ' G
-                        Return (palettevga(latchReadPal) >> 10) And 63
+                        Return (VGAPalette(latchReadPal) >> 10) And 63
                     Case 2 ' B
                         latchReadRGB = 0
-                        Dim b As Integer = (palettevga(latchReadPal) >> 18) And 63
+                        Dim b As Integer = (VGAPalette(latchReadPal) >> 18) And 63
                         latchReadPal += 1
                         Return b
                 End Select
 
             Case &H3DA
+                Dim t As Long = mCPU.Sched.CurrentTime
+                If t >= (lastScanLineTick + scanLineTiming) Then
+                    curScanLine = (curScanLine + 1) Mod 525
+                    If curScanLine > 479 Then
+                        port3DA = 8
+                    ElseIf (curScanLine And 1) <> 0 Then
+                        port3DA = port3DA Or 1
+                    End If
+                    lastScanLineTick = t
+                End If
                 Return port3DA
+
+            Case &H3D0 To &H3DF
+                Return MyBase.In(port)
 
         End Select
 
@@ -442,7 +421,7 @@
                         tempRGB = tempRGB Or (value << 10)
                     Case 2 ' B
                         tempRGB = tempRGB Or (value << 18)
-                        palettevga(latchPal) = tempRGB
+                        VGAPalette(latchPal) = tempRGB
                         latchPal += 1
                 End Select
                 latchRGB = (latchRGB + 1) Mod 3
@@ -465,6 +444,9 @@
             Case &H3CF
                 VGA_GC(RAM(&H3CE - &H3C0)) = value
 
+            Case &H3D0 To &H3DF
+                MyBase.Out(port, value)
+
             Case Else
                 RAM(ramAddr) = value
 
@@ -479,7 +461,7 @@
 
     Public Overrides ReadOnly Property Description As String
         Get
-            Return "VGA Emulator"
+            Return "VGA Video Adapter"
         End Get
     End Property
 
@@ -500,4 +482,23 @@
             Return 1
         End Get
     End Property
+
+    Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
+        If Not isInit Then Exit Sub
+
+        MyBase.InitVideoMemory(clearScreen)
+
+        X8086.Notify("Set Video Mode: {0} @ {1}", X8086.NotificationReasons.Info, mVideoMode, videoTextSegment.ToHex(X8086.DataSize.Word))
+
+        mStartTextVideoAddress = X8086.SegmentOffetToAbsolute(videoTextSegment, 0)
+        mEndTextVideoAddress = mStartTextVideoAddress + &H4000
+
+        mStartGraphicsVideoAddress = X8086.SegmentOffetToAbsolute(videoGraphicsSegment, 0)
+        mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + &H4000
+
+        mPixelsPerByte = If(VideoMode = VideoModes.Mode6_Graphic_Color_640x200, 8, 4)
+
+        OnPaletteRegisterChanged()
+        AutoSize()
+    End Sub
 End Class

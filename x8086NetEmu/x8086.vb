@@ -103,9 +103,13 @@ Public Class X8086
     Public Shared Event Output(message As String, reason As NotificationReasons, arg() As Object)
     Public Event MIPsUpdated()
 
-    Public Sub New(Optional v20 As Boolean = True, Optional int13 As Boolean = True)
+    Public Delegate Sub RestartEmulation()
+    Private reCallback As RestartEmulation
+
+    Public Sub New(Optional v20 As Boolean = True, Optional int13 As Boolean = True, Optional restartEmulationCallback As RestartEmulation = Nothing)
         mVic20 = v20
         mEmulateINT13 = int13
+        reCallback = restartEmulationCallback
 
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
@@ -208,26 +212,11 @@ Public Class X8086
 #End If
     End Function
 
-    Public Sub Init()
+    Private Sub Init()
         Sched.StopSimulation()
-
-        InitSystem()
-        FlushCycles()
-
-        SetSynchronization()
 
         SetupSystem()
 
-        LoadBIOS()
-
-        mEnableExceptions = False
-        mIsExecuting = False
-        mIsPaused = False
-        mIsHalted = False
-        mDoReSchedule = False
-    End Sub
-
-    Private Sub InitSystem()
         Array.Clear(Memory, 0, Memory.Length)
 
         mIsExecuting = True
@@ -242,6 +231,10 @@ Public Class X8086
 
         mIsHalted = False
         mIsExecuting = False
+        mEnableExceptions = False
+        mIsPaused = False
+        mDoReSchedule = False
+
         isDecoding = False
         ignoreINTs = False
         repeLoopMode = REPLoopModes.None
@@ -271,6 +264,11 @@ Public Class X8086
         Registers.IP = &H0
 
         mFlags.EFlags = 0
+
+        FlushCycles()
+        SetSynchronization()
+
+        LoadBIOS()
     End Sub
 
     Private Sub SetupSystem()
@@ -348,9 +346,9 @@ Public Class X8086
     Private Sub LoadBIOS()
         ' BIOS
         LoadBIN("roms\PCXTBIOS.ROM", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\pcxtbios.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios2\EPROMS\2764\XTBIOS.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios25\EPROMS\2764\PCXTBIOS.ROM", &HFE00, &H0)
+        'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\pcxtbios.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\genxt\pcxt.rom", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\pcxtbios.bin", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\award-2.05.rom", &HFE00, &H0)
@@ -391,7 +389,12 @@ Public Class X8086
     End Sub
 
     Public Sub HardReset()
-        Run(mDebugMode)
+        If reCallback IsNot Nothing Then
+            reCallback.Invoke()
+        Else
+            Init()
+            Run(mDebugMode)
+        End If
     End Sub
 
     Public Sub StepInto()
@@ -399,14 +402,17 @@ Public Class X8086
     End Sub
 
     Public Sub Run(Optional debugMode As Boolean = False)
-        Init()
+        Sched.StopSimulation()
+        FlushCycles()
+        SetSynchronization()
 
         mDebugMode = debugMode
         cancelAllThreads = False
+
         picIsAvailable = (PIC IsNot Nothing)
 
 #If Win32 Then
-        If PIT IsNot Nothing AndAlso PIT.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
+        If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = True
         If mVideoAdapter IsNot Nothing Then mVideoAdapter.Reset()
 #End If
 
@@ -522,6 +528,12 @@ Public Class X8086
         Else
             HandlePendingInterrupt()
         End If
+
+        RAM(&H410) = &H41 ' ugly hack to make BIOS always believe we have an EGA/VGA card installed
+        'If mRegisters.CS = &HF000 AndAlso mRegisters.IP > &HE2C3 AndAlso mRegisters.IP <= &HE2C6 Then
+        '    FlushCycles()
+        '    DebugMode = True
+        'End If
 
         'Prefetch()
         'opCode = Prefetch.Buffer(0)

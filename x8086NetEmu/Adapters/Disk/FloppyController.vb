@@ -132,11 +132,14 @@ Public Class FloppyControllerAdapter
         ctlHeadUnloadTime = 0
         ctlHeadLoadTime = 0
         ctlNonDma = False
-        Reset()
 
         For i As UInteger = &H3F0 To &H3F7
             ValidPortAddress.Add(i)
         Next
+    End Sub
+
+    Public Overrides Sub InitiAdapter()
+        Reset()
     End Sub
 
     Public Property DiskImage(driveNumber As Integer) As DiskImage
@@ -712,16 +715,6 @@ Public Class FloppyControllerAdapter
         Return &HFF
     End Function
 
-    Public Overrides Sub InitiAdapter()
-
-    End Sub
-
-    Public Overrides ReadOnly Property Name As String
-        Get
-            Return "Floppy"
-        End Get
-    End Property
-
     Public Overrides Sub Out(port As UInteger, v As UInteger)
         If (port And 3) = 2 Then
             ' write to digital output register
@@ -733,7 +726,7 @@ Public Class FloppyControllerAdapter
                 If irq IsNot Nothing Then irq.Raise(True)
                 pendingReadyChange = &HF
             End If
-            regDOR = v
+            regDOR = v And &HFF
 
         ElseIf (port And 3) = 1 Then
             ' write to data register
@@ -766,6 +759,12 @@ Public Class FloppyControllerAdapter
     Public Overrides Sub Run()
         Update()
     End Sub
+
+    Public Overrides ReadOnly Property Name As String
+        Get
+            Return "Floppy"
+        End Get
+    End Property
 
     Public Overrides ReadOnly Property Type As Adapter.AdapterType
         Get

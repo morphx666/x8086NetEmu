@@ -87,6 +87,8 @@
     Private charSize As Size
     Private cursorSize As Size
     Private blinkCounter As Integer
+    Private frameRate As Integer = 30
+    Private cursorAddress As New List(Of Integer)
 
     Private preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
@@ -94,7 +96,7 @@
 
     Private charSizeCache As New Dictionary(Of Integer, Size)
 
-    Private brushCache(16 - 1) As Color
+    Private brushCache(VGAPalette.Length - 1) As Color
     Private cursorBrush As Color = Color.FromArgb(128, Color.White)
     Private cursorYOffset As Integer
 
@@ -188,12 +190,6 @@
             DetachRenderControl()
             mRenderControl = value
 
-            'useSDL = TypeOf mRenderControl Is RenderCtrlSDL
-            'If useSDL Then
-            '    sdlCtrl = CType(mRenderControl, RenderCtrlSDL)
-            '    sdlCtrl.Init(Me, mFont.FontFamily.Name, mFont.Size)
-            'End If
-
             InitiAdapter()
 
             AddHandler mRenderControl.Paint, AddressOf Paint
@@ -259,11 +255,7 @@
 
             Select Case MainMode
                 Case MainModes.Text
-                    'If useSDL Then
-                    '    RenderTextSDL()
-                    'Else
                     RenderText()
-                    'End If
                 Case MainModes.Graphics
                     RenderGraphics()
             End Select
@@ -281,7 +273,54 @@
     End Sub
 
     Private Sub RenderText()
+        Dim b0 As Byte
+        Dim b1 As Byte
 
+        Dim col As Integer = 0
+        Dim row As Integer = 0
+
+        Dim r As New Rectangle(Point.Empty, charSize)
+
+        For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
+            b0 = mCPU.Memory(address)
+            b1 = mCPU.Memory(address + 1)
+
+            If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
+                If (blinkCounter < BlinkRate) Then b0 = 0
+                MyBase.IsDirty(address) = True
+            End If
+
+            If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
+                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
+                cursorAddress.Remove(address)
+            End If
+
+            If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
+                If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
+                    videoBMP.FillRectangle(brushCache(b1.LowNib()),
+                                           r.X + 0, r.Y - 1 + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
+                                           charSize.Width, (MyBase.CursorEnd - MyBase.CursorStart) + 1)
+                    cursorAddress.Add(address)
+                End If
+
+                If blinkCounter >= 2 * BlinkRate Then
+                    blinkCounter = 0
+                Else
+                    blinkCounter += 1
+                End If
+            End If
+
+            r.X += charSize.Width
+            col += 1
+            If col = TextResolution.Width Then
+                col = 0
+                row += 1
+                If row = TextResolution.Height Then Exit For
+
+                r.X = 0
+                r.Y += charSize.Height
+            End If
+        Next
     End Sub
 
     Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
@@ -303,57 +342,6 @@
         cgaCharsCache(idx).Paint(dbmp, p, scale)
     End Sub
 
-    Private Sub RenderWaveform(g As Graphics)
-#If Win32 Then
-        If mCPU.PIT.Speaker IsNot Nothing Then
-            g.ResetTransform()
-
-            Dim h As Integer = mRenderControl.Height * 0.6
-            Dim h2 As Integer = h / 2
-            Dim p1 As Point = New Point(0, mCPU.PIT.Speaker.AudioBuffer(0) / Byte.MaxValue * h + h * 0.4)
-            Dim p2 As Point
-            Dim len As Integer = mCPU.PIT.Speaker.AudioBuffer.Length
-
-            Using p As New Pen(Brushes.Red, 3)
-                For i As Integer = 1 To len - 1
-                    Try
-                        p2 = New Point(i / len * mRenderControl.Width, mCPU.PIT.Speaker.AudioBuffer(i) / Byte.MaxValue * h + h * 0.4)
-                        g.DrawLine(p, p1, p2)
-                        p1 = p2
-                    Catch
-                        Exit For
-                    End Try
-                Next
-            End Using
-        End If
-#End If
-    End Sub
-
-    Private Function MeasureChar(graphics As Graphics, code As Integer, text As Char, font As Font) As Size
-        Dim size As Size
-
-        If useCGAFont Then
-            size = New Size(8, 16)
-            charSizeCache.Add(code, size)
-        Else
-            If charSizeCache.ContainsKey(code) Then Return charSizeCache(code)
-
-            Dim rect As System.Drawing.RectangleF = New System.Drawing.RectangleF(0, 0, 1000, 1000)
-            Dim ranges() As System.Drawing.CharacterRange = {New System.Drawing.CharacterRange(0, 1)}
-            Dim regions() As System.Drawing.Region = {New System.Drawing.Region()}
-
-            textFormat.SetMeasurableCharacterRanges(ranges)
-
-            regions = graphics.MeasureCharacterRanges(text, font, rect, textFormat)
-            rect = regions(0).GetBounds(graphics)
-
-            size = New Size(rect.Right - 1, rect.Bottom)
-            charSizeCache.Add(code, size)
-        End If
-
-        Return size
-    End Function
-
     Private Sub DisposeColorCaches()
     End Sub
 
@@ -369,39 +357,69 @@
         End Get
     End Property
 
-    Public Overrides ReadOnly Property Vendor As String
-        Get
-            Throw New NotImplementedException()
-        End Get
-    End Property
+    Protected Overrides Sub OnPaletteRegisterChanged()
+        MyBase.OnPaletteRegisterChanged()
 
-    Public Overrides Property Zoom As Double
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As Double)
-            Throw New NotImplementedException()
-        End Set
-    End Property
+        If VGAPalette Is Nothing Then Exit Sub
 
-    Public Overrides Property VideoMode As VideoModes
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As VideoModes)
-            Throw New NotImplementedException()
-        End Set
-    End Property
+        DisposeColorCaches()
+        For i As Integer = 0 To VGAPalette.Length - 1
+            brushCache(i) = Color.FromArgb(VGAPalette(i))
+        Next
+    End Sub
+
+    Private Function MeasureChar(graphics As Graphics, code As Integer, text As Char, font As Font) As Size
+        Dim size As Size
+
+        If useCGAFont Then
+            size = New Size(8, 16)
+            charSizeCache.Add(code, size)
+        Else
+            If charSizeCache.ContainsKey(code) Then Return charSizeCache(code)
+
+            Dim rect As RectangleF = New RectangleF(0, 0, 1000, 1000)
+            Dim ranges() As CharacterRange = {New CharacterRange(0, 1)}
+            Dim regions() As Region = {New Region()}
+
+            textFormat.SetMeasurableCharacterRanges(ranges)
+
+            regions = graphics.MeasureCharacterRanges(text, font, rect, textFormat)
+            rect = regions(0).GetBounds(graphics)
+
+            size = New Size(rect.Right - 1, rect.Bottom)
+            charSizeCache.Add(code, size)
+        End If
+
+        Return size
+    End Function
+
+    Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
+        MyBase.InitVideoMemory(clearScreen)
+
+        If mRenderControl IsNot Nothing Then
+            If clearScreen OrElse charSizeCache.Count = 0 Then
+                charSizeCache.Clear()
+                Using g = mRenderControl.CreateGraphics()
+                    For i As Integer = 0 To 255
+                        MeasureChar(g, i, chars(i), mFont)
+                    Next
+                End Using
+            End If
+
+            ' Monospace... duh!
+            charSize = charSizeCache(65)
+
+            If videoBMP IsNot Nothing Then videoBMP.Dispose()
+            Select Case MainMode
+                Case MainModes.Text
+                    videoBMP = New DirectBitmap(640, 400)
+                Case MainModes.Graphics
+                    videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+            End Select
+        End If
+    End Sub
 
     Public Overrides Sub Run()
         If mRenderControl IsNot Nothing Then mRenderControl.Invalidate()
-    End Sub
-
-    Public Overrides Sub InitiAdapter()
-        Throw New NotImplementedException()
-    End Sub
-
-    Public Overrides Sub Reset()
-        Throw New NotImplementedException()
     End Sub
 End Class

@@ -95,7 +95,14 @@
         If lastY = Integer.MinValue Then lastY = m.Y
 
         Dim va As VideoAdapter = mCPU.VideoAdapter
-        Dim rc As Control = CType(va, CGAWinForms).RenderControl
+        Dim rc As Control
+
+        If TypeOf va Is CGAWinForms Then
+            rc = CType(va, CGAWinForms).RenderControl
+        Else
+            rc = CType(va, VGAWinForms).RenderControl
+        End If
+
         Dim rw As Double = rc.Width / If(va.MainMode = VideoAdapter.MainModes.Text, rc.Width, va.GraphicsResolution.Width)
         Dim rh As Double = rc.Height / If(va.MainMode = VideoAdapter.MainModes.Text, rc.Height, va.GraphicsResolution.Height)
 

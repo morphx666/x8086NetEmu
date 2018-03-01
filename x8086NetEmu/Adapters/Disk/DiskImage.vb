@@ -139,6 +139,16 @@ Public Class DiskImage
                 End If
             Next
 
+            ' Cheap trick to handle images with garbage at the end of the image file (such as the copyright crap inserted by DiskImage)
+            For i As Integer = 0 To geometryTable.Length / 4 - 1
+                If Math.Abs(mFileLength - geometryTable(i, 3)) <= 512 Then
+                    mCylinders = geometryTable(i, 0)
+                    mHeads = geometryTable(i, 1)
+                    mSectors = geometryTable(i, 2)
+                    Return True
+                End If
+            Next
+
             Return False
         End If
     End Function

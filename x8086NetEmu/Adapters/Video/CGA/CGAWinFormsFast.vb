@@ -93,7 +93,7 @@ Public Class CGAWinForms
     Private cursorAddress As New List(Of Integer)
 
     Private charSizeCache As New Dictionary(Of Integer, Size)
-    Private brushCache(16 - 1) As Color
+    Private brushCache(CGAPalette.Length - 1) As Color
     Private cursorBrush As Color = Color.FromArgb(128, Color.White)
 
     Private preferredFont As String = "Perfect DOS VGA 437"
@@ -304,10 +304,10 @@ Public Class CGAWinForms
 
             If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
                 If (blinkCounter < BlinkRate) Then b0 = 0
-                MyBase.IsDirty(address) = True
+                IsDirty(address) = True
             End If
 
-            If MyBase.IsDirty(address) OrElse MyBase.IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
+            If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
                 RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
                 cursorAddress.Remove(address)
             End If
@@ -315,8 +315,8 @@ Public Class CGAWinForms
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
-                                           r.X + 1, r.Y - 1 + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
-                                           charSize.Width - 1, (MyBase.CursorEnd - MyBase.CursorStart) + 1)
+                                           r.X + 0, r.Y - 1 + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
+                                           charSize.Width , (MyBase.CursorEnd - MyBase.CursorStart) + 1)
                     cursorAddress.Add(address)
                 End If
 
@@ -366,51 +366,6 @@ Public Class CGAWinForms
             Next
         Next
     End Sub
-
-    'Private Sub RenderGraphics2()
-    '    Dim b As Byte
-    '    Dim yOffset As Integer
-    '    Dim yRenderOffset As Integer
-    '    Dim v As Byte
-    '    Dim address As UInteger
-
-    '    For y As Integer = 0 To MyBase.GraphicsResolution.Height - 1
-    '        If y < 100 Then ' Even Scan Lines
-    '            yOffset = StartGraphicsVideoAddress + y * 80
-    '            yRenderOffset = y * 2
-    '        Else            ' Odd Scan Lines
-    '            yOffset = StartGraphicsVideoAddress + (y - 100) * 80 + &H2000
-    '            yRenderOffset = (y - 100) * 2 + 1
-    '        End If
-
-    '        For x As Integer = 0 To 80 - 1
-    '            address = x + yOffset
-    '            ' FIXME: This is not working (test BASICA SAMPLES -> [E] DONKEY)
-    '            ' If Not MyBase.IsDirty(address) Then Continue For
-    '            b = CPU.Memory(address)
-
-    '            For pixel As Integer = 0 To MyBase.PixelsPerByte - 1
-    '                If MyBase.VideoMode = VideoModes.Mode4_Graphic_Color_320x200 Then
-    '                    Select Case pixel And 3
-    '                        Case 3 : v = b And 3
-    '                        Case 2 : v = (b >> 2) And 3
-    '                        Case 1 : v = (b >> 4) And 3
-    '                        Case 0 : v = (b >> 6) And 3
-    '                    End Select
-    '                Else
-    '                    v = (b >> (7 - (pixel And 7))) And 1
-    '                End If
-
-    '                'If mVideoMode = VideoModes.Mode4_Graphic_Color_320x200 Then
-    '                'b *= 2
-    '                'Else
-    '                'b *= 63
-    '                'End If
-    '                videoBMP.Pixel(x * MyBase.PixelsPerByte + pixel, yRenderOffset) = CGAPalette(v)
-    '            Next
-    '        Next
-    '    Next
-    'End Sub
 
     Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
         Return New Rectangle(New Point(col * charSize.Width, row * charSize.Height), charSize)
@@ -556,6 +511,9 @@ Public Class CGAWinForms
                 End Using
             End If
 
+            ' Monospace... duh!
+            charSize = charSizeCache(65)
+
             If videoBMP IsNot Nothing Then videoBMP.Dispose()
             Select Case MainMode
                 Case MainModes.Text
@@ -563,9 +521,6 @@ Public Class CGAWinForms
                 Case MainModes.Graphics
                     videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
             End Select
-
-            ' Monospace... duh!
-            charSize = charSizeCache(65)
 
             UpdateSystemInformationArea()
         End If

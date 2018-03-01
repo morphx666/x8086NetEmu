@@ -58,7 +58,6 @@ Public Class FormEmulator
 
         LoadSettings(False)  ' For pre-emulation settings
         StartEmulation()
-        LoadSettings(True) ' For post-emulation settings
 
         SetupEventHandlers()
 
@@ -144,12 +143,6 @@ Public Class FormEmulator
                                             If e1.Button = Windows.Forms.MouseButtons.Middle Then ContextMenuStripMain.Show(Cursor.Position)
                                         End Sub
 #End If
-        AddHandler videoPort.MouseEnter, Sub() ContextMenuStripMain.Hide()
-        AddHandler videoPort.Click, Sub(s1 As Object, e1 As EventArgs)
-                                        If isSelectingText Then Exit Sub
-                                        Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
-                                        CursorVisible = False
-                                    End Sub
         AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
     End Sub
 
@@ -242,20 +235,25 @@ Public Class FormEmulator
     Private Sub StartEmulation()
         StopEmulation()
 
-        cpu = New X8086(v20Emulation, int13Emulation)
+        If cpu IsNot Nothing Then
+            cpu.Close()
+            cpu = Nothing
+        End If
+        cpu = New X8086(v20Emulation, int13Emulation, AddressOf StartEmulation)
 
         cpuState = New EmulatorState(cpu)
 
-        videoPort = New RenderCtrlGDI()
-        Me.Controls.Add(videoPort)
+        If videoPort Is Nothing Then
+            videoPort = New RenderCtrlGDI()
+            Me.Controls.Add(videoPort)
+            SetupVideoPortEventHandlers()
+        End If
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono)) ' Not properly supported yet...
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start)
-
-        AddSupportForTextCopy()
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
@@ -268,8 +266,8 @@ Public Class FormEmulator
         cpu.Run(False)
 
         SetupCpuEventHandlers()
-
         AddCustomHooks()
+        LoadSettings(True)
     End Sub
 
     ' Code demonstration on how to attach hooks to the CPU
@@ -334,7 +332,7 @@ Public Class FormEmulator
                                 End Function)
     End Sub
 
-    Private Sub AddSupportForTextCopy()
+    Private Sub SetupVideoPortEventHandlers()
         If Not TypeOf cpu.VideoAdapter Is CGAWinForms Then Exit Sub
 
         AddHandler videoPort.MouseUp, Sub(s As Object, e As MouseEventArgs)
@@ -404,6 +402,14 @@ Public Class FormEmulator
                                                                             End Using
                                                                         End If
                                                                     End Sub
+
+        AddHandler videoPort.MouseEnter, Sub() ContextMenuStripMain.Hide()
+
+        AddHandler videoPort.Click, Sub(s1 As Object, e1 As EventArgs)
+                                        If isSelectingText Then Exit Sub
+                                        Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
+                                        CursorVisible = False
+                                    End Sub
     End Sub
 
     Private Sub ShowConsole()
@@ -615,7 +621,7 @@ Public Class FormEmulator
             dlg.Filter = "x8086NetEmu State|*.state"
 
             If dlg.ShowDialog(Me) = Windows.Forms.DialogResult.OK Then
-                cpu.Init()
+                cpu.HardReset()
 
                 Dim xml = XDocument.Load(dlg.FileName)
                 ParseSettings(xml.<state>.<settings>(0))

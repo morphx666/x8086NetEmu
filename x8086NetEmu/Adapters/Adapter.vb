@@ -40,7 +40,7 @@
     'Public MustOverride ReadOnly Property Description As String Implements IIOPortHandler.Description
     'Public MustOverride ReadOnly Property Name As String Implements IIOPortHandler.Name
 
-    Public Overloads ReadOnly Property ValidPortAddress As System.Collections.Generic.List(Of UInteger)
+    Public Overloads ReadOnly Property ValidPortAddress As List(Of UInteger)
         Get
             Return MyBase.ValidPortAddress
         End Get

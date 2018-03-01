@@ -84,13 +84,13 @@ Public MustInherit Class CGAAdapter
     Private mCursorCol As Integer = 0
     Private mCursorRow As Integer = 0
     Private mCursorVisible As Boolean
+    Private mCursorStart As Integer = 0
+    Private mCursorEnd As Integer = 1
 
     Private mVideoEnabled As Boolean = True
     Private mVideoMode As VideoModes = VideoModes.Undefined
     Private mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
     Private mBlinkCharOn As Boolean
-    Private mCursorStart As Integer = 0
-    Private mCursorEnd As Integer = 1
     Private mPixelsPerByte As Integer
 
     Private mZoom As Double = 1.0
@@ -106,7 +106,7 @@ Public MustInherit Class CGAAdapter
 
     Private mCPU As X8086
 
-    Private vidModeChangeFlag As Integer = &B1000
+    Private Const vidModeChangeFlag As Integer = &B1000
 
     Public MustOverride Overrides Sub AutoSize()
     Protected MustOverride Sub Render()
@@ -307,7 +307,7 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public Overrides Property VideoMode() As VideoModes
+    Public Overrides Property VideoMode As VideoModes
         Get
             Return mVideoMode
         End Get
@@ -406,13 +406,18 @@ Public MustInherit Class CGAAdapter
         Return &HFF
     End Function
 
+    Private ctrlMask() As Byte = {
+        &HFF, &HFF, &HFF, &HFF, &H7F, &H1F, &H7F, &H7F, &HF3, &H1F, &H7F, &H1F, &H3F, &HFF, &H3F, &HFF,
+        &HFF, &HFF, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0
+    }
+
     Public Overrides Sub Out(port As UInteger, value As UInteger)
         Select Case port
             Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
-                CRT6845IndexRegister = value And &HFF
+                CRT6845IndexRegister = value And 31
 
             Case &H3D1, &H3D3, &H3D5, &H3D7 ' CRT (6845) data register
-                CRT6845DataRegister(CRT6845IndexRegister) = value
+                CRT6845DataRegister(CRT6845IndexRegister) = value And ctrlMask(CRT6845IndexRegister)
                 OnDataRegisterChanged()
 
             Case &H3D8 ' CGA mode control register  (except PCjr)
@@ -436,8 +441,40 @@ Public MustInherit Class CGAAdapter
         End Select
     End Sub
 
+    'Public Overrides Sub Out(port As UInteger, value As UInteger)
+    '    Select Case port
+    '        Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
+    '            CRT6845IndexRegister = value And &HFF
+
+    '        Case &H3D1, &H3D3, &H3D5, &H3D7 ' CRT (6845) data register
+    '            Dim old As Byte = CRT6845DataRegister(CRT6845IndexRegister)
+    '            CRT6845DataRegister(CRT6845IndexRegister) = value
+
+    '            OnDataRegisterChanged()
+
+    '        Case &H3D8 ' CGA mode control register  (except PCjr)
+    '            X8086.WordToBitsArray(value, CGAModeControlRegister)
+    '            OnModeControlRegisterChanged()
+
+    '        Case &H3D9 ' CGA palette register
+    '            X8086.WordToBitsArray(value, CGAPaletteRegister)
+    '            OnPaletteRegisterChanged()
+
+    '        Case &H3DA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
+    '            X8086.WordToBitsArray(value, CGAStatusRegister)
+
+    '        Case &H3DB ' The trigger is cleared by writing any value to port 03DBh (undocumented)
+    '            CGAStatusRegister(CGAStatusRegisters.light_pen_trigger_set) = False
+
+    '        Case &H3DF ' CRT/CPU page register  (PCjr only)
+    '            'Stop
+    '        Case Else
+    '            mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToHex(X8086.DataSize.Word))
+    '    End Select
+    'End Sub
+
     Protected Overridable Sub OnDataRegisterChanged()
-        mCursorVisible = ((CRT6845DataRegister(&HA) And &H30) = 0)
+        mCursorVisible = ((CRT6845DataRegister(&HA) And &H60) = 0)
 
         If mCursorVisible Then
             Dim startOffset As Integer = ((CRT6845DataRegister(&HC) And &H3F) << 8) Or (CRT6845DataRegister(&HD) And &HFF)
@@ -455,15 +492,13 @@ Public MustInherit Class CGAAdapter
         mCursorStart = CRT6845DataRegister(&HA) And &B11111
         mCursorEnd = CRT6845DataRegister(&HB) And &B11111
 
-        mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled) 'AndAlso
-        'Not CGAColorControlRegister(CGAColorControlRegisters.bright_background_or_blinking_text)
+        mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled)
     End Sub
 
     Protected Overridable Sub OnModeControlRegisterChanged()
         ' http://www.seasip.info/VintagePC/cga.html
         Dim v As UInteger = X8086.BitsArrayToWord(CGAModeControlRegister)
         Dim newMode As VideoModes = CType(v And &H17, VideoModes) ' 10111
-        ' 00100101
 
         If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
 
@@ -477,33 +512,6 @@ Public MustInherit Class CGAAdapter
             Dim colors() As Color = Nothing
             Dim cgaModeReg As UInteger = X8086.BitsArrayToWord(CGAModeControlRegister)
             Dim cgaColorReg As UInteger = X8086.BitsArrayToWord(CGAPaletteRegister)
-
-            'Dim burts As Boolean = (cgaModeReg And &H4) <> 0
-            'Dim pal As Boolean = (cgaColorReg And &H20) <> 0
-            'Dim int As Boolean = (cgaColorReg And &H10) <> 0
-
-            'If burts Then
-            '    colors = New Color() {
-            '                CGABasePalette(cgaColorReg And &HF),
-            '                CGABasePalette(3 + If(int, 8, 0)),
-            '                CGABasePalette(4 + If(int, 8, 0)),
-            '                CGABasePalette(7 + If(int, 8, 0))
-            '            }
-            'ElseIf pal Then
-            '    colors = New Color() {
-            '                CGABasePalette(cgaColorReg And &HF),
-            '                CGABasePalette(3 + If(int, 8, 0)),
-            '                CGABasePalette(5 + If(int, 8, 0)),
-            '                CGABasePalette(7 + If(int, 8, 0))
-            '            }
-            'Else
-            '    colors = New Color() {
-            '                CGABasePalette(cgaColorReg And &HF),
-            '                CGABasePalette(2 + If(int, 8, 0)),
-            '                CGABasePalette(4 + If(int, 8, 0)),
-            '                CGABasePalette(6 + If(int, 8, 0))
-            '            }
-            'End If
 
             Select Case VideoMode
                 Case VideoModes.Mode4_Graphic_Color_320x200
@@ -557,9 +565,5 @@ Public MustInherit Class CGAAdapter
         cancelAllThreads = True
 
         Application.DoEvents()
-    End Sub
-
-    Public Overrides Sub Run()
-
     End Sub
 End Class
