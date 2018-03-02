@@ -24,4 +24,11 @@ Public MustInherit Class IOPortHandler
     Public Overridable Function GetPendingInterrupt() As Integer Implements IInterruptController.GetPendingInterrupt
         Return -1
     End Function
+
+    Public Overridable Function Read(address As UInteger) As UInteger
+        Return 0
+    End Function
+
+    Public Overridable Sub Write(address As UInteger, value As UInteger)
+    End Sub
 End Class

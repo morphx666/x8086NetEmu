@@ -21,6 +21,7 @@
     </SccAuxPath>
     <SccProvider>
     </SccProvider>
+    <ApplicationVersion>2018.3.1.357</ApplicationVersion>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>

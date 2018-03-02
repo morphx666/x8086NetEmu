@@ -53,7 +53,10 @@ Public Class FormConsole
 
         rtfText += String.Format(message.Replace("{", "\b {").Replace("}", "}\b0 ") + " \par ", arg)
 
-        refreshTimer.Change(30, Timeout.Infinite)
+        Try
+            refreshTimer.Change(30, Timeout.Infinite)
+        Catch
+        End Try
     End Sub
 
     Private Sub UpdateRtf()

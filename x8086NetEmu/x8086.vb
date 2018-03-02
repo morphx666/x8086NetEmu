@@ -15,6 +15,7 @@ Public Class X8086
 
     Private mModel As Models = Models.IBMPC_5160
     Private mVic20 As Boolean
+    Private vga As VGAAdapter
 
     Private mRegisters As GPRegisters = New GPRegisters()
     Private mFlags As GPFlags = New GPFlags()
@@ -416,6 +417,13 @@ Public Class X8086
         If mVideoAdapter IsNot Nothing Then mVideoAdapter.Reset()
 #End If
 
+        For Each adpt As Adapter In mAdapters
+            If TypeOf adpt Is VGAAdapter Then
+                vga = adpt
+                Exit For
+            End If
+        Next
+
         If mDebugMode Then RaiseEvent InstructionDecoded()
         Sched.Start()
     End Sub
@@ -528,12 +536,6 @@ Public Class X8086
         Else
             HandlePendingInterrupt()
         End If
-
-        'RAM(&H410) = &H41 ' ugly hack to make BIOS always believe we have an EGA/VGA card installed
-        'If mRegisters.CS = &HF000 AndAlso mRegisters.IP > &HE2C3 AndAlso mRegisters.IP <= &HE2C6 Then
-        '    FlushCycles()
-        '    DebugMode = True
-        'End If
 
         'Prefetch()
         'opCode = Prefetch.Buffer(0)

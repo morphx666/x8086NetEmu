@@ -92,20 +92,17 @@ Public MustInherit Class CGAAdapter
 
     Protected isInit As Boolean
 
-    Protected videoTextSegment As Integer = &HB800
-    Protected videoGraphicsSegment As Integer = &HB800
+    Protected mCursorCol As Integer = 0
+    Protected mCursorRow As Integer = 0
+    Protected mCursorVisible As Boolean
+    Protected mCursorStart As Integer = 0
+    Protected mCursorEnd As Integer = 1
 
-    Private mCursorCol As Integer = 0
-    Private mCursorRow As Integer = 0
-    Private mCursorVisible As Boolean
-    Private mCursorStart As Integer = 0
-    Private mCursorEnd As Integer = 1
-
-    Private mVideoEnabled As Boolean = True
-    Private mVideoMode As VideoModes = VideoModes.Undefined
-    Private mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
-    Private mBlinkCharOn As Boolean
-    Private mPixelsPerByte As Integer
+    Protected mVideoEnabled As Boolean = True
+    Protected mVideoMode As UInteger = VideoModes.Undefined
+    Protected mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
+    Protected mBlinkCharOn As Boolean
+    Protected mPixelsPerByte As Integer
 
     Private mZoom As Double = 1.0
 
@@ -326,6 +323,9 @@ Public MustInherit Class CGAAdapter
         Set(value As UInteger)
             mVideoMode = (value And (Not &H80))
 
+            mStartTextVideoAddress = &HB8000
+            mStartGraphicsVideoAddress = &HB8000
+
             Select Case value
                 Case VideoModes.Mode0_Text_BW_40x25
                     mTextResolution = New Size(40, 25)
@@ -374,15 +374,12 @@ Public MustInherit Class CGAAdapter
     Protected Overridable Sub InitVideoMemory(clearScreen As Boolean)
         If Not isInit Then Exit Sub
 
-        X8086.Notify("Set Video Mode: {0} @ {1}", X8086.NotificationReasons.Info, mVideoMode, videoTextSegment.ToHex(X8086.DataSize.Word))
-
-        mStartTextVideoAddress = X8086.SegmentOffetToAbsolute(videoTextSegment, 0)
         mEndTextVideoAddress = mStartTextVideoAddress + &H4000
-
-        mStartGraphicsVideoAddress = X8086.SegmentOffetToAbsolute(videoGraphicsSegment, 0)
         mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + &H4000
 
         mPixelsPerByte = If(VideoMode = VideoModes.Mode6_Graphic_Color_640x200, 8, 4)
+
+        X8086.Notify("Set Video Mode: {0}", X8086.NotificationReasons.Info, mVideoMode)
 
         OnPaletteRegisterChanged()
         AutoSize()

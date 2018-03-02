@@ -35,21 +35,28 @@
             Dim w4s As Integer = mBitmap.Width * 4
             Dim w4d As Integer = dbmp.Width * 4
             p.X *= 4
-            For y As Integer = 0 To mBitmap.Height - 1
-                Array.Copy(mBitmap.Bits, y * w4s, dbmp.Bits, (y + p.Y) * w4d + p.X, w4s)
-            Next
+            Try
+                For y As Integer = 0 To mBitmap.Height - 1
+                    Array.Copy(mBitmap.Bits, y * w4s, dbmp.Bits, (y + p.Y) * w4d + p.X, w4s)
+                Next
+            Catch
+            End Try
         End Sub
 
-        Public Sub Render()
+        Public Sub Render(cellSize As Size)
             If mBitmap Is Nothing Then
-                mBitmap = New DirectBitmap(8, 16)
+                mBitmap = New DirectBitmap(cellSize.Width, cellSize.Height)
 
-                For y As Integer = 0 To 16 - 1
-                    For x As Integer = 0 To 8 - 1
-                        If fontCGA(mCGAChar * 128 + y * 8 + x) = 1 Then
-                            mBitmap.Pixel(x, y) = mForeColor
-                        Else
+                For y As Integer = 0 To cellSize.Height - 1
+                    For x As Integer = 0 To cellSize.Width - 1
+                        If x > 7 OrElse y > 15 Then
                             mBitmap.Pixel(x, y) = mBackColor
+                        Else
+                            If fontCGA(mCGAChar * 128 + y * 8 + x) = 1 Then
+                                mBitmap.Pixel(x, y) = mForeColor
+                            Else
+                                mBitmap.Pixel(x, y) = mBackColor
+                            End If
                         End If
                     Next
                 Next
@@ -84,7 +91,6 @@
     Private cgaCharsCache As New List(Of CGAChar)
     Private videoBMP As DirectBitmap
 
-    Private charSize As Size
     Private cursorSize As Size
     Private blinkCounter As Integer
     Private frameRate As Integer = 30
@@ -96,7 +102,7 @@
 
     Private charSizeCache As New Dictionary(Of Integer, Size)
 
-    Private brushCache(VGAPalette.Length - 1) As Color
+    Private brushCache(CGAPalette.Length - 1) As Color
     Private cursorBrush As Color = Color.FromArgb(128, Color.White)
     Private cursorYOffset As Integer
 
@@ -222,7 +228,7 @@
 
         If MainMode = MainModes.Text Then
             '    'Using g As Graphics = mRenderControl.CreateGraphics()
-            ctrlSize = New Size(charSize.Width * TextResolution.Width, charSize.Height * TextResolution.Height)
+            ctrlSize = New Size(mCellSize.Width * TextResolution.Width, mCellSize.Height * TextResolution.Height)
             '    'End Using
         Else
             ctrlSize = New Size(GraphicsResolution.Width, GraphicsResolution.Height)
@@ -231,7 +237,7 @@
         Dim frmSize = New Size(640 * Zoom, 400 * Zoom)
         mRenderControl.FindForm.ClientSize = frmSize
         mRenderControl.Size = frmSize
-        If charSize.Width = 0 OrElse charSize.Height = 0 Then Exit Sub
+        If mCellSize.Width = 0 OrElse mCellSize.Height = 0 Then Exit Sub
 
         scale = New SizeF(frmSize.Width / ctrlSize.Width, frmSize.Height / ctrlSize.Height)
     End Sub
@@ -271,26 +277,103 @@
 
     Private Sub RenderGraphics()
         Dim b As Byte
-        Dim address As UInteger
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
+        Dim usePal As Integer = (portRAM(&H3D9 - &H3C0) >> 5) & 1
+        Dim intensity As Integer = ((portRAM(&H3D9 - &H3C0) >> 4) & 1) << 3
+
+        ' For mode &h12 and &h13
+        Dim planeMode As Integer = If((VGA_SC(4) And 6) <> 0, 1, 0)
+        Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
+
+        Dim a1 As Integer
+        Dim a2 As Integer
+        Dim a3 As Integer
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1
-                address = StartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
-                b = CPU.Memory(address)
+                Select Case mVideoMode
+                    Case 4, 5
+                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> 2))
+                        Select Case x And 3
+                            Case 3 : b = b And 3
+                            Case 2 : b = (b >> 2) And 3
+                            Case 1 : b = (b >> 4) And 3
+                            Case 0 : b = (b >> 6) And 3
+                        End Select
+                        If mVideoMode = 4 Then
+                            b = b * 2 + usePal + intensity
+                            If b = (usePal + intensity) Then b = 0
+                        Else
+                            b = b * 63
+                        End If
+                        videoBMP.Pixel(x, y) = CGAPalette(b)
 
-                If PixelsPerByte = 4 Then
-                    Select Case x And 3
-                        Case 3 : b = b And 3
-                        Case 2 : b = (b >> 2) And 3
-                        Case 1 : b = (b >> 4) And 3
-                        Case 0 : b = (b >> 6) And 3
-                    End Select
-                Else
-                    b = (b >> (7 - (x And 7))) And 1
-                End If
+                    Case 6
+                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> 3))
+                        b = (b >> (7 - (x And 7))) And 1
+                        b *= 15
+                        videoBMP.Pixel(x, y) = CGAPalette(b)
 
-                videoBMP.Pixel(x, y) = CGAPalette(b)
+                    Case &HD, &HE
+                        a1 = x >> 1
+                        a2 = y >> 1
+                        a3 = a2 * 40 + (a1 >> 3)
+                        a2 = 7 - (a1 And 7)
+                        b = (VRAM(a3) >> a2) And 1
+                        b = b + ((VRAM(a3 + &H10000) >> a2) And 1) << 1
+                        b = b + ((VRAM(a3 + &H20000) >> a2) And 1) << 2
+                        b = b + ((VRAM(a3 + &H30000) >> a2) And 1) << 3
+                        videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
+
+                    Case &H10
+                        a1 = (y * 80) + (x >> 3)
+                        a2 = 7 - (x And 7)
+                        b = (VRAM(a1) >> a2) And 1
+                        b += ((VRAM(a1 + &H10000) >> a2) And 1) << 1
+                        b += ((VRAM(a1 + &H20000) >> a2) And 1) << 2
+                        b += ((VRAM(a1 + &H30000) >> a2) And 1) << 3
+                        videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
+
+                    Case &H12
+                        a1 = (y * 80) + (x / 8)
+                        a2 = ((Not x) And 7)
+                        b = (VRAM(a1) >> a2) And 1
+                        b = b Or ((VRAM(a1 + &H10000) >> a2) And 1) << 1
+                        b = b Or ((VRAM(a1 + &H20000) >> a2) And 1) << 2
+                        b = b Or ((VRAM(a1 + &H30000) >> a2) And 1) << 3
+                        videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
+
+                    Case &H13
+                        If planeMode = 0 Then
+                            b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)
+                        Else
+                            a1 = y * mVideoResolution.Width + x
+                            a1 = a1 / 4 + (x And 3) * &H10000
+                            a1 += vgaPage - (VGA_ATTR(&H13) And &H15)
+                            b = VRAM(a1)
+                        End If
+                        videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
+
+                    Case 127
+                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y And 3) << 13) + ((y >> 2) * 90) + (x >> 3))
+                        b = (b >> (7 - (x And 7))) And 1
+                        videoBMP.Pixel(x, y) = CGAPalette(b)
+
+                    Case Else
+                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv))
+                        If PixelsPerByte = 4 Then
+                            Select Case x And 3
+                                Case 3 : b = b And 3
+                                Case 2 : b = (b >> 2) And 3
+                                Case 1 : b = (b >> 4) And 3
+                                Case 0 : b = (b >> 6) And 3
+                            End Select
+                        Else
+                            b = (b >> (7 - (x And 7))) And 1
+                        End If
+                        videoBMP.Pixel(x, y) = CGAPalette(b)
+
+                End Select
             Next
         Next
     End Sub
@@ -302,27 +385,42 @@
         Dim col As Integer = 0
         Dim row As Integer = 0
 
-        Dim r As New Rectangle(Point.Empty, charSize)
+        Dim r As New Rectangle(Point.Empty, mCellSize)
+
+        Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
+        Dim intensity As Boolean = (portRAM(&H3D8 - &H3C0) And &H80) <> 0
+        Dim mode As Boolean = (portRAM(&H3D8 - &H3C0) = 9) AndAlso (portRAM(&H3D4 - &H3C0) = 9)
 
         For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
             b0 = mCPU.Memory(address)
             b1 = mCPU.Memory(address + 1)
 
-            If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
-                If (blinkCounter < BlinkRate) Then b0 = 0
-                MyBase.IsDirty(address) = True
+            If mVideoMode = 7 OrElse mVideoMode = 127 Then
+                If (b1 And &H70) <> 0 Then
+                    If b0 = 0 Then
+                        b1 = 7
+                    Else
+                        b1 = 0
+                    End If
+                Else
+                    If b0 = 0 Then
+                        b1 = 0
+                    Else
+                        b1 = 7
+                    End If
+                End If
             End If
 
-            If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
-                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
-                cursorAddress.Remove(address)
-            End If
+            'If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
+            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
+            cursorAddress.Remove(address)
+            'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
-                                           r.X + 0, r.Y - 1 + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
-                                           charSize.Width, (MyBase.CursorEnd - MyBase.CursorStart) + 1)
+                                           r.X + 0, r.Y - 1 + mCellSize.Height - (CursorEnd - CursorStart) - 1,
+                                           mCellSize.Width, (CursorEnd - CursorStart) + 1)
                     cursorAddress.Add(address)
                 End If
 
@@ -333,7 +431,7 @@
                 End If
             End If
 
-            r.X += charSize.Width
+            r.X += mCellSize.Width
             col += 1
             If col = TextResolution.Width Then
                 col = 0
@@ -341,13 +439,13 @@
                 If row = TextResolution.Height Then Exit For
 
                 r.X = 0
-                r.Y += charSize.Height
+                r.Y += mCellSize.Height
             End If
         Next
     End Sub
 
     Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
-        Return New Rectangle(New Point(col * charSize.Width, row * charSize.Height), charSize)
+        Return New Rectangle(New Point(col * mCellSize.Width, row * mCellSize.Height), mCellSize)
     End Function
 
     Public Function ColRowToAddress(col As Integer, row As Integer) As Integer
@@ -358,7 +456,7 @@
         Dim ccc As New CGAChar(c, fb, bb)
         Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
         If idx = -1 Then
-            ccc.Render()
+            ccc.Render(mCellSize)
             cgaCharsCache.Add(ccc)
             idx = cgaCharsCache.Count - 1
         End If
@@ -383,11 +481,9 @@
     Protected Overrides Sub OnPaletteRegisterChanged()
         MyBase.OnPaletteRegisterChanged()
 
-        If VGAPalette Is Nothing Then Exit Sub
-
         DisposeColorCaches()
-        For i As Integer = 0 To VGAPalette.Length - 1
-            brushCache(i) = Color.FromArgb(VGAPalette(i))
+        For i As Integer = 0 To CGAPalette.Length - 1
+            brushCache(i) = CGAPalette(i)
         Next
     End Sub
 
@@ -429,16 +525,15 @@
                 End Using
             End If
 
-            ' Monospace... duh!
-            charSize = charSizeCache(65)
+            cgaCharsCache.Clear()
 
             If videoBMP IsNot Nothing Then videoBMP.Dispose()
-            Select Case MainMode
-                Case MainModes.Text
-                    videoBMP = New DirectBitmap(640, 400)
-                Case MainModes.Graphics
-                    videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
-            End Select
+            If GraphicsResolution.Width = 0 Then
+                videoBMP = New DirectBitmap(640, 480)
+                mCellSize = New Size(8, 8)
+            Else
+                videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+            End If
         End If
     End Sub
 
