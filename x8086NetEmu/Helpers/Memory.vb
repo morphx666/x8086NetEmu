@@ -488,30 +488,19 @@
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
             'Return FromPreftch(address)
 
-            'If vga IsNot Nothing AndAlso address >= &HA0000 AndAlso address <= &HBFFFF Then
-            '    If vga.VideoMode = &HD OrElse vga.VideoMode = &HE OrElse vga.VideoMode = &H10 Then Return vga.Read(address - &HA0000)
-            '    If vga.VideoMode <> &H13 AndAlso vga.VideoMode <> &H12 AndAlso vga.VideoMode <> &HD Then Return Memory(address And &HFFFFFUI)
-            '    If (vga.VGA_SC(4) And 6) = 0 Then
-            '        Return Memory(address)
-            '    Else
-            '        Return vga.Read(address - &HA0000)
-            '    End If
-            'End If
+            For i As Integer = 0 To memHooks.Count - 1
+                If memHooks(i).Invoke(address, tmpVal, MemHookMode.Read) Then Return tmpVal
+            Next
 
             Return Memory(address And &HFFFFFUI) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
         End Get
         Set(value As Byte)
             'If address >= ROMStart OrElse Memory(address) = value Then Exit Property
 
-            'If vga IsNot Nothing AndAlso address >= &HA0000 AndAlso address <= &HBFFFF Then
-            '    If vga.VideoMode <> &H13 AndAlso vga.VideoMode <> &H12 AndAlso vga.VideoMode <> &HD AndAlso vga.VideoMode <> &H10 Then
-            '        Memory(address) = value
-            '    ElseIf (vga.VGA_SC(4) And 6) = 0 AndAlso vga.VideoMode <> &HD AndAlso vga.VideoMode <> &H10 andalso vga.VideoMode <> &H12 Then
-            '        Memory(address) = value
-            '    Else
-            '        vga.Write(address - &HA0000, value)
-            '    End If
-            'Else
+            For i As Integer = 0 To memHooks.Count - 1
+                If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property
+            Next
+
             Memory(address) = value
 
             If isVideoAdapterAvailable AndAlso
@@ -519,7 +508,6 @@
                 (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndGraphicsVideoAddress)) Then
                 mVideoAdapter.IsDirty(address) = True
             End If
-            'End If
 
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set

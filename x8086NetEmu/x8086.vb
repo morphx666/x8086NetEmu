@@ -30,7 +30,13 @@ Public Class X8086
     Private mIsPaused As Boolean
 
     Public Delegate Function IntHandler() As Boolean
-    Private hooks As New Dictionary(Of Byte, IntHandler)
+    Private intHooks As New Dictionary(Of Byte, IntHandler)
+    Public Enum MemHookMode
+        Read
+        Write
+    End Enum
+    Public Delegate Function MemHandler(address As UInteger, ByRef value As UInteger, mode As MemHookMode) As Boolean
+    Private memHooks As New List(Of MemHandler)
 
     Private opCode As Byte
     Private opCodeSize As UInteger = 0
@@ -131,7 +137,7 @@ Public Class X8086
         mPorts.Add(PPI)
         'mPorts.Add(RTC)
 
-        If mEmulateINT13 Then hooks.Add(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
+        If mEmulateINT13 Then intHooks.Add(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
 
         BuildSZPTables()
         Init()
@@ -184,14 +190,19 @@ Public Class X8086
     ' If necessary, in future versions we could implement support for
     '   multiple hooks attached to the same interrupt and execute them based on some priority condition
     Public Function TryAttachHook(intNum As Byte, handler As IntHandler) As Boolean
-        If hooks.ContainsKey(intNum) Then Return False
-        hooks.Add(intNum, handler)
+        If intHooks.ContainsKey(intNum) Then Return False
+        intHooks.Add(intNum, handler)
+        Return True
+    End Function
+
+    Public Function TryAttachHook(handler As MemHandler) As Boolean
+        memHooks.Add(handler)
         Return True
     End Function
 
     Public Function TryDetachHook(intNum As Byte) As Boolean
-        If Not hooks.ContainsKey(intNum) Then Return False
-        hooks.Remove(intNum)
+        If Not intHooks.ContainsKey(intNum) Then Return False
+        intHooks.Remove(intNum)
         Return True
     End Function
 

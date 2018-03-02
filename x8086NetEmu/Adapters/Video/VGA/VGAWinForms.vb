@@ -228,7 +228,7 @@
 
         If MainMode = MainModes.Text Then
             '    'Using g As Graphics = mRenderControl.CreateGraphics()
-            ctrlSize = New Size(mCellSize.Width * TextResolution.Width, mCellSize.Height * TextResolution.Height)
+            ctrlSize = New Size(CellSize.Width * TextResolution.Width, CellSize.Height * TextResolution.Height)
             '    'End Using
         Else
             ctrlSize = New Size(GraphicsResolution.Width, GraphicsResolution.Height)
@@ -237,7 +237,7 @@
         Dim frmSize = New Size(640 * Zoom, 400 * Zoom)
         mRenderControl.FindForm.ClientSize = frmSize
         mRenderControl.Size = frmSize
-        If mCellSize.Width = 0 OrElse mCellSize.Height = 0 Then Exit Sub
+        If CellSize.Width = 0 OrElse CellSize.Height = 0 Then Exit Sub
 
         scale = New SizeF(frmSize.Width / ctrlSize.Width, frmSize.Height / ctrlSize.Height)
     End Sub
@@ -247,32 +247,30 @@
     End Sub
 
     Private Sub Paint(sender As Object, e As PaintEventArgs)
-        SyncLock MyBase.lockObject
-            Dim g As Graphics = e.Graphics
+        Dim g As Graphics = e.Graphics
 
-            g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighSpeed
-            g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
-            g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
+        g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighSpeed
+        g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+        g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
 
-            g.ScaleTransform(scale.Width, scale.Height)
+        g.ScaleTransform(scale.Width, scale.Height)
 
-            RaiseEvent PreRender(sender, e)
-            g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
+        RaiseEvent PreRender(sender, e)
+        g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-            Select Case MainMode
-                Case MainModes.Text
-                    RenderText()
-                Case MainModes.Graphics
-                    RenderGraphics()
-            End Select
+        Select Case MainMode
+            Case MainModes.Text
+                RenderText()
+            Case MainModes.Graphics
+                RenderGraphics()
+        End Select
 
-            g.DrawImageUnscaled(videoBMP, 0, 0)
+        g.DrawImageUnscaled(videoBMP, 0, 0)
 
-            g.CompositingMode = Drawing2D.CompositingMode.SourceOver
-            RaiseEvent PostRender(sender, e)
+        g.CompositingMode = Drawing2D.CompositingMode.SourceOver
+        RaiseEvent PostRender(sender, e)
 
-            'RenderWaveform(g)
-        End SyncLock
+        'RenderWaveform(g)
     End Sub
 
     Private Sub RenderGraphics()
@@ -282,12 +280,12 @@
         Dim intensity As Integer = ((portRAM(&H3D9 - &H3C0) >> 4) & 1) << 3
 
         ' For mode &h12 and &h13
-        Dim planeMode As Integer = If((VGA_SC(4) And 6) <> 0, 1, 0)
-        Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
+        Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
+        Dim vgaPage As UInteger = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
 
-        Dim a1 As Integer
-        Dim a2 As Integer
-        Dim a3 As Integer
+        Dim a1 As UInteger
+        Dim a2 As UInteger
+        Dim a3 As UInteger
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1
@@ -344,13 +342,11 @@
                         videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
 
                     Case &H13
-                        If planeMode = 0 Then
-                            b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)
-                        Else
-                            a1 = y * mVideoResolution.Width + x
-                            a1 = a1 / 4 + (x And 3) * &H10000
-                            a1 += vgaPage - (VGA_ATTR(&H13) And &H15)
+                        If planeMode Then
+                            a1 = (y * mVideoResolution.Width + x) / 4 + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And &H15)
                             b = VRAM(a1)
+                        Else
+                            b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)
                         End If
                         videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
 
@@ -385,7 +381,7 @@
         Dim col As Integer = 0
         Dim row As Integer = 0
 
-        Dim r As New Rectangle(Point.Empty, mCellSize)
+        Dim r As New Rectangle(Point.Empty, CellSize)
 
         Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
         Dim intensity As Boolean = (portRAM(&H3D8 - &H3C0) And &H80) <> 0
@@ -419,8 +415,8 @@
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
-                                           r.X + 0, r.Y - 1 + mCellSize.Height - (CursorEnd - CursorStart) - 1,
-                                           mCellSize.Width, (CursorEnd - CursorStart) + 1)
+                                           r.X + 0, r.Y - 1 + CellSize.Height - (CursorEnd - CursorStart) - 1,
+                                           CellSize.Width, (CursorEnd - CursorStart) + 1)
                     cursorAddress.Add(address)
                 End If
 
@@ -431,7 +427,7 @@
                 End If
             End If
 
-            r.X += mCellSize.Width
+            r.X += CellSize.Width
             col += 1
             If col = TextResolution.Width Then
                 col = 0
@@ -439,13 +435,13 @@
                 If row = TextResolution.Height Then Exit For
 
                 r.X = 0
-                r.Y += mCellSize.Height
+                r.Y += CellSize.Height
             End If
         Next
     End Sub
 
     Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
-        Return New Rectangle(New Point(col * mCellSize.Width, row * mCellSize.Height), mCellSize)
+        Return New Rectangle(New Point(col * CellSize.Width, row * CellSize.Height), CellSize)
     End Function
 
     Public Function ColRowToAddress(col As Integer, row As Integer) As Integer
@@ -456,7 +452,7 @@
         Dim ccc As New CGAChar(c, fb, bb)
         Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
         If idx = -1 Then
-            ccc.Render(mCellSize)
+            ccc.Render(CellSize)
             cgaCharsCache.Add(ccc)
             idx = cgaCharsCache.Count - 1
         End If
@@ -530,7 +526,6 @@
             If videoBMP IsNot Nothing Then videoBMP.Dispose()
             If GraphicsResolution.Width = 0 Then
                 videoBMP = New DirectBitmap(640, 480)
-                mCellSize = New Size(8, 8)
             Else
                 videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
             End If
