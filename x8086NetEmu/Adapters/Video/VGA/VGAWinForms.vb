@@ -35,12 +35,9 @@
             Dim w4s As Integer = mBitmap.Width * 4
             Dim w4d As Integer = dbmp.Width * 4
             p.X *= 4
-            Try
-                For y As Integer = 0 To mBitmap.Height - 1
-                    Array.Copy(mBitmap.Bits, y * w4s, dbmp.Bits, (y + p.Y) * w4d + p.X, w4s)
-                Next
-            Catch
-            End Try
+            For y As Integer = 0 To mBitmap.Height - 1
+                Array.Copy(mBitmap.Bits, y * w4s, dbmp.Bits, (y + p.Y) * w4d + p.X, w4s)
+            Next
         End Sub
 
         Public Sub Render(cellSize As Size)
@@ -52,7 +49,7 @@
                         If x > 7 OrElse y > 15 Then
                             mBitmap.Pixel(x, y) = mBackColor
                         Else
-                            If fontCGA(mCGAChar * 128 + y * 8 + x) = 1 Then
+                            If fontBitmaps(mCGAChar * 128 + y * 8 + x) = 1 Then
                                 mBitmap.Pixel(x, y) = mForeColor
                             Else
                                 mBitmap.Pixel(x, y) = mBackColor
@@ -106,8 +103,9 @@
     Private cursorBrush As Color = Color.FromArgb(128, Color.White)
     Private cursorYOffset As Integer
 
-    Private Shared fontCGA() As Byte
-    Private useCGAFont As Boolean
+    Private Shared fontBitmaps() As Byte
+    Private useBitmapFont As Boolean
+    Private g As Graphics
 
     Private scale As New SizeF(1, 1)
 
@@ -139,7 +137,7 @@
 
     Public Sub New(cpu As X8086, renderControl As Control, Optional tryUseCGAFont As Boolean = True)
         MyBase.New(cpu)
-        useCGAFont = tryUseCGAFont
+        useBitmapFont = tryUseCGAFont
         mCPU = cpu
         Me.RenderControl = renderControl
 
@@ -153,23 +151,23 @@
         Dim fontCGAPath As String = X8086.FixPath("roms\asciivga.dat")
         Dim fontCGAError As String = ""
 
-        If useCGAFont Then
+        If useBitmapFont Then
             If IO.File.Exists(fontCGAPath) Then
                 Try
-                    fontCGA = IO.File.ReadAllBytes(fontCGAPath)
+                    fontBitmaps = IO.File.ReadAllBytes(fontCGAPath)
                 Catch ex As Exception
                     fontCGAError = ex.Message
-                    useCGAFont = False
+                    useBitmapFont = False
                 End Try
             Else
                 fontCGAError = "File not found"
-                useCGAFont = False
+                useBitmapFont = False
             End If
         End If
 
-        If Not useCGAFont Then
+        If Not useBitmapFont Then
             If mFont.Name <> preferredFont Then
-                MsgBox(If(useCGAFont, "ASCII VGA Font Data not found at '" + fontCGAPath + "'" + If(fontCGAError <> "", ": " + fontCGAError, "") +
+                MsgBox(If(useBitmapFont, "ASCII VGA Font Data not found at '" + fontCGAPath + "'" + If(fontCGAError <> "", ": " + fontCGAError, "") +
                        vbCrLf + vbCrLf, "") +
                        "CGAWinForms requires the '" + preferredFont + "' font. Please install it before using this adapter", MsgBoxStyle.Information Or MsgBoxStyle.OkOnly)
                 mFont = New Font("Consolas", 16, FontStyle.Regular, GraphicsUnit.Pixel)
@@ -258,12 +256,15 @@
         RaiseEvent PreRender(sender, e)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-        Select Case MainMode
-            Case MainModes.Text
-                RenderText()
-            Case MainModes.Graphics
-                RenderGraphics()
-        End Select
+        Try
+            Select Case MainMode
+                Case MainModes.Text
+                    RenderText()
+                Case MainModes.Graphics
+                    RenderGraphics()
+            End Select
+        Catch ex As Exception
+        End Try
 
         g.DrawImageUnscaled(videoBMP, 0, 0)
 
@@ -283,9 +284,9 @@
         Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
         Dim vgaPage As UInteger = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
 
-        Dim a1 As UInteger
-        Dim a2 As UInteger
-        Dim a3 As UInteger
+        Dim address As UInteger
+        Dim h1 As UInteger
+        Dim h2 As UInteger
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1
@@ -303,6 +304,7 @@
                             If b = (usePal + intensity) Then b = 0
                         Else
                             b = b * 63
+                            b = b Mod CGAPalette.Length
                         End If
                         videoBMP.Pixel(x, y) = CGAPalette(b)
 
@@ -313,38 +315,29 @@
                         videoBMP.Pixel(x, y) = CGAPalette(b)
 
                     Case &HD, &HE
-                        a1 = x >> 1
-                        a2 = y >> 1
-                        a3 = a2 * 40 + (a1 >> 3)
-                        a2 = 7 - (a1 And 7)
-                        b = (VRAM(a3) >> a2) And 1
-                        b = b + ((VRAM(a3 + &H10000) >> a2) And 1) << 1
-                        b = b + ((VRAM(a3 + &H20000) >> a2) And 1) << 2
-                        b = b + ((VRAM(a3 + &H30000) >> a2) And 1) << 3
+                        h1 = x >> 1
+                        h2 = y >> 1
+                        address = h2 * 40 + (h1 >> 3)
+                        h1 = 7 - (h1 And 7)
+                        b = (VRAM(address) >> h1) And 1
+                        b = b + ((VRAM(address + &H10000) >> h1) And 1) << 1
+                        b = b + ((VRAM(address + &H20000) >> h1) And 1) << 2
+                        b = b + ((VRAM(address + &H30000) >> h1) And 1) << 3
                         videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
 
-                    Case &H10
-                        a1 = (y * 80) + (x >> 3)
-                        a2 = 7 - (x And 7)
-                        b = (VRAM(a1) >> a2) And 1
-                        b += ((VRAM(a1 + &H10000) >> a2) And 1) << 1
-                        b += ((VRAM(a1 + &H20000) >> a2) And 1) << 2
-                        b += ((VRAM(a1 + &H30000) >> a2) And 1) << 3
-                        videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
-
-                    Case &H12
-                        a1 = (y * 80) + (x / 8)
-                        a2 = ((Not x) And 7)
-                        b = (VRAM(a1) >> a2) And 1
-                        b = b Or ((VRAM(a1 + &H10000) >> a2) And 1) << 1
-                        b = b Or ((VRAM(a1 + &H20000) >> a2) And 1) << 2
-                        b = b Or ((VRAM(a1 + &H30000) >> a2) And 1) << 3
+                    Case &H10, &H12
+                        address = (y * 80) + (x >> 3)
+                        h1 = 7 - (x And 7)
+                        b = (VRAM(address) >> h1) And 1
+                        b = b Or ((VRAM(address + &H10000) >> h1) And 1) << 1
+                        b = b Or ((VRAM(address + &H20000) >> h1) And 1) << 2
+                        b = b Or ((VRAM(address + &H30000) >> h1) And 1) << 3
                         videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
 
                     Case &H13
                         If planeMode Then
-                            a1 = (y * mVideoResolution.Width + x) / 4 + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And &H15)
-                            b = VRAM(a1)
+                            address = (y * mVideoResolution.Width + x) / 4 + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And 15)
+                            b = VRAM(address)
                         Else
                             b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)
                         End If
@@ -449,14 +442,23 @@
     End Function
 
     Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
-        Dim ccc As New CGAChar(c, fb, bb)
-        Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
-        If idx = -1 Then
-            ccc.Render(CellSize)
-            cgaCharsCache.Add(ccc)
-            idx = cgaCharsCache.Count - 1
+        If useBitmapFont Then
+            Dim ccc As New CGAChar(c, fb, bb)
+            Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
+            If idx = -1 Then
+                ccc.Render(CellSize)
+                cgaCharsCache.Add(ccc)
+                idx = cgaCharsCache.Count - 1
+            End If
+            cgaCharsCache(idx).Paint(dbmp, p, scale)
+        Else
+            Using bbb As New SolidBrush(bb)
+                g.FillRectangle(bbb, New Rectangle(p, CellSize))
+                Using bfb As New SolidBrush(fb)
+                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - CellSize.Width / 2 + 2, p.Y)
+                End Using
+            End Using
         End If
-        cgaCharsCache(idx).Paint(dbmp, p, scale)
     End Sub
 
     Private Sub DisposeColorCaches()
@@ -486,7 +488,7 @@
     Private Function MeasureChar(graphics As Graphics, code As Integer, text As Char, font As Font) As Size
         Dim size As Size
 
-        If useCGAFont Then
+        If useBitmapFont Then
             size = New Size(8, 16)
             charSizeCache.Add(code, size)
         Else
@@ -528,6 +530,11 @@
                 videoBMP = New DirectBitmap(640, 480)
             Else
                 videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+            End If
+
+            If Not useBitmapFont Then
+                If g IsNot Nothing Then g.Dispose()
+                g = Graphics.FromImage(videoBMP)
             End If
         End If
     End Sub

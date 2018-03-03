@@ -49,7 +49,7 @@ Public Class CGAWinForms
 
                 For y As Integer = 0 To 16 - 1
                     For x As Integer = 0 To 8 - 1
-                        If fontCGA(mCGAChar * 128 + y * 8 + x) = 1 Then
+                        If fontBitmaps(mCGAChar * 128 + y * 8 + x) = 1 Then
                             mBitmap.Pixel(x, y) = mForeColor
                         Else
                             mBitmap.Pixel(x, y) = mBackColor
@@ -100,8 +100,9 @@ Public Class CGAWinForms
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
     Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
-    Private Shared fontCGA() As Byte
-    Private useCGAFont As Boolean
+    Private Shared fontBitmaps() As Byte
+    Private useBitmapFont As Boolean
+    Private g As Graphics
 
     Private scale As New SizeF(1, 1)
 
@@ -131,9 +132,9 @@ Public Class CGAWinForms
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Public Sub New(cpu As X8086, renderControl As Control, Optional tryUseCGAFont As Boolean = True)
+    Public Sub New(cpu As X8086, renderControl As Control, Optional tryUseBitmapFont As Boolean = True)
         MyBase.New(cpu)
-        useCGAFont = tryUseCGAFont
+        useBitmapFont = tryUseBitmapFont
         mCPU = cpu
         Me.RenderControl = renderControl
 
@@ -147,23 +148,23 @@ Public Class CGAWinForms
         Dim fontCGAPath As String = X8086.FixPath("roms\asciivga.dat")
         Dim fontCGAError As String = ""
 
-        If useCGAFont Then
+        If useBitmapFont Then
             If IO.File.Exists(fontCGAPath) Then
                 Try
-                    fontCGA = IO.File.ReadAllBytes(fontCGAPath)
+                    fontBitmaps = IO.File.ReadAllBytes(fontCGAPath)
                 Catch ex As Exception
                     fontCGAError = ex.Message
-                    useCGAFont = False
+                    useBitmapFont = False
                 End Try
             Else
                 fontCGAError = "File not found"
-                useCGAFont = False
+                useBitmapFont = False
             End If
         End If
 
-        If Not useCGAFont Then
+        If Not useBitmapFont Then
             If mFont.Name <> preferredFont Then
-                MsgBox(If(useCGAFont, "ASCII VGA Font Data not found at '" + fontCGAPath + "'" + If(fontCGAError <> "", ": " + fontCGAError, "") +
+                MsgBox(If(useBitmapFont, "ASCII VGA Font Data not found at '" + fontCGAPath + "'" + If(fontCGAError <> "", ": " + fontCGAError, "") +
                        vbCrLf + vbCrLf, "") +
                        "CGAWinForms requires the '" + preferredFont + "' font. Please install it before using this adapter", MsgBoxStyle.Information Or MsgBoxStyle.OkOnly)
                 mFont = New Font("Consolas", 16, FontStyle.Regular, GraphicsUnit.Pixel)
@@ -316,7 +317,7 @@ Public Class CGAWinForms
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
                                            r.X + 0, r.Y - 1 + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
-                                           charSize.Width , (MyBase.CursorEnd - MyBase.CursorStart) + 1)
+                                           charSize.Width, (MyBase.CursorEnd - MyBase.CursorStart) + 1)
                     cursorAddress.Add(address)
                 End If
 
@@ -376,14 +377,23 @@ Public Class CGAWinForms
     End Function
 
     Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
-        Dim ccc As New CGAChar(c, fb, bb)
-        Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
-        If idx = -1 Then
-            ccc.Render()
-            cgaCharsCache.Add(ccc)
-            idx = cgaCharsCache.Count - 1
+        If useBitmapFont Then
+            Dim ccc As New CGAChar(c, fb, bb)
+            Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
+            If idx = -1 Then
+                ccc.Render()
+                cgaCharsCache.Add(ccc)
+                idx = cgaCharsCache.Count - 1
+            End If
+            cgaCharsCache(idx).Paint(dbmp, p, scale)
+        Else
+            Using bbb As New SolidBrush(bb)
+                g.FillRectangle(bbb, New Rectangle(p, charSize))
+                Using bfb As New SolidBrush(fb)
+                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - charSize.Width / 2 + 2, p.Y)
+                End Using
+            End Using
         End If
-        cgaCharsCache(idx).Paint(dbmp, p, scale)
     End Sub
 
     Private Sub RenderWaveform(g As Graphics)
@@ -415,7 +425,7 @@ Public Class CGAWinForms
     Private Function MeasureChar(graphics As Graphics, code As Integer, text As Char, font As Font) As Size
         Dim size As Size
 
-        If useCGAFont Then
+        If useBitmapFont Then
             size = New Size(8, 16)
             charSizeCache.Add(code, size)
         Else
@@ -504,7 +514,7 @@ Public Class CGAWinForms
         If mRenderControl IsNot Nothing Then
             If clearScreen OrElse charSizeCache.Count = 0 Then
                 charSizeCache.Clear()
-                Using g = mRenderControl.CreateGraphics()
+                Using g As Graphics = mRenderControl.CreateGraphics()
                     For i As Integer = 0 To 255
                         MeasureChar(g, i, chars(i), mFont)
                     Next
@@ -521,6 +531,11 @@ Public Class CGAWinForms
                 Case MainModes.Graphics
                     videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
             End Select
+
+            If Not useBitmapFont Then
+                If g IsNot Nothing Then g.Dispose()
+                g = Graphics.FromImage(videoBMP)
+            End If
 
             UpdateSystemInformationArea()
         End If

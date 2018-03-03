@@ -3,9 +3,9 @@
     Implements IExternalInputHandler
 
     Private Class SerialMouse
-        Public reg(8 - 1) As Integer
-        Public buf(16 - 1) As Integer
-        Public bufPtr As Integer
+        Public reg(8 - 1) As UInteger
+        Public buf(16 - 1) As UInteger
+        Public bufPtr As UInteger
     End Class
 
     Private mCPU As X8086

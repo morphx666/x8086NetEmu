@@ -129,18 +129,48 @@ Public Class X8086
         PIT = New PIT8254(Me, PIC.GetIrqLine(0))
         PPI = New PPI8255(Me, PIC.GetIrqLine(1))
         'PPI = New PPI8255_ALT(Me, PIC.GetIrqLine(1))
-        'RTC = New RTC(Me, PIC.GetIrqLine(8))
+        RTC = New RTC(Me, PIC.GetIrqLine(8))
 
         mPorts.Add(PIC)
         mPorts.Add(DMA)
         mPorts.Add(PIT)
         mPorts.Add(PPI)
-        'mPorts.Add(RTC)
+        mPorts.Add(RTC)
 
-        If mEmulateINT13 Then intHooks.Add(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
-
+        AddInternalHooks()
         BuildSZPTables()
         Init()
+    End Sub
+
+    Private Sub AddInternalHooks()
+        If mEmulateINT13 Then intHooks.Add(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
+
+        ' This doesn't work :(
+        'TryAttachHook(&H1A, New IntHandler(Function()
+        '                                       Dim ToBCD = Function(v As UInteger) ((v \ 10) << 4) + (v Mod 10)
+
+        '                                       Select Case mRegisters.AH
+
+        '                                                           Case 2
+        '                                                               mRegisters.CH = ToBCD(Now.Hour)
+        '                                                               mRegisters.CL = ToBCD(Now.Minute)
+        '                                                               mRegisters.DH = ToBCD(Now.Second)
+        '                                                               mRegisters.DL = 0
+        '                                                               mFlags.CF = 0
+
+        '                                                           Case 4
+        '                                                               mRegisters.CH = ToBCD(Now.Year \ 100 + 1)
+        '                                                               mRegisters.CL = ToBCD(Now.Year)
+        '                                                               mRegisters.DH = ToBCD(Now.Month)
+        '                                                               mRegisters.DL = ToBCD(Now.Day)
+        '                                                               mFlags.CF = 0
+
+        '                                                           Case Else
+        '                                                               Return False
+        '                                                       End Select
+
+        '                                                       Return True
+        '                                                   End Function))
     End Sub
 
     Private Sub BuildSZPTables()

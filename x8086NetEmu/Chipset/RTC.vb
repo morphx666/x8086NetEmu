@@ -134,7 +134,7 @@
         Dim v As UInt16
 
         v = FromBCD(data.RAM(CENTURY) And &H3F)
-        data.Year = 10 * v
+        data.Year = 10 * (v + 1)
 
         v = FromBCD(data.RAM(YEAR))
         data.Year += v

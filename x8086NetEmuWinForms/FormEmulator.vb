@@ -212,11 +212,11 @@ Public Class FormEmulator
         sysMenIntegercut = "Ctrl + MButton"
 #End If
 
-        Me.Text = String.Format("x8086NetEmu [Menu: {0}]      {1:F2}MHz ● {2}% | Zoom: {3}% | {4:N2} MIPs | {5} {6}",
+        Me.Text = String.Format("x8086NetEmu [Menu: {0}]  {1:F2}MHz ● {2}% | {3} | {4:N2} MIPs | {5} {6}",
                                     sysMenIntegercut,
                                     cpu.Clock / X8086.MHz,
                                     cpu.SimulationMultiplier * 100,
-                                    cpu.VideoAdapter.Zoom * 100,
+                                    $"{cpu.VideoAdapter.Name.Split(" "c)(0)} Mode {cpu.VideoAdapter.VideoMode:X2} | Zoom {cpu.VideoAdapter.Zoom * 100}%",
                                     cpu.MIPs,
                                     If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", If(cpu.IsPaused, "Paused", "Running"))),
                                     If(runningApp <> "", $" | {runningApp}", ""))
@@ -251,7 +251,7 @@ Public Class FormEmulator
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono))
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono)) ' Not properly supported yet...
+        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, Not ConsoleCrayon.RuntimeIsMono))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start)
 
