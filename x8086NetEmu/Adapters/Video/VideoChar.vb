@@ -82,6 +82,7 @@
                              mBackColor.B)
     End Function
 
+    ' http://goughlui.com/2016/05/01/project-examining-vga-bios-from-old-graphic-cards/
     Public Shared Sub BuildFontBitmapsFromROM(fontWidth As Integer, fontHeight As Integer, romFontHeight As Integer, romOffset As Integer, rom() As Byte)
         Dim fw As Integer = fontWidth
         Dim fh As Integer = fontHeight

@@ -1,6 +1,4 @@
-﻿Imports System.Threading
-
-Public MustInherit Class VGAAdapter
+﻿Public MustInherit Class VGAAdapter
     Inherits CGAAdapter
 
     Private VGABasePalette() As Color = {
@@ -269,12 +267,12 @@ Public MustInherit Class VGAAdapter
     Protected VGA_GC(&H100 - 1) As UInteger
 
     Private flip3C0 As Boolean = False
-    Private latchRGB As UInteger
-    Private latchPal As UInteger
     Private VGA_latch(4 - 1) As UInteger
     Private stateDAC As UInteger
     Private latchReadRGB As UInteger
     Private latchReadPal As UInteger
+    Private latchWriteRGB As UInteger
+    Private latchWritePal As UInteger
     Protected portRAM(&H10000 - 1) As UInteger
     Private tempRGB As UInteger
     Private mVGAPalette(VGABasePalette.Length - 1) As UInteger
@@ -288,6 +286,8 @@ Public MustInherit Class VGAAdapter
     Private curScanLine As Long
     Private cursorPosition As UInteger
 
+    Private useROM As Boolean = True
+
     Protected lockObject As New Object()
 
     Private mCPU As X8086
@@ -299,10 +299,16 @@ Public MustInherit Class VGAAdapter
         MyBase.New(cpu)
         mCPU = cpu
 
-        mCPU.LoadBIN("roms\ET4000.BIN", &HC000, &H0)
-        'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-        'mCPU.LoadBIN("..\..\Other Emulators & Resources\xtbios31\test\ET4000.BIN", &HC000, &H0)
-        'mCPU.LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
+#If Not DEBUG Then
+        useROM = True
+#End If
+
+        If useROM Then
+            mCPU.LoadBIN("roms\ET4000.BIN", &HC000, &H0)
+            'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
+            'mCPU.LoadBIN("..\..\Other Emulators & Resources\xtbios31\test\ET4000.BIN", &HC000, &H0)
+            'mCPU.LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
+        End If
 
         ValidPortAddress.Clear()
         ValidPortAddress.Add(&H3BA) ' Dummy port to speed ET4000 ROM initialization
@@ -310,7 +316,7 @@ Public MustInherit Class VGAAdapter
         For i As UInteger = &H3C0 To &H3CF ' EGA/VGA
             ValidPortAddress.Add(i)
         Next
-        For i As UInteger = &H3D0 To &H3DA ' Color Graphics Monitor Adapter
+        For i As UInteger = &H3D0 To &H3DA ' CGA Adapter
             ValidPortAddress.Add(i)
         Next
 
@@ -321,8 +327,9 @@ Public MustInherit Class VGAAdapter
         mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function()
                                                           If mCPU.Registers.AH = 0 OrElse mCPU.Registers.AH = &H10 Then
                                                               VideoMode = mCPU.Registers.AX
+                                                              'If Not useROM Then mCPU.RAM8(&H60, &H410) = &H41
                                                               'If mCPU.Registers.AH = &H10 Then Return True
-                                                              Return True
+                                                              Return useROM
                                                           ElseIf mCPU.Registers.AH = &H1A And mCPU.Registers.AL = 0 Then ' Get display combination code (ps, vga/mcga)
                                                               mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
                                                               mCPU.Registers.BL = &H8
@@ -379,9 +386,17 @@ Public MustInherit Class VGAAdapter
         End Get
     End Property
 
-    Public ReadOnly Property VRAM(index As Integer) As UInteger
+    Public ReadOnly Property VRAM(address As Integer) As UInteger
         Get
-            Return mVRAM(index)
+#If DEBUG Then
+            If useROM Then
+                Return mVRAM(address)
+            Else
+                Return mCPU.Memory(address)
+            End If
+#Else
+            Return mVRAM(address)
+#End If
         End Get
     End Property
 
@@ -423,7 +438,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Text
                             mPixelsPerByte = 4
                             mUseVRAM = False
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case 2 ' 80x25 Mono Text
                             mStartTextVideoAddress = &HB8000
@@ -434,7 +448,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Text
                             mPixelsPerByte = 4
                             mUseVRAM = False
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case 3 ' 80x25 Color Text
                             mStartTextVideoAddress = &HB8000
@@ -445,7 +458,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Text
                             mPixelsPerByte = 4
                             mUseVRAM = False
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case 4, 5 ' 320x200 4 Colors
                             mStartTextVideoAddress = &HB8000
@@ -471,7 +483,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 2
                             mUseVRAM = False
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case 7 ' 640x200 2 Colors
                             mStartTextVideoAddress = &HB0000
@@ -482,7 +493,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Text
                             mPixelsPerByte = 1
                             mUseVRAM = False
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case 9 ' 320x200 16 Colors
                             mStartTextVideoAddress = &HB8000
@@ -493,7 +503,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
                             mUseVRAM = False
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case &HD ' 320x200 16 Colors
                             mStartTextVideoAddress = &HA0000
@@ -504,7 +513,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
                             mUseVRAM = True
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case &HE ' 640x200 16 Colors
                             mStartTextVideoAddress = &HA0000
@@ -515,7 +523,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
                             mUseVRAM = True
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case &H10 ' 640x350 4 Colors
                             mStartTextVideoAddress = &HA0000
@@ -526,7 +533,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
                             mUseVRAM = True
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case &H12
                             mStartTextVideoAddress = &HA0000
@@ -537,7 +543,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
                             mUseVRAM = True
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case &H13
                             mStartTextVideoAddress = &HA0000
@@ -548,7 +553,6 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
                             mUseVRAM = True
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case 127 ' 90x25 Mono Text
                             mStartTextVideoAddress = &HB0000
@@ -558,7 +562,6 @@ Public MustInherit Class VGAAdapter
                             mCellSize = New Size(8, 16)
                             mMainMode = MainModes.Text
                             mPixelsPerByte = 1
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                             'Case &H30 ' 800x600 Color Tseng ET3000/4000 chipset
                             '    mStartTextVideoAddress = &HA0000
@@ -579,10 +582,11 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Text
                             mPixelsPerByte = 1
                             mUseVRAM = False
-                            portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                     End Select
 
+                    mCellSize = New Size(8, 16) ' Temporary hack until we can stretch the fonts' bitmaps
+                    portRAM(&H3D8) = portRAM(&H3D8) And &HFE
                     mCPU.RAM(&H449) = mVideoMode
                     mCPU.RAM(&H44A) = mTextResolution.Width
                     mCPU.RAM(&H44B) = 0
@@ -593,7 +597,7 @@ Public MustInherit Class VGAAdapter
 
                     If (value And &H80) = 0 Then
                         Array.Clear(mCPU.Memory, &HA0000, &H1FFFF)
-                        ' Array.Clear(VRAM, 0, VRAM.Length)
+                        Array.Clear(mVRAM, 0, mVRAM.Length)
                     End If
 
                     InitVideoMemory(False)
@@ -626,13 +630,13 @@ Public MustInherit Class VGAAdapter
     Public Overrides Function [In](port As UInteger) As UInteger
         Select Case port
             Case &H3C1
-                Return VGA_ATTR(portRAM(&H3C0))
+                Return VGA_ATTR(portRAM(&H3C0)) And &H1F
 
             Case &H3C5
-                Return VGA_SC(portRAM(&H3C4))
+                Return VGA_SC(portRAM(&H3C4)) And &H1F
 
             Case &H3D5
-                Return VGA_CRTC(portRAM(&H3D4))
+                Return VGA_CRTC(portRAM(&H3D4)) And &H1F
 
             Case &H3C7
                 Return stateDAC
@@ -643,11 +647,11 @@ Public MustInherit Class VGAAdapter
             Case &H3C9
                 latchReadRGB += 1
                 Select Case (latchReadRGB - 1)
-                    Case 0 ' B
+                    Case 0 ' R
                         Return (mVGAPalette(latchReadPal) >> 2) And &H3F
                     Case 1 ' G
                         Return (mVGAPalette(latchReadPal) >> 10) And &H3F
-                    Case 2 ' R
+                    Case 2 ' B
                         latchReadRGB = 0
                         latchReadPal += 1
                         Return (mVGAPalette(latchReadPal - 1) >> 18) And &H3F
@@ -673,6 +677,7 @@ Public MustInherit Class VGAAdapter
     End Function
 
     Public Overrides Sub Out(port As UInteger, value As UInteger)
+        value = value And &HFF
         Select Case port
             Case &H3B8
                 If ((value And 2) = 2) AndAlso VideoMode <> 127 Then
@@ -683,7 +688,7 @@ Public MustInherit Class VGAAdapter
                 If flip3C0 Then
                     portRAM(&H3C0) = value
                 Else
-                    VGA_ATTR(portRAM(&H3C0)) = value And &HF
+                    VGA_ATTR(portRAM(&H3C0)) = value
                 End If
                 flip3C0 = Not flip3C0
 
@@ -691,7 +696,7 @@ Public MustInherit Class VGAAdapter
                 portRAM(&H3C4) = value
 
             Case &H3C5 ' Sequence controller data
-                VGA_SC(portRAM(&H3C4)) = value And &HF
+                VGA_SC(portRAM(&H3C4)) = value
 
             Case &H3C7 ' Color index register (read operations)
                 latchReadPal = value
@@ -699,56 +704,40 @@ Public MustInherit Class VGAAdapter
                 stateDAC = 0
 
             Case &H3C8 ' Color index register (write operations)
-                latchPal = value
-                latchRGB = 0
+                latchWritePal = value
+                latchWriteRGB = 0
                 tempRGB = 0
                 stateDAC = 3
 
             Case &H3C9 ' RGB data register
-                Select Case latchRGB
+                Select Case latchWriteRGB
                     Case 0 ' R
                         tempRGB = (value And &H3F) << 2
                     Case 1 ' G
                         tempRGB = tempRGB Or ((value And &H3F) << 10)
                     Case 2 ' B
-                        mVGAPalette(latchPal) = tempRGB Or ((value And &H3F) << 18)
-                        latchPal += 1
+                        mVGAPalette(latchWritePal) = tempRGB Or ((value And &H3F) << 18)
+                        latchWritePal += 1
                 End Select
-                latchRGB = (latchRGB + 1) Mod 3
+                latchWriteRGB = (latchWriteRGB + 1) Mod 3
 
             Case &H3D4 ' 6845 index register
                 portRAM(&H3D4) = value
 
             Case &H3D5 ' 6845 data register
-                VGA_CRTC(portRAM(&H3D4)) = value And &HF
+                VGA_CRTC(portRAM(&H3D4)) = value
 
                 If portRAM(&H3D4) = &HE Then
                     cursorPosition = (cursorPosition And &HFF) Or (value << 8)
                 ElseIf portRAM(&H3D4) = &HF Then
                     cursorPosition = (cursorPosition And &HFF00) Or value
                 End If
-                mCursorRow = (cursorPosition \ mTextResolution.Width) / 2
-                mCursorCol = (cursorPosition Mod mTextResolution.Width) / 2
+                mCursorRow = cursorPosition / mTextResolution.Width
+                mCursorCol = cursorPosition Mod mTextResolution.Width
 
                 mCursorVisible = (VGA_CRTC(&HA) And &H20) = 0
 
-                'If mCursorVisible Then
-                '    Dim startOffset As Integer = ((VGA_CRTC(&HC) And &H3F) << 8) Or (VGA_CRTC(&HD) And &HFF)
-                '    Dim p As Integer = ((VGA_CRTC(&HE) And &H3F) << 8) Or (VGA_CRTC(&HF) And &HFF)
-                '    p = (p - startOffset) And &H1FFF
-                '    If p < 0 Then
-                '        mCursorCol = 0
-                '        mCursorRow = 50
-                '    Else
-                '        mCursorCol = p Mod mTextResolution.Width
-                '        mCursorRow = p \ mTextResolution.Width
-                '    End If
-                'End If
-
-            Case &H3CE
-                VGA_GC(portRAM(&H3CE)) = value And &HF
-
-            Case &H3CF
+            Case &H3CE ', &H3CF
                 VGA_GC(portRAM(&H3CE)) = value And &HF
 
                 'Case >= &H3D0
@@ -801,9 +790,7 @@ Public MustInherit Class VGAAdapter
     End Sub
 
     Public Overrides Sub Write(address As UInteger, value As UInteger)
-        Dim curValue As UInteger
-
-        value = ShiftVGA(value)
+        Dim curValue As UInteger = ShiftVGA(value)
 
         Select Case (VGA_GC(5) And 3)
             Case 0
@@ -814,12 +801,10 @@ Public MustInherit Class VGAAdapter
                         Else
                             curValue = 0
                         End If
-                    Else
-                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(0))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(0))
-                    mVRAM(address + planeSize * 0) = curValue And &HFF
+                    mVRAM(address + planeSize * 0) = curValue
                 End If
 
                 If (VGA_SC(2) And 2) <> 0 Then
@@ -829,12 +814,10 @@ Public MustInherit Class VGAAdapter
                         Else
                             curValue = 0
                         End If
-                    Else
-                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(1))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(1))
-                    mVRAM(address + planeSize * 1) = curValue And &HFF
+                    mVRAM(address + planeSize * 1) = curValue
                 End If
 
                 If (VGA_SC(2) And 4) <> 0 Then
@@ -844,12 +827,10 @@ Public MustInherit Class VGAAdapter
                         Else
                             curValue = 0
                         End If
-                    Else
-                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(2))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(2))
-                    mVRAM(address + planeSize * 2) = curValue And &HFF
+                    mVRAM(address + planeSize * 2) = curValue
                 End If
 
                 If (VGA_SC(2) And 8) <> 0 Then
@@ -859,12 +840,10 @@ Public MustInherit Class VGAAdapter
                         Else
                             curValue = 0
                         End If
-                    Else
-                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(3))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(3))
-                    mVRAM(address + planeSize * 3) = curValue And &HFF
+                    mVRAM(address + planeSize * 3) = curValue
                 End If
 
             Case 1
@@ -881,12 +860,10 @@ Public MustInherit Class VGAAdapter
                         Else
                             curValue = 0
                         End If
-                    Else
-                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(0))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(0))
-                    mVRAM(address + planeSize * 0) = curValue And &HFF
+                    mVRAM(address + planeSize * 0) = curValue
                 End If
 
                 If (VGA_SC(2) & 2) <> 0 Then
@@ -896,8 +873,6 @@ Public MustInherit Class VGAAdapter
                         Else
                             curValue = 0
                         End If
-                    Else
-                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(1))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(1))
@@ -911,12 +886,10 @@ Public MustInherit Class VGAAdapter
                         Else
                             curValue = 0
                         End If
-                    Else
-                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(2))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(2))
-                    mVRAM(address + planeSize * 2) = curValue And &HFF
+                    mVRAM(address + planeSize * 2) = curValue
                 End If
 
                 If (VGA_SC(2) & 8) <> 0 Then
@@ -926,12 +899,10 @@ Public MustInherit Class VGAAdapter
                         Else
                             curValue = 0
                         End If
-                    Else
-                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(3))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(3))
-                    mVRAM(address + planeSize * 3) = curValue And &HFF
+                    mVRAM(address + planeSize * 3) = curValue
                 End If
 
             Case 3
@@ -947,7 +918,7 @@ Public MustInherit Class VGAAdapter
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(0))
                     curValue = ((Not tmp) And curValue) Or (tmp And VGA_latch(0))
-                    mVRAM(address + planeSize * 0) = curValue And &HFF
+                    mVRAM(address + planeSize * 0) = curValue
                 End If
 
                 If (VGA_SC(2) & 2) <> 0 Then
@@ -960,7 +931,7 @@ Public MustInherit Class VGAAdapter
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(1))
                     curValue = ((Not tmp) And curValue) Or (tmp And VGA_latch(1))
-                    mVRAM(address + planeSize * 1) = curValue And &HFF
+                    mVRAM(address + planeSize * 1) = curValue
                 End If
 
                 If (VGA_SC(2) & 4) <> 0 Then
@@ -973,7 +944,7 @@ Public MustInherit Class VGAAdapter
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(2))
                     curValue = ((Not tmp) And curValue) Or (tmp And VGA_latch(2))
-                    mVRAM(address + planeSize * 2) = curValue And &HFF
+                    mVRAM(address + planeSize * 2) = curValue
                 End If
 
                 If (VGA_SC(2) & 8) <> 0 Then
@@ -986,7 +957,7 @@ Public MustInherit Class VGAAdapter
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(3))
                     curValue = ((Not tmp) And curValue) Or (tmp And VGA_latch(3))
-                    mVRAM(address + planeSize * 3) = curValue And &HFF
+                    mVRAM(address + planeSize * 3) = curValue
                 End If
         End Select
     End Sub

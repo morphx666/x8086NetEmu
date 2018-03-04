@@ -317,10 +317,10 @@
                 End If
             End If
 
-            'If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
-            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
-            cursorAddress.Remove(address)
-            'End If
+            If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
+                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
+                cursorAddress.Remove(address)
+            End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then

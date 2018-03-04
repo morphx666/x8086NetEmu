@@ -103,7 +103,7 @@ Public Class FormDebugger
         InitListView(ListViewCode)
         AutoSizeLastColumn(ListViewCode)
         ListViewCode.BackColor = Color.FromArgb(34, 40, 42)
-        ListViewCode.ForeColor = Color.FromArgb(102, 80, 15)
+        ListViewCode.ForeColor = Color.FromArgb(102 + 60, 80 + 20, 15 + 10)
 
         loopWaiter = New AutoResetEvent(False)
         ohpWaiter = New AutoResetEvent(False)
@@ -581,7 +581,7 @@ Public Class FormDebugger
                 item.UseItemStyleForSubItems = False
 
                 item.ForeColor = ListViewCode.ForeColor
-                item.SubItems(1).ForeColor = Color.FromArgb(88, 81, 64)
+                item.SubItems(1).ForeColor = Color.FromArgb(88 + 20, 81 + 20, 64 + 20)
                 item.SubItems(2).ForeColor = Color.FromArgb(97, 175, 99)
                 item.SubItems(3).ForeColor = Color.FromArgb(35 + 20, 87 + 20, 140 + 20)
             End If
@@ -610,7 +610,7 @@ Public Class FormDebugger
             End If
 
             If address = currentCSIP Then
-                item.BackColor = Color.FromArgb(197, 199, 192)
+                item.BackColor = Color.FromArgb(197 / 3, 199 / 3, 192 / 2)
                 item.SubItems(1).BackColor = item.BackColor
                 item.SubItems(2).BackColor = item.BackColor
                 item.SubItems(3).BackColor = item.BackColor
