@@ -285,7 +285,7 @@
     Private curScanLine As Long
     Private cursorPosition As UInteger
 
-    Private useROM As Boolean = True
+    Private useROM As Boolean = True ' FIXME: Enabling ROM support breaks CGA compatibility
 
     Protected lockObject As New Object()
 
@@ -297,10 +297,6 @@
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)
         mCPU = cpu
-
-#If Not DEBUG Then
-        useROM = True
-#End If
 
         If useROM Then
             'mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
@@ -325,8 +321,7 @@
         mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function()
                                                           If mCPU.Registers.AH = 0 OrElse mCPU.Registers.AH = &H10 Then
                                                               VideoMode = mCPU.Registers.AX
-                                                              'If Not useROM Then mCPU.RAM8(&H60, &H410) = &H41
-                                                              'If mCPU.Registers.AH = &H10 Then Return True
+                                                              'If mCPU.Registers.AH = &H10 Then Return False
                                                               Return useROM
                                                           ElseIf mCPU.Registers.AH = &H1A And mCPU.Registers.AL = 0 Then ' Get display combination code (ps, vga/mcga)
                                                               mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
@@ -338,7 +333,7 @@
                                                       End Function))
 
         mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInteger, ByRef value As UInteger, mode As X8086.MemHookMode)
-                                                    If (address >= &HA0000 AndAlso address <= &HBFFFF AndAlso mUseVRAM) Then
+                                                    If mUseVRAM AndAlso (address >= &HA0000 AndAlso address <= &HBFFFF) Then
                                                         If mVideoMode = &H13 AndAlso (VGA_SC(4) And 6) = 0 Then ' Mode 13h with plane mode
                                                             Return False
                                                         Else
@@ -384,7 +379,7 @@
         End Get
     End Property
 
-    Public ReadOnly Property VRAM(address As Integer) As UInteger
+    Public ReadOnly Property VRAM(address As UInteger) As UInteger
         Get
 #If DEBUG Then
             If useROM Then
@@ -650,14 +645,13 @@
                 End Select
 
             Case &H3DA ' Using the CGA timing code appears to solve many problems
+                flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
+
                 Dim t As Long = mCPU.Sched.CurrentTime
                 Dim hRetrace As Boolean = (t Mod ht) <= (ht / 10)
                 Dim vRetrace As Boolean = (t Mod vt) <= (vt / 10)
 
-                CGAStatusRegister(CGAStatusRegisters.display_enable) = hRetrace
-                CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = vRetrace
-
-                Return X8086.BitsArrayToWord(CGAStatusRegister)
+                Return If(hRetrace, 1, 0) Or If(vRetrace, 8, 0)
                 'Return port3DA
 
                 'Case >= &H3D0
@@ -676,11 +670,12 @@
                     VideoMode = 127
                 End If
 
-            Case &H3C0
+            Case &H3C0 ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
                 If flip3C0 Then
                     portRAM(&H3C0) = value
                 Else
                     VGA_ATTR(portRAM(&H3C0)) = value
+                    If portRAM(&H3C0) = &H10 Then mBlinkCharOn = (value And &B100) <> 0
                 End If
                 flip3C0 = Not flip3C0
 
@@ -724,13 +719,17 @@
                 ElseIf portRAM(&H3D4) = &HF Then
                     cursorPosition = (cursorPosition And &HFF00) Or value
                 End If
+                cursorPosition = cursorPosition And &HFFFF
                 mCursorRow = cursorPosition / mTextResolution.Width
                 mCursorCol = cursorPosition Mod mTextResolution.Width
 
                 mCursorVisible = (VGA_CRTC(&HA) And &H20) = 0
 
-            Case &H3CE ', &H3CF
+            Case &H3CE
                 VGA_GC(portRAM(&H3CE)) = value And &HF
+
+            Case &H3CF
+                VGA_GC(portRAM(&H3CE)) = value
 
                 'Case >= &H3D0
                 '    MyBase.Out(port, value)
@@ -839,14 +838,14 @@
                 End If
 
             Case 1
-                If (VGA_SC(2) & 1) <> 0 Then mVRAM(address + planeSize * 0) = VGA_latch(0)
-                If (VGA_SC(2) & 2) <> 0 Then mVRAM(address + planeSize * 1) = VGA_latch(1)
-                If (VGA_SC(2) & 4) <> 0 Then mVRAM(address + planeSize * 2) = VGA_latch(2)
-                If (VGA_SC(2) & 8) <> 0 Then mVRAM(address + planeSize * 3) = VGA_latch(3)
+                If (VGA_SC(2) And 1) <> 0 Then mVRAM(address + planeSize * 0) = VGA_latch(0)
+                If (VGA_SC(2) And 2) <> 0 Then mVRAM(address + planeSize * 1) = VGA_latch(1)
+                If (VGA_SC(2) And 4) <> 0 Then mVRAM(address + planeSize * 2) = VGA_latch(2)
+                If (VGA_SC(2) And 8) <> 0 Then mVRAM(address + planeSize * 3) = VGA_latch(3)
 
             Case 2
-                If (VGA_SC(2) & 1) <> 0 Then
-                    If (VGA_GC(1) & 1) <> 0 Then
+                If (VGA_SC(2) And 1) <> 0 Then
+                    If (VGA_GC(1) And 1) <> 0 Then
                         If (value And 1) <> 0 Then
                             curValue = 255
                         Else
@@ -858,8 +857,8 @@
                     mVRAM(address + planeSize * 0) = curValue
                 End If
 
-                If (VGA_SC(2) & 2) <> 0 Then
-                    If (VGA_GC(1) & 2) <> 0 Then
+                If (VGA_SC(2) And 2) <> 0 Then
+                    If (VGA_GC(1) And 2) <> 0 Then
                         If (value And 2) <> 0 Then
                             curValue = 255
                         Else
@@ -871,8 +870,8 @@
                     mVRAM(address + planeSize * 1) = curValue
                 End If
 
-                If (VGA_SC(2) & 4) <> 0 Then
-                    If (VGA_GC(1) & 4) <> 0 Then
+                If (VGA_SC(2) And 4) <> 0 Then
+                    If (VGA_GC(1) And 4) <> 0 Then
                         If (value And 4) <> 0 Then
                             curValue = 255
                         Else
@@ -884,8 +883,8 @@
                     mVRAM(address + planeSize * 2) = curValue
                 End If
 
-                If (VGA_SC(2) & 8) <> 0 Then
-                    If (VGA_GC(1) & 8) <> 0 Then
+                If (VGA_SC(2) And 8) <> 0 Then
+                    If (VGA_GC(1) And 8) <> 0 Then
                         If (value And 8) <> 0 Then
                             curValue = 255
                         Else
@@ -900,8 +899,8 @@
             Case 3
                 Dim tmp As UInteger = value And VGA_GC(8)
 
-                If (VGA_SC(2) & 1) <> 0 Then
-                    If (VGA_GC(0) & 1) <> 0 Then
+                If (VGA_SC(2) And 1) <> 0 Then
+                    If (VGA_GC(0) And 1) <> 0 Then
                         If (value And 1) <> 0 Then
                             curValue = 255
                         Else
@@ -913,8 +912,8 @@
                     mVRAM(address + planeSize * 0) = curValue
                 End If
 
-                If (VGA_SC(2) & 2) <> 0 Then
-                    If (VGA_GC(0) & 2) <> 0 Then
+                If (VGA_SC(2) And 2) <> 0 Then
+                    If (VGA_GC(0) And 2) <> 0 Then
                         If (value And 2) <> 0 Then
                             curValue = 255
                         Else
@@ -926,8 +925,8 @@
                     mVRAM(address + planeSize * 1) = curValue
                 End If
 
-                If (VGA_SC(2) & 4) <> 0 Then
-                    If (VGA_GC(0) & 4) <> 0 Then
+                If (VGA_SC(2) And 4) <> 0 Then
+                    If (VGA_GC(0) And 4) <> 0 Then
                         If (value And 4) <> 0 Then
                             curValue = 255
                         Else
@@ -939,8 +938,8 @@
                     mVRAM(address + planeSize * 2) = curValue
                 End If
 
-                If (VGA_SC(2) & 8) <> 0 Then
-                    If (VGA_GC(0) & 8) <> 0 Then
+                If (VGA_SC(2) And 8) <> 0 Then
+                    If (VGA_GC(0) And 8) <> 0 Then
                         If (value And 8) <> 0 Then
                             curValue = 255
                         Else

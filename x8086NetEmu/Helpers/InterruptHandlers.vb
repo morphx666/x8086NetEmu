@@ -29,7 +29,7 @@ Partial Public Class X8086
     End Sub
 
     Private Sub HandleInterrupt(intNum As Byte, isHard As Boolean)
-        'FlushCycles()
+        'FlushCycles() ' Not calling FlushCycles provides a considerable performance boost
 
         If Not (intHooks.ContainsKey(intNum) AndAlso intHooks(intNum).Invoke()) Then
             PushIntoStack(mFlags.EFlags)
@@ -45,7 +45,7 @@ Partial Public Class X8086
             IPAddrOff = RAM16(0, intOffset)
             mRegisters.CS = RAM16(0, AddValues(intOffset, 2, DataSize.Word))
 
-            If intNum = 0 Then ThrowException("Division by Zero")
+            If intNum = 0 Then Throw New DivideByZeroException()
         End If
 
         mFlags.IF = 0

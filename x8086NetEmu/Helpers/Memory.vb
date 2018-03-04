@@ -496,6 +496,7 @@
         End Get
         Set(value As Byte)
             'If address >= ROMStart OrElse Memory(address) = value Then Exit Property
+            If address >= ROMStart Then Exit Property
 
             For i As Integer = 0 To memHooks.Count - 1
                 If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property

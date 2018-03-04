@@ -191,8 +191,8 @@
     Private Sub RenderGraphics()
         Dim b As Byte
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
-        Dim usePal As Integer = (portRAM(&H3D9 - &H3C0) >> 5) & 1
-        Dim intensity As Integer = ((portRAM(&H3D9 - &H3C0) >> 4) & 1) << 3
+        Dim usePal As Integer = (portRAM(&H3D9 - &H3C0) >> 5) And 1
+        Dim intensity As Integer = ((portRAM(&H3D9 - &H3C0) >> 4) And 1) << 3
 
         ' For mode &h12 and &h13
         Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
@@ -250,7 +250,7 @@
 
                     Case &H13
                         If planeMode Then
-                            address = (y * mVideoResolution.Width + x) / 4 + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And 15)
+                            address = ((y * mVideoResolution.Width + x) >> 2) + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And 15)
                             b = VRAM(address)
                         Else
                             b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)

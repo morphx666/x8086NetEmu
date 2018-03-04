@@ -262,18 +262,18 @@
     End Function
 
     Private Sub SendToPort(portAddress As UInteger, value As UInteger)
-        FlushCycles()
-
         If portsCache.ContainsKey(portAddress) Then
             portsCache(portAddress).Out(portAddress, value)
+            'FlushCycles()
             Exit Sub
         Else
             For Each p As IOPortHandler In mPorts
                 If p.ValidPortAddress.Contains(portAddress) Then
                     p.Out(portAddress, value)
-                    X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToHex(DataSize.Byte).TrimEnd("h"), portAddress.ToHex(DataSize.Word).TrimEnd("h"), p.Name), NotificationReasons.Info)
+                    X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, p)
+                    'FlushCycles()
                     Exit Sub
                 End If
             Next
@@ -281,9 +281,10 @@
             For Each a As Adapter In mAdapters
                 If a.ValidPortAddress.Contains(portAddress) Then
                     a.Out(portAddress, value)
-                    X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToHex(DataSize.Byte).TrimEnd("h"), portAddress.ToHex(DataSize.Word).TrimEnd("h"), a.Name), NotificationReasons.Info)
+                    X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2").TrimEnd("h"), portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, a)
+                    'FlushCycles()
                     Exit Sub
                 End If
             Next
@@ -293,25 +294,26 @@
     End Sub
 
     Private Function ReceiveFromPort(portAddress As UInteger) As UInteger
-        FlushCycles()
-
         If portsCache.ContainsKey(portAddress) Then
+            FlushCycles()
             Return portsCache(portAddress).In(portAddress)
         Else
             For Each p As IOPortHandler In mPorts
                 If p.ValidPortAddress.Contains(portAddress) Then
-                    X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToHex(DataSize.Word).TrimEnd("h"), p.Name), NotificationReasons.Info)
+                    X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, p)
+                    FlushCycles()
                     Return p.In(portAddress)
                 End If
             Next
 
             For Each a As Adapter In mAdapters
                 If a.ValidPortAddress.Contains(portAddress) Then
-                    X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToHex(DataSize.Word).TrimEnd("h"), a.Name), NotificationReasons.Info)
+                    X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, a)
+                    FlushCycles()
                     Return a.In(portAddress)
                 End If
             Next

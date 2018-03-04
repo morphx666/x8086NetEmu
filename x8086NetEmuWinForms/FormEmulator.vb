@@ -216,7 +216,7 @@ Public Class FormEmulator
                                     sysMenIntegercut,
                                     cpu.Clock / X8086.MHz,
                                     cpu.SimulationMultiplier * 100,
-                                    $"{cpu.VideoAdapter.Name.Split(" "c)(0)} Mode {cpu.VideoAdapter.VideoMode:X2} | Zoom {cpu.VideoAdapter.Zoom * 100}%",
+                                    $"{cpu.VideoAdapter.Name.Split(" "c)(0)} Mode {cpu.VideoAdapter.VideoMode:X2}{If(cpu.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, "🅣", "🅖")} | Zoom {cpu.VideoAdapter.Zoom * 100}%",
                                     cpu.MIPs,
                                     If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", If(cpu.IsPaused, "Paused", "Running"))),
                                     If(runningApp <> "", $" | {runningApp}", ""))

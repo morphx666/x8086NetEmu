@@ -137,7 +137,7 @@ Public Class CGAConsole
         isRendering = False
     End Sub
 
-    Private Sub RenderGraphics()
+    Private Sub RenderGraphics() ' This is cool, I guess, but completely useless...
         Dim b As Byte
         Dim address As UInteger
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
