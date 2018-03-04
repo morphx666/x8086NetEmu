@@ -1,91 +1,8 @@
 ﻿Public Class VGAWinForms
     Inherits VGAAdapter
 
-    Private Class CGAChar
-        Private mCGAChar As Integer
-        Private mForeColor As Color
-        Private mBackColor As Color
-        Private mBitmap As DirectBitmap
-
-        Public Sub New(c As Integer, fb As Color, bb As Color)
-            mCGAChar = c
-            mForeColor = fb
-            mBackColor = bb
-        End Sub
-
-        Public ReadOnly Property CGAChar As Integer
-            Get
-                Return mCGAChar
-            End Get
-        End Property
-
-        Public ReadOnly Property ForeColor As Color
-            Get
-                Return mForeColor
-            End Get
-        End Property
-
-        Public ReadOnly Property BackColor As Color
-            Get
-                Return mBackColor
-            End Get
-        End Property
-
-        Public Sub Paint(dbmp As DirectBitmap, p As Point, scale As SizeF)
-            Dim w4s As Integer = mBitmap.Width * 4
-            Dim w4d As Integer = dbmp.Width * 4
-            p.X *= 4
-            For y As Integer = 0 To mBitmap.Height - 1
-                Array.Copy(mBitmap.Bits, y * w4s, dbmp.Bits, (y + p.Y) * w4d + p.X, w4s)
-            Next
-        End Sub
-
-        Public Sub Render(cellSize As Size)
-            If mBitmap Is Nothing Then
-                mBitmap = New DirectBitmap(cellSize.Width, cellSize.Height)
-
-                For y As Integer = 0 To cellSize.Height - 1
-                    For x As Integer = 0 To cellSize.Width - 1
-                        If x > 7 OrElse y > 15 Then
-                            mBitmap.Pixel(x, y) = mBackColor
-                        Else
-                            If fontBitmaps(mCGAChar * 128 + y * 8 + x) = 1 Then
-                                mBitmap.Pixel(x, y) = mForeColor
-                            Else
-                                mBitmap.Pixel(x, y) = mBackColor
-                            End If
-                        End If
-                    Next
-                Next
-            End If
-        End Sub
-
-        Public Shared Operator =(c1 As CGAChar, c2 As CGAChar) As Boolean
-            Return c1.CGAChar = c2.CGAChar AndAlso
-                    c1.ForeColor = c2.ForeColor AndAlso
-                    c1.BackColor = c2.BackColor
-        End Operator
-
-        Public Shared Operator <>(c1 As CGAChar, c2 As CGAChar) As Boolean
-            Return Not (c1 = c2)
-        End Operator
-
-        Public Overrides Function Equals(obj As Object) As Boolean
-            Return Me = CType(obj, CGAChar)
-        End Function
-
-        Public Overrides Function ToString() As String
-            Return String.Format("{0:000} [{1:000}:{2:000}:{3:000}] [{4:000}:{5:000}:{6:000}]",
-                                 mCGAChar,
-                                 mForeColor.R,
-                                 mForeColor.G,
-                                 mForeColor.B,
-                                 mBackColor.R,
-                                 mBackColor.G,
-                                 mBackColor.B)
-        End Function
-    End Class
-    Private cgaCharsCache As New List(Of CGAChar)
+    Private charsCache As New List(Of VideoChar)
+    Private charSizeCache As New Dictionary(Of Integer, Size)
     Private videoBMP As DirectBitmap
 
     Private cursorSize As Size
@@ -97,14 +14,11 @@
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
     Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
-    Private charSizeCache As New Dictionary(Of Integer, Size)
-
     Private brushCache(CGAPalette.Length - 1) As Color
     Private cursorBrush As Color = Color.FromArgb(128, Color.White)
     Private cursorYOffset As Integer
 
-    Private Shared fontBitmaps() As Byte
-    Private useBitmapFont As Boolean
+    Private fontSourceMode As FontSources
     Private g As Graphics
 
     Private scale As New SizeF(1, 1)
@@ -135,9 +49,9 @@
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Public Sub New(cpu As X8086, renderControl As Control, Optional tryUseCGAFont As Boolean = True)
+    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "")
         MyBase.New(cpu)
-        useBitmapFont = tryUseCGAFont
+        fontSourceMode = fontSource
         mCPU = cpu
         Me.RenderControl = renderControl
 
@@ -148,26 +62,29 @@
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs) OnMouseMove(Me, e)
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, e)
 
-        Dim fontCGAPath As String = X8086.FixPath("roms\asciivga.dat")
+        Dim fontCGAPath As String = X8086.FixPath("roms\" + bitmapFontFile)
         Dim fontCGAError As String = ""
 
-        If useBitmapFont Then
-            If IO.File.Exists(fontCGAPath) Then
-                Try
-                    fontBitmaps = IO.File.ReadAllBytes(fontCGAPath)
-                Catch ex As Exception
-                    fontCGAError = ex.Message
-                    useBitmapFont = False
-                End Try
-            Else
-                fontCGAError = "File not found"
-                useBitmapFont = False
-            End If
-        End If
+        Select Case fontSource
+            Case FontSources.BitmapFile
+                If IO.File.Exists(fontCGAPath) Then
+                    Try
+                        VideoChar.FontBitmaps = IO.File.ReadAllBytes(fontCGAPath)
+                    Catch ex As Exception
+                        fontCGAError = ex.Message
+                        fontSourceMode = FontSources.TrueType
+                    End Try
+                Else
+                    fontCGAError = "File not found"
+                    fontSourceMode = FontSources.TrueType
+                End If
+            Case FontSources.ROM
+                VideoChar.BuildFontBitmapsFromROM(8, 16, 14, &HC0000 + &H32B4 - 6, mCPU.Memory)
+        End Select
 
-        If Not useBitmapFont Then
+        If fontSourceMode = FontSources.TrueType Then
             If mFont.Name <> preferredFont Then
-                MsgBox(If(useBitmapFont, "ASCII VGA Font Data not found at '" + fontCGAPath + "'" + If(fontCGAError <> "", ": " + fontCGAError, "") +
+                MsgBox(If(fontSource = FontSources.BitmapFile, "ASCII VGA Font Data not found at '" + fontCGAPath + "'" + If(fontCGAError <> "", ": " + fontCGAError, "") +
                        vbCrLf + vbCrLf, "") +
                        "CGAWinForms requires the '" + preferredFont + "' font. Please install it before using this adapter", MsgBoxStyle.Information Or MsgBoxStyle.OkOnly)
                 mFont = New Font("Consolas", 16, FontStyle.Regular, GraphicsUnit.Pixel)
@@ -442,22 +359,22 @@
     End Function
 
     Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
-        If useBitmapFont Then
-            Dim ccc As New CGAChar(c, fb, bb)
-            Dim idx As Integer = cgaCharsCache.IndexOf(ccc)
-            If idx = -1 Then
-                ccc.Render(CellSize)
-                cgaCharsCache.Add(ccc)
-                idx = cgaCharsCache.Count - 1
-            End If
-            cgaCharsCache(idx).Paint(dbmp, p, scale)
-        Else
+        If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
                 g.FillRectangle(bbb, New Rectangle(p, CellSize))
                 Using bfb As New SolidBrush(fb)
                     g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - CellSize.Width / 2 + 2, p.Y)
                 End Using
             End Using
+        Else
+            Dim ccc As New VideoChar(c, fb, bb)
+            Dim idx As Integer = charsCache.IndexOf(ccc)
+            If idx = -1 Then
+                ccc.Render(CellSize.Width, CellSize.Height)
+                charsCache.Add(ccc)
+                idx = charsCache.Count - 1
+            End If
+            charsCache(idx).Paint(dbmp, p, scale)
         End If
     End Sub
 
@@ -488,26 +405,28 @@
     Private Function MeasureChar(graphics As Graphics, code As Integer, text As Char, font As Font) As Size
         Dim size As Size
 
-        If useBitmapFont Then
-            size = New Size(8, 16)
-            charSizeCache.Add(code, size)
-        Else
-            If charSizeCache.ContainsKey(code) Then Return charSizeCache(code)
+        Select Case fontSourceMode
+            Case FontSources.BitmapFile
+                charSizeCache.Add(code, CellSize)
+            Case FontSources.TrueType
+                If charSizeCache.ContainsKey(code) Then Return charSizeCache(code)
 
-            Dim rect As RectangleF = New RectangleF(0, 0, 1000, 1000)
-            Dim ranges() As CharacterRange = {New CharacterRange(0, 1)}
-            Dim regions() As Region = {New Region()}
+                Dim rect As RectangleF = New RectangleF(0, 0, 1000, 1000)
+                Dim ranges() As CharacterRange = {New CharacterRange(0, 1)}
+                Dim regions() As Region = {New Region()}
 
-            textFormat.SetMeasurableCharacterRanges(ranges)
+                textFormat.SetMeasurableCharacterRanges(ranges)
 
-            regions = graphics.MeasureCharacterRanges(text, font, rect, textFormat)
-            rect = regions(0).GetBounds(graphics)
+                regions = graphics.MeasureCharacterRanges(text, font, rect, textFormat)
+                rect = regions(0).GetBounds(graphics)
 
-            size = New Size(rect.Right - 1, rect.Bottom)
-            charSizeCache.Add(code, size)
-        End If
+                size = New Size(rect.Right - 1, rect.Bottom)
+                charSizeCache.Add(code, size)
+            Case FontSources.ROM
+                charSizeCache.Add(code, CellSize)
+        End Select
 
-        Return size
+        Return CellSize
     End Function
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
@@ -523,7 +442,7 @@
                 End Using
             End If
 
-            cgaCharsCache.Clear()
+            charsCache.Clear()
 
             If videoBMP IsNot Nothing Then videoBMP.Dispose()
             If GraphicsResolution.Width = 0 Then
@@ -532,7 +451,7 @@
                 videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
             End If
 
-            If Not useBitmapFont Then
+            If fontSourceMode = FontSources.TrueType Then
                 If g IsNot Nothing Then g.Dispose()
                 g = Graphics.FromImage(videoBMP)
             End If

@@ -278,7 +278,7 @@ Public MustInherit Class VGAAdapter
     Protected portRAM(&H10000 - 1) As UInteger
     Private tempRGB As UInteger
     Private mVGAPalette(VGABasePalette.Length - 1) As UInteger
-    Private mCellSize As New Size(8, 8)
+    Protected mCellSize As New Size(8, 8)
     Private mUseVRAM As Boolean
 
     'Private port3DA As UInteger

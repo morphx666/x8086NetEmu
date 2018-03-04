@@ -1,7 +1,11 @@
-﻿Imports x8086NetEmu
-
-Public MustInherit Class VideoAdapter
+﻿Public MustInherit Class VideoAdapter
     Inherits Adapter
+
+    Public Enum FontSources
+        TrueType
+        BitmapFile
+        ROM
+    End Enum
 
     Public Enum MainModes
         Unknown = -1
