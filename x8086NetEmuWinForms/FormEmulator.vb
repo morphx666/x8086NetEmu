@@ -156,13 +156,13 @@ Public Class FormEmulator
 
     Private Sub CopyTextFromEmulator()
         If isSelectingText Then Exit Sub
-        If TypeOf cpu.VideoAdapter Is CGAWinForms Then
+        If TypeOf cpu.VideoAdapter Is CGAWinForms OrElse TypeOf cpu.VideoAdapter Is VGAWinForms Then
             CursorVisible = True
             Me.Cursor = Cursors.IBeam
             cpu.Pause()
             isSelectingText = True
         Else
-            MsgBox("Text copying is only supported on CGAWinForms video adapters", MsgBoxStyle.Information)
+            MsgBox("Text copying is only supported on CGAWinForms and VGAWinForms video adapters", MsgBoxStyle.Information)
         End If
     End Sub
 
@@ -333,12 +333,10 @@ Public Class FormEmulator
     End Sub
 
     Private Sub SetupVideoPortEventHandlers()
-        If Not TypeOf cpu.VideoAdapter Is CGAWinForms Then Exit Sub
+        If Not (TypeOf cpu.VideoAdapter Is CGAWinForms OrElse TypeOf cpu.VideoAdapter Is VGAWinForms) Then Exit Sub
 
         AddHandler videoPort.MouseUp, Sub(s As Object, e As MouseEventArgs)
                                           If e.Button = MouseButtons.Left AndAlso isLeftMouseButtonDown Then
-                                              Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
-
                                               Me.Cursor = Cursors.Default
 
                                               Dim c As Integer
@@ -348,8 +346,8 @@ Public Class FormEmulator
                                               Dim fromRow As Integer = Math.Min(fromColRow.Y, toColRow.Y)
                                               Dim toRow As Integer = Math.Max(fromColRow.Y, toColRow.Y)
                                               For row As Integer = fromRow To toRow
-                                                  For col As Integer = If(row = fromRow, fromCol, 0) To If(row = toRow, toCol, cgawf.TextResolution.Width) - 1
-                                                      c = cpu.Memory(cgawf.ColRowToAddress(col, row))
+                                                  For col As Integer = If(row = fromRow, fromCol, 0) To If(row = toRow, toCol, cpu.VideoAdapter.TextResolution.Width) - 1
+                                                      c = cpu.Memory(cpu.VideoAdapter.ColRowToAddress(col, row))
                                                       text += If(c >= 32, Convert.ToChar(c), " ")
                                                   Next
                                                   text += Environment.NewLine
@@ -364,15 +362,14 @@ Public Class FormEmulator
 
         AddHandler videoPort.MouseDown, Sub(s As Object, e As MouseEventArgs)
                                             If e.Button = MouseButtons.Left AndAlso isSelectingText Then
-                                                Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
-                                                If cgawf.MainMode <> CGAAdapter.MainModes.Text Then
+                                                If cpu.VideoAdapter.MainMode <> CGAAdapter.MainModes.Text Then
                                                     MsgBox("Text copying is only supported in Text video modes", MsgBoxStyle.Information)
                                                     isSelectingText = False
                                                     Exit Sub
                                                 End If
 
-                                                fromColRow = New Point(e.X / videoPort.Width * cgawf.TextResolution.Width,
-                                                                       e.Y / videoPort.Height * cgawf.TextResolution.Height)
+                                                fromColRow = New Point(e.X / videoPort.Width * cpu.VideoAdapter.TextResolution.Width,
+                                                                       e.Y / videoPort.Height * cpu.VideoAdapter.TextResolution.Height)
                                                 toColRow = fromColRow
                                                 isLeftMouseButtonDown = True
                                             End If
@@ -380,28 +377,26 @@ Public Class FormEmulator
 
         AddHandler videoPort.MouseMove, Sub(s As Object, e As MouseEventArgs)
                                             If isLeftMouseButtonDown Then
-                                                Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
-                                                toColRow = New Point(e.X / videoPort.Width * cgawf.TextResolution.Width,
-                                                                     e.Y / videoPort.Height * cgawf.TextResolution.Height)
+                                                toColRow = New Point(e.X / videoPort.Width * cpu.VideoAdapter.TextResolution.Width,
+                                                                     e.Y / videoPort.Height * cpu.VideoAdapter.TextResolution.Height)
                                             End If
                                         End Sub
 
-        AddHandler CType(cpu.VideoAdapter, CGAWinForms).PostRender, Sub(sender As Object, e As PaintEventArgs)
-                                                                        If isLeftMouseButtonDown Then
-                                                                            Dim cgawf As CGAWinForms = CType(cpu.VideoAdapter, CGAWinForms)
-                                                                            Dim fromCol As Integer = Math.Min(fromColRow.X, toColRow.X)
-                                                                            Dim toCol As Integer = Math.Max(fromColRow.X, toColRow.X)
-                                                                            Dim fromRow As Integer = Math.Min(fromColRow.Y, toColRow.Y)
-                                                                            Dim toRow As Integer = Math.Max(fromColRow.Y, toColRow.Y)
-                                                                            Using sb As New SolidBrush(Color.FromArgb(128, Color.DarkSlateBlue))
-                                                                                For row As Integer = fromRow To toRow
-                                                                                    For col As Integer = If(row = fromRow, fromCol, 0) To If(row = toRow, toCol, cgawf.TextResolution.Width) - 1
-                                                                                        e.Graphics.FillRectangle(sb, cgawf.ColRowToRectangle(col, row))
-                                                                                    Next
-                                                                                Next
-                                                                            End Using
-                                                                        End If
-                                                                    End Sub
+        AddHandler cpu.VideoAdapter.PostRender, Sub(sender As Object, e As PaintEventArgs)
+                                                    If isLeftMouseButtonDown Then
+                                                        Dim fromCol As Integer = Math.Min(fromColRow.X, toColRow.X)
+                                                        Dim toCol As Integer = Math.Max(fromColRow.X, toColRow.X)
+                                                        Dim fromRow As Integer = Math.Min(fromColRow.Y, toColRow.Y)
+                                                        Dim toRow As Integer = Math.Max(fromColRow.Y, toColRow.Y)
+                                                        Using sb As New SolidBrush(Color.FromArgb(128, Color.DarkSlateBlue))
+                                                            For row As Integer = fromRow To toRow
+                                                                For col As Integer = If(row = fromRow, fromCol, 0) To If(row = toRow, toCol, cpu.VideoAdapter.TextResolution.Width) - 1
+                                                                    e.Graphics.FillRectangle(sb, cpu.VideoAdapter.ColRowToRectangle(col, row))
+                                                                Next
+                                                            Next
+                                                        End Using
+                                                    End If
+                                                End Sub
 
         AddHandler videoPort.MouseEnter, Sub() ContextMenuStripMain.Hide()
 

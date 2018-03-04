@@ -15,6 +15,8 @@
 
     Public Event KeyDown(sender As Object, e As KeyEventArgs)
     Public Event KeyUp(sender As Object, e As KeyEventArgs)
+    Public Event PreRender(sender As Object, e As PaintEventArgs)
+    Public Event PostRender(sender As Object, e As PaintEventArgs)
 
     Public Overrides ReadOnly Property Type As AdapterType
         Get
@@ -50,6 +52,7 @@
 
     Protected mTextResolution As Size = New Size(40, 25)
     Protected mVideoResolution As Size = New Size(0, 0)
+    Protected mCellSize As Size
 
     Private Memory(X8086.MemSize - 1) As Boolean
 
@@ -59,6 +62,14 @@
 
     Protected Overridable Sub OnKeyUp(sender As Object, e As KeyEventArgs)
         RaiseEvent KeyUp(sender, e)
+    End Sub
+
+    Protected Overridable Sub OnPreRender(sender As Object, e As PaintEventArgs)
+        RaiseEvent PreRender(sender, e)
+    End Sub
+
+    Protected Overridable Sub OnPostRender(sender As Object, e As PaintEventArgs)
+        RaiseEvent PostRender(sender, e)
     End Sub
 
     Public ReadOnly Property StartGraphicsVideoAddress As Integer
@@ -97,6 +108,12 @@
         End Get
     End Property
 
+    Public ReadOnly Property CellSize As Size
+        Get
+            Return mCellSize
+        End Get
+    End Property
+
     Public Property IsDirty(address As UInteger) As Boolean
         Get
             Dim r As Boolean = Memory(address)
@@ -113,4 +130,12 @@
             Return mMainMode
         End Get
     End Property
+
+    Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
+        Return New Rectangle(New Point(col * mCellSize.Width, row * mCellSize.Height), mCellSize)
+    End Function
+
+    Public Function ColRowToAddress(col As Integer, row As Integer) As Integer
+        Return StartTextVideoAddress + row * (TextResolution.Width * 2) + (col * 2)
+    End Function
 End Class

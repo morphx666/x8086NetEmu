@@ -8,7 +8,6 @@ Public Class CGAWinForms
     Private charSizeCache As New Dictionary(Of Integer, Size)
     Private videoBMP As DirectBitmap = New DirectBitmap(1, 1)
 
-    Private charSize As Size
     Private blinkCounter As Integer
     Private frameRate As Integer = 30
     Private cursorAddress As New List(Of Integer)
@@ -28,9 +27,6 @@ Public Class CGAWinForms
     Private mCPU As X8086
     Private mRenderControl As Control
     Private mHideHostCursor As Boolean = True
-
-    Public Event PreRender(sender As Object, e As PaintEventArgs)
-    Public Event PostRender(sender As Object, e As PaintEventArgs)
 
     Private Class TaskSC
         Inherits Scheduler.Task
@@ -72,7 +68,7 @@ Public Class CGAWinForms
                 If IO.File.Exists(fontCGAPath) Then
                     Try
                         VideoChar.FontBitmaps = IO.File.ReadAllBytes(fontCGAPath)
-                        charSize = New Size(8, 16)
+                        mCellSize = New Size(8, 16)
                     Catch ex As Exception
                         fontCGAError = ex.Message
                         fontSourceMode = FontSources.TrueType
@@ -83,7 +79,7 @@ Public Class CGAWinForms
                 End If
             Case FontSources.ROM
                 VideoChar.BuildFontBitmapsFromROM(8, 8, 8, &HFE00 + &H1A6E, mCPU.Memory)
-                charSize = New Size(8, 8)
+                mCellSize = New Size(8, 8)
         End Select
 
         If fontSourceMode = FontSources.TrueType Then
@@ -160,7 +156,7 @@ Public Class CGAWinForms
 
         If MainMode = MainModes.Text Then
             '    'Using g As Graphics = mRenderControl.CreateGraphics()
-            ctrlSize = New Size(charSize.Width * TextResolution.Width, charSize.Height * TextResolution.Height)
+            ctrlSize = New Size(mCellSize.Width * TextResolution.Width, mCellSize.Height * TextResolution.Height)
             '    'End Using
         Else
             ctrlSize = New Size(GraphicsResolution.Width, GraphicsResolution.Height)
@@ -169,7 +165,7 @@ Public Class CGAWinForms
         Dim frmSize = New Size(640 * Zoom, 400 * Zoom)
         mRenderControl.FindForm.ClientSize = frmSize
         mRenderControl.Size = frmSize
-        If charSize.Width = 0 OrElse charSize.Height = 0 Then Exit Sub
+        If mCellSize.Width = 0 OrElse mCellSize.Height = 0 Then Exit Sub
 
         scale = New SizeF(frmSize.Width / ctrlSize.Width, frmSize.Height / ctrlSize.Height)
     End Sub
@@ -183,13 +179,13 @@ Public Class CGAWinForms
 
         g.ScaleTransform(scale.Width, scale.Height)
 
-        RaiseEvent PreRender(sender, e)
+        OnPreRender(sender, e)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
         g.DrawImageUnscaled(videoBMP, 0, 0)
 
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
-        RaiseEvent PostRender(sender, e)
+        OnPostRender(sender, e)
 
         'RenderWaveform(g)
     End Sub
@@ -221,7 +217,7 @@ Public Class CGAWinForms
         Dim col As Integer = 0
         Dim row As Integer = 0
 
-        Dim r As New Rectangle(Point.Empty, charSize)
+        Dim r As New Rectangle(Point.Empty, mCellSize)
 
         For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
             b0 = mCPU.Memory(address)
@@ -240,8 +236,8 @@ Public Class CGAWinForms
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
-                                           r.X + 0, r.Y - 1 + charSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
-                                           charSize.Width, (MyBase.CursorEnd - MyBase.CursorStart) + 1)
+                                           r.X + 0, r.Y - 1 + mCellSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
+                                           mCellSize.Width, (MyBase.CursorEnd - MyBase.CursorStart) + 1)
                     cursorAddress.Add(address)
                 End If
 
@@ -252,7 +248,7 @@ Public Class CGAWinForms
                 End If
             End If
 
-            r.X += charSize.Width
+            r.X += mCellSize.Width
             col += 1
             If col = TextResolution.Width Then
                 col = 0
@@ -260,7 +256,7 @@ Public Class CGAWinForms
                 If row = TextResolution.Height Then Exit For
 
                 r.X = 0
-                r.Y += charSize.Height
+                r.Y += mCellSize.Height
             End If
         Next
     End Sub
@@ -292,27 +288,19 @@ Public Class CGAWinForms
         Next
     End Sub
 
-    Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
-        Return New Rectangle(New Point(col * charSize.Width, row * charSize.Height), charSize)
-    End Function
-
-    Public Function ColRowToAddress(col As Integer, row As Integer) As Integer
-        Return StartTextVideoAddress + row * (TextResolution.Width * 2) + (col * 2)
-    End Function
-
     Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
-                g.FillRectangle(bbb, New Rectangle(p, charSize))
+                g.FillRectangle(bbb, New Rectangle(p, mCellSize))
                 Using bfb As New SolidBrush(fb)
-                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - charSize.Width / 2 + 2, p.Y)
+                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - mCellSize.Width / 2 + 2, p.Y)
                 End Using
             End Using
         Else
             Dim ccc As New VideoChar(c, fb, bb)
             Dim idx As Integer = charsCache.IndexOf(ccc)
             If idx = -1 Then
-                ccc.Render(charSize.Width, charSize.Height)
+                ccc.Render(mCellSize.Width, mCellSize.Height)
                 charsCache.Add(ccc)
                 idx = charsCache.Count - 1
             End If
@@ -351,7 +339,7 @@ Public Class CGAWinForms
 
         Select Case fontSourceMode
             Case FontSources.BitmapFile
-                charSizeCache.Add(code, charSize)
+                charSizeCache.Add(code, mCellSize)
             Case FontSources.TrueType
                 If charSizeCache.ContainsKey(code) Then Return charSizeCache(code)
 
@@ -449,7 +437,7 @@ Public Class CGAWinForms
             End If
 
             ' Monospace... duh!
-            charSize = charSizeCache(65)
+            mCellSize = charSizeCache(65)
 
             If videoBMP IsNot Nothing Then videoBMP.Dispose()
             Select Case MainMode

@@ -276,7 +276,6 @@
     Protected portRAM(&H10000 - 1) As UInteger
     Private tempRGB As UInteger
     Private mVGAPalette(VGABasePalette.Length - 1) As UInteger
-    Protected mCellSize As New Size(8, 8)
     Private mUseVRAM As Boolean
 
     'Private port3DA As UInteger
@@ -304,10 +303,8 @@
 #End If
 
         If useROM Then
-            mCPU.LoadBIN("roms\ET4000.BIN", &HC000, &H0)
-            'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-            'mCPU.LoadBIN("..\..\Other Emulators & Resources\xtbios31\test\ET4000.BIN", &HC000, &H0)
-            'mCPU.LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
+            'mCPU.LoadBIN("roms\ET4000.BIN", &HC000, &H0)
+            mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
         End If
 
         ValidPortAddress.Clear()
@@ -397,12 +394,6 @@
 #Else
             Return mVRAM(address)
 #End If
-        End Get
-    End Property
-
-    Public ReadOnly Property CellSize As Size
-        Get
-            Return mCellSize
         End Get
     End Property
 

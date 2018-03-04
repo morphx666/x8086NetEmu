@@ -27,9 +27,6 @@
     Private mRenderControl As Control
     Private mHideHostCursor As Boolean = True
 
-    Public Event PreRender(sender As Object, e As PaintEventArgs)
-    Public Event PostRender(sender As Object, e As PaintEventArgs)
-
     Private Class TaskSC
         Inherits Scheduler.Task
 
@@ -170,7 +167,7 @@
 
         g.ScaleTransform(scale.Width, scale.Height)
 
-        RaiseEvent PreRender(sender, e)
+        OnPreRender(sender, e)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
         Try
@@ -186,7 +183,7 @@
         g.DrawImageUnscaled(videoBMP, 0, 0)
 
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
-        RaiseEvent PostRender(sender, e)
+        OnPostRender(sender, e)
 
         'RenderWaveform(g)
     End Sub
@@ -349,14 +346,6 @@
             End If
         Next
     End Sub
-
-    Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
-        Return New Rectangle(New Point(col * CellSize.Width, row * CellSize.Height), CellSize)
-    End Function
-
-    Public Function ColRowToAddress(col As Integer, row As Integer) As Integer
-        Return StartTextVideoAddress + row * (TextResolution.Width * 2) + (col * 2)
-    End Function
 
     Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
         If fontSourceMode = FontSources.TrueType Then
