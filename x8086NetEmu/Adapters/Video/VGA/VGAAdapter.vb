@@ -303,8 +303,9 @@
 #End If
 
         If useROM Then
-            'mCPU.LoadBIN("roms\ET4000.BIN", &HC000, &H0)
-            mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
+            'mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
+            'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
+            mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
         End If
 
         ValidPortAddress.Clear()

@@ -34,7 +34,7 @@
                 If irq IsNot Nothing Then
                     tmp = sm.buf(0)
                     Array.Copy(sm.buf, 1, sm.buf, 0, 15)
-                    sm.bufPtr -= 1
+                    sm.bufPtr = (sm.bufPtr - 1) And &HF
 
                     If sm.bufPtr < 0 Then sm.bufPtr = 0
                     If sm.bufPtr > 0 Then irq.Raise(True)

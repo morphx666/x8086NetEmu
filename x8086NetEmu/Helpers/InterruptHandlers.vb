@@ -29,7 +29,7 @@ Partial Public Class X8086
     End Sub
 
     Private Sub HandleInterrupt(intNum As Byte, isHard As Boolean)
-        FlushCycles()
+        'FlushCycles()
 
         If Not (intHooks.ContainsKey(intNum) AndAlso intHooks(intNum).Invoke()) Then
             PushIntoStack(mFlags.EFlags)
