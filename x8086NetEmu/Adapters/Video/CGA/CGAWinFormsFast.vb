@@ -6,7 +6,6 @@ Public Class CGAWinForms
 
     Private charsCache As New List(Of VideoChar)
     Private charSizeCache As New Dictionary(Of Integer, Size)
-    Private videoBMP As DirectBitmap = New DirectBitmap(1, 1)
 
     Private blinkCounter As Integer
     Private frameRate As Integer = 30
@@ -106,7 +105,7 @@ Public Class CGAWinForms
                                             Do
                                                 Threading.Thread.Sleep(1000 \ frameRate)
                                                 mRenderControl.Invalidate()
-                                            Loop Until MyBase.cancelAllThreads
+                                            Loop Until cancelAllThreads
                                         End Sub)
         tmp.Start()
     End Sub
@@ -200,7 +199,7 @@ Public Class CGAWinForms
     End Sub
 
     Protected Overrides Sub Render()
-        If MyBase.VideoEnabled Then
+        If VideoEnabled Then
             SyncLock videoBMP
                 Select Case MainMode
                     Case MainModes.Text : RenderText()

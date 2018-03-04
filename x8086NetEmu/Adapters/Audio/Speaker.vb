@@ -30,10 +30,6 @@ End Class
 Public Class SpeakerAdpater
     Inherits Adapter
 
-    <DllImport("user32.dll", CharSet:=CharSet.Auto, ExactSpelling:=True)>
-    Private Shared Function GetDesktopWindow() As IntPtr
-    End Function
-
     Private Enum WaveForms
         Squared
         Sinusoidal
@@ -159,10 +155,6 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
-        Return &HFF
-    End Function
-
     Public Overrides Sub InitiAdapter()
         waveOut = New WaveOut() With {
             .NumberOfBuffers = 16 * 3,
@@ -172,6 +164,10 @@ Public Class SpeakerAdpater
         waveOut.Init(audioProvider)
         waveOut.Play()
     End Sub
+
+    Public Overrides Function [In](port As UInteger) As UInteger
+        Return &HFF ' Avoid warning BC42353
+    End Function
 
     Public Overrides Sub Out(port As UInteger, value As UInteger)
 

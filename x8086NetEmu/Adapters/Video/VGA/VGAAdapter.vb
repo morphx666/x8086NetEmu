@@ -635,13 +635,13 @@
                 latchReadRGB += 1
                 Select Case (latchReadRGB - 1)
                     Case 0 ' R
-                        Return (mVGAPalette(latchReadPal) >> 2) And &H3F
+                        Return (mVGAPalette(latchReadPal - 1) >> 18) And &H3F
                     Case 1 ' G
                         Return (mVGAPalette(latchReadPal) >> 10) And &H3F
                     Case 2 ' B
                         latchReadRGB = 0
                         latchReadPal += 1
-                        Return (mVGAPalette(latchReadPal - 1) >> 18) And &H3F
+                        Return (mVGAPalette(latchReadPal) >> 2) And &H3F
                 End Select
 
             Case &H3DA ' Using the CGA timing code appears to solve many problems
@@ -675,7 +675,8 @@
                     portRAM(&H3C0) = value
                 Else
                     VGA_ATTR(portRAM(&H3C0)) = value
-                    If portRAM(&H3C0) = &H10 Then mBlinkCharOn = (value And &B100) <> 0
+                    ' This doesn't work when using ROM
+                    'If portRAM(&H3C0) = &H10 Then mBlinkCharOn = (value And &B100) <> 0
                 End If
                 flip3C0 = Not flip3C0
 
@@ -684,6 +685,8 @@
 
             Case &H3C5 ' Sequence controller data
                 VGA_SC(portRAM(&H3C4)) = value
+                ' This doesn't work when using ROM
+                'If portRAM(&H3C4) = &H1 Then mVideoEnabled = (value And &B100000) <> 0
 
             Case &H3C7 ' Color index register (read operations)
                 latchReadPal = value
@@ -699,11 +702,11 @@
             Case &H3C9 ' RGB data register
                 Select Case latchWriteRGB
                     Case 0 ' R
-                        tempRGB = (value And &H3F) << 2
+                        tempRGB = ((value And &H3F) << 18)
                     Case 1 ' G
                         tempRGB = tempRGB Or ((value And &H3F) << 10)
                     Case 2 ' B
-                        mVGAPalette(latchWritePal) = tempRGB Or ((value And &H3F) << 18)
+                        mVGAPalette(latchWritePal) = tempRGB Or (value And &H3F) << 2
                         latchWritePal += 1
                 End Select
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
@@ -714,19 +717,22 @@
             Case &H3D5 ' 6845 data register
                 VGA_CRTC(portRAM(&H3D4)) = value
 
-                If portRAM(&H3D4) = &HE Then
-                    cursorPosition = (cursorPosition And &HFF) Or (value << 8)
-                ElseIf portRAM(&H3D4) = &HF Then
-                    cursorPosition = (cursorPosition And &HFF00) Or value
-                End If
+                ' This doesn't work when using ROM
+                Select Case portRAM(&H3D4)
+                    Case &HA
+                        mCursorVisible = (value And &HB100000) <> 0
+                        mCursorStart = value And &HB11111
+                    Case &HB
+                        mCursorEnd = value And &HB11111
+                    Case &HE : cursorPosition = (cursorPosition And &HFF) Or (value << 8)
+                    Case &HF : cursorPosition = (cursorPosition And &HFF00) Or value
+                End Select
                 cursorPosition = cursorPosition And &HFFFF
                 mCursorRow = cursorPosition / mTextResolution.Width
                 mCursorCol = cursorPosition Mod mTextResolution.Width
 
-                mCursorVisible = (VGA_CRTC(&HA) And &H20) = 0
-
             Case &H3CE
-                VGA_GC(portRAM(&H3CE)) = value And &HF
+                VGA_GC(portRAM(&H3CE)) = value 'And &HF
 
             Case &H3CF
                 VGA_GC(portRAM(&H3CE)) = value

@@ -106,6 +106,7 @@ Public MustInherit Class CGAAdapter
 
     Private mZoom As Double = 1.0
 
+    Protected videoBMP As DirectBitmap = New DirectBitmap(1, 1)
     Private loopThread As Thread
     Private waiter As AutoResetEvent
     Protected cancelAllThreads As Boolean

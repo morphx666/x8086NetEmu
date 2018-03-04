@@ -3,7 +3,6 @@
 
     Private charsCache As New List(Of VideoChar)
     Private charSizeCache As New Dictionary(Of Integer, Size)
-    Private videoBMP As DirectBitmap
 
     Private cursorSize As Size
     Private blinkCounter As Integer
@@ -98,6 +97,14 @@
                                    StringFormatFlags.MeasureTrailingSpaces Or
                                    StringFormatFlags.FitBlackBox Or
                                    StringFormatFlags.NoClip
+
+        Dim tmp As New Threading.Thread(Sub()
+                                            Do
+                                                Threading.Thread.Sleep(1000 \ frameRate)
+                                                mRenderControl.Invalidate()
+                                            Loop Until cancelAllThreads
+                                        End Sub)
+        tmp.Start()
     End Sub
 
     Public Property RenderControl As Control
@@ -155,7 +162,14 @@
     End Sub
 
     Protected Overrides Sub Render()
-        mRenderControl.Invalidate()
+        If VideoEnabled Then
+            SyncLock videoBMP
+                Select Case MainMode
+                    Case MainModes.Text : RenderText()
+                    Case MainModes.Graphics : RenderGraphics()
+                End Select
+            End SyncLock
+        End If
     End Sub
 
     Private Sub Paint(sender As Object, e As PaintEventArgs)
@@ -169,16 +183,6 @@
 
         OnPreRender(sender, e)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
-
-        Try
-            Select Case MainMode
-                Case MainModes.Text
-                    RenderText()
-                Case MainModes.Graphics
-                    RenderGraphics()
-            End Select
-        Catch ex As Exception
-        End Try
 
         g.DrawImageUnscaled(videoBMP, 0, 0)
 
