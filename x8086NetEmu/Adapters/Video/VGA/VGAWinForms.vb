@@ -165,7 +165,11 @@
         If VideoEnabled Then
             SyncLock videoBMP
                 Select Case MainMode
-                    Case MainModes.Text : RenderText()
+                    Case MainModes.Text
+                        Try ' FIXME: Fix the issues instead of ignoring them!
+                            RenderText()
+                        Catch
+                        End Try
                     Case MainModes.Graphics : RenderGraphics()
                 End Select
             End SyncLock
@@ -233,15 +237,15 @@
                         videoBMP.Pixel(x, y) = CGAPalette(b)
 
                     Case &HD, &HE
-                        h1 = x >> 1
-                        h2 = y >> 1
+                        h1 = x '>> 1
+                        h2 = y '>> 1
                         address = h2 * 40 + (h1 >> 3)
                         h1 = 7 - (h1 And 7)
                         b = (VRAM(address) >> h1) And 1
                         b = b + ((VRAM(address + &H10000) >> h1) And 1) << 1
                         b = b + ((VRAM(address + &H20000) >> h1) And 1) << 2
                         b = b + ((VRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
+                        videoBMP.Pixel(x, y) = VGAPalette(b)
 
                     Case &H10, &H12
                         address = (y * 80) + (x >> 3)
@@ -250,7 +254,7 @@
                         b = b Or ((VRAM(address + &H10000) >> h1) And 1) << 1
                         b = b Or ((VRAM(address + &H20000) >> h1) And 1) << 2
                         b = b Or ((VRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
+                        videoBMP.Pixel(x, y) = VGAPalette(b)
 
                     Case &H13
                         If planeMode Then
@@ -259,7 +263,7 @@
                         Else
                             b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)
                         End If
-                        videoBMP.Pixel(x, y) = Color.FromArgb(VGAPalette(b))
+                        videoBMP.Pixel(x, y) = VGAPalette(b)
 
                     Case 127
                         b = mCPU.Memory(mStartGraphicsVideoAddress + ((y And 3) << 13) + ((y >> 2) * 90) + (x >> 3))

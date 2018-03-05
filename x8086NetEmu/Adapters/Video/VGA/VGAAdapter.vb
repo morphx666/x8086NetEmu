@@ -275,7 +275,7 @@
     Private latchWritePal As UInteger
     Protected portRAM(&H10000 - 1) As UInteger
     Private tempRGB As UInteger
-    Private mVGAPalette(VGABasePalette.Length - 1) As UInteger
+    Private mVGAPalette(VGABasePalette.Length - 1) As Color
     Private mUseVRAM As Boolean
 
     'Private port3DA As UInteger
@@ -285,7 +285,7 @@
     Private curScanLine As Long
     Private cursorPosition As UInteger
 
-    Private useROM As Boolean = True ' FIXME: Enabling ROM support breaks CGA compatibility
+    Private useROM As Boolean = False ' FIXME: Enabling ROM support breaks CGA compatibility
 
     Protected lockObject As New Object()
 
@@ -302,6 +302,8 @@
             'mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
             'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
             mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
+        Else
+            VGA_SC(2) = 15 '  Why do we need to do this? Why isn't the BIOS correctly setting up VGA_SC?
         End If
 
         ValidPortAddress.Clear()
@@ -315,10 +317,10 @@
         Next
 
         For i As Integer = 0 To VGABasePalette.Length - 1
-            mVGAPalette(i) = VGABasePalette(i).ToArgb()
+            mVGAPalette(i) = VGABasePalette(i)
         Next
 
-        mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function()
+        mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
                                                           If mCPU.Registers.AH = 0 OrElse mCPU.Registers.AH = &H10 Then
                                                               VideoMode = mCPU.Registers.AX
                                                               'If mCPU.Registers.AH = &H10 Then Return False
@@ -332,7 +334,7 @@
                                                           Return False
                                                       End Function))
 
-        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInteger, ByRef value As UInteger, mode As X8086.MemHookMode)
+        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInteger, ByRef value As UInteger, mode As X8086.MemHookMode) As Boolean
                                                     If mUseVRAM AndAlso (address >= &HA0000 AndAlso address <= &HBFFFF) Then
                                                         If mVideoMode = &H13 AndAlso (VGA_SC(4) And 6) = 0 Then ' Mode 13h with plane mode
                                                             Return False
@@ -373,7 +375,7 @@
         End Get
     End Property
 
-    Public ReadOnly Property VGAPalette(index As Integer) As UInteger
+    Public ReadOnly Property VGAPalette(index As Integer) As Color
         Get
             Return mVGAPalette(index)
         End Get
@@ -381,15 +383,7 @@
 
     Public ReadOnly Property VRAM(address As UInteger) As UInteger
         Get
-#If DEBUG Then
-            If useROM Then
-                Return mVRAM(address)
-            Else
-                Return mCPU.Memory(address)
-            End If
-#Else
             Return mVRAM(address)
-#End If
         End Get
     End Property
 
@@ -404,7 +398,7 @@
                     mVideoMode = value And &H7F ' http://stanislavs.org/helppc/ports.html
                     Debug.WriteLine($"VGA Video Mode: {CShort(mVideoMode):X2}")
 
-                    VGA_SC(&H4) = 0
+                    VGA_SC(4) = 0
                     Select Case mVideoMode
                         Case 0 ' 40x25 Mono Text
                             mStartTextVideoAddress = &HB8000
@@ -592,15 +586,15 @@
                 Case &H10 ' VGA DAC functions
                     Select Case value And &HFF
                         Case &H10 ' Set individual DAC register
-                            mVGAPalette(mCPU.Registers.BX) = RGBToUint((mCPU.Registers.DH And 63) << 2,
-                                                                      (mCPU.Registers.CH And 63) << 2,
-                                                                      (mCPU.Registers.CL And 63) << 2)
+                            mVGAPalette(mCPU.Registers.BX) = Color.FromArgb(RGBToUint((mCPU.Registers.DH And 63) << 2,
+                                                                                      (mCPU.Registers.CH And 63) << 2,
+                                                                                      (mCPU.Registers.CL And 63) << 2))
                         Case &H12 ' Set block of DAC registers
                             Dim addr As Integer = mCPU.Registers.ES * 16 + mCPU.Registers.DX
                             For n As Integer = mCPU.Registers.BX To mCPU.Registers.BX + mCPU.Registers.CX - 1
-                                mVGAPalette(n) = RGBToUint(mCPU.RAM(addr + 0) << 2,
-                                                          mCPU.RAM(addr + 1) << 2,
-                                                          mCPU.RAM(addr + 2) << 2)
+                                mVGAPalette(n) = Color.FromArgb(RGBToUint(mCPU.RAM(addr + 0) << 2,
+                                                                          mCPU.RAM(addr + 1) << 2,
+                                                                          mCPU.RAM(addr + 2) << 2))
                                 addr += 3
                             Next
 
@@ -616,6 +610,13 @@
 
     Public Overrides Function [In](port As UInteger) As UInteger
         Select Case port
+            Case &H3BA
+                Dim t As Long = mCPU.Sched.CurrentTime
+                Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
+                Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
+
+                Return If(hRetrace, 1, 0) Or If(vRetrace, 8, 0)
+
             Case &H3C1
                 Return VGA_ATTR(portRAM(&H3C0)) And &H1F
 
@@ -635,23 +636,23 @@
                 latchReadRGB += 1
                 Select Case (latchReadRGB - 1)
                     Case 0 ' R
-                        Return (mVGAPalette(latchReadPal - 1) >> 18) And &H3F
+                        Return (mVGAPalette(latchReadPal).ToArgb() >> 18) And &H3F
                     Case 1 ' G
-                        Return (mVGAPalette(latchReadPal) >> 10) And &H3F
+                        Return (mVGAPalette(latchReadPal).ToArgb() >> 10) And &H3F
                     Case 2 ' B
                         latchReadRGB = 0
                         latchReadPal += 1
-                        Return (mVGAPalette(latchReadPal) >> 2) And &H3F
+                        Return (mVGAPalette(latchReadPal - 1).ToArgb() >> 2) And &H3F
                 End Select
 
             Case &H3DA ' Using the CGA timing code appears to solve many problems
                 flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
 
                 Dim t As Long = mCPU.Sched.CurrentTime
-                Dim hRetrace As Boolean = (t Mod ht) <= (ht / 10)
-                Dim vRetrace As Boolean = (t Mod vt) <= (vt / 10)
+                Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
+                Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
 
-                Return If(hRetrace, 1, 0) Or If(vRetrace, 8, 0)
+                Return (If(hRetrace, 1, 0) Or If(vRetrace, 8, 0))
                 'Return port3DA
 
                 'Case >= &H3D0
@@ -692,12 +693,14 @@
                 latchReadPal = value
                 latchReadRGB = 0
                 stateDAC = 0
+                latchWritePal = (value + 1) And &HFF
 
             Case &H3C8 ' Color index register (write operations)
                 latchWritePal = value
                 latchWriteRGB = 0
                 tempRGB = 0
                 stateDAC = 3
+                latchReadPal = (value - 1) And &HFF
 
             Case &H3C9 ' RGB data register
                 Select Case latchWriteRGB
@@ -706,7 +709,7 @@
                     Case 1 ' G
                         tempRGB = tempRGB Or ((value And &H3F) << 10)
                     Case 2 ' B
-                        mVGAPalette(latchWritePal) = tempRGB Or (value And &H3F) << 2
+                        mVGAPalette(latchWritePal) = Color.FromArgb(tempRGB Or (value And &H3F) << 2)
                         latchWritePal += 1
                 End Select
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
@@ -720,7 +723,7 @@
                 ' This doesn't work when using ROM
                 Select Case portRAM(&H3D4)
                     Case &HA
-                        mCursorVisible = (value And &HB100000) <> 0
+                        mCursorVisible = (value And &HB100000) = 0
                         mCursorStart = value And &HB11111
                     Case &HB
                         mCursorEnd = value And &HB11111
@@ -732,7 +735,7 @@
                 mCursorCol = cursorPosition Mod mTextResolution.Width
 
             Case &H3CE
-                VGA_GC(portRAM(&H3CE)) = value 'And &HF
+                VGA_GC(portRAM(&H3CE)) = value And &HF
 
             Case &H3CF
                 VGA_GC(portRAM(&H3CE)) = value
@@ -981,7 +984,7 @@
     End Function
 
     Private Function LogicVGA(curValue As UInteger, latchValue As UInteger) As UInteger
-        Select Case (VGA_GC(3) >> 3) And 3
+        Select Case (VGA_GC(3) >> 3) And 3 ' Raster Op
             Case 1 : curValue = curValue And latchValue
             Case 2 : curValue = curValue Or latchValue
             Case 3 : curValue = curValue Xor latchValue

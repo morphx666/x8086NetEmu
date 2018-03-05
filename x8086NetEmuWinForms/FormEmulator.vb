@@ -273,7 +273,7 @@ Public Class FormEmulator
     ' Code demonstration on how to attach hooks to the CPU
     ' http://stanislavs.org/helppc/int_21.html
     Private Sub AddCustomHooks()
-        cpu.TryAttachHook(&H19, Function() ' Reset running program on bootstrap
+        cpu.TryAttachHook(&H19, Function() As Boolean ' Reset running program on bootstrap
                                     runningApp = ""
                                     Return False
                                 End Function)
@@ -321,6 +321,12 @@ Public Class FormEmulator
                                                 Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
                                             End Select
 
+                                            'Dim address As UInteger = X8086.SegmentOffetToAbsolute(cpu.Registers.ES, cpu.Registers.BX)
+                                            'address += &H12
+                                            'Dim cs = cpu.RAM(address + 1) * 16 + cpu.RAM(address)
+                                            'address += 2
+                                            'Dim ip = cpu.RAM(address + 1) * 16 + cpu.RAM(address)
+                                            'Debug.WriteLine($"{cs:X4}:{ip:X4}")
                                             X8086.Notify($"DOS {mode}: {GetFileName()} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
                                     End Select
 
