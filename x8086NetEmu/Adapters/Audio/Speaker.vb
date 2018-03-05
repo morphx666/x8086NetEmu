@@ -157,8 +157,8 @@ Public Class SpeakerAdpater
 
     Public Overrides Sub InitiAdapter()
         waveOut = New WaveOut() With {
-            .NumberOfBuffers = 16 * 3,
-            .DesiredLatency = 100
+            .NumberOfBuffers = 32,
+            .DesiredLatency = 200
         }
         audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer)
         waveOut.Init(audioProvider)

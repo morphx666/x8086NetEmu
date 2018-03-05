@@ -124,6 +124,7 @@ Public MustInherit Class CGAAdapter
     Protected MustOverride Sub Render()
 
     Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True)
+        MyBase.New(cpu)
         mCPU = cpu
         Me.useInternalTimer = useInternalTimer
 

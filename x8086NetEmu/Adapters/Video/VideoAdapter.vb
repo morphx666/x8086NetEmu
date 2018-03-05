@@ -56,6 +56,18 @@
 
     Private Memory(X8086.MemSize - 1) As Boolean
 
+    Public Sub New(cpu As X8086)
+        cpu.TryAttachHook(New X8086.MemHandler(Function(address As UInteger, ByRef value As UInteger, mode As X8086.MemHookMode)
+                                                   If mode = X8086.MemHookMode.Write AndAlso
+                                                            ((address >= mStartTextVideoAddress AndAlso address <= mEndTextVideoAddress) OrElse
+                                                            (address >= mStartGraphicsVideoAddress AndAlso address <= mEndGraphicsVideoAddress)) Then
+                                                       Memory(address) = True
+                                                   End If
+
+                                                   Return False
+                                               End Function))
+    End Sub
+
     Protected Overridable Sub OnKeyDown(sender As Object, e As KeyEventArgs)
         RaiseEvent KeyDown(sender, e)
     End Sub

@@ -265,12 +265,13 @@
         If portsCache.ContainsKey(portAddress) Then
             portsCache(portAddress).Out(portAddress, value)
             'FlushCycles()
+            'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2").TrimEnd("h"), portAddress.ToString("X4"), portsCache(portAddress).Name), NotificationReasons.Info)
             Exit Sub
         Else
             For Each p As IOPortHandler In mPorts
                 If p.ValidPortAddress.Contains(portAddress) Then
                     p.Out(portAddress, value)
-                    X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
+                    'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, p)
                     'FlushCycles()
@@ -281,7 +282,7 @@
             For Each a As Adapter In mAdapters
                 If a.ValidPortAddress.Contains(portAddress) Then
                     a.Out(portAddress, value)
-                    X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2").TrimEnd("h"), portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
+                    'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2").TrimEnd("h"), portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, a)
                     'FlushCycles()
@@ -296,11 +297,12 @@
     Private Function ReceiveFromPort(portAddress As UInteger) As UInteger
         If portsCache.ContainsKey(portAddress) Then
             FlushCycles()
+            'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), portsCache(portAddress).Name), NotificationReasons.Info)
             Return portsCache(portAddress).In(portAddress)
         Else
             For Each p As IOPortHandler In mPorts
                 If p.ValidPortAddress.Contains(portAddress) Then
-                    X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
+                    'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, p)
                     FlushCycles()
@@ -310,7 +312,7 @@
 
             For Each a As Adapter In mAdapters
                 If a.ValidPortAddress.Contains(portAddress) Then
-                    X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
+                    'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, a)
                     FlushCycles()
@@ -423,27 +425,27 @@
         If size = DataSize.Byte Then
             result = result And &HFF
             mFlags.PF = parityLUT(result)
-            mFlags.ZF = If((szpLUT8(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
-            mFlags.SF = If((szpLUT8(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
-            'If result = 0 Then
-            '    mFlags.ZF = 1
-            '    mFlags.SF = 0
-            'Else
-            '    mFlags.ZF = 0
-            '    mFlags.SF = If((result And &H80) <> 0, 1, 0)
-            'End If
+            'mFlags.ZF = If((szpLUT8(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
+            'mFlags.SF = If((szpLUT8(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
+            If result = 0 Then
+                mFlags.ZF = 1
+                mFlags.SF = 0
+            Else
+                mFlags.ZF = 0
+                mFlags.SF = If((result And &H80) <> 0, 1, 0)
+            End If
         Else
-            result = result And &HFFFF
             mFlags.PF = parityLUT(result And &HFF)
-            mFlags.ZF = If((szpLUT16(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
-            mFlags.SF = If((szpLUT16(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
-            'If (result And &HFFFF) = 0 Then
-            '    mFlags.ZF = 1
-            '    mFlags.SF = 0
-            'Else
-            '    mFlags.ZF = 0
-            '    mFlags.SF = If((result And &H8000) <> 0, 1, 0)
-            'End If
+            'result = result And &HFFFF
+            'mFlags.ZF = If((szpLUT16(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
+            'mFlags.SF = If((szpLUT16(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
+            If (result And &HFFFF) = 0 Then
+                mFlags.ZF = 1
+                mFlags.SF = 0
+            Else
+                mFlags.ZF = 0
+                mFlags.SF = If((result And &H8000) <> 0, 1, 0)
+            End If
         End If
     End Sub
 
@@ -458,10 +460,10 @@
         SetSZPFlags(result, size)
 
         If size = DataSize.Byte Then
-            mFlags.CF = If((result And &H100) <> 0, 1, 0)
+            mFlags.CF = If((result And &HFF00) <> 0, 1, 0)
             mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80) <> 0, 1, 0)
         Else
-            mFlags.CF = If((result And &H10000UI) <> 0, 1, 0)
+            mFlags.CF = If((result And &HFFFF0000UI) <> 0, 1, 0)
             mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) <> 0, 1, 0)
         End If
 

@@ -246,6 +246,7 @@ Public Class FormEmulator
         If videoPort Is Nothing Then
             videoPort = New RenderCtrlGDI()
             Me.Controls.Add(videoPort)
+            videoPort.Dock = DockStyle.Fill
         End If
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))

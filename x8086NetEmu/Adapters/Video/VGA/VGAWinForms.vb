@@ -153,7 +153,9 @@
             ctrlSize = New Size(GraphicsResolution.Width, GraphicsResolution.Height)
         End If
 
-        Dim frmSize = New Size(640 * Zoom, 400 * Zoom)
+        'Dim frmSize As New Size(If(ctrlSize.Width = 0, 640, ctrlSize.Width) * Zoom, If(ctrlSize.Height = 0, 640, ctrlSize.Height) * Zoom)
+        Dim r As Double = 1 '(If(ctrlSize.Width = 0, 640, ctrlSize.Width) / 640) / (If(ctrlSize.Height = 0, 400, ctrlSize.Height) / 400)
+        Dim frmSize As New Size(640 * Zoom * r, 400 * Zoom / r)
         mRenderControl.FindForm.ClientSize = frmSize
         mRenderControl.Size = frmSize
         If CellSize.Width = 0 OrElse CellSize.Height = 0 Then Exit Sub

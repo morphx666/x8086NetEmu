@@ -502,13 +502,13 @@
                 If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property
             Next
 
-            Memory(address) = value
+            ' This is where QBASIC writes the names of the opened files
+            'If address = X8086.SegmentOffetToAbsolute(&H4E00, &H380) Then
+            '    mDebugMode = True
+            '    FlushCycles()
+            'End If
 
-            If isVideoAdapterAvailable AndAlso
-                ((address >= mVideoAdapter.StartTextVideoAddress AndAlso address <= mVideoAdapter.EndTextVideoAddress) OrElse
-                (address >= mVideoAdapter.StartGraphicsVideoAddress AndAlso address <= mVideoAdapter.EndGraphicsVideoAddress)) Then
-                mVideoAdapter.IsDirty(address) = True
-            End If
+            Memory(address) = value
 
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set
@@ -530,7 +530,7 @@
         End Get
         Set(value As UInteger)
             Dim address As UInteger = SegmentOffetToAbsolute(segment, offset + inc)
-            RAM(address) = value 'And &HFF
+            RAM(address) = value
             RAM(address + 1UI) = (value >> 8UI)
         End Set
     End Property

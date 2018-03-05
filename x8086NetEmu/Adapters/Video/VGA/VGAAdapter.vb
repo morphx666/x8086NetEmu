@@ -292,6 +292,7 @@
     Private mCPU As X8086
 
     ' Video Modes: http://www.columbia.edu/~em36/wpdos/videomodes.txt
+    '              http://webpages.charter.net/danrollins/techhelp/0114.HTM
     ' Ports: http://stanislavs.org/helppc/ports.html
 
     Public Sub New(cpu As X8086)
@@ -303,7 +304,7 @@
             'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
             mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
         Else
-            VGA_SC(2) = 15 '  Why do we need to do this? Why isn't the BIOS correctly setting up VGA_SC?
+            'mCPU.RAM(&H410) = &H41
         End If
 
         ValidPortAddress.Clear()
@@ -572,9 +573,9 @@
                     mCPU.RAM(&H44A) = mTextResolution.Width
                     mCPU.RAM(&H44B) = 0
                     mCPU.RAM(&H484) = mTextResolution.Height - 1
-
                     mCursorCol = 0
                     mCursorRow = 0
+                    cursorPosition = 0
 
                     If (value And &H80) = 0 Then
                         Array.Clear(mCPU.Memory, &HA0000, &H1FFFF)
@@ -618,10 +619,10 @@
                 Return If(hRetrace, 1, 0) Or If(vRetrace, 8, 0)
 
             Case &H3C1
-                Return VGA_ATTR(portRAM(&H3C0)) And &H1F
+                Return VGA_ATTR(portRAM(&H3C0))
 
             Case &H3C5
-                Return VGA_SC(portRAM(&H3C4)) And &H1F
+                Return VGA_SC(portRAM(&H3C4))
 
             Case &H3D5
                 Return VGA_CRTC(portRAM(&H3D4)) And &H1F
@@ -663,6 +664,10 @@
         Return portRAM(port)
     End Function
 
+    'Private c As Integer = 0
+    'Private k() As Integer = {1, 2, 4, 8}
+    'Dim ki As Integer = 0
+
     Public Overrides Sub Out(port As UInteger, value As UInteger)
         value = value And &HFF
         Select Case port
@@ -683,6 +688,15 @@
 
             Case &H3C4 ' Sequence controller index
                 portRAM(&H3C4) = value
+                ' This manually drives the VGA_SC sequence which allows Wolf8086 initial screen to show correctly
+                ' Which means that, for some reason, after setting the index, the data is not being written to the register (3D5)
+                'If value = 2 Then
+                '    If c > 2 Then
+                '        VGA_SC(portRAM(&H3C4)) = k(ki)
+                '        ki = (ki + 1) Mod k.Length
+                '    End If
+                '    c += 1
+                'End If
 
             Case &H3C5 ' Sequence controller data
                 VGA_SC(portRAM(&H3C4)) = value
@@ -693,14 +707,14 @@
                 latchReadPal = value
                 latchReadRGB = 0
                 stateDAC = 0
-                latchWritePal = (value + 1) And &HFF
+                'latchWritePal = (value + 1) And &HFF
 
             Case &H3C8 ' Color index register (write operations)
                 latchWritePal = value
                 latchWriteRGB = 0
                 tempRGB = 0
                 stateDAC = 3
-                latchReadPal = (value - 1) And &HFF
+                'latchReadPal = (value - 1) And &HFF
 
             Case &H3C9 ' RGB data register
                 Select Case latchWriteRGB
@@ -790,7 +804,8 @@
     End Sub
 
     Public Overrides Sub Write(address As UInteger, value As UInteger)
-        Dim curValue As UInteger = ShiftVGA(value)
+        Dim curValue As UInteger
+        value = ShiftVGA(value)
 
         Select Case (VGA_GC(5) And 3)
             Case 0
@@ -801,6 +816,8 @@
                         Else
                             curValue = 0
                         End If
+                    Else
+                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(0))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(0))
@@ -814,6 +831,8 @@
                         Else
                             curValue = 0
                         End If
+                    Else
+                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(1))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(1))
@@ -827,6 +846,8 @@
                         Else
                             curValue = 0
                         End If
+                    Else
+                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(2))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(2))
@@ -840,6 +861,8 @@
                         Else
                             curValue = 0
                         End If
+                    Else
+                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(3))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(3))
@@ -860,6 +883,8 @@
                         Else
                             curValue = 0
                         End If
+                    Else
+                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(0))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(0))
@@ -873,6 +898,8 @@
                         Else
                             curValue = 0
                         End If
+                    Else
+                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(1))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(1))
@@ -886,6 +913,8 @@
                         Else
                             curValue = 0
                         End If
+                    Else
+                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(2))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(2))
@@ -899,6 +928,8 @@
                         Else
                             curValue = 0
                         End If
+                    Else
+                        curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_latch(3))
                     curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_latch(3))
