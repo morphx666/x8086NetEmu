@@ -199,8 +199,8 @@
     Private Sub RenderGraphics()
         Dim b As Byte
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
-        Dim usePal As Integer = (portRAM(&H3D9 - &H3C0) >> 5) And 1
-        Dim intensity As Integer = ((portRAM(&H3D9 - &H3C0) >> 4) And 1) << 3
+        Dim usePal As Integer = (portRAM(&H3D9) >> 5) And 1
+        Dim intensity As Integer = ((portRAM(&H3D9) >> 4) And 1) << 3
 
         ' For mode &h12 and &h13
         Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
@@ -299,8 +299,8 @@
         Dim r As New Rectangle(Point.Empty, CellSize)
 
         Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
-        Dim intensity As Boolean = (portRAM(&H3D8 - &H3C0) And &H80) <> 0
-        Dim mode As Boolean = (portRAM(&H3D8 - &H3C0) = 9) AndAlso (portRAM(&H3D4 - &H3C0) = 9)
+        Dim intensity As Boolean = (portRAM(&H3D8) And &H80) <> 0
+        Dim mode As Boolean = (portRAM(&H3D8) = 9) AndAlso (portRAM(&H3D4) = 9)
 
         For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
             b0 = mCPU.Memory(address)
