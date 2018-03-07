@@ -88,30 +88,40 @@ Public Class DiskImage
         If Not IO.File.Exists(mFileName) Then
             mStatus = ImageStatus.DiskImageNotFound
         Else
-            mReadOnly = mountInReadOnlyMode
-
-            Try
-                If mReadOnly Then
-                    file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite)
-                Else
-                    file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.ReadWrite, IO.FileShare.ReadWrite)
-                End If
-
-                mFileLength = file.Length
-                mIsHardDisk = isHardDisk
-                If isHardDisk Then mHardDiskCount += 1
-
-                If MatchGeometry() Then
-                    mStatus = ImageStatus.DiskLoaded
-                Else
-                    mStatus = ImageStatus.UnsupportedImageFormat
-                End If
-            Catch ex As Exception
-                mStatus = ImageStatus.UnsupportedImageFormat
-            End Try
+            OpenImage(mountInReadOnlyMode, isHardDisk)
         End If
 
         X8086.Notify("DiskImage '{0}': {1}", X8086.NotificationReasons.Info, mFileName, mStatus.ToString())
+    End Sub
+
+    Private Sub OpenImage(mountInReadOnlyMode As Boolean, isHardDisk As Boolean)
+        mReadOnly = mountInReadOnlyMode
+
+        Try
+            If mReadOnly Then
+                file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite)
+            Else
+                file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.ReadWrite, IO.FileShare.ReadWrite)
+            End If
+
+            mFileLength = file.Length
+            mIsHardDisk = isHardDisk
+            If isHardDisk Then mHardDiskCount += 1
+
+            If MatchGeometry() Then
+                mStatus = ImageStatus.DiskLoaded
+            Else
+                mStatus = ImageStatus.UnsupportedImageFormat
+            End If
+        Catch ex As UnauthorizedAccessException
+            If mountInReadOnlyMode Then
+                mStatus = ImageStatus.UnsupportedImageFormat
+            Else
+                OpenImage(True, isHardDisk)
+            End If
+        Catch ex As Exception
+            mStatus = ImageStatus.UnsupportedImageFormat
+        End Try
     End Sub
 
     ' Guess the image's disk geometry based on its size

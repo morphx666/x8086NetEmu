@@ -285,7 +285,7 @@
     Private curScanLine As Long
     Private cursorPosition As UInteger
 
-    Private useROM As Boolean = False ' FIXME: Enabling ROM support breaks CGA compatibility
+    Private useROM As Boolean = True ' FIXME: Enabling ROM support breaks CGA compatibility
 
     Protected lockObject As New Object()
 
