@@ -15,7 +15,6 @@ Public Class X8086
 
     Private mModel As Models = Models.IBMPC_5160
     Private mVic20 As Boolean
-    Private vga As VGAAdapter
 
     Private mRegisters As GPRegisters = New GPRegisters()
     Private mFlags As GPFlags = New GPFlags()
@@ -121,29 +120,12 @@ Public Class X8086
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
 
-        Sched = New Scheduler(Me)
-
-        'FPU = New x8087(Me)
-        PIC = New PIC8259(Me)
-        DMA = New DMAI8237(Me)
-        PIT = New PIT8254(Me, PIC.GetIrqLine(0))
-        PPI = New PPI8255(Me, PIC.GetIrqLine(1))
-        'PPI = New PPI8255_ALT(Me, PIC.GetIrqLine(1))
-        RTC = New RTC(Me, PIC.GetIrqLine(8))
-
-        mPorts.Add(PIC)
-        mPorts.Add(DMA)
-        mPorts.Add(PIT)
-        mPorts.Add(PPI)
-        mPorts.Add(RTC)
-
-        AddInternalHooks()
         BuildSZPTables()
         Init()
     End Sub
 
     Private Sub AddInternalHooks()
-        If mEmulateINT13 Then intHooks.Add(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
+        If mEmulateINT13 Then TryAttachHook(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
 
         ' This doesn't work :(
         'TryAttachHook(&H1A, New IntHandler(Function()
@@ -255,13 +237,25 @@ Public Class X8086
     End Function
 
     Private Sub Init()
-        Sched.StopSimulation()
+        Sched = New Scheduler(Me)
+
+        'FPU = New x8087(Me)
+        PIC = New PIC8259(Me)
+        DMA = New DMAI8237(Me)
+        PIT = New PIT8254(Me, PIC.GetIrqLine(0))
+        PPI = New PPI8255(Me, PIC.GetIrqLine(1))
+        'PPI = New PPI8255_ALT(Me, PIC.GetIrqLine(1))
+        RTC = New RTC(Me, PIC.GetIrqLine(8))
+
+        mPorts.Add(PIC)
+        mPorts.Add(DMA)
+        mPorts.Add(PIT)
+        mPorts.Add(PPI)
+        mPorts.Add(RTC)
 
         SetupSystem()
 
         Array.Clear(Memory, 0, Memory.Length)
-
-        mIsExecuting = True
 
         StopAllThreads()
 
@@ -270,6 +264,8 @@ Public Class X8086
             mipsThread = New Thread(AddressOf MIPSCounterLoop)
             mipsThread.Start()
         End If
+
+        portsCache.Clear()
 
         mIsHalted = False
         mIsExecuting = False
@@ -307,14 +303,13 @@ Public Class X8086
 
         mFlags.EFlags = 0
 
-        FlushCycles()
-        SetSynchronization()
-
+        AddInternalHooks()
         LoadBIOS()
     End Sub
 
     Private Sub SetupSystem()
-        If PPI Is Nothing Then Exit Sub
+        picIsAvailable = (PIC IsNot Nothing)
+        If Not picIsAvailable Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
         PPI.SetSwitchData(Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
@@ -414,13 +409,21 @@ Public Class X8086
         StopAllThreads()
 
         If DebugMode Then debugWaiter.Set()
-        Sched.StopSimulation()
+        If Sched IsNot Nothing Then Sched.Stop()
 
-        mipsWaiter.Set()
+        If mipsWaiter IsNot Nothing Then mipsWaiter.Set()
 
-        For Each adapter As Adapter In Adapters
+        For Each adapter As Adapter In mAdapters
             adapter.CloseAdapter()
         Next
+        mAdapters.Clear()
+        mPorts.Clear()
+
+        memHooks.Clear()
+        intHooks.Clear()
+
+        Sched = Nothing
+        mipsWaiter = Nothing
     End Sub
 
     Public Sub SoftReset()
@@ -432,6 +435,7 @@ Public Class X8086
 
     Public Sub HardReset()
         If reCallback IsNot Nothing Then
+            Close()
             reCallback.Invoke()
         Else
             Init()
@@ -444,26 +448,15 @@ Public Class X8086
     End Sub
 
     Public Sub Run(Optional debugMode As Boolean = False)
-        Sched.StopSimulation()
-        FlushCycles()
         SetSynchronization()
 
         mDebugMode = debugMode
         cancelAllThreads = False
 
-        picIsAvailable = (PIC IsNot Nothing)
-
 #If Win32 Then
         If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = True
         If mVideoAdapter IsNot Nothing Then mVideoAdapter.Reset()
 #End If
-
-        For Each adpt As Adapter In mAdapters
-            If TypeOf adpt Is VGAAdapter Then
-                vga = adpt
-                Exit For
-            End If
-        Next
 
         If mDebugMode Then RaiseEvent InstructionDecoded()
         Sched.Start()

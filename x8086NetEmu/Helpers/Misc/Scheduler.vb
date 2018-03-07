@@ -209,12 +209,13 @@ Public Class Scheduler
         If t < nextTime Then nextTime = t
     End Sub
 
-    Public Sub StopSimulation()
-        Dim tsk As Task = CType(pq.RemoveFirst(), Task)
-        While tsk IsNot Nothing
-            tsk.Cancel()
+    Public Sub [Stop]()
+        Dim tsk As Task
+        Do
             tsk = CType(pq.RemoveFirst(), Task)
-        End While
+            If tsk Is Nothing Then Exit Do
+            tsk.Cancel()
+        Loop
 
         pq.Clear()
         nextTime = STOPPING

@@ -13,7 +13,7 @@ Public Class KeyboardAdapter
 
     Public Overrides ReadOnly Property Description As String
         Get
-            Return "Simple Keyboard Drive Emulator"
+            Return "Simple Keyboard Driver Emulator"
         End Get
     End Property
 
@@ -48,43 +48,10 @@ Public Class KeyboardAdapter
     End Property
 
     Public Overrides Sub InitiAdapter()
-        'If Emulator.VideoAdapter IsNot Nothing Then
-        '    Select Case Emulator.VideoAdapter.GetType()
-        '        Case GetType(CGAWinForm)
-        '            Dim wfCGA = CType(Emulator.VideoAdapter, CGAWinForm)
-        '            If wfCGA.RenderControl IsNot Nothing Then
-        '                AddHandler wfCGA.RenderControl.KeyDown, Sub(sender As Object, e As System.Windows.Forms.KeyEventArgs)
-        '                                                            cpu.Sched.HandleInput(New ExternalInputEvent(Me, e, False))
-        '                                                            e.Handled = True
-        '                                                        End Sub
-
-        '                AddHandler wfCGA.RenderControl.KeyUp, Sub(sender As Object, e As System.Windows.Forms.KeyEventArgs)
-        '                                                          cpu.Sched.HandleInput(New ExternalInputEvent(Me, e, True))
-        '                                                          e.Handled = True
-        '                                                      End Sub
-        '            End If
-
-        '        Case Else
-        '    End Select
-        'End If
-
-
     End Sub
 
     Public Overrides Sub CloseAdapter()
     End Sub
-
-    'Private Sub HandleKeyDownFromVGACtrl(sender As Object, e As System.Windows.Forms.KeyEventArgs)
-    '    controller.PutKeyData(e.KeyValue, False)
-    '    cpu.SetReschedule()
-    '    e.Handled = True
-    'End Sub
-
-    'Private Sub HandleKeyUpFromVGACtrl(sender As Object, e As System.Windows.Forms.KeyEventArgs)
-    '    controller.PutKeyData(e.KeyValue, True)
-    '    cpu.SetReschedule()
-    '    e.Handled = True
-    'End Sub
 
     Public Overrides Function [In](port As UInteger) As UInteger
         Return &HFF

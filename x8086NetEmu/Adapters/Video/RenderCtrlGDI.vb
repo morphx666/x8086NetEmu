@@ -12,9 +12,9 @@ Public Class RenderCtrlGDI
         Me.SetStyle(ControlStyles.Selectable, True)
         Me.SetStyle(ControlStyles.UserPaint, True)
 
-        ' Capturing is disabled automatically from the Dispose event
+        ' Capturing is automatically disabled from the Dispose event
 
-        ' This is used to force the arrows keys to generate a KeyDown event
+        ' This is used to force the arrow keys to generate a KeyDown event
         ' It also allows us to capture the Alt key
         AddHandler PreviewKeyDown, Sub(sender As Object, e As PreviewKeyDownEventArgs) e.IsInputKey = True
     End Sub

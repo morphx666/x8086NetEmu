@@ -1,7 +1,4 @@
-﻿Imports System.Threading
-Imports System.Runtime.InteropServices
-
-Public Class PPI8255
+﻿Public Class PPI8255
     Inherits IOPortHandler
 
     Private sched As Scheduler

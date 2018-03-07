@@ -60,7 +60,6 @@ Public Class FormEmulator
         StartEmulation()
 
         SetupEventHandlers()
-
         SetTitleText()
     End Sub
 
@@ -103,7 +102,9 @@ Public Class FormEmulator
         cpu.Pause()
         Using dlg As New FormMediaManager()
             dlg.Emulator = cpu
-            If dlg.ShowDialog(Me) = DialogResult.Yes Then
+            Dim ans As DialogResult = dlg.ShowDialog(Me)
+            SaveSettings()
+            If ans = DialogResult.Yes Then
                 cpu.HardReset()
             Else
                 cpu.Resume()
@@ -226,6 +227,7 @@ Public Class FormEmulator
         If cpu IsNot Nothing Then
             If fDebugger IsNot Nothing Then fDebugger.Close()
             If fConsole IsNot Nothing Then fConsole.Close()
+            If cpuState IsNot Nothing Then cpuState = Nothing
 
             cpu.Close()
             cpu = Nothing
@@ -233,21 +235,18 @@ Public Class FormEmulator
     End Sub
 
     Private Sub StartEmulation()
-        StopEmulation()
-
-        If cpu IsNot Nothing Then
-            cpu.Close()
-            cpu = Nothing
-        End If
         cpu = New X8086(v20Emulation, int13Emulation, AddressOf StartEmulation)
 
         cpuState = New EmulatorState(cpu)
 
-        If videoPort Is Nothing Then
-            videoPort = New RenderCtrlGDI()
-            Me.Controls.Add(videoPort)
-            videoPort.Dock = DockStyle.Fill
+        If videoPort IsNot Nothing Then
+            Me.Controls.Remove(videoPort)
+            videoPort.Dispose()
         End If
+
+        videoPort = New RenderCtrlGDI() With {.Dock = DockStyle.Fill}
+        Me.Controls.Add(videoPort)
+        videoPort.Focus()
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
@@ -263,7 +262,7 @@ Public Class FormEmulator
 
         X8086.LogToConsole = False
 
-        cpu.Run(False)
+        cpu.Run()
 
         SetupVideoPortEventHandlers()
         SetupCpuEventHandlers()
@@ -290,7 +289,6 @@ Public Class FormEmulator
                                             runningApp = ""
                                         Case &H4B
                                             Dim mode As String = ""
-                                            Dim fileName As String = ""
 
                                             Dim GetFileName = Function() As String
                                                                   Dim b As New List(Of Byte)
@@ -302,17 +300,7 @@ Public Class FormEmulator
                                                                   Return System.Text.Encoding.ASCII.GetString(b.ToArray())
                                                               End Function
 
-                                            Dim ParseRunningApp = Function() As String
-                                                                      If fileName.Contains("\") Then
-                                                                          Dim tokens() As String = fileName.Split("\"c)
-                                                                          Return tokens(tokens.Length - 1)
-                                                                      Else
-                                                                          Return fileName
-                                                                      End If
-                                                                  End Function
-
-                                            fileName = GetFileName()
-                                            runningApp = fileName ' ParseRunningApp()
+                                            runningApp = GetFileName() ' ParseRunningApp()
 
                                             Select Case cpu.Registers.AL
                                                 Case 0 : mode = "L&X" ' Load & Execute
@@ -328,7 +316,7 @@ Public Class FormEmulator
                                             'address += 2
                                             'Dim ip = cpu.RAM(address + 1) * 16 + cpu.RAM(address)
                                             'Debug.WriteLine($"{cs:X4}:{ip:X4}")
-                                            X8086.Notify($"DOS {mode}: {GetFileName()} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
+                                            X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.

@@ -305,6 +305,14 @@
             mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
         Else
             'mCPU.RAM(&H410) = &H41
+            mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInteger, ByRef value As UInteger, mode As X8086.MemHookMode) As Boolean
+                                                        If mode = X8086.MemHookMode.Read AndAlso address = &H410 Then
+                                                            value = &H41
+                                                            Return True
+                                                        Else
+                                                            Return False
+                                                        End If
+                                                    End Function))
         End If
 
         ValidPortAddress.Clear()
