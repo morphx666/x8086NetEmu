@@ -285,7 +285,7 @@
     Private curScanLine As Long
     Private cursorPosition As UInteger
 
-    Private useROM As Boolean = True ' FIXME: Enabling ROM support breaks CGA compatibility
+    Private useROM As Boolean = False ' FIXME: Enabling ROM support breaks CGA compatibility
 
     Protected lockObject As New Object()
 
@@ -321,7 +321,7 @@
         For i As UInteger = &H3C0 To &H3CF ' EGA/VGA
             ValidPortAddress.Add(i)
         Next
-        For i As UInteger = &H3D0 To &H3DA ' CGA Adapter
+        For i As UInteger = &H3D0 To &H3DF ' CGA Adapter
             ValidPortAddress.Add(i)
         Next
 
@@ -333,7 +333,7 @@
                                                           If mCPU.Registers.AH = 0 OrElse mCPU.Registers.AH = &H10 Then
                                                               VideoMode = mCPU.Registers.AX
                                                               'If mCPU.Registers.AH = &H10 Then Return False
-                                                              Return useROM
+                                                              Return True
                                                           ElseIf mCPU.Registers.AH = &H1A And mCPU.Registers.AL = 0 Then ' Get display combination code (ps, vga/mcga)
                                                               mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
                                                               mCPU.Registers.BL = &H8
@@ -581,6 +581,7 @@
                     mCPU.RAM(&H44A) = mTextResolution.Width
                     mCPU.RAM(&H44B) = 0
                     mCPU.RAM(&H484) = mTextResolution.Height - 1
+                    mCPU.RAM16(&H40, &H63) = &H3D4 ' Without and without using a BIOS INT 10,8/9/10 fails to work
                     mCursorCol = 0
                     mCursorRow = 0
                     cursorPosition = 0

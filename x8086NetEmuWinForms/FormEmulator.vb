@@ -249,8 +249,8 @@ Public Class FormEmulator
         videoPort.Focus()
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
+        cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
+        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start)
 
@@ -287,7 +287,7 @@ Public Class FormEmulator
                                     Select Case cpu.Registers.AH
                                         Case &H0, &H4C, &H31
                                             runningApp = ""
-                                        Case &H4B
+                                        Case &H4B ' http://stanislavs.org/helppc/int_21-4b.html
                                             Dim mode As String = ""
 
                                             Dim GetFileName = Function() As String
@@ -310,13 +310,11 @@ Public Class FormEmulator
                                                 Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
                                             End Select
 
-                                            'Dim address As UInteger = X8086.SegmentOffetToAbsolute(cpu.Registers.ES, cpu.Registers.BX)
-                                            'address += &H12
-                                            'Dim cs = cpu.RAM(address + 1) * 16 + cpu.RAM(address)
-                                            'address += 2
-                                            'Dim ip = cpu.RAM(address + 1) * 16 + cpu.RAM(address)
-                                            'Debug.WriteLine($"{cs:X4}:{ip:X4}")
-                                            X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
+                                            Const offset As UInteger = &H12
+                                            Dim cs As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
+                                            Dim ip As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + 2)
+                                            'X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
+                                            X8086.Notify($"DOS {mode}: {runningApp} -> {cs:X4}:{ip:X4}", X8086.NotificationReasons.Dbg)
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.

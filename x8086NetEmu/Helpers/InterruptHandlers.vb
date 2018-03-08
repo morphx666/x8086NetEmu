@@ -49,7 +49,7 @@ Partial Public Class X8086
             IPAddrOff = RAM16(0, intOffset)
             mRegisters.CS = RAM16(0, AddValues(intOffset, 2, DataSize.Word))
 
-            If intNum = 0 Then Throw New DivideByZeroException()
+            If intNum = 0 Then DivisionByZero()
         End If
 
         mFlags.IF = 0

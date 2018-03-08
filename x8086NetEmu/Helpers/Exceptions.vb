@@ -35,10 +35,6 @@
         ThrowException("Interrupt 0x" + intNum.ToHex(DataSize.Byte) + " mode 0x" + mode.ToHex(DataSize.Byte) + "/0x" + subMode.ToHex(DataSize.Byte) + " not implemented")
     End Sub
 
-    Private Sub VGAAdapterNotFound()
-        ThrowException("VGA Adapter Not Found")
-    End Sub
-
     Private Sub KeyboardAdapterNotFound()
         ThrowException("Keyboard Adapter Not Found")
     End Sub
@@ -50,6 +46,11 @@
     Private Sub SystemReboot()
         ThrowException("System Reboot")
     End Sub
+
+    Private Sub DivisionByZero()
+        ThrowException("Division By Zero")
+    End Sub
+
 
     Private Sub SystemHalted()
         ThrowException("System Halted")
