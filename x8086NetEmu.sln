@@ -11,38 +11,57 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "x8086NetEmuWinForms", "x808
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug (Non Win)|Any CPU = Debug (Non Win)|Any CPU
 		Debug (Non Win)|x86 = Debug (Non Win)|x86
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
+		Release (Non Win)|Any CPU = Release (Non Win)|Any CPU
 		Release (Non Win)|x86 = Release (Non Win)|x86
+		Release|Any CPU = Release|Any CPU
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Debug (Non Win)|Any CPU.ActiveCfg = Debug (Non Win)|x86
 		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Debug (Non Win)|x86.ActiveCfg = Debug (Non Win)|x86
 		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Debug (Non Win)|x86.Build.0 = Debug (Non Win)|x86
+		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Debug|x86.ActiveCfg = Debug|x86
 		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Debug|x86.Build.0 = Debug|x86
+		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Release (Non Win)|Any CPU.ActiveCfg = Release (Non Win)|x86
 		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Release (Non Win)|x86.ActiveCfg = Release (Non Win)|x86
 		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Release (Non Win)|x86.Build.0 = Release (Non Win)|x86
+		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Release|Any CPU.ActiveCfg = Release|x86
 		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Release|x86.ActiveCfg = Release|x86
 		{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}.Release|x86.Build.0 = Release|x86
+		{27276D22-D0B7-4995-B687-924CF829E595}.Debug (Non Win)|Any CPU.ActiveCfg = Debug (Non Win)|x86
 		{27276D22-D0B7-4995-B687-924CF829E595}.Debug (Non Win)|x86.ActiveCfg = Debug (Non Win)|x86
 		{27276D22-D0B7-4995-B687-924CF829E595}.Debug (Non Win)|x86.Build.0 = Debug (Non Win)|x86
+		{27276D22-D0B7-4995-B687-924CF829E595}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{27276D22-D0B7-4995-B687-924CF829E595}.Debug|x86.ActiveCfg = Debug|x86
 		{27276D22-D0B7-4995-B687-924CF829E595}.Debug|x86.Build.0 = Debug|x86
+		{27276D22-D0B7-4995-B687-924CF829E595}.Release (Non Win)|Any CPU.ActiveCfg = Release (Non Win)|x86
 		{27276D22-D0B7-4995-B687-924CF829E595}.Release (Non Win)|x86.ActiveCfg = Release (Non Win)|x86
 		{27276D22-D0B7-4995-B687-924CF829E595}.Release (Non Win)|x86.Build.0 = Release (Non Win)|x86
+		{27276D22-D0B7-4995-B687-924CF829E595}.Release|Any CPU.ActiveCfg = Release|x86
 		{27276D22-D0B7-4995-B687-924CF829E595}.Release|x86.ActiveCfg = Release|x86
 		{27276D22-D0B7-4995-B687-924CF829E595}.Release|x86.Build.0 = Release|x86
+		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Debug (Non Win)|Any CPU.ActiveCfg = Debug (Non Win)|x86
 		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Debug (Non Win)|x86.ActiveCfg = Debug (Non Win)|x86
 		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Debug (Non Win)|x86.Build.0 = Debug (Non Win)|x86
+		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Debug|x86.ActiveCfg = Debug|x86
 		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Debug|x86.Build.0 = Debug|x86
+		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Release (Non Win)|Any CPU.ActiveCfg = Release (Non Win)|x86
 		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Release (Non Win)|x86.ActiveCfg = Release (Non Win)|x86
 		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Release (Non Win)|x86.Build.0 = Release (Non Win)|x86
+		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Release|Any CPU.ActiveCfg = Release|x86
 		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Release|x86.ActiveCfg = Release|x86
 		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {47FEC97B-DF82-4572-8242-79AF34F1CEAE}
 	EndGlobalSection
 EndGlobal

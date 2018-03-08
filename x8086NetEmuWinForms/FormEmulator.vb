@@ -256,6 +256,7 @@ Public Class FormEmulator
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
+        cpu.Adapters.Add(New AdlibAdapter(cpu))
 #End If
 
         cpu.VideoAdapter.AutoSize()
@@ -312,7 +313,7 @@ Public Class FormEmulator
 
                                             Const offset As UInteger = &H12
                                             Dim cs As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
-                                            Dim ip As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + 2)
+                                            Dim ip As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
                                             'X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
                                             X8086.Notify($"DOS {mode}: {runningApp} -> {cs:X4}:{ip:X4}", X8086.NotificationReasons.Dbg)
                                     End Select

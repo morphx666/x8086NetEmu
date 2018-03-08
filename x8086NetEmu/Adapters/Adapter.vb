@@ -8,7 +8,7 @@
         Keyboard
         Floppy
         IC
-        Speaker
+        AudioDevice
         Other
         SerialMouseCOM1
         Memory

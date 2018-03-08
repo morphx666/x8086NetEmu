@@ -528,7 +528,10 @@ Public Class X8086
 
     Private Sub SetSynchronization()
         Const syncQuantum As Double = 0.05
-        Sched.SetSynchronization(True, Scheduler.CLOCKRATE * syncQuantum, Scheduler.CLOCKRATE * mSimulationMultiplier / 1000.0, mSimulationMultiplier)
+        Sched.SetSynchronization(True,
+                                 Scheduler.CLOCKRATE * syncQuantum,
+                                 Scheduler.CLOCKRATE * mSimulationMultiplier / 1000,
+                                 mSimulationMultiplier)
     End Sub
 
     Public Sub PreExecute()
