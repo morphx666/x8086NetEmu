@@ -160,7 +160,7 @@
 
         Public Property AX As UShort
             Get
-                Return ((AH << 8) Or AL)
+                Return ((CShort(AH) << 8) Or AL)
             End Get
             Set(value As UShort)
                 AH = value >> 8
@@ -172,7 +172,7 @@
 
         Public Property BX As UShort
             Get
-                Return ((BH << 8) Or BL)
+                Return ((CShort(BH) << 8) Or BL)
             End Get
             Set(value As UShort)
                 BH = value >> 8
@@ -184,7 +184,7 @@
 
         Public Property CX As UShort
             Get
-                Return ((CH << 8) Or CL)
+                Return ((CShort(CH) << 8) Or CL)
             End Get
             Set(value As UShort)
                 CH = value >> 8
@@ -196,9 +196,9 @@
 
         Public Property DX As UShort
             Get
-                Return ((DH << 8) Or DL)
+                Return ((CShort(DH) << 8) Or DL)
             End Get
-            Set(value As ushort)
+            Set(value As UShort)
                 DH = value >> 8
                 DL = value And &HFF
             End Set
@@ -379,7 +379,7 @@
             End Set
         End Property
 
-        Public Property EFlags() As Byte
+        Public Property EFlags() As UShort
             Get
                 Return CF * FlagsTypes.CF Or
                         1 * 2 ^ 1 Or
@@ -395,7 +395,7 @@
                      [OF] * FlagsTypes.OF Or
                             &HF000 ' IOPL, NT and bit 15 are always "1" on 8086
             End Get
-            Set(value As Byte)
+            Set(value As UShort)
                 CF = If((value And FlagsTypes.CF) = FlagsTypes.CF, 1, 0)
                 ' Reserved 1
                 PF = If((value And FlagsTypes.PF) = FlagsTypes.PF, 1, 0)
@@ -416,7 +416,7 @@
         End Function
     End Class
 
-    Public Sub LoadBIN(fileName As String, segment As UInteger, offset As UInteger)
+    Public Sub LoadBIN(fileName As String, segment As UShort, offset As UShort)
         'Debug.WriteLine($"Loading: {fileName} @ {segment:X4}:{offset:X4}")
         fileName = X8086.FixPath(fileName)
 
@@ -427,7 +427,7 @@
         End If
     End Sub
 
-    Public Sub CopyToRAM(bytes() As Byte, segment As UInteger, offset As UInteger)
+    Public Sub CopyToRAM(bytes() As Byte, segment As UShort, offset As UShort)
         CopyToRAM(bytes, X8086.SegmentOffetToAbsolute(segment, offset))
     End Sub
 
@@ -460,26 +460,26 @@
         End Set
     End Property
 
-    Private Sub PushIntoStack(value As UInteger)
-        mRegisters.SP = AddValues(mRegisters.SP, -2, DataSize.Word)
+    Private Sub PushIntoStack(value As UShort)
+        mRegisters.SP -= 2
         RAM16(mRegisters.SS, mRegisters.SP) = value
     End Sub
 
-    Private Function PopFromStack() As UInteger
+    Private Function PopFromStack() As UShort
         Dim value As Integer = RAM16(mRegisters.SS, mRegisters.SP)
-        mRegisters.SP = AddValues(mRegisters.SP, 2, DataSize.Word)
+        mRegisters.SP += 2
         Return value
     End Function
 
-    Public Shared Function SegmentOffetToAbsolute(segment As UInteger, offset As UInteger) As UInteger
-        Return (segment << 4) + offset
+    Public Shared Function SegmentOffetToAbsolute(segment As UShort, offset As UShort) As UInteger
+        Return (CUInt(segment) << 4) + offset
     End Function
 
-    Public Shared Function AbsoluteToSegment(address As UInteger) As UInteger
+    Public Shared Function AbsoluteToSegment(address As UInteger) As UShort
         Return (address >> 4) And &HFFF00
     End Function
 
-    Public Shared Function AbsoluteToOffset(address As UInteger) As UInteger
+    Public Shared Function AbsoluteToOffset(address As UInteger) As UShort
         Return address And &HFFF
     End Function
 

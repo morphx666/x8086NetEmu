@@ -249,8 +249,8 @@ Public Class FormEmulator
         videoPort.Focus()
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
+        cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
+        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start)
 
@@ -263,7 +263,7 @@ Public Class FormEmulator
 
         X8086.LogToConsole = False
 
-        cpu.Run()
+        cpu.Run(False)
 
         SetupVideoPortEventHandlers()
         SetupCpuEventHandlers()
@@ -314,7 +314,7 @@ Public Class FormEmulator
                                             Const offset As UInteger = &H12
                                             Dim cs As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
                                             Dim ip As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
-                                            'X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
+                                            X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
                                             X8086.Notify($"DOS {mode}: {runningApp} -> {cs:X4}:{ip:X4}", X8086.NotificationReasons.Dbg)
                                     End Select
 

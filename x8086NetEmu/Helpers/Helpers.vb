@@ -1,6 +1,6 @@
 ﻿Partial Public Class X8086
     Private isVideoAdapterAvailable As Boolean
-    Private tmpCF As UInteger
+    Private tmpCF As Byte
     Private portsCache As New Dictionary(Of Integer, IOPortHandler)
     Private parityLUT() As Byte = {
         1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
@@ -132,7 +132,7 @@
                     Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5                                          ' 110 [BP]
                     Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
                 End Select
-                addrMode.IndAdr = AddValues(addrMode.IndAdr, To16bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Byte)), DataSize.Word)
+                addrMode.IndAdr += To16bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Byte))
                 addrMode.IndMem = RAMn
 
             Case 2 ' 10 - 16bit
@@ -147,7 +147,7 @@
                     Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5                                          ' 110 [BP]
                     Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
                 End Select
-                addrMode.IndAdr = AddValues(addrMode.IndAdr, To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word)), DataSize.Word)
+                addrMode.IndAdr += To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word))
                 addrMode.IndMem = RAMn
 
             Case 3 ' 11
@@ -270,22 +270,14 @@
     End Property
 
     Public Sub IncIP(value As UInteger)
-        mRegisters.IP = AddValues(mRegisters.IP, value, DataSize.Word)
+        mRegisters.IP += value
     End Sub
 
     Private Function OffsetIP(size As DataSize) As UInteger
         If size = DataSize.Byte Then
-            Return AddValues(mRegisters.IP, To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte)) + opCodeSize, DataSize.Word)
+            Return mRegisters.IP + To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte)) + opCodeSize
         Else
-            Return AddValues(mRegisters.IP, To32bitsWithSign(Param(SelPrmIndex.First, , DataSize.Word)) + opCodeSize, DataSize.Word)
-        End If
-    End Function
-
-    Public Function AddValues(v1 As UInteger, v2 As UInteger, size As DataSize) As UInteger
-        If size = DataSize.Byte Then
-            Return (v1 + v2) And &HFF
-        Else
-            Return (v1 + v2) And &HFFFF
+            Return mRegisters.IP + To32bitsWithSign(Param(SelPrmIndex.First, , DataSize.Word)) + opCodeSize
         End If
     End Function
 

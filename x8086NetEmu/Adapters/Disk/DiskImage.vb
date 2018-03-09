@@ -247,7 +247,7 @@ Public Class DiskImage
         Return True
     End Function
 
-    Public Function LBA(cylinder As UInteger, head As UInteger, sector As UInteger) As Long
+    Public Function LBA(cylinder As Integer, head As Integer, sector As Integer) As Long
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         cylinder = cylinder Or ((sector And &HC0) << 2)
