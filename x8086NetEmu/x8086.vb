@@ -76,7 +76,7 @@ Public Class X8086
 
     Public Const KHz As Long = 1000
     Public Const MHz As Long = KHz * KHz
-    Public Const GHz As Long = KHz * MHz
+    Public Const GHz As Long = MHz * KHz
     Private Const BaseClock As Long = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
     Private mCyclesPerSecond As Long = BaseClock
     Private clkCyc As Long = 0

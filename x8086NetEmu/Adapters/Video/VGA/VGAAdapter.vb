@@ -360,7 +360,7 @@
                                                     End If
                                                 End Function))
 
-        'mCPU.TryAttachHook(8, New X8086.IntHandler(Function()
+        'mCPU.TryAttachHook(&h1c, New X8086.IntHandler(Function()
         '                                               Dim t As Long = mCPU.Sched.CurrentTime
         '                                               If t >= (lastScanLineTick + scanLineTiming) Then
         '                                                   curScanLine = (curScanLine + 1) Mod 525
