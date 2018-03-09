@@ -85,7 +85,7 @@
         Private mActiveSegmentRegister As RegistersTypes = RegistersTypes.DS
         Private mActiveSegmentChanged As Boolean = False
 
-        Public Property Val(reg As RegistersTypes) As UInteger
+        Public Property Val(reg As RegistersTypes) As UShort
             Get
                 Select Case reg
                     Case RegistersTypes.AX : Return AX
@@ -121,7 +121,7 @@
                     Case Else : Throw New Exception("Invalid Register")
                 End Select
             End Get
-            Set(value As UInteger)
+            Set(value As UShort)
                 Select Case reg
                     Case RegistersTypes.AX : AX = value
                     Case RegistersTypes.AH : AH = value
@@ -158,67 +158,67 @@
             End Set
         End Property
 
-        Public Property AX As UInteger
+        Public Property AX As UShort
             Get
                 Return ((AH << 8) Or AL)
             End Get
-            Set(value As UInteger)
+            Set(value As UShort)
                 AH = value >> 8
                 AL = value And &HFF
             End Set
         End Property
-        Public Property AL As UShort
-        Public Property AH As UShort
+        Public Property AL As Byte
+        Public Property AH As Byte
 
-        Public Property BX As UInteger
+        Public Property BX As UShort
             Get
                 Return ((BH << 8) Or BL)
             End Get
-            Set(value As UInteger)
+            Set(value As UShort)
                 BH = value >> 8
                 BL = value And &HFF
             End Set
         End Property
-        Public Property BL As UShort
-        Public Property BH As UShort
+        Public Property BL As Byte
+        Public Property BH As Byte
 
-        Public Property CX As UInteger
+        Public Property CX As UShort
             Get
                 Return ((CH << 8) Or CL)
             End Get
-            Set(value As UInteger)
+            Set(value As UShort)
                 CH = value >> 8
                 CL = value And &HFF
             End Set
         End Property
-        Public Property CL As UShort
-        Public Property CH As UShort
+        Public Property CL As Byte
+        Public Property CH As Byte
 
-        Public Property DX As UInteger
+        Public Property DX As UShort
             Get
                 Return ((DH << 8) Or DL)
             End Get
-            Set(value As UInteger)
+            Set(value As ushort)
                 DH = value >> 8
                 DL = value And &HFF
             End Set
         End Property
-        Public Property DL As UShort
-        Public Property DH As UShort
+        Public Property DL As Byte
+        Public Property DH As Byte
 
-        Public Property CS As UInteger
-        Public Property IP As UInteger
+        Public Property CS As UShort
+        Public Property IP As UShort
 
-        Public Property SS As UInteger
-        Public Property SP As UInteger
+        Public Property SS As UShort
+        Public Property SP As UShort
 
-        Public Property DS As UInteger
-        Public Property SI As UInteger
+        Public Property DS As UShort
+        Public Property SI As UShort
 
-        Public Property ES As UInteger
-        Public Property DI As UInteger
+        Public Property ES As UShort
+        Public Property DI As UShort
 
-        Public Property BP As UInteger
+        Public Property BP As UShort
 
         Public Sub ResetActiveSegment()
             mActiveSegmentChanged = False
@@ -249,7 +249,7 @@
 
         Public ReadOnly Property PointerAddressToString() As String
             Get
-                Return CS.ToHex(DataSize.Word) + ":" + IP.ToHex(DataSize.Word)
+                Return CS.ToString("X4") + ":" + IP.ToString("X4")
             End Get
         End Property
 
@@ -288,98 +288,98 @@
             [OF] = 2 ^ 11
         End Enum
 
-        Private mPF As UInteger
-        Private mAF As UInteger
-        Private mZF As UInteger
-        Private mSF As UInteger
-        Private mCF As UInteger
-        Private mIF As UInteger
-        Private mDF As UInteger
-        Private mOF As UInteger
-        Private mTF As UInteger
+        Private mPF As Byte
+        Private mAF As Byte
+        Private mZF As Byte
+        Private mSF As Byte
+        Private mCF As Byte
+        Private mIF As Byte
+        Private mDF As Byte
+        Private mOF As Byte
+        Private mTF As Byte
 
-        Public Property PF As UInteger
+        Public Property PF As Byte
             Get
                 Return mPF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mPF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property AF As UInteger
+        Public Property AF As Byte
             Get
                 Return mAF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mAF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property ZF As UInteger
+        Public Property ZF As Byte
             Get
                 Return mZF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mZF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property SF As UInteger
+        Public Property SF As Byte
             Get
                 Return mSF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mSF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property CF As UInteger
+        Public Property CF As Byte
             Get
                 Return mCF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mCF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property [IF] As UInteger
+        Public Property [IF] As Byte
             Get
                 Return mIF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mIF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property DF As UInteger
+        Public Property DF As Byte
             Get
                 Return mDF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mDF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property [OF] As UInteger
+        Public Property [OF] As Byte
             Get
                 Return mOF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mOF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property TF As UInteger
+        Public Property TF As Byte
             Get
                 Return mTF
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 mTF = If(value <> 0, 1, 0)
             End Set
         End Property
 
-        Public Property EFlags() As UInteger
+        Public Property EFlags() As Byte
             Get
                 Return CF * FlagsTypes.CF Or
                         1 * 2 ^ 1 Or
@@ -395,7 +395,7 @@
                      [OF] * FlagsTypes.OF Or
                             &HF000 ' IOPL, NT and bit 15 are always "1" on 8086
             End Get
-            Set(value As UInteger)
+            Set(value As Byte)
                 CF = If((value And FlagsTypes.CF) = FlagsTypes.CF, 1, 0)
                 ' Reserved 1
                 PF = If((value And FlagsTypes.PF) = FlagsTypes.PF, 1, 0)

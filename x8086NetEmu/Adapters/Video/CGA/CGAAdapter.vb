@@ -365,7 +365,7 @@ Public MustInherit Class CGAAdapter
                     mMainMode = MainModes.Graphics
 
                 Case Else
-                    mCPU.RaiseException("CGA: Unknown Video Mode " + CInt(value).ToHex(X8086.DataSize.Byte))
+                    mCPU.RaiseException("CGA: Unknown Video Mode " + CInt(value).ToString("X2"))
                     mVideoMode = VideoModes.Undefined
             End Select
 
@@ -410,7 +410,7 @@ Public MustInherit Class CGAAdapter
                 'stop
 #End If
             Case Else
-                mCPU.RaiseException("CGA: Unknown In Port: " + port.ToHex(X8086.DataSize.Word))
+                mCPU.RaiseException("CGA: Unknown In Port: " + port.ToString("X4"))
         End Select
 
         Return &HFF
@@ -447,7 +447,7 @@ Public MustInherit Class CGAAdapter
             Case &H3DF ' CRT/CPU page register  (PCjr only)
                 'Stop
             Case Else
-                mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToHex(X8086.DataSize.Word))
+                mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToString("X4"))
         End Select
     End Sub
 
@@ -479,7 +479,7 @@ Public MustInherit Class CGAAdapter
     '        Case &H3DF ' CRT/CPU page register  (PCjr only)
     '            'Stop
     '        Case Else
-    '            mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToHex(X8086.DataSize.Word))
+    '            mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToString("X4"))
     '    End Select
     'End Sub
 

@@ -38,75 +38,6 @@ Module Extensions
     End Function
 
     <Extension()>
-    Public Function ToHex(value As Byte, Optional suffix As String = "h") As String
-        Return value.ToString("X2") + suffix
-    End Function
-
-    <Extension()>
-    Public Function ToHex(value As Integer, size As X8086.DataSize, Optional suffix As String = "h") As String
-        If size = X8086.DataSize.Byte Then
-            Return value.ToString("X2") + suffix
-        Else
-            Return value.ToString("X4") + suffix
-        End If
-    End Function
-
-    <Extension()>
-    Public Function ToHex(value As UInteger, size As X8086.DataSize, Optional suffix As String = "h") As String
-        If size = X8086.DataSize.Byte Then
-            Return value.ToString("X2") + suffix
-        Else
-            Return value.ToString("X4") + suffix
-        End If
-    End Function
-
-    <Extension()>
-    Public Function ToHex(value As Short, size As X8086.DataSize, Optional suffix As String = "h") As String
-        If size = X8086.DataSize.Byte Then
-            Return value.ToString("X2") + suffix
-        Else
-            Return value.ToString("X4") + suffix
-        End If
-    End Function
-
-    <Extension()>
-    Public Function ToHex(value As UShort, size As X8086.DataSize, Optional suffix As String = "h") As String
-        If size = X8086.DataSize.Byte Then
-            Return value.ToString("X2") + suffix
-        Else
-            Return value.ToString("X4") + suffix
-        End If
-    End Function
-
-    <Extension()>
-    Public Function ToHex(value As Long, size As X8086.DataSize, Optional suffix As String = "h") As String
-        Select Case size
-            Case X8086.DataSize.Byte
-                Return value.ToString("X2") + suffix
-            Case X8086.DataSize.Word
-                Return value.ToString("X4") + suffix
-            Case X8086.DataSize.DWord
-                Return value.ToString("X8") + suffix
-            Case Else
-                Return ""
-        End Select
-    End Function
-
-    <Extension()>
-    Public Function ToHex(value As ULong, size As X8086.DataSize, Optional suffix As String = "h") As String
-        Select Case size
-            Case X8086.DataSize.Byte
-                Return value.ToString("X2") + suffix
-            Case X8086.DataSize.Word
-                Return value.ToString("X4") + suffix
-            Case X8086.DataSize.DWord
-                Return value.ToString("X8") + suffix
-            Case Else
-                Return ""
-        End Select
-    End Function
-
-    <Extension()>
     Public Function ToBCD(value As Integer) As Integer
         Dim v As Integer
         Dim r As Integer
@@ -121,5 +52,14 @@ Module Extensions
         Next
 
         Return r
+    End Function
+
+    <Extension()>
+    Public Function ToHex(value As UInteger, size As X8086.DataSize) As String
+        If size = X8086.DataSize.Byte Then
+            Return value.ToString("X2")
+        Else
+            Return value.ToString("X4")
+        End If
     End Function
 End Module

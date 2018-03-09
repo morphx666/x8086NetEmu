@@ -47,7 +47,7 @@
                     result = Long.Parse(value.TrimEnd("d"))
                     Return True
                 Case "h"
-                    result = Convert.ToInt32(value.TrimEnd("h"), 16)
+                    result = Convert.ToInt32(value, 16)
                     Return True
                 Case "b"
                     result = Convert.ToInt32(value.TrimEnd("b"), 2)

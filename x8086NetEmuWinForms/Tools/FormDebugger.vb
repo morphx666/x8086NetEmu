@@ -221,7 +221,7 @@ Public Class FormDebugger
             Dim previous = Emulator.Decode(CS, IP - i)
             If previous.IsValid AndAlso previous.Size = i Then
                 If Emulator.Decode(CS, IP - i + previous.Size) = activeInstruction Then
-                    TextBoxIP.Text = (IP - 1).ToHex(X8086.DataSize.Word, "")
+                    TextBoxIP.Text = (IP - 1).ToString("X4")
                     Exit For
                 End If
             End If
@@ -495,7 +495,7 @@ Public Class FormDebugger
         'End If
 
         With Emulator
-            currentSSSP = X8086.SegmentOffetToAbsolute(.Registers.SS, .Registers.SP).ToString("X")
+            currentSSSP = X8086.SegmentOffetToAbsolute(.Registers.SS, .Registers.SP).ToString("X5")
 
             Dim offset As Integer = 0
             If .Registers.SP Mod 2 = 0 Then offset = 1
@@ -504,7 +504,7 @@ Public Class FormDebugger
             Dim endOffset As Integer = Math.Max(Math.Min(.Registers.SP + 0, .Registers.SP - 128), 0 + offset)
 
             For ptr As Integer = startOffset To endOffset Step -2
-                Dim address As String = X8086.SegmentOffetToAbsolute(.Registers.SS, ptr).ToString("X")
+                Dim address As String = X8086.SegmentOffetToAbsolute(.Registers.SS, ptr).ToString("X5")
                 Dim value As Integer = .RAM16(.Registers.SS, ptr)
 
                 Dim item As ListViewItem
@@ -514,8 +514,8 @@ Public Class FormDebugger
                     item = ListViewStack.Items.Add(address, "", 0)
                     item.SubItems.Add("")
                 End If
-                item.Text = .Registers.SS.ToHex(X8086.DataSize.Word, "") + ":" + ptr.ToHex(X8086.DataSize.Word, "")
-                item.SubItems(1).Text = value.ToHex(X8086.DataSize.Word, "")
+                item.Text = .Registers.SS.ToString("X4") + ":" + ptr.ToString("X4")
+                item.SubItems(1).Text = value.ToString("X4")
                 If ptr = .Registers.SP Then
                     item.BackColor = Color.DarkSlateBlue
                     item.EnsureVisible()
@@ -552,9 +552,9 @@ Public Class FormDebugger
             End With
         End If
 
-        currentCSIP = X8086.SegmentOffetToAbsolute(CS, IP).ToString("X")
+        currentCSIP = X8086.SegmentOffetToAbsolute(CS, IP).ToString("X5")
         Do
-            Dim address As String = X8086.SegmentOffetToAbsolute(CS, IP).ToString("X")
+            Dim address As String = X8086.SegmentOffetToAbsolute(CS, IP).ToString("X5")
 
             insIndex = -1
             If ListViewCode.Items.ContainsKey(address) Then
@@ -590,12 +590,12 @@ Public Class FormDebugger
             Dim info As X8086.Instruction = mEmulator.Decode(CS, IP)
             If Not info.IsValid Then Exit Do
 
-            Dim curIP As String = IP.ToHex(X8086.DataSize.Word, "")
+            Dim curIP As String = IP.ToString("X4")
             If CInt(IP) + info.Size > &HFFFF Then Exit Do
             IP = (IP + info.Size) Mod &HFFFF
 
             If item.Text = "" Then
-                item.Text = info.CS.ToHex(X8086.DataSize.Word, "") + ":" + info.IP.ToHex(X8086.DataSize.Word, "")
+                item.Text = info.CS.ToString("X4") + ":" + info.IP.ToString("X4")
                 item.SubItems(1).Text = GetBytesString(info.Bytes)
                 item.SubItems(2).Text = info.Mnemonic
                 If info.Message = "" Then
@@ -750,7 +750,7 @@ Public Class FormDebugger
                 If CheckBoxBytesOrChars.Checked Then
                     r += Chr(b(i)) + " "
                 Else
-                    r += b(i).ToHex("") + " "
+                    r += b(i).ToString("X") + " "
                 End If
             Next
         End If
@@ -874,8 +874,8 @@ Public Class FormDebugger
                     Next
 
                     If found Then
-                        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(i).ToHex(X8086.DataSize.Word, "")
-                        TextBoxMemOff.Text = X8086.AbsoluteToOffset(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(i).ToString("X4")
+                        TextBoxMemOff.Text = X8086.AbsoluteToOffset(i).ToString("X4")
 
                         Exit Do
                     End If
@@ -884,8 +884,8 @@ Public Class FormDebugger
                 For i As Integer = startIndex To endIndex
                     Array.Copy(mEmulator.Memory, i, buffer, 0, str.Length)
                     If ASCIIEncoding.ASCII.GetString(buffer).ToLower() = str Then
-                        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(i).ToHex(X8086.DataSize.Word, "")
-                        TextBoxMemOff.Text = X8086.AbsoluteToOffset(i).ToHex(X8086.DataSize.Word, "")
+                        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(i).ToString("X4")
+                        TextBoxMemOff.Text = X8086.AbsoluteToOffset(i).ToString("X4")
 
                         found = True
                         Exit Do
@@ -916,8 +916,8 @@ Public Class FormDebugger
     Private Sub ButtonMemBack_Click(sender As Object, e As EventArgs) Handles ButtonMemBack.Click
         Dim address As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         address -= 256
-        TextBoxMemSeg.Text = X8086.AbsoluteToOffset(address).ToHex(X8086.DataSize.Word)
-        TextBoxMemOff.Text = X8086.AbsoluteToOffset(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemSeg.Text = X8086.AbsoluteToOffset(address).ToString("X4")
+        TextBoxMemOff.Text = X8086.AbsoluteToOffset(address).ToString("X4")
 
         UpdateMemory()
     End Sub
@@ -925,8 +925,8 @@ Public Class FormDebugger
     Private Sub ButtonMemForward_Click(sender As Object, e As EventArgs) Handles ButtonMemForward.Click
         Dim address As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         address += 256
-        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(address).ToHex(X8086.DataSize.Word)
-        TextBoxMemOff.Text = X8086.AbsoluteToOffset(address).ToHex(X8086.DataSize.Word)
+        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(address).ToString("X4")
+        TextBoxMemOff.Text = X8086.AbsoluteToOffset(address).ToString("X4")
 
         UpdateMemory()
     End Sub

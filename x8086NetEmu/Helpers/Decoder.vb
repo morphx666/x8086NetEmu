@@ -27,17 +27,17 @@
                     Dim r As String = ""
                     If Bytes IsNot Nothing Then
                         For i As Integer = 0 To Bytes.Length - 1
-                            r += Bytes(i).ToHex("") + " "
+                            r += Bytes(i).ToString("X") + " "
                         Next
                     End If
 
-                    s1 = String.Format("{0}:{1} {2} {3}", CS.ToHex(DataSize.Word, ""),
-                                                                        IP.ToHex(DataSize.Word, ""),
+                    s1 = String.Format("{0}:{1} {2} {3}", CS.ToString("X4"),
+                                                                        IP.ToString("X4"),
                                                                         r.PadRight(6 * 3),
                                                                         Mnemonic.PadRight(6, " "))
                 Else
-                    s1 = String.Format("{0}:{1} {2}", CS.ToHex(DataSize.Word, ""),
-                                                                        IP.ToHex(DataSize.Word, ""),
+                    s1 = String.Format("{0}:{1} {2}", CS.ToString("X4"),
+                                                                        IP.ToString("X4"),
                                                                         Mnemonic.PadRight(6, " "))
                 End If
 
@@ -148,11 +148,11 @@
                 End If
 
             Case &H4 ' add al and imm
-                opCodeASM = "ADD AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "ADD AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 4
 
             Case &H5 ' add ax and imm
-                opCodeASM = "ADD AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "ADD AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 4
 
             Case &H6 ' push es
@@ -183,11 +183,11 @@
                 End If
 
             Case &HC ' or al and imm
-                opCodeASM = "OR AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "OR AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 4
 
             Case &HD ' or ax and imm
-                opCodeASM = "OR AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "OR AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 4
 
             Case &HE ' push cs
@@ -214,11 +214,11 @@
                 End If
 
             Case &H14 ' adc al and imm
-                opCodeASM = "ADC AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "ADC AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 3
 
             Case &H15 ' adc ax and imm
-                opCodeASM = "ADC AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "ADC AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 3
 
             Case &H16 ' push ss
@@ -249,11 +249,11 @@
                 End If
 
             Case &H1C ' sbb al and imm
-                opCodeASM = "SBB AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "SBB AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 4
 
             Case &H1D ' sbb ax and imm
-                opCodeASM = "SBB AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "SBB AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 4
 
             Case &H1E ' push ds
@@ -285,11 +285,11 @@
                 End If
 
             Case &H24 ' and al and imm
-                opCodeASM = "AND AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "AND AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 4
 
             Case &H25 ' and ax and imm
-                opCodeASM = "AND AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "AND AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 4
 
             Case &H27 ' daa
@@ -316,11 +316,11 @@
                 End If
 
             Case &H2C ' sub al and imm
-                opCodeASM = "SUB AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "SUB AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 4
 
             Case &H2D ' sub ax and imm
-                opCodeASM = "SUB AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "SUB AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 4
 
             Case &H2F ' das
@@ -347,11 +347,11 @@
                 End If
 
             Case &H34 ' xor al and imm
-                opCodeASM = "XOR AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "XOR AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 4
 
             Case &H35 ' xor ax and imm
-                opCodeASM = "XOR AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "XOR AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 4
 
             Case &H37 ' aaa
@@ -377,11 +377,11 @@
                 End If
 
             Case &H3C ' cmp al and imm
-                opCodeASM = "CMP AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "CMP AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 4
 
             Case &H3D ' cmp ax and imm
-                opCodeASM = "CMP AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "CMP AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 4
 
             Case &H3F ' aas
@@ -424,82 +424,82 @@
 
             Case &H70 ' jo
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JO " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JO " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.OF = 1, 16, 4)
 
             Case &H71 ' jno
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JNO " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JNO " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.OF = 0, 16, 4)
 
             Case &H72 ' jb/jnae
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JB " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JB " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.CF = 1, 16, 4)
 
             Case &H73 ' jnb/jae
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JNB " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JNB " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.CF = 0, 16, 4)
 
             Case &H74 ' je/jz
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JE " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JE " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.ZF = 1, 16, 4)
 
             Case &H75 ' jne/jnz
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JNE " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JNE " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.ZF = 0, 16, 4)
 
             Case &H76 ' jbe/jna
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JBE " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JBE " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.CF = 1 OrElse mFlags.ZF = 1, 16, 4)
 
             Case &H77 ' jnbe/ja
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JNBE " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JNBE " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.CF = 0 AndAlso mFlags.ZF = 0, 16, 4)
 
             Case &H78 ' js
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JS " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JS " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.SF = 1, 16, 4)
 
             Case &H79 ' jns
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JNS " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JNS " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.SF = 0, 16, 4)
 
             Case &H7A ' jp/jpe
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JP " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JP " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.PF = 1, 16, 4)
 
             Case &H7B ' jnp/jpo
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JNP " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JNP " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.PF = 0, 16, 4)
 
             Case &H7C ' jl/jnge
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JL " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JL " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.SF <> mFlags.OF, 16, 4)
 
             Case &H7D ' jnl/jge
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JNL " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JNL " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.SF = mFlags.OF, 16, 4)
 
             Case &H7E ' jle/jng
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JLE " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JLE " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.ZF = 1 OrElse (mFlags.SF <> mFlags.OF), 16, 4)
 
             Case &H7F ' jnle/jg
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JNLE " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JNLE " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mFlags.ZF = 0 OrElse (mFlags.SF = mFlags.OF), 16, 4)
 
             Case &H80 To &H83 : DecodeGroup1()
@@ -596,7 +596,7 @@
                 clkCycDecoder += 5
 
             Case &H9A ' call direct intersegment
-                opCodeASM = "CALL " + Param(SelPrmIndex.Second, , DataSize.Word).ToHex(DataSize.Word).TrimEnd("h") + ":" + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word).TrimEnd("h")
+                opCodeASM = "CALL " + Param(SelPrmIndex.Second, , DataSize.Word).ToString("X4") + ":" + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 28
 
             Case &H9B ' wait
@@ -622,15 +622,15 @@
                 addrMode.Decode(decOpCode, decOpCode)
                 If addrMode.Direction = 0 Then
                     If addrMode.Size = DataSize.Byte Then
-                        opCodeASM = "MOV AL, [" + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word) + "]"
+                        opCodeASM = "MOV AL, [" + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4") + "]"
                     Else
-                        opCodeASM = "MOV AX, [" + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word) + "]"
+                        opCodeASM = "MOV AX, [" + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4") + "]"
                     End If
                 Else
                     If addrMode.Size = DataSize.Byte Then
-                        opCodeASM = "MOV [" + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word) + "], AL"
+                        opCodeASM = "MOV [" + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4") + "], AL"
                     Else
-                        opCodeASM = "MOV [" + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word) + "], AX"
+                        opCodeASM = "MOV [" + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4") + "], AX"
                     End If
                 End If
                 clkCycDecoder += 10
@@ -653,9 +653,9 @@
 
             Case &HA8 To &HA9 ' test
                 If (decOpCode And &H1) = 0 Then
-                    opCodeASM = "TEST AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                    opCodeASM = "TEST AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 Else
-                    opCodeASM = "TEST AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                    opCodeASM = "TEST AX, " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 End If
                 clkCycDecoder += 4
 
@@ -698,7 +698,7 @@
             Case &HC0, &HC1 : DecodeGroup2()
 
             Case &HC2 ' ret within segment adding imm to sp
-                opCodeASM = "RET " + Param(SelPrmIndex.First).ToHex(DataSize.Word)
+                opCodeASM = "RET " + Param(SelPrmIndex.First).ToString("X4")
                 clkCycDecoder += 20
 
             Case &HC3 ' ret within segment
@@ -752,7 +752,7 @@
                 opCodeASM = "LEAVE"
 
             Case &HCA ' ret intersegment adding imm to sp
-                opCodeASM = "RETF " + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "RETF " + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 17
 
             Case &HCB ' ret intersegment (retf)
@@ -764,7 +764,7 @@
                 clkCycDecoder += 52
 
             Case &HCD ' int with type specified
-                opCodeASM = "INT " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "INT " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 51
 
             Case &HCE ' into
@@ -778,11 +778,11 @@
             Case &HD0 To &HD3 : DecodeGroup2()
 
             Case &HD4 ' aam
-                opCodeASM = "AAM " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "AAM " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 83
 
             Case &HD5 ' aad
-                opCodeASM = "AAD " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "AAD " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 60
 
             Case &HD6 ' salc
@@ -797,7 +797,7 @@
                 If ParamNOPS(SelPrmIndex.First, , DataSize.Byte) = &H3C Then
                     opCodeASM = "FNSTSW {NOT IMPLEMENTED}"
                 Else
-                    opCodeASM = decOpCode.ToHex() + " {NOT IMPLEMENTED}"
+                    opCodeASM = decOpCode.ToString("X2") + " {NOT IMPLEMENTED}"
                 End If
                 opCodeSize += 1
 
@@ -805,61 +805,61 @@
                 If ParamNOPS(SelPrmIndex.First, , DataSize.Byte) = &HE3 Then
                     opCodeASM = "FNINIT {NOT IMPLEMENTED}"
                 Else
-                    opCodeASM = decOpCode.ToHex() + " {NOT IMPLEMENTED}"
+                    opCodeASM = decOpCode.ToString("X2") + " {NOT IMPLEMENTED}"
                 End If
                 opCodeSize += 1
 
             Case &HE0 ' loopne
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "LOOPNE " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "LOOPNE " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mRegisters.CX <> 0 AndAlso mFlags.ZF = 0, 19, 5)
 
             Case &HE1 ' loope
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "LOOPE " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "LOOPE " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mRegisters.CX <> 0 AndAlso mFlags.ZF = 1, 18, 6)
 
             Case &HE2 ' loop
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "LOOP " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "LOOP " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mRegisters.CX <> 0, 17, 5)
 
             Case &HE3 ' jcxz
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JCXZ " + ipAddrOffDecoder.ToHex(DataSize.Word)
+                opCodeASM = "JCXZ " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += If(mRegisters.CX = 0, 18, 6)
 
             Case &HE4 ' in to al from fixed port
-                opCodeASM = "IN AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte)
+                opCodeASM = "IN AL, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2")
                 clkCycDecoder += 10
 
             Case &HE5 ' inw to ax from fixed port
-                opCodeASM = "IN AX, " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Word)
+                opCodeASM = "IN AX, " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X4")
                 clkCycDecoder += 10
 
             Case &HE6  ' out to al to fixed port
-                opCodeASM = "OUT " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Byte) + ", AL"
+                opCodeASM = "OUT " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X2") + ", AL"
                 clkCycDecoder += 10
 
             Case &HE7  ' outw to ax to fixed port
-                opCodeASM = "OUT " + Param(SelPrmIndex.First, , DataSize.Byte).ToHex(DataSize.Word) + ", Ax"
+                opCodeASM = "OUT " + Param(SelPrmIndex.First, , DataSize.Byte).ToString("X4") + ", Ax"
                 clkCycDecoder += 10
 
             Case &HE8 ' call direct within segment
-                opCodeASM = "CALL " + OffsetIP(DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "CALL " + OffsetIP(DataSize.Word).ToString("X4")
                 clkCycDecoder += 19
 
             Case &HE9 ' jmp direct within segment
-                opCodeASM = "JMP " + OffsetIP(DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "JMP " + OffsetIP(DataSize.Word).ToString("X4")
                 clkCycDecoder += 15
 
             Case &HEA ' jmp direct intersegment
-                opCodeASM = "JMP " + Param(SelPrmIndex.Second, , DataSize.Word).ToHex(DataSize.Word) + ":" + Param(SelPrmIndex.First, , DataSize.Word).ToHex(DataSize.Word)
+                opCodeASM = "JMP " + Param(SelPrmIndex.Second, , DataSize.Word).ToString("X4") + ":" + Param(SelPrmIndex.First, , DataSize.Word).ToString("X4")
                 clkCycDecoder += 15
 
             Case &HEB ' jmp direct within segment short
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JMP " + ipAddrOffDecoder.ToHex(DataSize.Byte)
+                opCodeASM = "JMP " + ipAddrOffDecoder.ToString("X2")
                 clkCycDecoder += 15
 
             Case &HEC  ' in to al from variable port
@@ -927,11 +927,11 @@
             Case &HFE To &HFF : DecodeGroup4_And_5()
 
             Case Else
-                opCodeASM = decOpCode.ToHex() + ": {NOT IMPLEMENTED}"
+                opCodeASM = decOpCode.ToString("X2") + ": {NOT IMPLEMENTED}"
         End Select
 
         If opCodeSize = 0 Then
-            Throw New Exception("Decoding error for decOpCode " + decOpCode.ToHex())
+            Throw New Exception("Decoding error for decOpCode " + decOpCode.ToString("X2"))
         End If
 
         Dim info As Instruction = New Instruction With {
@@ -1221,7 +1221,7 @@
                     Case 5 : addrMode.IndAdr = mRegisters.DI : indASM = "[DI]" : clkCyc += 5                                               ' 101 [DI]
                     Case 6                                                                                                                 ' 110 Direct Addressing
                         addrMode.IndAdr = ParamNOPS(SelPrmIndex.First, 2, DataSize.Word)
-                        indASM = "[" + ToHex(ParamNOPS(SelPrmIndex.First, 2, DataSize.Word), DataSize.Word) + "]"
+                        indASM = "[" + ParamNOPS(SelPrmIndex.First, 2, DataSize.Word).ToString("X4") + "]"
                         opCodeSize += 2
                         clkCyc += 9
                     Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCyc += 5                                               ' 111 [BX]
@@ -1249,7 +1249,7 @@
                 Else
                     s = 1
                 End If
-                indASM = indASM.Replace("]", If(s = -1, " - ", " + ") + p.ToHex() + "]")
+                indASM = indASM.Replace("]", If(s = -1, " - ", " + ") + p.ToString("X2") + "]")
                 addrMode.IndAdr = AddValues(addrMode.IndAdr, s * p, DataSize.Word)
                 addrMode.IndMem = RAMn
                 opCodeSize += 1
@@ -1267,7 +1267,7 @@
                     Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCyc += 5                                               ' 111 [BX]
                 End Select
 
-                indASM = indASM.Replace("]", " + " + ParamNOPS(SelPrmIndex.First, 2, DataSize.Word).ToHex(DataSize.Word) + "]")
+                indASM = indASM.Replace("]", " + " + ParamNOPS(SelPrmIndex.First, 2, DataSize.Word).ToString("X4") + "]")
                 addrMode.IndAdr = AddValues(addrMode.IndAdr, ParamNOPS(SelPrmIndex.First, 2, DataSize.Word), DataSize.Word)
                 addrMode.IndMem = RAMn
                 opCodeSize += 2

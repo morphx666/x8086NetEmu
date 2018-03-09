@@ -190,7 +190,7 @@ Public Class FormDiskExplorer
             address = X8086.SegmentOffetToAbsolute(0, i).ToString("X")
             ins = emu.Decode(0, i)
 
-            With ListViewCode.Items.Add(address, ins.CS.ToHex(X8086.DataSize.Word, "") + ":" + ins.IP.ToHex(X8086.DataSize.Word, ""), 0)
+            With ListViewCode.Items.Add(address, ins.CS.ToString("X4") + ":" + ins.IP.ToString("X4"), 0)
                 With .SubItems
                     .Add(GetBytesString(ins.Bytes))
                     .Add(ins.Mnemonic)
@@ -218,7 +218,7 @@ Public Class FormDiskExplorer
         Dim r As String = ""
         If b IsNot Nothing Then
             For i As Integer = 0 To b.Length - 1
-                r += b(i).ToHex("") + " "
+                r += b(i).ToString("X") + " "
             Next
         End If
         Return r.Trim()

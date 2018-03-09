@@ -24,15 +24,15 @@
     End Sub
 
     Private Sub InterruptNotImplemented(intNum As Integer)
-        ThrowException("Interrupt 0x" + intNum.ToHex(DataSize.Byte) + " not implemented")
+        ThrowException("Interrupt 0x" + intNum.ToString("X2") + " not implemented")
     End Sub
 
     Private Sub InterruptModeNotImplemented(intNum As Integer, mode As Integer)
-        ThrowException("Interrupt 0x" + intNum.ToHex(DataSize.Byte) + " mode 0x" + mode.ToHex(DataSize.Byte) + " not implemented")
+        ThrowException("Interrupt 0x" + intNum.ToString("X2") + " mode 0x" + mode.ToString("X2") + " not implemented")
     End Sub
 
     Private Sub InterruptSubModeNotImplemented(intNum As Integer, mode As Integer, subMode As Integer)
-        ThrowException("Interrupt 0x" + intNum.ToHex(DataSize.Byte) + " mode 0x" + mode.ToHex(DataSize.Byte) + "/0x" + subMode.ToHex(DataSize.Byte) + " not implemented")
+        ThrowException("Interrupt 0x" + intNum.ToString("X2") + " mode 0x" + mode.ToString("X2") + "/0x" + subMode.ToString("X2") + " not implemented")
     End Sub
 
     Private Sub KeyboardAdapterNotFound()
@@ -65,9 +65,9 @@
 
     Private Sub NoIOPort(port As Integer)
         X8086.Notify("No IO port response from {0} called at {1}:{2}", NotificationReasons.Warn,
-                        port.ToHex(DataSize.Word),
-                        mRegisters.CS.ToHex(DataSize.Word).TrimEnd("h"),
-                        mRegisters.IP.ToHex(DataSize.Word).TrimEnd("h"))
+                        port.ToString("X4"),
+                        mRegisters.CS.ToString("X4"),
+                        mRegisters.IP.ToString("X4"))
     End Sub
 
     Public Sub RaiseException(message As String)

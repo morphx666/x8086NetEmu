@@ -425,8 +425,8 @@ Public Class Scheduler
                     mCPU.PreExecute()
                 Catch ex As Exception
                     X8086.Notify("Shit happens at {0}:{1}: {2}", X8086.NotificationReasons.Fck,
-                                                                 mCPU.Registers.CS.ToHex(X8086.DataSize.Word, ""),
-                                                                 mCPU.Registers.IP.ToHex(X8086.DataSize.Word, ""),
+                                                                 mCPU.Registers.CS.ToString("X4"),
+                                                                 mCPU.Registers.IP.ToString("X4"),
                                                                  ex.Message)
                 End Try
 

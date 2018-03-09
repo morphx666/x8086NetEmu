@@ -47,7 +47,7 @@ Partial Public Class X8086
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToHex(DataSize.DWord, ""),
+                                offset.ToString("X5"),
                                 mRegisters.ES,
                                 mRegisters.BX)
 
@@ -93,7 +93,7 @@ Partial Public Class X8086
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToHex(DataSize.DWord).Replace("h", ""),
+                                offset.ToString("X5"),
                                 mRegisters.ES,
                                 mRegisters.BX)
 
@@ -133,7 +133,7 @@ Partial Public Class X8086
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToHex(DataSize.DWord).Replace("h", ""),
+                                offset.ToString("X5"),
                                 mRegisters.ES,
                                 mRegisters.BX)
 
@@ -162,7 +162,7 @@ Partial Public Class X8086
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToHex(DataSize.DWord).Replace("h", ""),
+                                offset.ToString("X5"),
                                 mRegisters.ES,
                                 mRegisters.BX)
                 ret = 0
@@ -257,7 +257,7 @@ Partial Public Class X8086
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToHex(DataSize.DWord, ""),
+                                offset.ToString("X5"),
                                 mRegisters.ES,
                                 mRegisters.BX)
 
@@ -364,7 +364,7 @@ Partial Public Class X8086
                 X8086.Notify("Drive {0} Read {4:000} {5:000000} -> {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 bufSize,
-                                offset.ToHex(DataSize.DWord, ""),
+                                offset.ToString("X5"),
                                 seg,
                                 off)
 
@@ -408,7 +408,7 @@ Partial Public Class X8086
                 X8086.Notify("Drive {0} Write {4:000} {5:000000} <- {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 bufSize,
-                                offset.ToHex(DataSize.DWord, ""),
+                                offset.ToString("X5"),
                                 seg,
                                 off)
 
@@ -445,7 +445,7 @@ Partial Public Class X8086
             Case Else
                 X8086.Notify("Drive {0} Unknown Request {1}", NotificationReasons.Err,
                                                             mRegisters.DL,
-                                                            ((mRegisters.AX And &HFF00) >> 8).ToHex(DataSize.Byte))
+                                                            ((mRegisters.AX And &HFF00) >> 8).ToString("X2"))
                 ret = &H1
         End Select
 
