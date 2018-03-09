@@ -10,8 +10,8 @@ Public Class CustomBufferProvider
     Private wf As WaveFormat
     Private fb As FillBuffer
 
-    Public Sub New(bufferFiller As FillBuffer)
-        wf = New WaveFormat(SpeakerAdpater.SampleRate, 8, 1)
+    Public Sub New(bufferFiller As FillBuffer, sampleRate As Integer)
+        wf = New WaveFormat(sampleRate, 8, 1)
         fb = bufferFiller
     End Sub
 
@@ -160,8 +160,9 @@ Public Class SpeakerAdpater
             .NumberOfBuffers = 32,
             .DesiredLatency = 200
         }
-        audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer)
+        audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate) ' / (1 / mCPU.PIT.Channel(2).GetSquareWavePeriod()))
         waveOut.Init(audioProvider)
+        waveOut.Volume = 1
         waveOut.Play()
     End Sub
 

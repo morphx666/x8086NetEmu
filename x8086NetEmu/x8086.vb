@@ -120,9 +120,17 @@ Public Class X8086
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
 
+        Scheduler.CLOCKRATE = GetCpuSpeed() * X8086.MHz
+
         BuildSZPTables()
         Init()
     End Sub
+
+    Private Function GetCpuSpeed() As UInteger
+        Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
+            Return managementObject("CurrentClockSpeed")
+        End Using
+    End Function
 
     Private Sub AddInternalHooks()
         If mEmulateINT13 Then TryAttachHook(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
@@ -528,10 +536,11 @@ Public Class X8086
 
     Private Sub SetSynchronization()
         Const syncQuantum As Double = 0.05
+        FlushCycles()
         Sched.SetSynchronization(True,
-                                 Scheduler.CLOCKRATE * syncQuantum,
-                                 Scheduler.CLOCKRATE * mSimulationMultiplier / 1000,
-                                 mSimulationMultiplier)
+                                         Scheduler.CLOCKRATE * syncQuantum,
+                                         Scheduler.CLOCKRATE * mSimulationMultiplier / 1000,
+                                         mSimulationMultiplier)
     End Sub
 
     Public Sub PreExecute()

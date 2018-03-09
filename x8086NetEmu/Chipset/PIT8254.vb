@@ -1,7 +1,7 @@
 ﻿Public Class PIT8254
     Inherits IOPortHandler
 
-    Private Class Counter
+    Public Class Counter
         ' Mode (0..5)
         Private countMode As Integer
 
@@ -391,7 +391,7 @@
             outputValue = (Not mGgate OrElse counterValue <> 1)
         End Sub
 
-        '  MODE 3 - SQUARE WAVE
+        ' MODE 3 - SQUARE WAVE
         Private Sub UpdMode3(clocks As Long)
             '  init:      output high, stop counter
             '  initial c: load and start counter
@@ -478,7 +478,7 @@
             End If
         End Sub
 
-        '  MODE 5 - HARD-TRIGGERED STROBE
+        ' MODE 5 - HARD-TRIGGERED STROBE
         Private Sub UpdMode5(clocks As Long)
             '  init:      output high, counter running
             '  set count: nop
@@ -520,7 +520,7 @@
     Public Const COUNTRATE As Long = 1.19318 * X8086.MHz
 
     ' Three counters in the I8254 chip 
-    Private channels(3 - 1) As Counter
+    Private mChannels(3 - 1) As Counter
 
     ' Interrupt request line for channel 0 
     Private irq As InterruptRequest
@@ -558,13 +558,13 @@
         Me.currentTime = cpu.Sched.CurrentTime
 
         ' construct 3 timer channels
-        channels(0) = New Counter(Me)
-        channels(1) = New Counter(Me)
-        channels(2) = New Counter(Me)
+        mChannels(0) = New Counter(Me)
+        mChannels(1) = New Counter(Me)
+        mChannels(2) = New Counter(Me)
 
         ' gate input for channels 0 and 1 is always high
-        channels(0).Gate = True
-        channels(1).Gate = True
+        mChannels(0).Gate = True
+        mChannels(1).Gate = True
 
         For i As Integer = &H40 To &H43
             ValidPortAddress.Add(i)
@@ -572,12 +572,12 @@
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean
-        Return channels(c).GetOutput()
+        Return mChannels(c).GetOutput()
     End Function
 
     Public Sub SetCh2Gate(v As Boolean)
         currentTime = cpu.Sched.CurrentTime
-        channels(2).Gate = v
+        mChannels(2).Gate = v
         UpdateCh2(0)
     End Sub
 
@@ -589,7 +589,7 @@
             Return &HFF
         Else
             ' read from counter
-            Return channels(c).GetByte()
+            Return mChannels(c).GetByte()
         End If
     End Function
 
@@ -604,21 +604,21 @@
                 '  Read Back command
                 For i As Integer = 0 To 3 - 1
                     s = (2 << i)
-                    If (v And (&H10 Or s)) = s Then channels(i).LatchStatus()
-                    If (v And (&H20 Or s)) = s Then channels(i).LatchOutput()
+                    If (v And (&H10 Or s)) = s Then mChannels(i).LatchStatus()
+                    If (v And (&H20 Or s)) = s Then mChannels(i).LatchOutput()
                 Next
             Else
                 '  Channel Control Word
                 If (v And &H30) = 0 Then
                     '  Counter Latch command
-                    channels(c).LatchOutput()
+                    mChannels(c).LatchOutput()
                 Else
                     '  reprogram counter mode
                     Dim countm As Integer = (v >> 1) And 7
                     If countm > 5 Then countm = countm And 3
                     Dim rwm As Integer = (v >> 4) And 3
                     Dim bcdm As Boolean = (v And 1) <> 0
-                    channels(c).SetMode(countm, rwm, bcdm)
+                    mChannels(c).SetMode(countm, rwm, bcdm)
                     Select Case c
                         Case 0 : UpdateCh0()
                         Case 1 : UpdateCh1()
@@ -628,7 +628,7 @@
             End If
         Else
             '  write to counter
-            channels(c).PutByte(v)
+            mChannels(c).PutByte(v)
             Select Case c
                 Case 0 : UpdateCh0()
                 Case 1 : UpdateCh1()
@@ -636,6 +636,12 @@
             End Select
         End If
     End Sub
+
+    Public ReadOnly Property Channel(index As Integer) As Counter
+        Get
+            Return mChannels(index)
+        End Get
+    End Property
 
     Private Sub UpdateCh0()
         ' State of channel 0 may have changed;
@@ -648,7 +654,7 @@
 
     Private Sub UpdateCh1()
         ' Notify the DMA controller of the new frequency
-        If cpu.DMA IsNot Nothing Then cpu.DMA.SetCh0Period(channels(1).GetPeriod())
+        If cpu.DMA IsNot Nothing Then cpu.DMA.SetCh0Period(mChannels(1).GetPeriod())
     End Sub
 
     Private Sub UpdateCh2(v As Integer)
@@ -666,11 +672,14 @@
 
 #If Win32 Then
         If mSpeaker IsNot Nothing Then
-            Dim period As Long = channels(2).GetSquareWavePeriod()
+            Dim period As Long = mChannels(2).GetSquareWavePeriod()
             If period = 0 Then
                 mSpeaker.Frequency = 0
             Else
-                mSpeaker.Frequency = COUNTRATE / period * 1000
+                ' FIXME: Multiplying by 2000 moves notes three octaves up, 
+                '        while multiplying by 500, the notes played through the speaker, match the notes detected by any tuner.
+                '        But, multiplying by 2000 matches other emulators (such as DosBox) frequency.
+                mSpeaker.Frequency = COUNTRATE / period * 2000 * 1.335 
             End If
         End If
 #End If
@@ -712,14 +721,14 @@
     Public Overrides Sub Run()
         currentTime = cpu.Sched.CurrentTime
         ' set IRQ 0 signal equal to counter 0 output
-        Dim s As Boolean = channels(0).GetOutput()
+        Dim s As Boolean = mChannels(0).GetOutput()
         If s <> lastValue Then
             irq.Raise(s)
             lastValue = s
         End If
 
         ' reschedule task for next output change
-        Dim t As Long = channels(0).NextOutputChangeTime()
+        Dim t As Long = mChannels(0).NextOutputChangeTime()
         If t > 0 Then cpu.Sched.RunTaskAt(task, t)
     End Sub
 End Class

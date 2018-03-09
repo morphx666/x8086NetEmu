@@ -9,7 +9,7 @@ Public Class Scheduler
     Private Const STOPPING As Long = Long.MinValue
 
     ' Number of scheduler time units per simulated second (1.0 GHz)
-    Public Const CLOCKRATE As Long = 1 * X8086.GHz
+    Public Shared CLOCKRATE As Long = 1 * X8086.GHz
 
     ' Current simulation time in scheduler time units (ns)
     Private mCurrentTime As Long
@@ -268,6 +268,8 @@ Public Class Scheduler
     End Sub
 
     Private Sub Wait(delay As Integer)
+        If delay > 1000 Then Exit Sub ' FIXME: Don't know why, sometimes, delay gets extremely large!
+
         Monitor.Enter(Me)
         Monitor.Wait(Me, delay)
         Monitor.Exit(Me)

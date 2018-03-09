@@ -81,7 +81,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private adlibAttack(9 - 1) As Double
 
     Private sampleRateAdjust As Double = 1.0
-    Private useSampleRate As UInteger = 48000
+    Private Const SampleRate As UInteger = 48000
 
     Private adlibRegMem(&HFF - 1) As UShort
     Private adlibAddr As UShort = 0
@@ -89,7 +89,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private adlibStatus As Byte = 0
     Private adlibStep(9 - 1) As ULong
 
-    Private adlibTicks As ULong = X8086.GHz / 48000
+    Private adlibTicks As ULong = X8086.GHz / SampleRate
     Private lastAdlibTicks As ULong
 
     Public Sub New(cpu As X8086)
@@ -149,7 +149,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             .NumberOfBuffers = 32,
             .DesiredLatency = 200
         }
-        audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer)
+        audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate)
         waveOut.Init(audioProvider)
         waveOut.Play()
     End Sub
@@ -238,7 +238,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
         If adlibPrecussion AndAlso currentChannel >= 6 AndAlso currentChannel <= 8 Then Return 0
 
-        fullStep = useSampleRate / AdlibFrequency(currentChannel)
+        fullStep = SampleRate / AdlibFrequency(currentChannel)
 
         tmpSample = oplWave(adlibChan(currentChannel).WaveformSelect)((CDbl(adlibStep(currentChannel)) / (CDbl(fullStep) / 256.0)) Mod 255)
         tmpStep = adlibEnv(currentChannel)

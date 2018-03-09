@@ -14,14 +14,10 @@ Partial Public Class X8086
         ' Lesson 5 (mRegisters.ActiveSegmentChanged = False)
         ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
-        'If mFlags.IF = 1 AndAlso
-        '   mFlags.TF = 0 AndAlso
-        '   Not mRegisters.ActiveSegmentChanged AndAlso
-        '   repeLoopMode = REPLoopModes.None AndAlso
-        '   picIsAvailable Then
         If mFlags.IF = 1 AndAlso
            mFlags.TF = 0 AndAlso
            Not mRegisters.ActiveSegmentChanged AndAlso
+           repeLoopMode = REPLoopModes.None AndAlso
            picIsAvailable Then
 
             Dim pendingIntNum As Integer = PIC.GetPendingInterrupt()
