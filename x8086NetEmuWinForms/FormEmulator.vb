@@ -263,7 +263,7 @@ Public Class FormEmulator
 
         X8086.LogToConsole = False
 
-        cpu.Run(False)
+        cpu.Run()
 
         SetupVideoPortEventHandlers()
         SetupCpuEventHandlers()

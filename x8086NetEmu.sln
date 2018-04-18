@@ -9,6 +9,11 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "x8086NetEmuConsole", "x8086
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "x8086NetEmuWinForms", "x8086NetEmuWinForms\x8086NetEmuWinForms.vbproj", "{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{53E71534-D4F4-4339-B67E-D650B1962279}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug (Non Win)|Any CPU = Debug (Non Win)|Any CPU
