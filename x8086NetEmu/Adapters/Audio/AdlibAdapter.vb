@@ -5,19 +5,19 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Private waveOut As WaveOut
     Private audioProvider As CustomBufferProvider
-    Private mAudioBuffer() As Byte
+    Private ReadOnly mAudioBuffer() As Byte
     Private mVolume As Double
 
-    Private mCPU As X8086
+    Private ReadOnly mCPU As X8086
 
-    Private waveForm()() As Short = {
+    Private ReadOnly waveForm()() As Short = {
         New Short() {1, 8, 13, 20, 25, 32, 36, 42, 46, 50, 54, 57, 60, 61, 62, 64, 63, 65, 61, 61, 58, 55, 51, 49, 44, 38, 34, 28, 23, 16, 11, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         New Short() {1, 8, 13, 21, 25, 31, 36, 43, 45, 50, 54, 57, 59, 62, 63, 63, 63, 64, 63, 59, 59, 55, 52, 48, 44, 38, 34, 28, 23, 16, 10, 4, 2, 7, 14, 20, 26, 31, 36, 42, 45, 51, 54, 56, 60, 62, 62, 63, 65, 63, 62, 60, 58, 55, 52, 48, 44, 38, 34, 28, 23, 17, 10, 3},
         New Short() {1, 8, 13, 20, 26, 31, 36, 42, 46, 51, 53, 57, 60, 62, 61, 66, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 13, 21, 25, 32, 36, 41, 47, 50, 54, 56, 60, 62, 61, 67, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         New Short() {1, 8, 13, 20, 26, 31, 37, 41, 47, 49, 54, 58, 58, 62, 63, 63, 64, 63, 62, 61, 58, 55, 52, 47, 45, 38, 34, 27, 23, 17, 10, 4, -2, -8, -15, -21, -26, -34, -36, -42, -48, -51, -54, -59, -60, -62, -64, -65, -65, -63, -64, -61, -59, -56, -53, -48, -46, -39, -36, -28, -24, -17, -11, -6}
     }
 
-    Private oplWave()() As Short = {
+    Private ReadOnly oplWave()() As Short = {
     New Short() {
         0, 1, 3, 4, 6, 7, 9, 11, 12, 14, 15, 17, 18, 20, 22, 23, 24, 26, 27, 29, 30, 31, 33, 34, 36, 37, 38, 40, 40, 42, 43, 44, 46, 46, 48, 49, 50, 51, 51, 53,
         53, 54, 55, 56, 57, 57, 58, 59, 59, 60, 61, 61, 62, 62, 63, 63, 63, 64, 64, 64, 116, 116, 116, 116, 116, 116, 116, 116, 116, 64, 64, 64, 63, 63, 63, 62, 62, 61, 61, 60,
@@ -70,30 +70,30 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Public Octave As UShort
         Public WaveformSelect As UShort
     End Structure
-    Private adlibChan(9 - 1) As AdlibChanStruct
+    Private ReadOnly adlibChan(9 - 1) As AdlibChanStruct
 
-    Private attackTable() As Double = {1.0003, 1.00025, 1.0002, 1.00015, 1.0001, 1.00009, 1.00008, 1.00007, 1.00006, 1.00005, 1.00004, 1.00003, 1.00002, 1.00001, 1.000005}
-    Private decayTable() As Double = {0.99999, 0.999985, 0.99998, 0.999975, 0.99997, 0.999965, 0.99996, 0.999955, 0.99995, 0.999945, 0.99994, 0.999935, 0.99994, 0.999925, 0.99992, 0.99991}
-    Private opTable() As UShort = {0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1}
+    Private ReadOnly attackTable() As Double = {1.0003, 1.00025, 1.0002, 1.00015, 1.0001, 1.00009, 1.00008, 1.00007, 1.00006, 1.00005, 1.00004, 1.00003, 1.00002, 1.00001, 1.000005}
+    Private ReadOnly decayTable() As Double = {0.99999, 0.999985, 0.99998, 0.999975, 0.99997, 0.999965, 0.99996, 0.999955, 0.99995, 0.999945, 0.99994, 0.999935, 0.99994, 0.999925, 0.99992, 0.99991}
+    Private ReadOnly opTable() As UShort = {0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1}
 
-    Private adlibEnv(9 - 1) As Double
-    Private adlibDecay(9 - 1) As Double
-    Private adlibAttack(9 - 1) As Double
+    Private ReadOnly adlibEnv(9 - 1) As Double
+    Private ReadOnly adlibDecay(9 - 1) As Double
+    Private ReadOnly adlibAttack(9 - 1) As Double
 
-    Private Const SampleRate As UInteger = 44100
+    Private Const SampleRate As UInteger = 48000
 
-    Private adlibRegMem(&HFF - 1) As UShort
+    Private ReadOnly adlibRegMem(&HFF - 1) As UShort
     Private adlibAddr As UShort = 0
     Private adlibPrecussion As Boolean = False
     Private adlibStatus As Byte = 0
-    Private adlibStep(9 - 1) As Long
+    Private ReadOnly adlibStep(9 - 1) As Double
 
     Private adlibTicks As Long
     Private lastAdlibTicks As Long
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
-        mVolume = 0.05
+        mVolume = 1
 
         For i As Integer = 0 To adlibOp.Length - 1
             ReDim adlibOp(i)(2 - 1)
@@ -138,32 +138,36 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             .NumberOfBuffers = 8,
             .DesiredLatency = 200
         }
-        audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate, 16, 1)
+        audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate, 8, 1)
         waveOut.Init(audioProvider)
 
-        adlibTicks = (Scheduler.CLOCKRATE / SampleRate) '* waveOut.NumberOfBuffers  ' FIXME: I don't this is 100% correct
+        adlibTicks = (Scheduler.CLOCKRATE / SampleRate) * waveOut.NumberOfBuffers  ' FIXME: I don't this is 100% correct
+        'adlibTicks = (Scheduler.CLOCKRATE / SampleRate) 
+        adlibTicks /= 2
         lastAdlibTicks = Now.Ticks
 
         waveOut.Play()
     End Sub
 
-    Dim n As Integer = 0
+    Dim n As Integer
     Public Sub FillAudioBuffer(buffer() As Byte)
         Dim t As Long = Now.Ticks
+        Dim v As Double
         If t >= (lastAdlibTicks + adlibTicks) Then
-            Dim v As Integer
-            For i As Integer = 0 To buffer.Length - 1 Step 2
-                v = AdlibGenerateSample()
-                buffer(i) = (v >> 8) And &HFF
-                buffer(i + 1) = v And &HFF
+            For i As Integer = 0 To buffer.Length - 1
+                v = AdlibGenerateSample() >> 4
+                'If v <= 0 Then
+                '    v += 128
+                'Else
+                '    v += 127
+                'End If
+                buffer(i) = v * mVolume
             Next
-
-            n += 1
-            n = n Mod waveOut.NumberOfBuffers
-            If n = 0 Then AdlibTick()
 
             lastAdlibTicks = t - (t - (lastAdlibTicks + adlibTicks))
         End If
+
+        If (lastAdlibTicks Mod adlibTicks) = 8 Then AdlibTick()
     End Sub
 
     Public Overrides Function [In](port As UInteger) As UInteger
@@ -240,9 +244,9 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private Function AdlibSample(channel As Byte) As Integer
         If adlibPrecussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
 
-        Dim fullStep As Double = SampleRate / AdlibFrequency(channel)
-        Dim tmpSample As Integer = Int(oplWave(adlibChan(channel).WaveformSelect)(Int(adlibStep(channel) / (fullStep / 256.0) Mod 256)))
-
+        Dim fullStep As Integer = Int(SampleRate / AdlibFrequency(channel))
+        Dim idx As Integer = CInt(adlibStep(channel) / (fullStep / 256.0)) Mod 255
+        Dim tmpSample As Integer = oplWave(adlibChan(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = adlibEnv(channel)
         If tmpStep > 1.0 Then tmpStep = 1.0
         tmpSample = Int(tmpSample * tmpStep * 2.0)
