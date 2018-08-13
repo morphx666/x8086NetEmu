@@ -52,20 +52,20 @@
         Public Register1 As GPRegisters.RegistersTypes
         Public Register2 As GPRegisters.RegistersTypes
         Public IsDirect As Boolean
-        Public IndAdr As UInteger    ' Indirect Address
-        Public IndMem As UInteger    ' Indirect Memory Contents
+        Public IndAdr As UShort    ' Indirect Address
+        Public IndMem As UShort    ' Indirect Memory Contents
 
         Private regOffset As UInteger
 
         Public Sub Decode(data As Byte, addressingModeByte As Byte)
-            Size = data And 1UI                                 ' (0000 0001)
-            Direction = (data And 2UI) >> 1UI                   ' (0000 0010)
+            Size = data And 1US                                 ' (0000 0001)
+            Direction = (data And 2US) >> 1US                   ' (0000 0010)
 
-            Modifier = addressingModeByte >> 6UI                ' (1100 0000)
-            Reg = (addressingModeByte >> 3UI) And 7UI           ' (0011 1000)
-            Rm = addressingModeByte And 7UI                     ' (0000 0111)
+            Modifier = addressingModeByte >> 6US                ' (1100 0000)
+            Reg = (addressingModeByte >> 3US) And 7US           ' (0011 1000)
+            Rm = addressingModeByte And 7US                     ' (0000 0111)
 
-            regOffset = (Size << 3UI)
+            regOffset = (Size << 3US)
 
             Register1 = Reg Or regOffset
             If Register1 >= GPRegisters.RegistersTypes.ES Then Register1 += GPRegisters.RegistersTypes.ES
@@ -117,7 +117,6 @@
                     Case 6 : addrMode.IndAdr = To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word)) : clkCyc += 9             ' 110 Direct Addressing
                     Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
                 End Select
-                addrMode.IndAdr = addrMode.IndAdr And &HFFFF
                 addrMode.IndMem = RAMn
 
             Case 1 ' 01 - 8bit
@@ -158,11 +157,11 @@
         opCodeSize += 1
     End Sub
 
-    Private Function To16bitsWithSign(v As UInteger) As UInteger
-        If (v And &H80UI) <> 0 Then
-            Return &HFF00UI Or v
+    Private Function To16bitsWithSign(v As UShort) As UShort
+        If (v And &H80US) <> 0 Then
+            Return &HFF00US Or v
         Else
-            Return v And &HFFUI
+            Return v And &HFFUS
         End If
     End Function
 
@@ -170,11 +169,11 @@
         If (v And &H8000UI) <> 0 Then
             Return &HFFFF0000UI Or v
         Else
-            Return v
+            Return v And &HFFFFUI
         End If
     End Function
 
-    Private Function ToXbitsWithSign(v As Integer) As Integer
+    Private Function ToXbitsWithSign(v As UInteger) As UInteger
         If addrMode.Size = DataSize.Byte Then
             Return To16bitsWithSign(v)
         Else
@@ -327,38 +326,20 @@
 
         End Select
 
-        If size = DataSize.Byte Then
-            Return result And &HFF
-        Else
-            Return result And &HFFFF
-        End If
+        Return result
     End Function
 
     Private Sub SetSZPFlags(result As UInteger, size As DataSize)
         If size = DataSize.Byte Then
             result = result And &HFF
             mFlags.PF = parityLUT(result)
-            'mFlags.ZF = If((szpLUT8(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
-            'mFlags.SF = If((szpLUT8(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
-            If result = 0 Then
-                mFlags.ZF = 1
-                mFlags.SF = 0
-            Else
-                mFlags.ZF = 0
-                mFlags.SF = If((result And &H80) <> 0, 1, 0)
-            End If
+            mFlags.ZF = If((szpLUT8(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
+            mFlags.SF = If((szpLUT8(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
         Else
+            result = result And &HFFFF
             mFlags.PF = parityLUT(result And &HFF)
-            'result = result And &HFFFF
-            'mFlags.ZF = If((szpLUT16(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
-            'mFlags.SF = If((szpLUT16(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
-            If (result And &HFFFF) = 0 Then
-                mFlags.ZF = 1
-                mFlags.SF = 0
-            Else
-                mFlags.ZF = 0
-                mFlags.SF = If((result And &H8000) <> 0, 1, 0)
-            End If
+            mFlags.ZF = If((szpLUT16(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
+            mFlags.SF = If((szpLUT16(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
         End If
     End Sub
 
@@ -377,10 +358,10 @@
             mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80) <> 0, 1, 0)
         Else
             mFlags.CF = If((result And &HFFFF0000UI) <> 0, 1, 0)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) <> 0, 1, 0)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000UI) <> 0, 1, 0)
         End If
 
-        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)
+        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10UI) <> 0, 1, 0)
     End Sub
 
     Public Shared Function BitsArrayToWord(b() As Boolean) As UInteger

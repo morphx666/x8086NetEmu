@@ -15,25 +15,13 @@
             Write
         End Enum
 
-        Private mAccessMode As AccessModes
-        Private mAddress As UInteger
+        Public ReadOnly Property AccessMode As AccessModes
+        Public ReadOnly Property Address As UInteger
 
         Public Sub New(address As UInteger, accesMode As AccessModes)
-            mAddress = address
-            mAccessMode = accesMode
+            Me.Address = address
+            Me.AccessMode = accesMode
         End Sub
-
-        Public ReadOnly Property AccessMode As AccessModes
-            Get
-                Return mAccessMode
-            End Get
-        End Property
-
-        Public ReadOnly Property Address As UInteger
-            Get
-                Return mAddress
-            End Get
-        End Property
     End Class
 
     Public Event MemoryAccess(sender As Object, e As MemoryAccessEventArgs)
@@ -164,7 +152,7 @@
             End Get
             Set(value As UShort)
                 AH = value >> 8
-                AL = value And &HFF
+                AL = value
             End Set
         End Property
         Public Property AL As Byte
@@ -176,7 +164,7 @@
             End Get
             Set(value As UShort)
                 BH = value >> 8
-                BL = value And &HFF
+                BL = value
             End Set
         End Property
         Public Property BL As Byte
@@ -188,7 +176,7 @@
             End Get
             Set(value As UShort)
                 CH = value >> 8
-                CL = value And &HFF
+                CL = value
             End Set
         End Property
         Public Property CL As Byte
@@ -200,7 +188,7 @@
             End Get
             Set(value As UShort)
                 DH = value >> 8
-                DL = value And &HFF
+                DL = value
             End Set
         End Property
         Public Property DL As Byte
@@ -288,96 +276,15 @@
             [OF] = 2 ^ 11
         End Enum
 
-        Private mPF As Byte
-        Private mAF As Byte
-        Private mZF As Byte
-        Private mSF As Byte
-        Private mCF As Byte
-        Private mIF As Byte
-        Private mDF As Byte
-        Private mOF As Byte
-        Private mTF As Byte
-
-        Public Property PF As Byte
-            Get
-                Return mPF
-            End Get
-            Set(value As Byte)
-                mPF = If(value <> 0, 1, 0)
-            End Set
-        End Property
-
-        Public Property AF As Byte
-            Get
-                Return mAF
-            End Get
-            Set(value As Byte)
-                mAF = If(value <> 0, 1, 0)
-            End Set
-        End Property
-
-        Public Property ZF As Byte
-            Get
-                Return mZF
-            End Get
-            Set(value As Byte)
-                mZF = If(value <> 0, 1, 0)
-            End Set
-        End Property
-
-        Public Property SF As Byte
-            Get
-                Return mSF
-            End Get
-            Set(value As Byte)
-                mSF = If(value <> 0, 1, 0)
-            End Set
-        End Property
-
         Public Property CF As Byte
-            Get
-                Return mCF
-            End Get
-            Set(value As Byte)
-                mCF = If(value <> 0, 1, 0)
-            End Set
-        End Property
-
-        Public Property [IF] As Byte
-            Get
-                Return mIF
-            End Get
-            Set(value As Byte)
-                mIF = If(value <> 0, 1, 0)
-            End Set
-        End Property
-
-        Public Property DF As Byte
-            Get
-                Return mDF
-            End Get
-            Set(value As Byte)
-                mDF = If(value <> 0, 1, 0)
-            End Set
-        End Property
-
-        Public Property [OF] As Byte
-            Get
-                Return mOF
-            End Get
-            Set(value As Byte)
-                mOF = If(value <> 0, 1, 0)
-            End Set
-        End Property
-
+        Public Property PF As Byte
+        Public Property AF As Byte
+        Public Property ZF As Byte
+        Public Property SF As Byte
         Public Property TF As Byte
-            Get
-                Return mTF
-            End Get
-            Set(value As Byte)
-                mTF = If(value <> 0, 1, 0)
-            End Set
-        End Property
+        Public Property [IF] As Byte
+        Public Property DF As Byte
+        Public Property [OF] As Byte
 
         Public Property EFlags() As UShort
             Get
@@ -502,19 +409,13 @@
                 If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property
             Next
 
-            ' This is where QBASIC writes the names of the opened files
-            'If address = X8086.SegmentOffetToAbsolute(&H4E00, &H380) Then
-            '    mDebugMode = True
-            '    FlushCycles()
-            'End If
-
             Memory(address) = value
 
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set
     End Property
 
-    Public Property RAM8(segment As UInteger, offset As UInteger, Optional inc As UInteger = 0) As Byte
+    Public Property RAM8(segment As UShort, offset As UShort, Optional inc As Byte = 0) As Byte
         Get
             Return RAM(SegmentOffetToAbsolute(segment, offset + inc))
         End Get
@@ -523,7 +424,7 @@
         End Set
     End Property
 
-    Public Property RAM16(segment As UInteger, offset As UInteger, Optional inc As UInteger = 0) As UInteger
+    Public Property RAM16(segment As UShort, offset As UShort, Optional inc As Byte = 0) As UInteger
         Get
             Dim address As UInteger = SegmentOffetToAbsolute(segment, offset + inc)
             Return (CUInt(RAM(address + 1UI)) << 8UI Or RAM(address))
