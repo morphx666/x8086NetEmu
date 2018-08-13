@@ -133,7 +133,7 @@ Public Class FloppyControllerAdapter
         ctlHeadLoadTime = 0
         ctlNonDma = False
 
-        For i As UInteger = &H3F0 To &H3F7
+        For i As UInt32 = &H3F0 To &H3F7
             ValidPortAddress.Add(i)
         Next
     End Sub
@@ -681,7 +681,7 @@ Public Class FloppyControllerAdapter
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         If (port And 3) = 0 Then
             ' main status register
             Return GetMainStatus()
@@ -715,7 +715,7 @@ Public Class FloppyControllerAdapter
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As UInt32, v As UInt32)
         If (port And 3) = 2 Then
             ' write to digital output register
             If (v And &H4) = 0 Then

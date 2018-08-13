@@ -10,11 +10,12 @@
         Undefined = -1
     End Enum
 
-    Private binaryValue As Long
-    Private mSize As Sizes
+    Private ReadOnly binaryValue As Long
+
+    Public Property Size As Sizes
 
     Public Sub New()
-        mSize = Sizes.Word
+        Size = Sizes.Word
     End Sub
 
     Public Sub New(value As Long, Optional size As Sizes = Sizes.Undefined)
@@ -23,7 +24,7 @@
         If size = Sizes.Undefined Then
             CalculateMinimumSize()
         Else
-            mSize = size
+            Me.Size = size
             binaryValue = binaryValue And Mask(size)
         End If
     End Sub
@@ -34,9 +35,9 @@
         binaryValue = binValue
 
         If size = Sizes.Undefined Then
-            mSize = binValue.Size
+            Me.Size = binValue.Size
         Else
-            mSize = Sizes.Word
+            Me.Size = Sizes.Word
         End If
     End Sub
 
@@ -81,15 +82,6 @@
             Return False
         End Try
     End Function
-
-    Public Property Size As Sizes
-        Get
-            Return mSize
-        End Get
-        Set(value As Sizes)
-            mSize = value
-        End Set
-    End Property
 
     Public Shared Narrowing Operator CType(value As Long) As Binary
         Return New Binary(value)
@@ -210,7 +202,7 @@
     End Function
 
     Public Overrides Function ToString() As String
-        Return ConvertToBase(2).PadLeft(mSize, "0")
+        Return ConvertToBase(2).PadLeft(Size, "0")
     End Function
 
     Public Function ToHex() As String
@@ -223,20 +215,20 @@
 
     Private Sub CalculateMinimumSize()
         If binaryValue <= 2 ^ 8 Then
-            mSize = Sizes.Byte
+            Size = Sizes.Byte
         ElseIf binaryValue <= 2 ^ 16 Then
-            mSize = Sizes.Word
+            Size = Sizes.Word
         ElseIf binaryValue <= 2 ^ 32 Then
-            mSize = Sizes.DoubleWord
+            Size = Sizes.DoubleWord
         ElseIf binaryValue <= 2 ^ 64 Then
-            mSize = Sizes.QuadWord
+            Size = Sizes.QuadWord
         Else
             Throw New OverflowException()
         End If
     End Sub
 
     Private Function ConvertToBase(base As Short) As String
-        If mSize <= Sizes.DoubleWord Then
+        If Size <= Sizes.DoubleWord Then
             Return Convert.ToString(CType(binaryValue, Integer), base).ToUpper()
         Else
             If base = 10 Then

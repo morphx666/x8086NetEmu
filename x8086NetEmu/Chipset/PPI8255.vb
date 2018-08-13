@@ -69,7 +69,7 @@
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         Select Case (port And 3)
             Case 0 ' port &h60 (PPI port A)
                 ' Return keyboard data if bit 7 in port B is cleared.
@@ -89,7 +89,7 @@
         End Select
     End Function
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As UInt32, v As UInt32)
         Select Case (port And 3)
             Case 1
                 ' Write to port 0x61 (system control port)

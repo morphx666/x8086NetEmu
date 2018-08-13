@@ -1,7 +1,7 @@
 ﻿Partial Public Class X8086
     Private isVideoAdapterAvailable As Boolean
     Private tmpCF As Byte
-    Private portsCache As New Dictionary(Of Integer, IOPortHandler)
+    Private portsCache As New Dictionary(Of UInt32, IOPortHandler)
     Private parityLUT() As Byte = {
         1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
         0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
@@ -52,10 +52,10 @@
         Public Register1 As GPRegisters.RegistersTypes
         Public Register2 As GPRegisters.RegistersTypes
         Public IsDirect As Boolean
-        Public IndAdr As UShort    ' Indirect Address
-        Public IndMem As UShort    ' Indirect Memory Contents
+        Public IndAdr As UInt16    ' Indirect Address
+        Public IndMem As UInt16    ' Indirect Memory Contents
 
-        Private regOffset As UInteger
+        Private regOffset As UInt32
 
         Public Sub Decode(data As Byte, addressingModeByte As Byte)
             Size = data And 1US                                 ' (0000 0001)
@@ -157,7 +157,7 @@
         opCodeSize += 1
     End Sub
 
-    Private Function To16bitsWithSign(v As UShort) As UShort
+    Private Function To16bitsWithSign(v As UInt16) As UInt16
         If (v And &H80US) <> 0 Then
             Return &HFF00US Or v
         Else
@@ -165,7 +165,7 @@
         End If
     End Function
 
-    Private Function To32bitsWithSign(v As UInteger) As UInteger
+    Private Function To32bitsWithSign(v As UInt32) As UInt32
         If (v And &H8000UI) <> 0 Then
             Return &HFFFF0000UI Or v
         Else
@@ -173,7 +173,7 @@
         End If
     End Function
 
-    Private Function ToXbitsWithSign(v As UInteger) As UInteger
+    Private Function ToXbitsWithSign(v As UInt32) As UInt32
         If addrMode.Size = DataSize.Byte Then
             Return To16bitsWithSign(v)
         Else
@@ -181,7 +181,7 @@
         End If
     End Function
 
-    Private Sub SendToPort(portAddress As UInteger, value As UInteger)
+    Private Sub SendToPort(portAddress As UInt32, value As UInt32)
         If portsCache.ContainsKey(portAddress) Then
             portsCache(portAddress).Out(portAddress, value)
             'FlushCycles()
@@ -214,7 +214,7 @@
         NoIOPort(portAddress)
     End Sub
 
-    Private Function ReceiveFromPort(portAddress As UInteger) As UInteger
+    Private Function ReceiveFromPort(portAddress As UInt32) As UInt32
         If portsCache.ContainsKey(portAddress) Then
             FlushCycles()
             'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), portsCache(portAddress).Name), NotificationReasons.Info)
@@ -246,7 +246,7 @@
         Return &HFF
     End Function
 
-    Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As UInteger = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInteger
+    Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As UInt32 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt32
         Get
             If size = DataSize.UseAddressingMode Then size = addrMode.Size
             opCodeSize += (size + 1)
@@ -254,7 +254,7 @@
         End Get
     End Property
 
-    Private ReadOnly Property ParamNOPS(index As SelPrmIndex, Optional ipOffset As UInteger = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInteger
+    Private ReadOnly Property ParamNOPS(index As SelPrmIndex, Optional ipOffset As UInt32 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt32
         Get
             ' Extra cycles for address misalignment
             ' This is too CPU expensive, with few benefits, if any... not worth it
@@ -268,11 +268,11 @@
         End Get
     End Property
 
-    Public Sub IncIP(value As UInteger)
+    Public Sub IncIP(value As UInt32)
         mRegisters.IP += value
     End Sub
 
-    Private Function OffsetIP(size As DataSize) As UInteger
+    Private Function OffsetIP(size As DataSize) As UInt32
         If size = DataSize.Byte Then
             Return mRegisters.IP + To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte)) + opCodeSize
         Else
@@ -280,8 +280,8 @@
         End If
     End Function
 
-    Private Function Eval(v1 As UInteger, v2 As UInteger, opMode As Operation, size As DataSize) As UInteger
-        Dim result As UInteger
+    Private Function Eval(v1 As UInt32, v2 As UInt32, opMode As Operation, size As DataSize) As UInt32
+        Dim result As UInt32
 
         Select Case opMode
             Case Operation.Add
@@ -329,7 +329,7 @@
         Return result
     End Function
 
-    Private Sub SetSZPFlags(result As UInteger, size As DataSize)
+    Private Sub SetSZPFlags(result As UInt32, size As DataSize)
         If size = DataSize.Byte Then
             result = result And &HFF
             mFlags.PF = parityLUT(result)
@@ -343,14 +343,14 @@
         End If
     End Sub
 
-    Private Sub SetLogicFlags(result As UInteger, size As DataSize)
+    Private Sub SetLogicFlags(result As UInt32, size As DataSize)
         SetSZPFlags(result, size)
 
         mFlags.CF = 0
         mFlags.OF = 0
     End Sub
 
-    Private Sub SetAddSubFlags(result As UInteger, v1 As UInteger, v2 As UInteger, size As DataSize, isSubstraction As Boolean)
+    Private Sub SetAddSubFlags(result As UInt32, v1 As UInt32, v2 As UInt32, size As DataSize, isSubstraction As Boolean)
         SetSZPFlags(result, size)
 
         If size = DataSize.Byte Then
@@ -364,15 +364,15 @@
         mFlags.AF = If(((v1 Xor v2 Xor result) And &H10UI) <> 0, 1, 0)
     End Sub
 
-    Public Shared Function BitsArrayToWord(b() As Boolean) As UInteger
-        Dim r As UInteger = 0
+    Public Shared Function BitsArrayToWord(b() As Boolean) As UInt32
+        Dim r As UInt32 = 0
         For i As Integer = 0 To b.Length - 1
             If b(i) Then r += 2 ^ i
         Next
         Return r
     End Function
 
-    Public Shared Sub WordToBitsArray(value As UInteger, a() As Boolean)
+    Public Shared Sub WordToBitsArray(value As UInt32, a() As Boolean)
         For i As Integer = 0 To a.Length - 1
             a(i) = (value And 2 ^ i) <> 0
         Next
@@ -399,7 +399,7 @@
         'End If
     End Sub
 
-    Private Sub PrintOpCodes(n As UInteger)
+    Private Sub PrintOpCodes(n As UInt32)
         For i As Integer = mRegisters.IP To mRegisters.IP + n - 1
             Debug.Write(RAM8(mRegisters.CS, i).ToString("X") + " ")
         Next

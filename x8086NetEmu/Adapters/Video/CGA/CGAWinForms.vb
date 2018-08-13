@@ -263,7 +263,7 @@ Public Class CGAWinForms
     ' FIXME: IsDirty is not working here. Also, scrolling games present a flickering issue
     Private Sub RenderGraphics()
         Dim b As Byte
-        Dim address As UInteger
+        Dim address As UInt32
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
 
         For y As Integer = 0 To GraphicsResolution.Height - 1

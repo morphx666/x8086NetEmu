@@ -138,7 +138,7 @@ Public Class PPI8255_ALT
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         Select Case (port And 3)
             Case 0 ' A
                 Return ReadFromPort(0)
@@ -153,7 +153,7 @@ Public Class PPI8255_ALT
         End Select
     End Function
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As UInt32, v As UInt32)
         Select Case port And 3
             Case 0 ' A
                 WriteToPort(0, v)

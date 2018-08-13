@@ -206,11 +206,11 @@
 
         ' For mode &h12 and &h13
         Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
-        Dim vgaPage As UInteger = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
+        Dim vgaPage As UInt32 = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
 
-        Dim address As UInteger
-        Dim h1 As UInteger
-        Dim h2 As UInteger
+        Dim address As UInt32
+        Dim h1 As UInt32
+        Dim h2 As UInt32
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1

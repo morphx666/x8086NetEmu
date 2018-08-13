@@ -34,13 +34,13 @@ Public Class X8086
         Read
         Write
     End Enum
-    Public Delegate Function MemHandler(address As UInteger, ByRef value As UInteger, mode As MemHookMode) As Boolean
+    Public Delegate Function MemHandler(address As UInt32, ByRef value As UInt32, mode As MemHookMode) As Boolean
     Private memHooks As New List(Of MemHandler)
 
     Private opCode As Byte
-    Private opCodeSize As UInteger = 0
+    Private opCodeSize As UInt32 = 0
 
-    Private tmpVal As UInteger
+    Private tmpVal As UInt32
 
     Private addrMode As AddressingMode
     Private mIsExecuting As Boolean = False
@@ -48,7 +48,7 @@ Public Class X8086
     Private mipsThread As Thread
     Private mipsWaiter As AutoResetEvent
     Private mMPIs As Double
-    Private instrucionsCounter As UInteger
+    Private instrucionsCounter As UInt32
 
     Public Shared Property LogToConsole As Boolean
 
@@ -61,29 +61,29 @@ Public Class X8086
     End Enum
     Private repeLoopMode As REPLoopModes
 
-    Private forceNewIPAddress As UInteger
-    Private Property IPAddrOff As UInteger
+    Private forceNewIPAddress As UInt32
+    Private Property IPAddrOff As UInt32
         Get
             useIPAddrOff = False
             Return forceNewIPAddress
         End Get
-        Set(value As UInteger)
+        Set(value As UInt32)
             forceNewIPAddress = value
             useIPAddrOff = True
         End Set
     End Property
     Private useIPAddrOff As Boolean
 
-    Public Const KHz As Long = 1000
-    Public Const MHz As Long = KHz * KHz
-    Public Const GHz As Long = MHz * KHz
-    Private Const BaseClock As Long = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
-    Private mCyclesPerSecond As Long = BaseClock
-    Private clkCyc As Long = 0
+    Public Const KHz As ULong = 1000
+    Public Const MHz As ULong = KHz * KHz
+    Public Const GHz As ULong = MHz * KHz
+    Private Const BaseClock As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
+    Private mCyclesPerSecond As ULong = BaseClock
+    Private clkCyc As ULong = 0
 
     Private mDoReSchedule As Boolean
     Private mSimulationMultiplier As Double = 1.0
-    Private leftCycleFrags As Long
+    Private leftCycleFrags As ULong
 
     Private cancelAllThreads As Boolean
     Private debugWaiter As AutoResetEvent
@@ -126,7 +126,7 @@ Public Class X8086
         Init()
     End Sub
 
-    Private Function GetCpuSpeed() As UInteger
+    Private Function GetCpuSpeed() As UInt32
         Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
             Return managementObject("CurrentClockSpeed")
         End Using
@@ -137,7 +137,7 @@ Public Class X8086
 
         ' This doesn't work :(
         'TryAttachHook(&H1A, New IntHandler(Function()
-        '                                       Dim ToBCD = Function(v As UInteger) ((v \ 10) << 4) + (v Mod 10)
+        '                                       Dim ToBCD = Function(v As UInt32) ((v \ 10) << 4) + (v Mod 10)
 
         '                                       Select Case mRegisters.AH
 
@@ -164,7 +164,7 @@ Public Class X8086
     End Sub
 
     Private Sub BuildSZPTables()
-        Dim d As UInteger
+        Dim d As UInt32
 
         For c As Integer = 0 To szpLUT8.Length - 1
             d = 0
@@ -517,7 +517,7 @@ Public Class X8086
     End Sub
 
     Private Sub FlushCycles()
-        Dim t As Long = clkCyc * Scheduler.CLOCKRATE + leftCycleFrags
+        Dim t As ULong = clkCyc * Scheduler.CLOCKRATE + leftCycleFrags
         Sched.AdvanceTime(t / mCyclesPerSecond)
         leftCycleFrags = t Mod mCyclesPerSecond
         clkCyc = 0
@@ -548,9 +548,9 @@ Public Class X8086
 
         mDoReSchedule = False
 
-        Dim maxRunTime As Long = Sched.GetTimeToNextEvent()
+        Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
         If maxRunTime > Scheduler.CLOCKRATE Then maxRunTime = Scheduler.CLOCKRATE
-        Dim maxRunCycl As Long = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.CLOCKRATE - 1) / Scheduler.CLOCKRATE
+        Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.CLOCKRATE - 1) / Scheduler.CLOCKRATE
 
         If mDebugMode Then
             While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)
@@ -987,11 +987,11 @@ Public Class X8086
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
-                    Dim tmp1 As UInteger = mRegisters.Val(addrMode.Register1)
-                    Dim tmp2 As UInteger = Param(SelPrmIndex.First, , DataSize.Word)
+                    Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
+                    Dim tmp2 As UInt32 = Param(SelPrmIndex.First, , DataSize.Word)
                     If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
                     If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
-                    Dim tmp3 As UInteger = tmp1 * tmp2
+                    Dim tmp3 As UInt32 = tmp1 * tmp2
                     mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFUI
                     If (tmp3 And &HFFFF0000UI) <> 0 Then
                         mFlags.CF = 1
@@ -1014,11 +1014,11 @@ Public Class X8086
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
-                    Dim tmp1 As UInteger = mRegisters.Val(addrMode.Register1)
-                    Dim tmp2 As UInteger = To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte))
+                    Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
+                    Dim tmp2 As UInt32 = To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte))
                     If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
                     If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
-                    Dim tmp3 As UInteger = tmp1 * tmp2
+                    Dim tmp3 As UInt32 = tmp1 * tmp2
                     mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFUI
                     If (tmp3 And &HFFFF0000UI) <> 0 Then
                         mFlags.CF = 1
@@ -1452,7 +1452,7 @@ Public Class X8086
             Case &HD0 To &HD3 : ExecuteGroup2()
 
             Case &HD4 ' aam
-                Dim div As UInteger = Param(SelPrmIndex.First, , DataSize.Byte)
+                Dim div As UInt32 = Param(SelPrmIndex.First, , DataSize.Byte)
                 If div = 0 Then
                     HandleInterrupt(0, True)
                     Exit Select
@@ -1661,8 +1661,8 @@ Public Class X8086
     Private Sub ExecuteGroup1() ' &H80 To &H83
         SetAddressing()
 
-        Dim arg1 As UInteger = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
-        Dim arg2 As UInteger = Param(SelPrmIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
+        Dim arg1 As UInt32 = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
+        Dim arg2 As UInt32 = Param(SelPrmIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
         If opCode = &H83 Then arg2 = To16bitsWithSign(arg2)
 
         Select Case addrMode.Reg
@@ -1739,17 +1739,17 @@ Public Class X8086
     Private Sub ExecuteGroup2() ' &HD0 To &HD3 / &HC0 To &HC1
         SetAddressing()
 
-        Dim newValue As UInteger
-        Dim count As UInteger
-        Dim oldValue As UInteger
+        Dim newValue As UInt32
+        Dim count As UInt32
+        Dim oldValue As UInt32
 
-        Dim mask80_8000 As UInteger
-        Dim mask07_15 As UInteger
-        Dim maskFF_FFFF As UInteger
-        Dim mask8_16 As UInteger
-        Dim mask9_17 As UInteger
-        Dim mask100_10000 As UInteger
-        Dim maskFF00_FFFF0000 As UInteger
+        Dim mask80_8000 As UInt32
+        Dim mask07_15 As UInt32
+        Dim maskFF_FFFF As UInt32
+        Dim mask8_16 As UInt32
+        Dim mask9_17 As UInt32
+        Dim mask100_10000 As UInt32
+        Dim maskFF00_FFFF0000 As UInt32
 
         If addrMode.Size = DataSize.Byte Then
             mask80_8000 = &H80
@@ -1967,8 +1967,8 @@ Public Class X8086
             Case 5 ' 101    --  imul
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
-                        Dim m1 As UInteger = To16bitsWithSign(mRegisters.AL)
-                        Dim m2 As UInteger = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
+                        Dim m1 As UInt32 = To16bitsWithSign(mRegisters.AL)
+                        Dim m2 As UInt32 = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         m1 = If((m1 And &H80) <> 0, m1 Or &HFFFFFF00UI, m1)
                         m2 = If((m2 And &H80) <> 0, m2 Or &HFFFFFF00UI, m2)
@@ -1977,8 +1977,8 @@ Public Class X8086
                         mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 70
                     Else
-                        Dim m1 As UInteger = To32bitsWithSign(mRegisters.AX)
-                        Dim m2 As UInteger = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
+                        Dim m1 As UInt32 = To32bitsWithSign(mRegisters.AX)
+                        Dim m2 As UInt32 = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF0000UI, m1)
                         m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
@@ -1990,8 +1990,8 @@ Public Class X8086
                     End If
                 Else
                     If addrMode.Size = DataSize.Byte Then
-                        Dim m1 As UInteger = To16bitsWithSign(mRegisters.AL)
-                        Dim m2 As UInteger = To16bitsWithSign(addrMode.IndMem)
+                        Dim m1 As UInt32 = To16bitsWithSign(mRegisters.AL)
+                        Dim m2 As UInt32 = To16bitsWithSign(addrMode.IndMem)
 
                         m1 = If((m1 And &H80) <> 0, m1 Or &HFFFFFF00UI, m1)
                         m2 = If((m2 And &H80) <> 0, m2 Or &HFFFFFF00UI, m2)
@@ -2000,8 +2000,8 @@ Public Class X8086
                         mRegisters.AX = tmpVal And &HFFFF
                         clkCyc += 76
                     Else
-                        Dim m1 As UInteger = To32bitsWithSign(mRegisters.AX)
-                        Dim m2 As UInteger = To32bitsWithSign(addrMode.IndMem)
+                        Dim m1 As UInt32 = To32bitsWithSign(mRegisters.AX)
+                        Dim m2 As UInt32 = To32bitsWithSign(addrMode.IndMem)
 
                         m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF0000UI, m1)
                         m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
@@ -2014,7 +2014,7 @@ Public Class X8086
                 End If
 
                 mFlags.SF = If((tmpVal And If(addrMode.Size = DataSize.Byte, &H80, &H8000)) <> 0, 1, 0)
-                Dim mask As UInteger = If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)
+                Dim mask As UInt32 = If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)
                 tmpVal = tmpVal And mask
                 If tmpVal <> 0 AndAlso tmpVal <> mask Then
                     mFlags.CF = 1
@@ -2026,10 +2026,10 @@ Public Class X8086
                 If Not mVic20 Then mFlags.ZF = 0
 
             Case 6 ' 110    --  div
-                Dim div As UInteger
-                Dim num As UInteger
-                Dim result As UInteger
-                Dim remain As UInteger
+                Dim div As UInt32
+                Dim num As UInt32
+                Dim result As UInt32
+                Dim remain As UInt32
 
                 If addrMode.IsDirect Then
                     div = mRegisters.Val(addrMode.Register2)
@@ -2070,10 +2070,10 @@ Public Class X8086
                 End If
 
             Case 7 ' 111    --  idiv
-                Dim div As UInteger
-                Dim num As UInteger
-                Dim result As UInteger
-                Dim remain As UInteger
+                Dim div As UInt32
+                Dim num As UInt32
+                Dim result As UInt32
+                Dim remain As UInt32
                 Dim sign As Boolean
 
                 If addrMode.IsDirect Then

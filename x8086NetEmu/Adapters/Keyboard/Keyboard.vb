@@ -53,7 +53,7 @@ Public Class KeyboardAdapter
     Public Overrides Sub CloseAdapter()
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         Return &HFF
     End Function
 
@@ -205,7 +205,7 @@ Public Class KeyboardAdapter
         End Get
     End Property
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As UInt32, value As UInt32)
     End Sub
 
     Public Overrides Sub Run()

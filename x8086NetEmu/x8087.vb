@@ -187,7 +187,7 @@ Public Class x8087
         If C <> 0 Then fpu.SW = fpu.SW Or &H4000
     End Sub
 
-    Private Function GetParam32() As UInteger
+    Private Function GetParam32() As UInt32
         Return (cpu.RAM16(cpu.Registers.CS, cpu.Registers.IP, 4) << 16) Or cpu.RAM16(cpu.Registers.CS, cpu.Registers.IP)
     End Function
 #End Region

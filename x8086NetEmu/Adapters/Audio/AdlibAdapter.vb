@@ -56,34 +56,34 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     }
     }
 
-    Private oplStep() As UShort = {0, 0, 0, 0, 0, 0, 0, 0, 0}
+    Private oplStep() As UInt16 = {0, 0, 0, 0, 0, 0, 0, 0, 0}
 
     Private Structure AdlibOpStruct
-        Public wave As UShort
+        Public wave As UInt16
     End Structure
     Private adlibOp(9 - 1)() As AdlibOpStruct
 
     Private Structure AdlibChanStruct
-        Public Frequency As UShort
+        Public Frequency As UInt16
         Public ConvFreq As Double
         Public KeyOn As Boolean
-        Public Octave As UShort
-        Public WaveformSelect As UShort
+        Public Octave As UInt16
+        Public WaveformSelect As UInt16
     End Structure
     Private ReadOnly adlibChan(9 - 1) As AdlibChanStruct
 
     Private ReadOnly attackTable() As Double = {1.0003, 1.00025, 1.0002, 1.00015, 1.0001, 1.00009, 1.00008, 1.00007, 1.00006, 1.00005, 1.00004, 1.00003, 1.00002, 1.00001, 1.000005}
     Private ReadOnly decayTable() As Double = {0.99999, 0.999985, 0.99998, 0.999975, 0.99997, 0.999965, 0.99996, 0.999955, 0.99995, 0.999945, 0.99994, 0.999935, 0.99994, 0.999925, 0.99992, 0.99991}
-    Private ReadOnly opTable() As UShort = {0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1}
+    Private ReadOnly opTable() As UInt16 = {0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1}
 
     Private ReadOnly adlibEnv(9 - 1) As Double
     Private ReadOnly adlibDecay(9 - 1) As Double
     Private ReadOnly adlibAttack(9 - 1) As Double
 
-    Private Const SampleRate As UInteger = 48000
+    Private Const SampleRate As UInt32 = 48000
 
-    Private ReadOnly adlibRegMem(&HFF - 1) As UShort
-    Private adlibAddr As UShort = 0
+    Private ReadOnly adlibRegMem(&HFF - 1) As UInt16
+    Private adlibAddr As UInt16 = 0
     Private adlibPrecussion As Boolean = False
     Private adlibStatus As Byte = 0
     Private ReadOnly adlibStep(9 - 1) As Double
@@ -170,7 +170,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         If (lastAdlibTicks Mod adlibTicks) = 8 Then AdlibTick()
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         If adlibRegMem(4) = 0 Then
             adlibStatus = 0
         Else
@@ -180,7 +180,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Return adlibStatus
     End Function
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As UInt32, value As UInt32)
         If port = &H388 Then
             adlibAddr = value
             Exit Sub
@@ -222,8 +222,8 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         End If
     End Sub
 
-    Private Function AdlibFrequency(channel As Byte) As UShort
-        Dim tmpFrequency As UShort
+    Private Function AdlibFrequency(channel As Byte) As UInt16
+        Dim tmpFrequency As UInt16
 
         If Not adlibChan(channel).KeyOn Then Return 0
         tmpFrequency = adlibChan(channel).ConvFreq

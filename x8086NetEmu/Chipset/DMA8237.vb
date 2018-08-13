@@ -319,7 +319,7 @@
         cpu.Sched.RunTaskAfter(task, transferTime)
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel status
@@ -344,7 +344,7 @@
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As UInt32, v As UInt32)
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel setup

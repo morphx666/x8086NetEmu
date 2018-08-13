@@ -40,14 +40,14 @@
     'Public MustOverride ReadOnly Property Description As String Implements IIOPortHandler.Description
     'Public MustOverride ReadOnly Property Name As String Implements IIOPortHandler.Name
 
-    Public Overloads ReadOnly Property ValidPortAddress As List(Of UInteger)
+    Public Overloads ReadOnly Property ValidPortAddress As List(Of UInt32)
         Get
             Return MyBase.ValidPortAddress
         End Get
     End Property
 
     Public MustOverride Overrides ReadOnly Property Description As String
-    Public MustOverride Overrides Function [In](port As UInteger) As UInteger
-    Public MustOverride Overrides Sub Out(port As UInteger, value As UInteger)
+    Public MustOverride Overrides Function [In](port As UInt32) As UInt32
+    Public MustOverride Overrides Sub Out(port As UInt32, value As UInt32)
     Public MustOverride Overrides ReadOnly Property Name As String
 End Class

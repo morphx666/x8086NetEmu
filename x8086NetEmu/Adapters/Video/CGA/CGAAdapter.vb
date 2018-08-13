@@ -99,7 +99,7 @@ Public MustInherit Class CGAAdapter
     Protected mCursorEnd As Integer = 1
 
     Protected mVideoEnabled As Boolean = True
-    Protected mVideoMode As UInteger = VideoModes.Undefined
+    Protected mVideoMode As UInt32 = VideoModes.Undefined
     Protected mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
     Protected mBlinkCharOn As Boolean
     Protected mPixelsPerByte As Integer
@@ -128,7 +128,7 @@ Public MustInherit Class CGAAdapter
         mCPU = cpu
         Me.useInternalTimer = useInternalTimer
 
-        For i As UInteger = &H3D0 To &H3DF
+        For i As UInt32 = &H3D0 To &H3DF
             ValidPortAddress.Add(i)
         Next
 
@@ -318,11 +318,11 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public Overrides Property VideoMode As UInteger
+    Public Overrides Property VideoMode As UInt32
         Get
             Return mVideoMode
         End Get
-        Set(value As UInteger)
+        Set(value As UInt32)
             mVideoMode = (value And (Not &H80))
 
             mStartTextVideoAddress = &HB8000
@@ -387,7 +387,7 @@ Public MustInherit Class CGAAdapter
         AutoSize()
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         Select Case port
             Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
                 Return CRT6845IndexRegister
@@ -421,7 +421,7 @@ Public MustInherit Class CGAAdapter
         &HFF, &HFF, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0
     }
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As UInt32, value As UInt32)
         Select Case port
             Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
                 CRT6845IndexRegister = value And 31
@@ -451,7 +451,7 @@ Public MustInherit Class CGAAdapter
         End Select
     End Sub
 
-    'Public Overrides Sub Out(port As UInteger, value As UInteger)
+    'Public Overrides Sub Out(port As UInt32, value As UInt32)
     '    Select Case port
     '        Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
     '            CRT6845IndexRegister = value And &HFF
@@ -507,7 +507,7 @@ Public MustInherit Class CGAAdapter
 
     Protected Overridable Sub OnModeControlRegisterChanged()
         ' http://www.seasip.info/VintagePC/cga.html
-        Dim v As UInteger = X8086.BitsArrayToWord(CGAModeControlRegister)
+        Dim v As UInt32 = X8086.BitsArrayToWord(CGAModeControlRegister)
         Dim newMode As VideoModes = CType(v And &H17, VideoModes) ' 10111
 
         If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
@@ -520,8 +520,8 @@ Public MustInherit Class CGAAdapter
             CGAPalette = CType(CGABasePalette.Clone(), Color())
         Else
             Dim colors() As Color = Nothing
-            Dim cgaModeReg As UInteger = X8086.BitsArrayToWord(CGAModeControlRegister)
-            Dim cgaColorReg As UInteger = X8086.BitsArrayToWord(CGAPaletteRegister)
+            Dim cgaModeReg As UInt32 = X8086.BitsArrayToWord(CGAModeControlRegister)
+            Dim cgaColorReg As UInt32 = X8086.BitsArrayToWord(CGAPaletteRegister)
 
             Select Case VideoMode
                 Case VideoModes.Mode4_Graphic_Color_320x200

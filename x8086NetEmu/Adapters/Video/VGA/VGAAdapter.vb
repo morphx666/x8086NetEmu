@@ -260,30 +260,30 @@
         Color.FromArgb(0, 0, 0)
     }
 
-    Private mVRAM(&H40000 - 1) As UInteger
-    Public VGA_SC(&H100 - 1) As UInteger
-    Protected VGA_CRTC(&H100 - 1) As UInteger
-    Protected VGA_ATTR(&H100 - 1) As UInteger
-    Protected VGA_GC(&H100 - 1) As UInteger
+    Private mVRAM(&H40000 - 1) As UInt32
+    Public VGA_SC(&H100 - 1) As UInt32
+    Protected VGA_CRTC(&H100 - 1) As UInt32
+    Protected VGA_ATTR(&H100 - 1) As UInt32
+    Protected VGA_GC(&H100 - 1) As UInt32
 
     Private flip3C0 As Boolean = False
-    Private VGA_latch(4 - 1) As UInteger
-    Private stateDAC As UInteger
-    Private latchReadRGB As UInteger
-    Private latchReadPal As UInteger
-    Private latchWriteRGB As UInteger
-    Private latchWritePal As UInteger
-    Protected portRAM(&H10000 - 1) As UInteger
-    Private tempRGB As UInteger
+    Private VGA_latch(4 - 1) As UInt32
+    Private stateDAC As UInt32
+    Private latchReadRGB As UInt32
+    Private latchReadPal As UInt32
+    Private latchWriteRGB As UInt32
+    Private latchWritePal As UInt32
+    Protected portRAM(&H10000 - 1) As UInt32
+    Private tempRGB As UInt32
     Private mVGAPalette(VGABasePalette.Length - 1) As Color
     Private mUseVRAM As Boolean
 
-    'Private port3DA As UInteger
-    Private Const planeSize As UInteger = &H10000
+    'Private port3DA As UInt32
+    Private Const planeSize As UInt32 = &H10000
     Private lastScanLineTick As Long
     Private scanLineTiming As Long = (Scheduler.CLOCKRATE / X8086.KHz) / 31500
     Private curScanLine As Long
-    Private cursorPosition As UInteger
+    Private cursorPosition As UInt32
 
     Private useROM As Boolean = False ' FIXME: Enabling ROM support breaks CGA compatibility
 
@@ -305,7 +305,7 @@
             mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
         Else
             'mCPU.RAM(&H410) = &H41
-            mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInteger, ByRef value As UInteger, mode As X8086.MemHookMode) As Boolean
+            mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt32, mode As X8086.MemHookMode) As Boolean
                                                         If mode = X8086.MemHookMode.Read AndAlso address = &H410 Then
                                                             value = &H41
                                                             Return True
@@ -318,10 +318,10 @@
         ValidPortAddress.Clear()
         ValidPortAddress.Add(&H3BA) ' Dummy port to speed ET4000 ROM initialization
         ValidPortAddress.Add(&H3B8) ' Monochrome support
-        For i As UInteger = &H3C0 To &H3CF ' EGA/VGA
+        For i As UInt32 = &H3C0 To &H3CF ' EGA/VGA
             ValidPortAddress.Add(i)
         Next
-        For i As UInteger = &H3D0 To &H3DF ' CGA Adapter
+        For i As UInt32 = &H3D0 To &H3DF ' CGA Adapter
             ValidPortAddress.Add(i)
         Next
 
@@ -343,7 +343,7 @@
                                                           Return False
                                                       End Function))
 
-        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInteger, ByRef value As UInteger, mode As X8086.MemHookMode) As Boolean
+        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt32, mode As X8086.MemHookMode) As Boolean
                                                     If mUseVRAM AndAlso (address >= &HA0000 AndAlso address <= &HBFFFF) Then
                                                         If mVideoMode = &H13 AndAlso (VGA_SC(4) And 6) = 0 Then ' Mode 13h with plane mode
                                                             Return False
@@ -390,17 +390,17 @@
         End Get
     End Property
 
-    Public ReadOnly Property VRAM(address As UInteger) As UInteger
+    Public ReadOnly Property VRAM(address As UInt32) As UInt32
         Get
             Return mVRAM(address)
         End Get
     End Property
 
-    Public Overrides Property VideoMode As UInteger
+    Public Overrides Property VideoMode As UInt32
         Get
             Return mVideoMode
         End Get
-        Set(value As UInteger)
+        Set(value As UInt32)
             Select Case value >> 8
                 Case 0 ' Set video mode
                     value = value And &H7F
@@ -614,11 +614,11 @@
         End Set
     End Property
 
-    Private Function RGBToUint(r As UInteger, g As UInteger, b As UInteger) As UInteger
+    Private Function RGBToUint(r As UInt32, g As UInt32, b As UInt32) As UInt32
         Return r Or (g << 8) Or (b << 16)
     End Function
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         Select Case port
             Case &H3BA
                 Dim t As Long = mCPU.Sched.CurrentTime
@@ -677,7 +677,7 @@
     'Private k() As Integer = {1, 2, 4, 8}
     'Dim ki As Integer = 0
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As UInt32, value As UInt32)
         value = value And &HFF
         Select Case port
             Case &H3B8
@@ -812,8 +812,8 @@
         AutoSize()
     End Sub
 
-    Public Overrides Sub Write(address As UInteger, value As UInteger)
-        Dim curValue As UInteger
+    Public Overrides Sub Write(address As UInt32, value As UInt32)
+        Dim curValue As UInt32
         value = ShiftVGA(value)
 
         Select Case (VGA_GC(5) And 3)
@@ -946,7 +946,7 @@
                 End If
 
             Case 3
-                Dim tmp As UInteger = value And VGA_GC(8)
+                Dim tmp As UInt32 = value And VGA_GC(8)
 
                 If (VGA_SC(2) And 1) <> 0 Then
                     If (VGA_GC(0) And 1) <> 0 Then
@@ -1002,7 +1002,7 @@
         End Select
     End Sub
 
-    Public Overrides Function Read(address As UInteger) As UInteger
+    Public Overrides Function Read(address As UInt32) As UInt32
         VGA_latch(0) = mVRAM(address + planeSize * 0)
         VGA_latch(1) = mVRAM(address + planeSize * 1)
         VGA_latch(2) = mVRAM(address + planeSize * 2)
@@ -1016,14 +1016,14 @@
         Return 0
     End Function
 
-    Private Function ShiftVGA(value As UInteger) As UInteger
+    Private Function ShiftVGA(value As UInt32) As UInt32
         For i As Integer = 0 To (VGA_GC(3) And 7) - 1
             value = (value >> 1) Or ((value And 1) << 7)
         Next
         Return value
     End Function
 
-    Private Function LogicVGA(curValue As UInteger, latchValue As UInteger) As UInteger
+    Private Function LogicVGA(curValue As UInt32, latchValue As UInt32) As UInt32
         Select Case (VGA_GC(3) >> 3) And 3 ' Raster Op
             Case 1 : curValue = curValue And latchValue
             Case 2 : curValue = curValue Or latchValue

@@ -1,11 +1,11 @@
 ﻿Partial Public Class X8086
-    Public Const MemSize As UInteger = &H100000UI  ' 1MB
-    Public Const ROMStart As UInteger = &HC0000UI
+    Public Const MemSize As UInt32 = &H100000UI  ' 1MB
+    Public Const ROMStart As UInt32 = &HC0000UI
 
     Public Memory(MemSize - 1) As Byte
 
-    Private Const shl2 As UInteger = 1 << 2
-    Private Const shl3 As UInteger = 1 << 3
+    Private Const shl2 As UInt32 = 1 << 2
+    Private Const shl3 As UInt32 = 1 << 3
 
     Public Class MemoryAccessEventArgs
         Inherits EventArgs
@@ -16,9 +16,9 @@
         End Enum
 
         Public ReadOnly Property AccessMode As AccessModes
-        Public ReadOnly Property Address As UInteger
+        Public ReadOnly Property Address As UInt32
 
-        Public Sub New(address As UInteger, accesMode As AccessModes)
+        Public Sub New(address As UInt32, accesMode As AccessModes)
             Me.Address = address
             Me.AccessMode = accesMode
         End Sub
@@ -73,7 +73,7 @@
         Private mActiveSegmentRegister As RegistersTypes = RegistersTypes.DS
         Private mActiveSegmentChanged As Boolean = False
 
-        Public Property Val(reg As RegistersTypes) As UShort
+        Public Property Val(reg As RegistersTypes) As UInt16
             Get
                 Select Case reg
                     Case RegistersTypes.AX : Return AX
@@ -109,7 +109,7 @@
                     Case Else : Throw New Exception("Invalid Register")
                 End Select
             End Get
-            Set(value As UShort)
+            Set(value As UInt16)
                 Select Case reg
                     Case RegistersTypes.AX : AX = value
                     Case RegistersTypes.AH : AH = value
@@ -146,11 +146,11 @@
             End Set
         End Property
 
-        Public Property AX As UShort
+        Public Property AX As UInt16
             Get
                 Return ((CShort(AH) << 8) Or AL)
             End Get
-            Set(value As UShort)
+            Set(value As UInt16)
                 AH = value >> 8
                 AL = value
             End Set
@@ -158,11 +158,11 @@
         Public Property AL As Byte
         Public Property AH As Byte
 
-        Public Property BX As UShort
+        Public Property BX As UInt16
             Get
                 Return ((CShort(BH) << 8) Or BL)
             End Get
-            Set(value As UShort)
+            Set(value As UInt16)
                 BH = value >> 8
                 BL = value
             End Set
@@ -170,11 +170,11 @@
         Public Property BL As Byte
         Public Property BH As Byte
 
-        Public Property CX As UShort
+        Public Property CX As UInt16
             Get
                 Return ((CShort(CH) << 8) Or CL)
             End Get
-            Set(value As UShort)
+            Set(value As UInt16)
                 CH = value >> 8
                 CL = value
             End Set
@@ -182,11 +182,11 @@
         Public Property CL As Byte
         Public Property CH As Byte
 
-        Public Property DX As UShort
+        Public Property DX As UInt16
             Get
                 Return ((CShort(DH) << 8) Or DL)
             End Get
-            Set(value As UShort)
+            Set(value As UInt16)
                 DH = value >> 8
                 DL = value
             End Set
@@ -194,19 +194,19 @@
         Public Property DL As Byte
         Public Property DH As Byte
 
-        Public Property CS As UShort
-        Public Property IP As UShort
+        Public Property CS As UInt16
+        Public Property IP As UInt16
 
-        Public Property SS As UShort
-        Public Property SP As UShort
+        Public Property SS As UInt16
+        Public Property SP As UInt16
 
-        Public Property DS As UShort
-        Public Property SI As UShort
+        Public Property DS As UInt16
+        Public Property SI As UInt16
 
-        Public Property ES As UShort
-        Public Property DI As UShort
+        Public Property ES As UInt16
+        Public Property DI As UInt16
 
-        Public Property BP As UShort
+        Public Property BP As UInt16
 
         Public Sub ResetActiveSegment()
             mActiveSegmentChanged = False
@@ -223,7 +223,7 @@
             End Set
         End Property
 
-        Public ReadOnly Property ActiveSegmentValue As UInteger
+        Public ReadOnly Property ActiveSegmentValue As UInt32
             Get
                 Return Val(mActiveSegmentRegister)
             End Get
@@ -286,7 +286,7 @@
         Public Property DF As Byte
         Public Property [OF] As Byte
 
-        Public Property EFlags() As UShort
+        Public Property EFlags() As UInt16
             Get
                 Return CF * FlagsTypes.CF Or
                         1 * 2 ^ 1 Or
@@ -302,7 +302,7 @@
                      [OF] * FlagsTypes.OF Or
                             &HF000 ' IOPL, NT and bit 15 are always "1" on 8086
             End Get
-            Set(value As UShort)
+            Set(value As UInt16)
                 CF = If((value And FlagsTypes.CF) = FlagsTypes.CF, 1, 0)
                 ' Reserved 1
                 PF = If((value And FlagsTypes.PF) = FlagsTypes.PF, 1, 0)
@@ -323,7 +323,7 @@
         End Function
     End Class
 
-    Public Sub LoadBIN(fileName As String, segment As UShort, offset As UShort)
+    Public Sub LoadBIN(fileName As String, segment As UInt16, offset As UInt16)
         'Debug.WriteLine($"Loading: {fileName} @ {segment:X4}:{offset:X4}")
         fileName = X8086.FixPath(fileName)
 
@@ -334,18 +334,18 @@
         End If
     End Sub
 
-    Public Sub CopyToRAM(bytes() As Byte, segment As UShort, offset As UShort)
+    Public Sub CopyToRAM(bytes() As Byte, segment As UInt16, offset As UInt16)
         CopyToRAM(bytes, X8086.SegmentOffetToAbsolute(segment, offset))
     End Sub
 
-    Public Sub CopyToRAM(bytes() As Byte, address As UInteger)
+    Public Sub CopyToRAM(bytes() As Byte, address As UInt32)
         ' TODO: We need to implement some checks to prevent loading code into ROM areas.
         '       Something like this, for example:
         '       If address + bytes.Length >= ROMStart Then Stop
         Array.Copy(bytes, 0, Memory, address, bytes.Length)
     End Sub
 
-    Public Sub CopyFromRAM(bytes() As Byte, address As UInteger)
+    Public Sub CopyFromRAM(bytes() As Byte, address As UInt32)
         Array.Copy(Memory, address, bytes, 0, bytes.Length)
     End Sub
 
@@ -367,30 +367,30 @@
         End Set
     End Property
 
-    Private Sub PushIntoStack(value As UShort)
-        mRegisters.SP -= 2
+    Private Sub PushIntoStack(value As UInt16)
+        mRegisters.SP -= 2US
         RAM16(mRegisters.SS, mRegisters.SP) = value
     End Sub
 
-    Private Function PopFromStack() As UShort
-        Dim value As Integer = RAM16(mRegisters.SS, mRegisters.SP)
-        mRegisters.SP += 2
+    Private Function PopFromStack() As UInt16
+        Dim value As UInt32 = RAM16(mRegisters.SS, mRegisters.SP)
+        mRegisters.SP += 2US
         Return value
     End Function
 
-    Public Shared Function SegmentOffetToAbsolute(segment As UShort, offset As UShort) As UInteger
+    Public Shared Function SegmentOffetToAbsolute(segment As UInt16, offset As UInt16) As UInt32
         Return (CUInt(segment) << 4) + offset
     End Function
 
-    Public Shared Function AbsoluteToSegment(address As UInteger) As UShort
+    Public Shared Function AbsoluteToSegment(address As UInt32) As UInt16
         Return (address >> 4) And &HFFF00
     End Function
 
-    Public Shared Function AbsoluteToOffset(address As UInteger) As UShort
+    Public Shared Function AbsoluteToOffset(address As UInt32) As UInt16
         Return address And &HFFF
     End Function
 
-    Public Property RAM(address As UInteger) As Byte
+    Public Property RAM(address As UInt32) As Byte
         Get
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
             'Return FromPreftch(address)
@@ -415,7 +415,7 @@
         End Set
     End Property
 
-    Public Property RAM8(segment As UShort, offset As UShort, Optional inc As Byte = 0) As Byte
+    Public Property RAM8(segment As UInt16, offset As UInt16, Optional inc As Byte = 0) As Byte
         Get
             Return RAM(SegmentOffetToAbsolute(segment, offset + inc))
         End Get
@@ -424,19 +424,19 @@
         End Set
     End Property
 
-    Public Property RAM16(segment As UShort, offset As UShort, Optional inc As Byte = 0) As UInteger
+    Public Property RAM16(segment As UInt16, offset As UInt16, Optional inc As Byte = 0) As UInt32
         Get
-            Dim address As UInteger = SegmentOffetToAbsolute(segment, offset + inc)
+            Dim address As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
             Return (CUInt(RAM(address + 1UI)) << 8UI Or RAM(address))
         End Get
-        Set(value As UInteger)
-            Dim address As UInteger = SegmentOffetToAbsolute(segment, offset + inc)
+        Set(value As UInt32)
+            Dim address As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
             RAM(address) = value
             RAM(address + 1UI) = (value >> 8UI)
         End Set
     End Property
 
-    Public Property RAMn() As UInteger
+    Public Property RAMn() As UInt32
         Get
             If addrMode.Size = DataSize.Byte Then
                 Return RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
@@ -444,9 +444,9 @@
                 Return RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
             End If
         End Get
-        Set(value As UInteger)
+        Set(value As UInt32)
             If addrMode.Size = DataSize.Byte Then
-                RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = CByte(value)
+                RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = value
             Else
                 RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = value
             End If

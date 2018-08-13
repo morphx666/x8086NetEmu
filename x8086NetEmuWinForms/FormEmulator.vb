@@ -293,7 +293,7 @@ Public Class FormEmulator
 
                                             Dim GetFileName = Function() As String
                                                                   Dim b As New List(Of Byte)
-                                                                  Dim addr As UInteger = X8086.SegmentOffetToAbsolute(cpu.Registers.DS, cpu.Registers.DX)
+                                                                  Dim addr As UInt32 = X8086.SegmentOffetToAbsolute(cpu.Registers.DS, cpu.Registers.DX)
                                                                   While cpu.RAM(addr) <> 0
                                                                       b.Add(cpu.RAM(addr))
                                                                       addr += 1
@@ -311,9 +311,9 @@ Public Class FormEmulator
                                                 Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
                                             End Select
 
-                                            Const offset As UInteger = &H12
-                                            Dim cs As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
-                                            Dim ip As UInteger = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
+                                            Const offset As UInt32 = &H12
+                                            Dim cs As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
+                                            Dim ip As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
                                             X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
                                             X8086.Notify($"DOS {mode}: {runningApp} -> {cs:X4}:{ip:X4}", X8086.NotificationReasons.Dbg)
                                     End Select

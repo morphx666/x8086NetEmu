@@ -35,13 +35,12 @@ Public Class SpeakerAdpater
         Sinusoidal
     End Enum
 
-    Private waveForm As WaveForms = WaveForms.Squared
+    Private ReadOnly waveForm As WaveForms = WaveForms.Squared
 
     Private Const ToRad As Double = Math.PI / 180
 
     Private waveOut As WaveOut
     Private audioProvider As CustomBufferProvider
-    Private mAudioBuffer() As Byte
 
     Public Const SampleRate As Integer = 44100
 
@@ -53,12 +52,13 @@ Public Class SpeakerAdpater
     Private halfWaveLength As Integer
     Private currentStep As Integer
 
-    Private mVolume As Double
+    Public Property Volume As Double
+    Public ReadOnly Property AudioBuffer As Byte()
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
         If mCPU.PIT IsNot Nothing Then mCPU.PIT.Speaker = Me
-        mVolume = 0.05
+        Volume = 0.05
     End Sub
 
     Public Property Frequency As Double
@@ -79,21 +79,6 @@ Public Class SpeakerAdpater
             mEnabled = value
             UpdateWaveformParameters()
         End Set
-    End Property
-
-    Public Property Volume As Double
-        Get
-            Return mVolume
-        End Get
-        Set(value As Double)
-            mVolume = value
-        End Set
-    End Property
-
-    Public ReadOnly Property AudioBuffer As Byte()
-        Get
-            Return mAudioBuffer
-        End Get
     End Property
 
     Private Sub UpdateWaveformParameters()
@@ -129,7 +114,7 @@ Public Class SpeakerAdpater
                     End If
             End Select
 
-            v *= mVolume
+            v *= Volume
             If v <= 0 Then
                 v = 128 + v
             Else
@@ -166,11 +151,11 @@ Public Class SpeakerAdpater
         waveOut.Play()
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         Return &HFF ' Avoid warning BC42353
     End Function
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As UInt32, value As UInt32)
 
     End Sub
 
@@ -232,11 +217,11 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         Return 0
     End Function
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As UInt32, value As UInt32)
 
     End Sub
 

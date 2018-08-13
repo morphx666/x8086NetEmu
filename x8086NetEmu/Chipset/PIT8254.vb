@@ -581,7 +581,7 @@
         UpdateCh2(0)
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then
@@ -593,7 +593,7 @@
         End If
     End Function
 
-    Public Overrides Sub Out(port As UInteger, v As UInteger)
+    Public Overrides Sub Out(port As UInt32, v As UInt32)
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then

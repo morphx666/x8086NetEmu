@@ -3,9 +3,9 @@
     Implements IExternalInputHandler
 
     Private Class SerialMouse
-        Public reg(8 - 1) As UInteger
-        Public buf(16 - 1) As UInteger
-        Public bufPtr As UInteger
+        Public reg(8 - 1) As UInt32
+        Public buf(16 - 1) As UInt32
+        Public bufPtr As UInt32
     End Class
 
     Private mCPU As X8086
@@ -21,12 +21,12 @@
         mCPU = cpu
         If mCPU.PIC IsNot Nothing Then irq = mCPU.PIC.GetIrqLine(4)
 
-        For i As UInteger = &H3F8 To &H3F8 + 7
+        For i As UInt32 = &H3F8 To &H3F8 + 7
             ValidPortAddress.Add(i)
         Next
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UInteger
+    Public Overrides Function [In](port As UInt32) As UInt32
         Dim tmp As Integer
 
         Select Case port
@@ -58,7 +58,7 @@
         Return sm.reg(port And 7)
     End Function
 
-    Public Overrides Sub Out(port As UInteger, value As UInteger)
+    Public Overrides Sub Out(port As UInt32, value As UInt32)
         Dim oldReg As Integer = sm.reg(port And 7)
         sm.reg(port And 7) = value
 

@@ -139,7 +139,7 @@ Public Class CGAConsole
 
     Private Sub RenderGraphics() ' This is cool, I guess, but completely useless...
         Dim b As Byte
-        Dim address As UInteger
+        Dim address As UInt32
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
