@@ -53,8 +53,8 @@
 
 
     Private Sub SystemHalted()
-        ThrowException("System Halted")
         mIsHalted = True
+        ThrowException("System Halted")
 
         RaiseEvent EmulationHalted()
 

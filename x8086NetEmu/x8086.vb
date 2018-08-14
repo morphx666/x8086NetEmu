@@ -2139,11 +2139,11 @@ Public Class X8086
                 End If
 
                 If addrMode.Size = DataSize.Byte Then
-                    mRegisters.AL = result And &HFF
-                    mRegisters.AH = remain And &HFF
+                    mRegisters.AL = result
+                    mRegisters.AH = remain
                 Else
-                    mRegisters.AX = result And &HFFFF
-                    mRegisters.DX = remain And &HFFFF
+                    mRegisters.AX = result
+                    mRegisters.DX = remain
                 End If
 
             Case Else
