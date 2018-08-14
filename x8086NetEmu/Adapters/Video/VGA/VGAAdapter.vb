@@ -305,7 +305,7 @@
             mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
         Else
             'mCPU.RAM(&H410) = &H41
-            mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt32, mode As X8086.MemHookMode) As Boolean
+            mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
                                                         If mode = X8086.MemHookMode.Read AndAlso address = &H410 Then
                                                             value = &H41
                                                             Return True
@@ -343,7 +343,7 @@
                                                           Return False
                                                       End Function))
 
-        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt32, mode As X8086.MemHookMode) As Boolean
+        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
                                                     If mUseVRAM AndAlso (address >= &HA0000 AndAlso address <= &HBFFFF) Then
                                                         If mVideoMode = &H13 AndAlso (VGA_SC(4) And 6) = 0 Then ' Mode 13h with plane mode
                                                             Return False
@@ -812,8 +812,8 @@
         AutoSize()
     End Sub
 
-    Public Overrides Sub Write(address As UInt32, value As UInt32)
-        Dim curValue As UInt32
+    Public Overrides Sub Write(address As UInt32, value As UInt16)
+        Dim curValue As UInt16
         value = ShiftVGA(value)
 
         Select Case (VGA_GC(5) And 3)
@@ -1002,7 +1002,7 @@
         End Select
     End Sub
 
-    Public Overrides Function Read(address As UInt32) As UInt32
+    Public Overrides Function Read(address As UInt32) As UInt16
         VGA_latch(0) = mVRAM(address + planeSize * 0)
         VGA_latch(1) = mVRAM(address + planeSize * 1)
         VGA_latch(2) = mVRAM(address + planeSize * 2)
@@ -1016,7 +1016,7 @@
         Return 0
     End Function
 
-    Private Function ShiftVGA(value As UInt32) As UInt32
+    Private Function ShiftVGA(value As UInt16) As UInt16
         For i As Integer = 0 To (VGA_GC(3) And 7) - 1
             value = (value >> 1) Or ((value And 1) << 7)
         Next

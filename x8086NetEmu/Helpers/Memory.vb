@@ -435,7 +435,7 @@
         End Set
     End Property
 
-    Public Property RAMn() As UInt32
+    Public Property RAMn() As UInt16
         Get
             If addrMode.Size = DataSize.Byte Then
                 Return RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
@@ -443,7 +443,7 @@
                 Return RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
             End If
         End Get
-        Set(value As UInt32)
+        Set(value As UInt16)
             If addrMode.Size = DataSize.Byte Then
                 RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = value
             Else

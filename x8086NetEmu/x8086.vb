@@ -34,7 +34,7 @@ Public Class X8086
         Read
         Write
     End Enum
-    Public Delegate Function MemHandler(address As UInt32, ByRef value As UInt32, mode As MemHookMode) As Boolean
+    Public Delegate Function MemHandler(address As UInt32, ByRef value As UInt16, mode As MemHookMode) As Boolean
     Private memHooks As New List(Of MemHandler)
 
     Private opCode As Byte
@@ -768,7 +768,7 @@ Public Class X8086
 
             Case &H27 ' daa
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
-                    tmpVal = CShort(mRegisters.AL) + 6
+                    tmpVal = CUInt(mRegisters.AL) + 6
                     mRegisters.AL += 6
                     mFlags.AF = 1
                     mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
@@ -776,7 +776,7 @@ Public Class X8086
                     mFlags.AF = 0
                 End If
                 If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
-                    tmpVal = CShort(mRegisters.AL) + &H60
+                    tmpVal = CUInt(mRegisters.AL) + &H60
                     mRegisters.AL += &H60
                     mFlags.CF = 1
                 Else
@@ -1929,10 +1929,6 @@ Public Class X8086
                     RAMn = (Not addrMode.IndMem) + 1
                     clkCyc += 16
                 End If
-                ' This was breaking Windows 2.0
-                ' Obviously!!!
-                'mFlags.CF = If(tmpVal = 0, 0, 1)
-                'mFlags.CF = tmpVal And 1
 
             Case 4 ' 100    --  mul
                 If addrMode.IsDirect Then

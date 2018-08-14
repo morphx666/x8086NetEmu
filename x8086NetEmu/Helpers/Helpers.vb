@@ -336,21 +336,20 @@
             mFlags.ZF = If((szpLUT8(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
             mFlags.SF = If((szpLUT8(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
         Else
-            result = result And &HFFFF
             mFlags.PF = parityLUT(result And &HFF)
             mFlags.ZF = If((szpLUT16(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
             mFlags.SF = If((szpLUT16(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
         End If
     End Sub
 
-    Private Sub SetLogicFlags(result As UInt16, size As DataSize)
+    Private Sub SetLogicFlags(result As UInt32, size As DataSize)
         SetSZPFlags(result, size)
 
         mFlags.CF = 0
         mFlags.OF = 0
     End Sub
 
-    Private Sub SetAddSubFlags(result As UInt32, v1 As UInt16, v2 As UInt16, size As DataSize, isSubstraction As Boolean)
+    Private Sub SetAddSubFlags(result As UInt32, v1 As UInt32, v2 As UInt32, size As DataSize, isSubstraction As Boolean)
         SetSZPFlags(result, size)
 
         If size = DataSize.Byte Then
@@ -365,7 +364,7 @@
     End Sub
 
     Public Shared Function BitsArrayToWord(b() As Boolean) As UInt16
-        Dim r As UInt32 = 0
+        Dim r As UInt16 = 0
         For i As Integer = 0 To b.Length - 1
             If b(i) Then r += 2 ^ i
         Next
