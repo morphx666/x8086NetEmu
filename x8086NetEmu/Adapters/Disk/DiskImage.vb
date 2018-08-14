@@ -31,10 +31,10 @@ Public Class DiskImage
         {80, 2, 36, 2880 * 1024}}
 
     Private file As IO.FileStream
-    Protected Friend mCylinders As Integer
-    Protected Friend mHeads As Integer
-    Protected Friend mSectors As Integer
-    Protected Friend mSectorSize As Integer
+    Protected Friend mCylinders As UInt16
+    Protected Friend mHeads As UInt16
+    Protected Friend mSectors As UInt16
+    Protected Friend mSectorSize As UInt16
     Protected Friend mReadOnly As Boolean
     Protected Friend mStatus As ImageStatus = ImageStatus.NoDisk
     Protected Friend mFileLength As Long
@@ -247,7 +247,7 @@ Public Class DiskImage
         Return True
     End Function
 
-    Public Function LBA(cylinder As Integer, head As Integer, sector As Integer) As Long
+    Public Function LBA(cylinder As UInt16, head As UInt16, sector As UInt16) As Long
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         cylinder = cylinder Or ((sector And &HC0) << 2)
@@ -306,31 +306,31 @@ Public Class DiskImage
         End Try
     End Function
 
-    Public ReadOnly Property Tracks() As Integer
+    Public ReadOnly Property Tracks() As UInt16
         Get
             Return mCylinders
         End Get
     End Property
 
-    Public ReadOnly Property Cylinders() As Integer
+    Public ReadOnly Property Cylinders() As UInt16
         Get
             Return mCylinders
         End Get
     End Property
 
-    Public ReadOnly Property Heads() As Integer
+    Public ReadOnly Property Heads() As UInt16
         Get
             Return mHeads
         End Get
     End Property
 
-    Public ReadOnly Property Sectors() As Integer
+    Public ReadOnly Property Sectors() As UInt16
         Get
             Return mSectors
         End Get
     End Property
 
-    Public ReadOnly Property SectorSize As Integer
+    Public ReadOnly Property SectorSize As UInt16
         Get
             Return mSectorSize
         End Get

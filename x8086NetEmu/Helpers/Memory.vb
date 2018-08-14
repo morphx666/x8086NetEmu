@@ -4,8 +4,8 @@
 
     Public Memory(MemSize - 1) As Byte
 
-    Private Const shl2 As UInt32 = 1 << 2
-    Private Const shl3 As UInt32 = 1 << 3
+    Private Const shl2 As UInt16 = 1 << 2
+    Private Const shl3 As UInt16 = 1 << 3
 
     Public Class MemoryAccessEventArgs
         Inherits EventArgs
@@ -368,14 +368,13 @@
     End Property
 
     Private Sub PushIntoStack(value As UInt16)
-        mRegisters.SP -= 2US
+        mRegisters.SP -= 2
         RAM16(mRegisters.SS, mRegisters.SP) = value
     End Sub
 
     Private Function PopFromStack() As UInt16
-        Dim value As UInt32 = RAM16(mRegisters.SS, mRegisters.SP)
-        mRegisters.SP += 2US
-        Return value
+        mRegisters.SP += 2
+        Return RAM16(mRegisters.SS, mRegisters.SP - 2)
     End Function
 
     Public Shared Function SegmentOffetToAbsolute(segment As UInt16, offset As UInt16) As UInt32
@@ -424,12 +423,12 @@
         End Set
     End Property
 
-    Public Property RAM16(segment As UInt16, offset As UInt16, Optional inc As Byte = 0) As UInt32
+    Public Property RAM16(segment As UInt16, offset As UInt16, Optional inc As Byte = 0) As UInt16
         Get
             Dim address As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
             Return (CUInt(RAM(address + 1UI)) << 8UI Or RAM(address))
         End Get
-        Set(value As UInt32)
+        Set(value As UInt16)
             Dim address As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
             RAM(address) = value
             RAM(address + 1UI) = (value >> 8UI)

@@ -78,7 +78,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
+                Dim address As UInt32 = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
                 Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then

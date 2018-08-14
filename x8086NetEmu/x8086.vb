@@ -38,7 +38,7 @@ Public Class X8086
     Private memHooks As New List(Of MemHandler)
 
     Private opCode As Byte
-    Private opCodeSize As UInt32 = 0
+    Private opCodeSize As Byte = 0
 
     Private tmpVal As UInt32
 
@@ -61,13 +61,13 @@ Public Class X8086
     End Enum
     Private repeLoopMode As REPLoopModes
 
-    Private forceNewIPAddress As UInt32
-    Private Property IPAddrOff As UInt32
+    Private forceNewIPAddress As UInt16
+    Private Property IPAddrOff As UInt16
         Get
             useIPAddrOff = False
             Return forceNewIPAddress
         End Get
-        Set(value As UInt32)
+        Set(value As UInt16)
             forceNewIPAddress = value
             useIPAddrOff = True
         End Set
@@ -768,19 +768,21 @@ Public Class X8086
 
             Case &H27 ' daa
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                    tmpVal = CShort(mRegisters.AL) + 6
                     mRegisters.AL += 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((mRegisters.AL And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
                 Else
                     mFlags.AF = 0
                 End If
                 If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
+                    tmpVal = CShort(mRegisters.AL) + &H60
                     mRegisters.AL += &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                SetSZPFlags(mRegisters.AL, DataSize.Byte)
+                SetSZPFlags(tmpVal, DataSize.Byte)
                 clkCyc += 4
 
             Case &H28 To &H2B ' sub reg/mem with reg to either
@@ -812,19 +814,21 @@ Public Class X8086
 
             Case &H2F ' das
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                    tmpVal = CShort(mRegisters.AL) - 6
                     mRegisters.AL -= 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((mRegisters.AL And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
                 Else
                     mFlags.AF = 0
                 End If
                 If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
+                    tmpVal = CShort(mRegisters.AL) - &H60
                     mRegisters.AL -= &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                SetSZPFlags(mRegisters.AL, DataSize.Byte)
+                SetSZPFlags(tmpVal, DataSize.Byte)
                 clkCyc += 4
 
             Case &H30 To &H33 ' xor reg/mem and reg to either
@@ -1887,9 +1891,9 @@ Public Class X8086
         End Select
 
         If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Register2) = newValue And maskFF_FFFF
+            mRegisters.Val(addrMode.Register2) = newValue
         Else
-            RAMn = newValue And maskFF_FFFF
+            RAMn = newValue
         End If
     End Sub
 
@@ -1927,7 +1931,10 @@ Public Class X8086
                     RAMn = tmpVal
                     clkCyc += 16
                 End If
-                mFlags.CF = If(tmpVal = 0, 0, 1)
+                ' This was breaking Windows 2.0
+                ' Obviously!!!
+                ' mFlags.CF = If(tmpVal = 0, 0, 1)
+                mFlags.CF = tmpVal And 1
 
             Case 4 ' 100    --  mul
                 If addrMode.IsDirect Then

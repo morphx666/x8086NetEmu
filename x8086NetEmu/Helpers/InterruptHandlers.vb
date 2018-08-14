@@ -2,8 +2,8 @@
 ' http://www.delorie.com/djgpp/doc/rbinter/ix/
 
 Partial Public Class X8086
-    Private lastAH(256 - 1) As UInt32
-    Private lastCF(256 - 1) As UInt16
+    Private lastAH(256 - 1) As UInt16
+    Private lastCF(256 - 1) As Byte
 
     Public Sub HandleHardwareInterrupt(intNum As Byte)
         HandleInterrupt(intNum, True)
@@ -41,7 +41,7 @@ Partial Public Class X8086
                 PushIntoStack(mRegisters.IP + opCodeSize)
             End If
 
-            Dim intOffset As UInt32 = intNum * 4
+            Dim intOffset As UInt16 = intNum * 4
             IPAddrOff = RAM16(0, intOffset)
             mRegisters.CS = RAM16(0, intOffset + 2)
 

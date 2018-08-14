@@ -246,7 +246,7 @@
         Return &HFF
     End Function
 
-    Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As UInt32 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt32
+    Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
         Get
             If size = DataSize.UseAddressingMode Then size = addrMode.Size
             opCodeSize += (size + 1)
@@ -254,7 +254,7 @@
         End Get
     End Property
 
-    Private ReadOnly Property ParamNOPS(index As SelPrmIndex, Optional ipOffset As UInt32 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt32
+    Private ReadOnly Property ParamNOPS(index As SelPrmIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
         Get
             ' Extra cycles for address misalignment
             ' This is too CPU expensive, with few benefits, if any... not worth it
@@ -268,11 +268,11 @@
         End Get
     End Property
 
-    Public Sub IncIP(value As UInt32)
+    Public Sub IncIP(value As UInt16)
         mRegisters.IP += value
     End Sub
 
-    Private Function OffsetIP(size As DataSize) As UInt32
+    Private Function OffsetIP(size As DataSize) As UInt16
         If size = DataSize.Byte Then
             Return mRegisters.IP + To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte)) + opCodeSize
         Else
@@ -280,7 +280,7 @@
         End If
     End Function
 
-    Private Function Eval(v1 As UInt32, v2 As UInt32, opMode As Operation, size As DataSize) As UInt32
+    Private Function Eval(v1 As UInt32, v2 As UInt32, opMode As Operation, size As DataSize) As UInt16
         Dim result As UInt32
 
         Select Case opMode
@@ -329,7 +329,7 @@
         Return result
     End Function
 
-    Private Sub SetSZPFlags(result As UInt32, size As DataSize)
+    Private Sub SetSZPFlags(result As UInt16, size As DataSize)
         If size = DataSize.Byte Then
             result = result And &HFF
             mFlags.PF = parityLUT(result)
@@ -343,14 +343,14 @@
         End If
     End Sub
 
-    Private Sub SetLogicFlags(result As UInt32, size As DataSize)
+    Private Sub SetLogicFlags(result As UInt16, size As DataSize)
         SetSZPFlags(result, size)
 
         mFlags.CF = 0
         mFlags.OF = 0
     End Sub
 
-    Private Sub SetAddSubFlags(result As UInt32, v1 As UInt32, v2 As UInt32, size As DataSize, isSubstraction As Boolean)
+    Private Sub SetAddSubFlags(result As UInt32, v1 As UInt16, v2 As UInt16, size As DataSize, isSubstraction As Boolean)
         SetSZPFlags(result, size)
 
         If size = DataSize.Byte Then
@@ -364,7 +364,7 @@
         mFlags.AF = If(((v1 Xor v2 Xor result) And &H10UI) <> 0, 1, 0)
     End Sub
 
-    Public Shared Function BitsArrayToWord(b() As Boolean) As UInt32
+    Public Shared Function BitsArrayToWord(b() As Boolean) As UInt16
         Dim r As UInt32 = 0
         For i As Integer = 0 To b.Length - 1
             If b(i) Then r += 2 ^ i
@@ -372,7 +372,7 @@
         Return r
     End Function
 
-    Public Shared Sub WordToBitsArray(value As UInt32, a() As Boolean)
+    Public Shared Sub WordToBitsArray(value As UInt16, a() As Boolean)
         For i As Integer = 0 To a.Length - 1
             a(i) = (value And 2 ^ i) <> 0
         Next
@@ -399,7 +399,7 @@
         'End If
     End Sub
 
-    Private Sub PrintOpCodes(n As UInt32)
+    Private Sub PrintOpCodes(n As UInt16)
         For i As Integer = mRegisters.IP To mRegisters.IP + n - 1
             Debug.Write(RAM8(mRegisters.CS, i).ToString("X") + " ")
         Next
