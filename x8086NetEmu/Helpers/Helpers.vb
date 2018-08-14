@@ -330,19 +330,22 @@
     End Function
 
     Private Sub SetSZPFlags(result As UInt16, size As DataSize)
+        Dim ft As GPFlags.FlagsTypes
+
         If size = DataSize.Byte Then
             result = result And &HFF
             mFlags.PF = parityLUT(result)
-            mFlags.ZF = If((szpLUT8(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
-            mFlags.SF = If((szpLUT8(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
+            ft = szpLUT8(result)
         Else
             mFlags.PF = parityLUT(result And &HFF)
-            mFlags.ZF = If((szpLUT16(result) And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
-            mFlags.SF = If((szpLUT16(result) And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
+            ft = szpLUT16(result)
         End If
+
+        mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) = GPFlags.FlagsTypes.ZF, 1, 0)
+        mFlags.SF = If((ft And GPFlags.FlagsTypes.SF) = GPFlags.FlagsTypes.SF, 1, 0)
     End Sub
 
-    Private Sub SetLogicFlags(result As UInt32, size As DataSize)
+    Private Sub SetLogicFlags(result As UInt16, size As DataSize)
         SetSZPFlags(result, size)
 
         mFlags.CF = 0

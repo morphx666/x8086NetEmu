@@ -1456,7 +1456,7 @@ Public Class X8086
             Case &HD0 To &HD3 : ExecuteGroup2()
 
             Case &HD4 ' aam
-                Dim div As UInt32 = Param(SelPrmIndex.First, , DataSize.Byte)
+                Dim div As UInt16 = Param(SelPrmIndex.First, , DataSize.Byte)
                 If div = 0 Then
                     HandleInterrupt(0, True)
                     Exit Select
@@ -1665,8 +1665,8 @@ Public Class X8086
     Private Sub ExecuteGroup1() ' &H80 To &H83
         SetAddressing()
 
-        Dim arg1 As UInt32 = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
-        Dim arg2 As UInt32 = Param(SelPrmIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
+        Dim arg1 As UInt16 = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
+        Dim arg2 As UInt16 = Param(SelPrmIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
         If opCode = &H83 Then arg2 = To16bitsWithSign(arg2)
 
         Select Case addrMode.Reg
@@ -1922,35 +1922,36 @@ Public Class X8086
             Case 3 ' 011    --  neg
                 If addrMode.IsDirect Then
                     Eval(0, mRegisters.Val(addrMode.Register2), Operation.Substract, addrMode.Size)
-                    mRegisters.Val(addrMode.Register2) = (Not mRegisters.Val(addrMode.Register2)) + 1
+                    tmpVal = (Not mRegisters.Val(addrMode.Register2)) + 1
+                    mRegisters.Val(addrMode.Register2) = tmpVal
                     clkCyc += 3
                 Else
                     Eval(0, addrMode.IndMem, Operation.Substract, addrMode.Size)
-                    RAMn = (Not addrMode.IndMem) + 1
+                    tmpVal = (Not addrMode.IndMem) + 1
+                    RAMn = tmpVal
                     clkCyc += 16
                 End If
+                mFlags.CF = If((tmpVal And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)) = 0, 0, 1)
 
             Case 4 ' 100    --  mul
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
-                        tmpVal = CUInt(mRegisters.Val(addrMode.Register2)) * mRegisters.AL
-                        mRegisters.AX = tmpVal And &HFFFF
+                        mRegisters.AX = mRegisters.Val(addrMode.Register2) * mRegisters.AL
                         clkCyc += 70
                     Else
                         tmpVal = CUInt(mRegisters.Val(addrMode.Register2)) * mRegisters.AX
-                        mRegisters.AX = tmpVal And &HFFFF
-                        mRegisters.DX = (tmpVal >> 16) And &HFFFF
+                        mRegisters.AX = tmpVal
+                        mRegisters.DX = (tmpVal >> 16)
                         clkCyc += 118
                     End If
                 Else
                     If addrMode.Size = DataSize.Byte Then
-                        tmpVal = addrMode.IndMem * mRegisters.AL
-                        mRegisters.AX = tmpVal And &HFFFF
+                        mRegisters.AX = addrMode.IndMem * mRegisters.AL
                         clkCyc += 76
                     Else
-                        tmpVal = addrMode.IndMem * mRegisters.AX
-                        mRegisters.AX = tmpVal And &HFFFF
-                        mRegisters.DX = (tmpVal >> 16) And &HFFFF
+                        tmpVal = CUInt(addrMode.IndMem) * mRegisters.AX
+                        mRegisters.AX = tmpVal
+                        mRegisters.DX = (tmpVal >> 16)
                         clkCyc += 134
                     End If
                 End If
@@ -2059,15 +2060,15 @@ Public Class X8086
                         HandleInterrupt(0, True)
                         Exit Select
                     End If
-                    mRegisters.AL = result And &HFF
-                    mRegisters.AH = remain And &HFF
+                    mRegisters.AL = result
+                    mRegisters.AH = remain
                 Else
                     If result > &HFFFF Then
                         HandleInterrupt(0, True)
                         Exit Select
                     End If
-                    mRegisters.AX = result And &HFFFF
-                    mRegisters.DX = remain And &HFFFF
+                    mRegisters.AX = result
+                    mRegisters.DX = remain
                 End If
 
             Case 7 ' 111    --  idiv
