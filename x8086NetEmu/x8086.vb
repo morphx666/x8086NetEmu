@@ -1921,20 +1921,18 @@ Public Class X8086
 
             Case 3 ' 011    --  neg
                 If addrMode.IsDirect Then
-                    tmpVal = (Not mRegisters.Val(addrMode.Register2)) + 1
                     Eval(0, mRegisters.Val(addrMode.Register2), Operation.Substract, addrMode.Size)
-                    mRegisters.Val(addrMode.Register2) = tmpVal
+                    mRegisters.Val(addrMode.Register2) = (Not mRegisters.Val(addrMode.Register2)) + 1
                     clkCyc += 3
                 Else
-                    tmpVal = (Not addrMode.IndMem) + 1
                     Eval(0, addrMode.IndMem, Operation.Substract, addrMode.Size)
-                    RAMn = tmpVal
+                    RAMn = (Not addrMode.IndMem) + 1
                     clkCyc += 16
                 End If
                 ' This was breaking Windows 2.0
                 ' Obviously!!!
-                ' mFlags.CF = If(tmpVal = 0, 0, 1)
-                mFlags.CF = tmpVal And 1
+                'mFlags.CF = If(tmpVal = 0, 0, 1)
+                'mFlags.CF = tmpVal And 1
 
             Case 4 ' 100    --  mul
                 If addrMode.IsDirect Then
@@ -1969,7 +1967,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                If Not mVic20 Then mFlags.ZF = If(tmpVal = 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
+                If Not mVic20 Then mFlags.ZF = If(tmpVal <> 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
 
             Case 5 ' 101    --  imul
                 If addrMode.IsDirect Then
