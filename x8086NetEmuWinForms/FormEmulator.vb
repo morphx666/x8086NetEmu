@@ -263,6 +263,8 @@ Public Class FormEmulator
 
         X8086.LogToConsole = False
 
+        'cpu.LoadBIN("C:\Users\xavie\Dropbox\Projects\x8086NetEmu\x8086NetEmu\bin\80186_tests\segpr.bin", &HF000, &H0)
+        'cpu.Run(True, &HF000, 0)
         cpu.Run()
 
         SetupVideoPortEventHandlers()
