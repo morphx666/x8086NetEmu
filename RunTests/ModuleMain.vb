@@ -4,10 +4,16 @@ Imports System.Threading
 Module ModuleMain
     Private cpu As X8086
     Private validData() As Byte = Nothing
-    Private hasErrors As Boolean = False
 
     Sub Main()
         Dim waiter As New AutoResetEvent(False)
+
+        cpu = New X8086(True, False,, X8086.Models.IBMPC_5150) With {.Clock = 47700000}
+        AddHandler cpu.EmulationHalted, Sub()
+                                            Compare()
+                                            Console.WriteLine()
+                                            waiter.Set()
+                                        End Sub
 
         X8086.LogToConsole = False
 
@@ -20,38 +26,16 @@ Module ModuleMain
 
             If Not IO.File.Exists(dataFileName) Then Continue For
             validData = IO.File.ReadAllBytes(dataFileName)
-            hasErrors = False
 
             Console.Write($"Running: {fileName}")
 
-            Try
-                cpu = New X8086(True, False,, X8086.Models.IBMPC_5150) With {.Clock = 47700000}
-                AddHandler cpu.EmulationHalted, Sub()
-                                                    Compare()
-                                                    Console.WriteLine()
-                                                    waiter.Set()
-                                                End Sub
-                'AddHandler cpu.Error, Sub(sender As Object, e As EmulatorErrorEventArgs)
-                '                          If Not (hasErrors OrElse cpu.IsHalted) Then
-                '                              hasErrors = True
-                '                              Console.WriteLine(" > FAILED")
-                '                              Console.WriteLine($"  {cpu.Registers.CS:X4}:{cpu.Registers.IP:X4} -> {e.Message}")
-                '                              Compare()
-                '                              Console.WriteLine()
-                '                              waiter.Set()
-                '                          End If
-                '                      End Sub
+            If cpu.IsHalted Then cpu.HardReset()
+            cpu.LoadBIN(f.FullName, &HF000, &H0)
+            cpu.Run(, &HF000, &H0)
 
-                cpu.Registers.CS = &HF000
-                cpu.Registers.IP = 0
-                cpu.LoadBIN(f.FullName, cpu.Registers.CS, cpu.Registers.IP)
-                cpu.Run(False)
-
-                waiter.WaitOne()
-                cpu.Close()
-            Catch
-            End Try
+            waiter.WaitOne()
         Next
+        cpu.Close()
 
 #If DEBUG Then
         Console.WriteLine("Press any key to exit")
@@ -71,7 +55,7 @@ Module ModuleMain
             End If
         Next
         If invalidData.Any() Then
-            If Not hasErrors Then Console.WriteLine($" > FAILED [{invalidData.Count}]")
+            Console.WriteLine($" > FAILED [{invalidData.Count}]")
             invalidData.ForEach(Sub(id) Console.WriteLine($"  {id}"))
         Else
             Console.WriteLine(" > PASSED")

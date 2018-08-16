@@ -112,7 +112,10 @@ Public Class X8086
     Public Delegate Sub RestartEmulation()
     Private reCallback As RestartEmulation
 
-    Public Sub New(Optional v20 As Boolean = True, Optional int13 As Boolean = True, Optional restartEmulationCallback As RestartEmulation = Nothing, Optional model As Models = Models.IBMPC_5160)
+    Public Sub New(Optional v20 As Boolean = True,
+                   Optional int13 As Boolean = True,
+                   Optional restartEmulationCallback As RestartEmulation = Nothing,
+                   Optional model As Models = Models.IBMPC_5160)
         mVic20 = v20
         mEmulateINT13 = int13
         reCallback = restartEmulationCallback
@@ -307,9 +310,6 @@ Public Class X8086
         mRegisters.SI = 0
         mRegisters.DI = 0
 
-        Registers.CS = &HFFFF
-        Registers.IP = &H0
-
         mFlags.EFlags = 0
 
         AddInternalHooks()
@@ -447,8 +447,9 @@ Public Class X8086
             Close()
             reCallback.Invoke()
         Else
+            Close()
             Init()
-            Run(mDebugMode)
+            'Run(mDebugMode, cs, ip)
         End If
     End Sub
 
@@ -456,7 +457,7 @@ Public Class X8086
         debugWaiter.Set()
     End Sub
 
-    Public Sub Run(Optional debugMode As Boolean = False)
+    Public Sub Run(Optional debugMode As Boolean = False, Optional cs As UInt16 = &HFFFF, Optional ip As UInt16 = 0)
         SetSynchronization()
 
         mDebugMode = debugMode
@@ -468,6 +469,10 @@ Public Class X8086
 #End If
 
         If mDebugMode Then RaiseEvent InstructionDecoded()
+
+        mRegisters.CS = cs
+        mRegisters.IP = ip
+
         Sched.Start()
     End Sub
 
@@ -814,6 +819,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H2F ' das
+                Dim al = mRegisters.AL
                 If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
                     tmpVal = CShort(mRegisters.AL) - 6
                     mRegisters.AL -= 6
@@ -822,7 +828,7 @@ Public Class X8086
                 Else
                     mFlags.AF = 0
                 End If
-                If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
+                If al > &H99 OrElse mFlags.CF = 1 Then
                     tmpVal = CShort(mRegisters.AL) - &H60
                     mRegisters.AL -= &H60
                     mFlags.CF = 1
@@ -2072,81 +2078,6 @@ Public Class X8086
                     mRegisters.DX = remain
                 End If
 
-                'Case 7 ' 111    --  idiv
-                '    Dim div As UInt32
-                '    Dim num As UInt32
-                '    Dim result As UInt32
-                '    Dim remain As UInt32
-                '    Dim sign As Boolean
-
-                '    If addrMode.IsDirect Then
-                '        div = mRegisters.Val(addrMode.Register2)
-                '        If addrMode.Size = DataSize.Byte Then
-                '            num = mRegisters.AX
-
-                '            sign = ((num Xor div) And &H8000) <> 0
-                '            num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
-                '            div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
-
-                '            clkCyc += 80
-                '        Else
-                '            num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
-                '            div = If((div And &H8000) <> 0, div Or &HFFFF0000UI, div)
-
-                '            sign = ((num Xor div) And &H80000000UI) <> 0
-                '            num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
-                '            div = If(div < &H80000000UI, div, ((Not div) + 1) And &HFFFFFFFFUI)
-
-                '            clkCyc += 144
-                '        End If
-                '    Else
-                '        div = addrMode.IndMem
-                '        If addrMode.Size = DataSize.Byte Then
-                '            num = mRegisters.AX
-
-                '            sign = ((num Xor div) And &H8000) <> 0
-                '            num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
-                '            div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
-
-                '            clkCyc += 86
-                '        Else
-                '            num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
-                '            div = If((div And &H8000) <> 0, div Or &HFFFF0000UI, div)
-
-                '            sign = ((num Xor div) And &H80000000UI) <> 0
-                '            num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
-                '            div = If(div < &H80000000UI, div, ((Not div) + 1) And &HFFFFFFFFUI)
-
-                '            clkCyc += 150
-                '        End If
-                '    End If
-
-                '    If div = 0 Then
-                '        HandleInterrupt(0, True)
-                '        Exit Select
-                '    End If
-
-                '    result = num \ div
-                '    remain = num Mod div
-
-                '    If (result And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
-                '        HandleInterrupt(0, True)
-                '        Exit Select
-                '    End If
-
-                '    If sign Then
-                '        result = ((Not result) + 1)
-                '        remain = ((Not remain) + 1)
-                '    End If
-
-                '    If addrMode.Size = DataSize.Byte Then
-                '        mRegisters.AL = result
-                '        mRegisters.AH = remain
-                '    Else
-                '        mRegisters.AX = result
-                '        mRegisters.DX = remain
-                '    End If
-
             Case 7 ' 111    --  idiv
                 Dim div As UInt32
                 Dim num As UInt32
@@ -2212,8 +2143,8 @@ Public Class X8086
                 End If
 
                 If sign Then
-                    result = ((Not result) + 1)
-                    remain = ((Not remain) + 1)
+                    result = (Not result) + 1
+                    remain = (Not remain) + 1
                 End If
 
                 If addrMode.Size = DataSize.Byte Then
