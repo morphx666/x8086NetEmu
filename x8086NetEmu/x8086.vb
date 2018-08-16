@@ -830,6 +830,25 @@ Public Class X8086
                 End If
                 SetSZPFlags(tmpVal, DataSize.Byte)
                 clkCyc += 4
+                'Dim oAL As UInt16 = mRegisters.AL
+                'Dim oCF As Byte = mFlags.CF
+                'If (oAL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                '    tmpVal = CUInt(mRegisters.AL) - 6
+                '    mRegisters.AL = tmpVal
+                '    mFlags.AF = 1
+                '    mFlags.CF = oCF Or If(oAL < 6, 1, 0)
+                'Else
+                '    mFlags.AF = 0
+                'End If
+                'If (oAL And &HF0) > &H90 OrElse oCF = 1 Then
+                '    tmpVal = CUInt(mRegisters.AL) - &H60
+                '    mRegisters.AL = tmpVal
+                '    mFlags.CF = 1
+                'Else
+                '    mFlags.CF = 0
+                'End If
+                'SetSZPFlags(mRegisters.AL, DataSize.Byte)
+                'clkCyc += 4
 
             Case &H30 To &H33 ' xor reg/mem and reg to either
                 SetAddressing()

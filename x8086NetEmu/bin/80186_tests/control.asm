@@ -1,4 +1,4 @@
-;1.  clc
+;1. clc
 ;2. cld
 ;3. cli
 ;4. cmc
