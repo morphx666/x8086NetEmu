@@ -263,8 +263,9 @@ Public Class FormEmulator
 
         X8086.LogToConsole = False
 
-        'cpu.LoadBIN("80186_tests\datatrnf.bin", &HF000, &H0)
+        'cpu.LoadBIN("80186_tests\segpr.bin", &HF000, &H0)
         'cpu.Run(True, &HF000, 0)
+        'ShowDebugger()
         cpu.Run()
 
         SetupVideoPortEventHandlers()
