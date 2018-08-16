@@ -1269,7 +1269,12 @@ Public Class X8086
 
             Case &H8F ' pop reg/mem
                 SetAddressing()
-                RAMn = PopFromStack()
+                addrMode.Decode(opCode, opCode)
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Register1) = PopFromStack()
+                Else
+                    RAMn = PopFromStack()
+                End If
                 clkCyc += 17
 
             Case &H90 ' nop

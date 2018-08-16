@@ -575,7 +575,12 @@
 
             Case &H8F ' pop reg/mem
                 SetDecoderAddressing()
-                opCodeASM = "POP " + indASM
+                addrMode.Decode(decOpCode, decOpCode)
+                If addrMode.IsDirect Then
+                    opCodeASM = "POP " + addrMode.Register1.ToString()
+                Else
+                    opCodeASM = "POP " + indASM
+                End If
                 clkCycDecoder += 17
 
             Case &H90 ' nop
