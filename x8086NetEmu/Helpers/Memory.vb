@@ -299,8 +299,8 @@
                        TF * FlagsTypes.TF Or
                      [IF] * FlagsTypes.IF Or
                        DF * FlagsTypes.DF Or
-                     [OF] * FlagsTypes.OF 'Or
-                '&HF000 ' IOPL, NT and bit 15 are always "1" on 8086
+                     [OF] * FlagsTypes.OF Or
+                            &HF000 ' IOPL, NT and bit 15 are always "1" on 8086
             End Get
             Set(value As UInt16)
                 CF = If((value And FlagsTypes.CF) = FlagsTypes.CF, 1, 0)

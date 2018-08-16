@@ -112,10 +112,11 @@ Public Class X8086
     Public Delegate Sub RestartEmulation()
     Private reCallback As RestartEmulation
 
-    Public Sub New(Optional v20 As Boolean = True, Optional int13 As Boolean = True, Optional restartEmulationCallback As RestartEmulation = Nothing)
+    Public Sub New(Optional v20 As Boolean = True, Optional int13 As Boolean = True, Optional restartEmulationCallback As RestartEmulation = Nothing, Optional model As Models = Models.IBMPC_5160)
         mVic20 = v20
         mEmulateINT13 = int13
         reCallback = restartEmulationCallback
+        mModel = model
 
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
@@ -253,13 +254,13 @@ Public Class X8086
         PIT = New PIT8254(Me, PIC.GetIrqLine(0))
         PPI = New PPI8255(Me, PIC.GetIrqLine(1))
         'PPI = New PPI8255_ALT(Me, PIC.GetIrqLine(1))
-        RTC = New RTC(Me, PIC.GetIrqLine(8))
+        'RTC = New RTC(Me, PIC.GetIrqLine(8))
 
         mPorts.Add(PIC)
         mPorts.Add(DMA)
         mPorts.Add(PIT)
         mPorts.Add(PPI)
-        mPorts.Add(RTC)
+        'mPorts.Add(RTC)
 
         SetupSystem()
 
@@ -830,25 +831,6 @@ Public Class X8086
                 End If
                 SetSZPFlags(tmpVal, DataSize.Byte)
                 clkCyc += 4
-                'Dim oAL As UInt16 = mRegisters.AL
-                'Dim oCF As Byte = mFlags.CF
-                'If (oAL And &HF) > 9 OrElse mFlags.AF = 1 Then
-                '    tmpVal = CUInt(mRegisters.AL) - 6
-                '    mRegisters.AL = tmpVal
-                '    mFlags.AF = 1
-                '    mFlags.CF = oCF Or If(oAL < 6, 1, 0)
-                'Else
-                '    mFlags.AF = 0
-                'End If
-                'If (oAL And &HF0) > &H90 OrElse oCF = 1 Then
-                '    tmpVal = CUInt(mRegisters.AL) - &H60
-                '    mRegisters.AL = tmpVal
-                '    mFlags.CF = 1
-                'Else
-                '    mFlags.CF = 0
-                'End If
-                'SetSZPFlags(mRegisters.AL, DataSize.Byte)
-                'clkCyc += 4
 
             Case &H30 To &H33 ' xor reg/mem and reg to either
                 SetAddressing()
@@ -1322,7 +1304,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9C ' pushf
-                PushIntoStack(mFlags.EFlags)
+                PushIntoStack(If(mModel = Models.IBMPC_5150, &HFFF, &HFFFF) And mFlags.EFlags)
                 clkCyc += 10
 
             Case &H9D ' popf
@@ -2089,6 +2071,81 @@ Public Class X8086
                     mRegisters.AX = result
                     mRegisters.DX = remain
                 End If
+
+                'Case 7 ' 111    --  idiv
+                '    Dim div As UInt32
+                '    Dim num As UInt32
+                '    Dim result As UInt32
+                '    Dim remain As UInt32
+                '    Dim sign As Boolean
+
+                '    If addrMode.IsDirect Then
+                '        div = mRegisters.Val(addrMode.Register2)
+                '        If addrMode.Size = DataSize.Byte Then
+                '            num = mRegisters.AX
+
+                '            sign = ((num Xor div) And &H8000) <> 0
+                '            num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
+                '            div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
+
+                '            clkCyc += 80
+                '        Else
+                '            num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
+                '            div = If((div And &H8000) <> 0, div Or &HFFFF0000UI, div)
+
+                '            sign = ((num Xor div) And &H80000000UI) <> 0
+                '            num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
+                '            div = If(div < &H80000000UI, div, ((Not div) + 1) And &HFFFFFFFFUI)
+
+                '            clkCyc += 144
+                '        End If
+                '    Else
+                '        div = addrMode.IndMem
+                '        If addrMode.Size = DataSize.Byte Then
+                '            num = mRegisters.AX
+
+                '            sign = ((num Xor div) And &H8000) <> 0
+                '            num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
+                '            div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
+
+                '            clkCyc += 86
+                '        Else
+                '            num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
+                '            div = If((div And &H8000) <> 0, div Or &HFFFF0000UI, div)
+
+                '            sign = ((num Xor div) And &H80000000UI) <> 0
+                '            num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
+                '            div = If(div < &H80000000UI, div, ((Not div) + 1) And &HFFFFFFFFUI)
+
+                '            clkCyc += 150
+                '        End If
+                '    End If
+
+                '    If div = 0 Then
+                '        HandleInterrupt(0, True)
+                '        Exit Select
+                '    End If
+
+                '    result = num \ div
+                '    remain = num Mod div
+
+                '    If (result And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
+                '        HandleInterrupt(0, True)
+                '        Exit Select
+                '    End If
+
+                '    If sign Then
+                '        result = ((Not result) + 1)
+                '        remain = ((Not remain) + 1)
+                '    End If
+
+                '    If addrMode.Size = DataSize.Byte Then
+                '        mRegisters.AL = result
+                '        mRegisters.AH = remain
+                '    Else
+                '        mRegisters.AX = result
+                '        mRegisters.DX = remain
+                '    End If
 
             Case 7 ' 111    --  idiv
                 Dim div As UInt32

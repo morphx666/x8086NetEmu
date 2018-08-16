@@ -1,6 +1,5 @@
 ﻿Imports x8086NetEmu
 Imports System.Threading
-Imports x8086NetEmu.X8086
 
 Module ModuleMain
     Private cpu As X8086
@@ -16,7 +15,7 @@ Module ModuleMain
             Dim fileName As String = f.Name.Replace(f.Extension, "")
             Dim dataFileName As String = IO.Path.Combine(f.DirectoryName, $"res_{fileName}.bin")
 
-            'If fileName <> "div" Then Continue For
+            'If fileName <> "interrupt" Then Continue For
             'If fileName = "segpr" Then Continue For
 
             If Not IO.File.Exists(dataFileName) Then Continue For
@@ -26,7 +25,7 @@ Module ModuleMain
             Console.Write($"Running: {fileName}")
 
             Try
-                cpu = New X8086(True, True) With {.Clock = 47700000}
+                cpu = New X8086(True, False,, X8086.Models.IBMPC_5150) With {.Clock = 47700000}
                 AddHandler cpu.EmulationHalted, Sub()
                                                     Compare()
                                                     Console.WriteLine()
