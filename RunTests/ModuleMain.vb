@@ -16,7 +16,8 @@ Module ModuleMain
             Dim fileName As String = f.Name.Replace(f.Extension, "")
             Dim dataFileName As String = IO.Path.Combine(f.DirectoryName, $"res_{fileName}.bin")
 
-            'If fileName <> "datatrnf" Then Continue For
+            'If fileName <> "div" Then Continue For
+            'If fileName = "segpr" Then Continue For
 
             If Not IO.File.Exists(dataFileName) Then Continue For
             validData = IO.File.ReadAllBytes(dataFileName)
@@ -24,33 +25,33 @@ Module ModuleMain
 
             Console.Write($"Running: {fileName}")
 
-            cpu = New X8086(True, True)
-            cpu.Clock = 47700000
-            AddHandler cpu.EmulationHalted, Sub()
-                                                Compare()
-                                                Console.WriteLine()
-                                                waiter.Set()
-                                            End Sub
-            'AddHandler cpu.Error, Sub(sender As Object, e As EmulatorErrorEventArgs)
-            '                          If Not (hasErrors OrElse cpu.IsHalted) Then
-            '                              hasErrors = True
-            '                              Console.WriteLine(" > FAILED")
-            '                              Console.WriteLine($"  {cpu.Registers.CS:X4}:{cpu.Registers.IP:X4} -> {e.Message}")
-            '                              Compare()
-            '                              Console.WriteLine()
-            '                              waiter.Set()
-            '                          End If
-            '                      End Sub
+            Try
+                cpu = New X8086(True, True) With {.Clock = 47700000}
+                AddHandler cpu.EmulationHalted, Sub()
+                                                    Compare()
+                                                    Console.WriteLine()
+                                                    waiter.Set()
+                                                End Sub
+                'AddHandler cpu.Error, Sub(sender As Object, e As EmulatorErrorEventArgs)
+                '                          If Not (hasErrors OrElse cpu.IsHalted) Then
+                '                              hasErrors = True
+                '                              Console.WriteLine(" > FAILED")
+                '                              Console.WriteLine($"  {cpu.Registers.CS:X4}:{cpu.Registers.IP:X4} -> {e.Message}")
+                '                              Compare()
+                '                              Console.WriteLine()
+                '                              waiter.Set()
+                '                          End If
+                '                      End Sub
 
-            cpu.Registers.CS = &HF000
-            cpu.Registers.IP = 0
-            cpu.LoadBIN(f.FullName, cpu.Registers.CS, cpu.Registers.IP)
-            cpu.Run(False)
+                cpu.Registers.CS = &HF000
+                cpu.Registers.IP = 0
+                cpu.LoadBIN(f.FullName, cpu.Registers.CS, cpu.Registers.IP)
+                cpu.Run(False)
 
-            waiter.WaitOne()
-            cpu.Close()
-
-            Thread.Sleep(1000)
+                waiter.WaitOne()
+                cpu.Close()
+            Catch
+            End Try
         Next
 
 #If DEBUG Then
@@ -71,7 +72,7 @@ Module ModuleMain
             End If
         Next
         If invalidData.Any() Then
-            If Not hasErrors Then Console.WriteLine(" > FAILED")
+            If Not hasErrors Then Console.WriteLine($" > FAILED [{invalidData.Count}]")
             invalidData.ForEach(Sub(id) Console.WriteLine($"  {id}"))
         Else
             Console.WriteLine(" > PASSED")

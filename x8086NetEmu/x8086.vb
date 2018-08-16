@@ -2101,6 +2101,7 @@ Public Class X8086
                     div = mRegisters.Val(addrMode.Register2)
                     If addrMode.Size = DataSize.Byte Then
                         num = mRegisters.AX
+                        div = To16bitsWithSign(div)
 
                         sign = ((num Xor div) And &H8000) <> 0
                         num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
@@ -2109,7 +2110,7 @@ Public Class X8086
                         clkCyc += 80
                     Else
                         num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
-                        div = If((div And &H8000) <> 0, div Or &HFFFF0000UI, div)
+                        div = To32bitsWithSign(div)
 
                         sign = ((num Xor div) And &H80000000UI) <> 0
                         num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
@@ -2121,6 +2122,7 @@ Public Class X8086
                     div = addrMode.IndMem
                     If addrMode.Size = DataSize.Byte Then
                         num = mRegisters.AX
+                        div = To16bitsWithSign(div)
 
                         sign = ((num Xor div) And &H8000) <> 0
                         num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
@@ -2129,7 +2131,7 @@ Public Class X8086
                         clkCyc += 86
                     Else
                         num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
-                        div = If((div And &H8000) <> 0, div Or &HFFFF0000UI, div)
+                        div = To32bitsWithSign(div)
 
                         sign = ((num Xor div) And &H80000000UI) <> 0
                         num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
