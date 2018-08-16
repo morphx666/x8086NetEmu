@@ -698,7 +698,7 @@
             Case &HC0, &HC1 : DecodeGroup2()
 
             Case &HC2 ' ret within segment adding imm to sp
-                opCodeASM = "RET " + Param(SelPrmIndex.First).ToString("X4")
+                opCodeASM = "RET " + Param(SelPrmIndex.First).ToHex()
                 clkCycDecoder += 20
 
             Case &HC3 ' ret within segment

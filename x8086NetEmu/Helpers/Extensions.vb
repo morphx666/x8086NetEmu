@@ -56,11 +56,11 @@ Module Extensions
 
     <Extension()>
     Public Function ToHex(value As UInt16) As String
-        Return value.ToString("X2")
+        Return value.ToString("X4")
     End Function
 
     <Extension()>
-    Public Function ToHex(value As UInt32, size As X8086.DataSize) As String
+    Public Function ToHex(value As UInt16, size As X8086.DataSize) As String
         If size = X8086.DataSize.Byte Then
             Return value.ToString("X2")
         Else
