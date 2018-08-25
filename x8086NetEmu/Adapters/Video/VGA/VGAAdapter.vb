@@ -281,11 +281,11 @@
     'Private port3DA As UInt32
     Private Const planeSize As UInt32 = &H10000
     Private lastScanLineTick As Long
-    Private scanLineTiming As Long = (Scheduler.CLOCKRATE / X8086.KHz) / 31500
+    Private ReadOnly scanLineTiming As Long = (Scheduler.CLOCKRATE / X8086.KHz) / 31500
     Private curScanLine As Long
     Private cursorPosition As UInt32
 
-    Private useROM As Boolean = False ' FIXME: Enabling ROM support breaks CGA compatibility
+    Private ReadOnly useROM As Boolean = False ' FIXME: Enabling ROM support breaks CGA compatibility
 
     Protected lockObject As New Object()
 

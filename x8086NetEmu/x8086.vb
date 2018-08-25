@@ -49,6 +49,7 @@ Public Class X8086
     Private mipsWaiter As AutoResetEvent
     Private mMPIs As Double
     Private instrucionsCounter As UInt32
+    Private isStringOp As Boolean = False
 
     Public Shared Property LogToConsole As Boolean
 
@@ -577,6 +578,7 @@ Public Class X8086
 
     Public Sub Execute()
         mIsExecuting = True
+        isStringOp = False
         instrucionsCounter += 1
 
         If mFlags.TF = 1 Then
@@ -770,6 +772,7 @@ Public Class X8086
             Case &H26, &H2E, &H36, &H3E ' ES, CS, SS and DS segment override prefix
                 addrMode.Decode(opCode, opCode)
                 mRegisters.ActiveSegmentRegister = (addrMode.Register1 - GPRegisters.RegistersTypes.AH) + GPRegisters.RegistersTypes.ES
+                isStringOp = True
                 clkCyc += 2
 
             Case &H27 ' daa
@@ -1341,7 +1344,9 @@ Public Class X8086
                 End If
                 clkCyc += 10
 
-            Case &HA4 To &HA7, &HAA To &HAF : HandleREPMode()
+            Case &HA4 To &HA7, &HAA To &HAF
+                HandleREPMode()
+                isStringOp = True
 
             Case &HA8 ' test al imm8
                 Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
@@ -1468,7 +1473,7 @@ Public Class X8086
             Case &HD0 To &HD3 : ExecuteGroup2()
 
             Case &HD4 ' aam
-                Dim div As UInt16 = Param(SelPrmIndex.First, , DataSize.Byte)
+                Dim div As Byte = Param(SelPrmIndex.First, , DataSize.Byte)
                 If div = 0 Then
                     HandleInterrupt(0, True)
                     Exit Select
@@ -1605,10 +1610,12 @@ Public Class X8086
 
             Case &HF2 ' repne/repnz
                 repeLoopMode = REPLoopModes.REPENE
+                isStringOp = True
                 clkCyc += 2
 
             Case &HF3 ' repe/repz
                 repeLoopMode = REPLoopModes.REPE
+                isStringOp = True
                 clkCyc += 2
 
             Case &HF4 ' hlt
@@ -1662,13 +1669,9 @@ Public Class X8086
 
         clkCyc += opCodeSize * 4
 
-        If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
-            Select Case opCode
-                Case &H26, &H2E, &H36, &H3E ' ES/CS/SS/DS -> Active Segment has just been set, do not reset
-                Case Else
-                    mRegisters.ResetActiveSegment()
-                    clkCyc += 2
-            End Select
+        If Not isStringOp Then
+            If repeLoopMode <> REPLoopModes.None Then repeLoopMode = REPLoopModes.None
+            If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then mRegisters.ResetActiveSegment()
         End If
 
         mIsExecuting = False
@@ -1988,7 +1991,7 @@ Public Class X8086
                         m2 = If((m2 And &H80) <> 0, m2 Or &HFFFFFF00UI, m2)
 
                         tmpVal = m1 * m2
-                        mRegisters.AX = tmpVal And &HFFFF
+                        mRegisters.AX = tmpVal
                         clkCyc += 70
                     Else
                         Dim m1 As UInt32 = To32bitsWithSign(mRegisters.AX)
@@ -1998,8 +2001,8 @@ Public Class X8086
                         m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
 
                         tmpVal = m1 * m2
-                        mRegisters.AX = tmpVal And &HFFFF
-                        mRegisters.DX = (tmpVal >> 16) And &HFFFF
+                        mRegisters.AX = tmpVal
+                        mRegisters.DX = tmpVal >> 16
                         clkCyc += 118
                     End If
                 Else
@@ -2011,7 +2014,7 @@ Public Class X8086
                         m2 = If((m2 And &H80) <> 0, m2 Or &HFFFFFF00UI, m2)
 
                         tmpVal = m1 * m2
-                        mRegisters.AX = tmpVal And &HFFFF
+                        mRegisters.AX = tmpVal
                         clkCyc += 76
                     Else
                         Dim m1 As UInt32 = To32bitsWithSign(mRegisters.AX)
@@ -2021,8 +2024,8 @@ Public Class X8086
                         m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
 
                         tmpVal = m1 * m2
-                        mRegisters.AX = tmpVal And &HFFFF
-                        mRegisters.DX = (tmpVal >> 16) And &HFFFF
+                        mRegisters.AX = tmpVal
+                        mRegisters.DX = tmpVal >> 16
                         clkCyc += 134
                     End If
                 End If

@@ -41,9 +41,9 @@ Partial Public Class X8086
                 PushIntoStack(mRegisters.IP + opCodeSize)
             End If
 
-            Dim intOffset As UInt16 = intNum * 4
-            IPAddrOff = RAM16(0, intOffset)
-            mRegisters.CS = RAM16(0, intOffset + 2)
+            tmpVal = intNum * 4
+            IPAddrOff = RAM16(0, tmpVal)
+            mRegisters.CS = RAM16(0, tmpVal + 2)
 
             If intNum = 0 Then DivisionByZero()
         End If
