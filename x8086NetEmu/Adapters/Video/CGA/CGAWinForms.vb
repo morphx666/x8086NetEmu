@@ -224,13 +224,13 @@ Public Class CGAWinForms
 
             If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
                 If (blinkCounter < BlinkRate) Then b0 = 0
-                IsDirty(address) = True
+                'IsDirty(address) = True
             End If
 
-            If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
-                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
-                cursorAddress.Remove(address)
-            End If
+            'If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
+            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
+            cursorAddress.Remove(address)
+            'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
@@ -437,21 +437,21 @@ Public Class CGAWinForms
 
             ' Monospace... duh!
             mCellSize = charSizeCache(65)
-
-            If videoBMP IsNot Nothing Then videoBMP.Dispose()
-            Select Case MainMode
-                Case MainModes.Text
-                    videoBMP = New DirectBitmap(640, 400)
-                Case MainModes.Graphics
-                    videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
-            End Select
-
-            If fontSourceMode = FontSources.TrueType Then
-                If g IsNot Nothing Then g.Dispose()
-                g = Graphics.FromImage(videoBMP)
-            End If
-
-            UpdateSystemInformationArea()
         End If
+
+        If videoBMP IsNot Nothing Then videoBMP.Dispose()
+        Select Case MainMode
+            Case MainModes.Text
+                videoBMP = New DirectBitmap(640, 400)
+            Case MainModes.Graphics
+                videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+        End Select
+
+        If fontSourceMode = FontSources.TrueType Then
+            If g IsNot Nothing Then g.Dispose()
+            g = Graphics.FromImage(videoBMP)
+        End If
+
+        UpdateSystemInformationArea()
     End Sub
 End Class

@@ -54,18 +54,18 @@
     Protected mVideoResolution As Size = New Size(0, 0)
     Protected mCellSize As Size
 
-    Private Memory(X8086.MemSize - 1) As Boolean
+    'Private Memory(X8086.MemSize - 1) As Boolean
 
     Public Sub New(cpu As X8086)
-        cpu.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode)
-                                                   If mode = X8086.MemHookMode.Write AndAlso
-                                                            ((address >= mStartTextVideoAddress AndAlso address <= mEndTextVideoAddress) OrElse
-                                                            (address >= mStartGraphicsVideoAddress AndAlso address <= mEndGraphicsVideoAddress)) Then
-                                                       Memory(address) = True
-                                                   End If
+        'cpu.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode)
+        '                                           If mode = X8086.MemHookMode.Write AndAlso
+        '                                                    ((address >= mStartTextVideoAddress AndAlso address <= mEndTextVideoAddress) OrElse
+        '                                                    (address >= mStartGraphicsVideoAddress AndAlso address <= mEndGraphicsVideoAddress)) Then
+        '                                               Memory(address) = True
+        '                                           End If
 
-                                                   Return False
-                                               End Function))
+        '                                           Return False
+        '                                       End Function))
     End Sub
 
     Protected Overridable Sub OnKeyDown(sender As Object, e As KeyEventArgs)
@@ -126,16 +126,16 @@
         End Get
     End Property
 
-    Public Property IsDirty(address As UInt32) As Boolean
-        Get
-            Dim r As Boolean = Memory(address)
-            Memory(address) = False
-            Return r
-        End Get
-        Set(value As Boolean)
-            Memory(address) = value
-        End Set
-    End Property
+    'Public Property IsDirty(address As UInt32) As Boolean
+    '    Get
+    '        Dim r As Boolean = Memory(address)
+    '        Memory(address) = False
+    '        Return r
+    '    End Get
+    '    Set(value As Boolean)
+    '        Memory(address) = value
+    '    End Set
+    'End Property
 
     Public ReadOnly Property MainMode As MainModes
         Get

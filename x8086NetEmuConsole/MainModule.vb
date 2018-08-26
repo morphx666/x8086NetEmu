@@ -5,7 +5,7 @@ Module MainModule
 
     Sub Main()
         X8086.LogToConsole = False
-        cpu = New X8086(True)
+        cpu = New X8086(True, True)
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAConsole(cpu))
