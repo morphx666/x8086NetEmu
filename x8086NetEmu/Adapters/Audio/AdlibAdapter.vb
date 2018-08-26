@@ -88,8 +88,8 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private adlibStatus As Byte = 0
     Private ReadOnly adlibStep(9 - 1) As Double
 
-    Private adlibTicks As Long
-    Private lastAdlibTicks As Long
+    'Private adlibTicks As Long
+    'Private lastAdlibTicks As Long
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
@@ -134,9 +134,9 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate, 8, 1)
         waveOut.Init(audioProvider)
 
-        adlibTicks = (Scheduler.CLOCKRATE / SampleRate) * waveOut.NumberOfBuffers  ' FIXME: I don't think this is 100% correct
+        'adlibTicks = (Scheduler.CLOCKRATE / SampleRate) * waveOut.NumberOfBuffers  ' FIXME: I don't think this is 100% correct
         'adlibTicks = (Scheduler.CLOCKRATE / SampleRate)
-        lastAdlibTicks = Long.MaxValue
+        'lastAdlibTicks = Long.MaxValue
 
         waveOut.Play()
     End Sub
@@ -226,11 +226,11 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private Function AdlibSample(channel As Byte) As Int32
         If adlibPrecussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
 
-        Dim fullStep As UInt32 = SampleRate / AdlibFrequency(channel)
+        Dim fullStep As UInt32 = SampleRate \ AdlibFrequency(channel)
         Dim idx As Byte = (adlibStep(channel) / (fullStep / 256.0)) Mod 255
         Dim tmpSample As Int32 = oplWave(adlibChan(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = adlibEnv(channel)
-        If tmpStep > 1.0 Then tmpStep = 1.0
+        'If tmpStep > 1.0 Then tmpStep = 1.0
         tmpSample = CDbl(tmpSample) * tmpStep * 2.0
 
         adlibStep(channel) += 1

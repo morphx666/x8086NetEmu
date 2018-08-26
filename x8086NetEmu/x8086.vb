@@ -556,7 +556,11 @@ Public Class X8086
         mDoReSchedule = False
 
         Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
-        If maxRunTime > Scheduler.CLOCKRATE Then maxRunTime = Scheduler.CLOCKRATE
+        If maxRunTime = 0 Then ' FIXME: Temporary fix to prevent the emulator never exiting the While/Execute loop; are we missing a FlushCycles somewhere?
+            maxRunTime = Scheduler.CLOCKRATE
+        ElseIf maxRunTime > Scheduler.CLOCKRATE Then
+            maxRunTime = Scheduler.CLOCKRATE
+        End If
         Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.CLOCKRATE - 1) / Scheduler.CLOCKRATE
 
         If mDebugMode Then

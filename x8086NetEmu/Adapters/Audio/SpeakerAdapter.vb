@@ -7,19 +7,13 @@ Public Class CustomBufferProvider
 
     Public Delegate Sub FillBuffer(buffer() As Byte)
 
-    Private wf As WaveFormat
+    Public ReadOnly Property WaveFormat As WaveFormat Implements IWaveProvider.WaveFormat
     Private fb As FillBuffer
 
     Public Sub New(bufferFiller As FillBuffer, sampleRate As Integer, bitDepth As Integer, channels As Integer)
-        wf = New WaveFormat(sampleRate, bitDepth, channels)
+        WaveFormat = New WaveFormat(sampleRate, bitDepth, channels)
         fb = bufferFiller
     End Sub
-
-    Public ReadOnly Property WaveFormat As WaveFormat Implements IWaveProvider.WaveFormat
-        Get
-            Return wf
-        End Get
-    End Property
 
     Public Function Read(buffer() As Byte, offset As Integer, count As Integer) As Integer Implements IWaveProvider.Read
         fb.Invoke(buffer)
