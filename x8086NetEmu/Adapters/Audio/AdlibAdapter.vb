@@ -1,4 +1,5 @@
-﻿Imports NAudio.Wave
+﻿Imports System.Threading
+Imports NAudio.Wave
 
 Public Class AdlibAdapter ' Based on fake86's implementation
     Inherits Adapter
@@ -6,7 +7,6 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private waveOut As WaveOut
     Private audioProvider As CustomBufferProvider
     Private ReadOnly mAudioBuffer() As Byte
-    Private mVolume As Double
 
     Private ReadOnly mCPU As X8086
 
@@ -80,7 +80,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private ReadOnly adlibDecay(9 - 1) As Double
     Private ReadOnly adlibAttack(9 - 1) As Double
 
-    Private Const SampleRate As UInt32 = 48000
+    Private Const SampleRate As UInt32 = 44100
 
     Private ReadOnly adlibRegMem(&HFF - 1) As UInt16
     Private adlibAddr As UInt16 = 0
@@ -93,7 +93,6 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
-        mVolume = 1
 
         For i As Integer = 0 To adlibOp.Length - 1
             ReDim adlibOp(i)(2 - 1)
@@ -109,10 +108,10 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Property Volume As Double
         Get
-            Return mVolume
+            Return waveOut.Volume
         End Get
         Set(value As Double)
-            mVolume = value
+            waveOut.Volume = value
         End Set
     End Property
 
@@ -129,7 +128,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Overrides Sub InitiAdapter()
         waveOut = New WaveOut() With {
-            .NumberOfBuffers = 8,
+            .NumberOfBuffers = 4,
             .DesiredLatency = 200
         }
         audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate, 8, 1)
@@ -143,18 +142,16 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     End Sub
 
     Public Sub FillAudioBuffer(buffer() As Byte)
-        Dim t As Long = Now.Ticks
-        Dim v As Double
-        If t >= (lastAdlibTicks + adlibTicks) Then
-            For i As Integer = 0 To buffer.Length - 1
-                v = AdlibGenerateSample()
-                buffer(i) = v * mVolume
-            Next
+        'Dim t As Long = Now.Ticks
+        'If t >= (lastAdlibTicks + adlibTicks) Then
+        For i As Integer = 0 To buffer.Length - 1
+            buffer(i) = AdlibGenerateSample() + 128
+        Next
 
-            lastAdlibTicks = t - (t - (lastAdlibTicks + adlibTicks))
-        End If
+        'lastAdlibTicks = t - (t - (lastAdlibTicks + adlibTicks))
+        'End If
 
-        If (lastAdlibTicks Mod adlibTicks) = 8 Then AdlibTick()
+        'If (lastAdlibTicks Mod adlibTicks) = 8 Then AdlibTick()
     End Sub
 
     Public Overrides Function [In](port As UInt32) As UInt32
@@ -188,10 +185,8 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
         If port >= &H60 AndAlso port <= &H75 Then ' Attack / Decay
             port = port And 15
-            If port < 9 Then
-                adlibAttack(port) = attackTable(15 - (value >> 4)) * 1.006
-                adlibDecay(port) = decayTable(value And 15)
-            End If
+            adlibAttack(port Mod 9) = attackTable(15 - (value >> 4)) * 1.006
+            adlibDecay(port Mod 9) = decayTable(value And 15)
         ElseIf port >= &HA0 AndAlso port <= &HB8 Then ' Octave / Frequency / Key On
             port = port And 15
             If Not adlibChan(port).KeyOn AndAlso ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1 Then
@@ -228,7 +223,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Return tmpFrequency
     End Function
 
-    Private Function AdlibSample(channel As Byte) As UInt32
+    Private Function AdlibSample(channel As Byte) As Int32
         If adlibPrecussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
 
         Dim fullStep As UInt32 = SampleRate / AdlibFrequency(channel)
@@ -236,33 +231,33 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Dim tmpSample As Int32 = oplWave(adlibChan(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = adlibEnv(channel)
         If tmpStep > 1.0 Then tmpStep = 1.0
-        tmpSample = CUInt(CDbl(tmpSample) * tmpStep * 2.0)
+        tmpSample = CDbl(tmpSample) * tmpStep * 2.0
 
         adlibStep(channel) += 1
         If adlibStep(channel) > fullStep Then adlibStep(channel) = 0
         Return tmpSample
     End Function
 
-    Private Function AdlibGenerateSample() As Integer
+    Private Function AdlibGenerateSample() As Int16
         Dim adlibAccumulator As Int16 = 0
         For currentChannel As Byte = 0 To 9 - 1
-            If AdlibFrequency(currentChannel) <> 0 Then adlibAccumulator += Int(AdlibSample(currentChannel))
+            If AdlibFrequency(currentChannel) <> 0 Then adlibAccumulator += AdlibSample(currentChannel)
         Next
         Return adlibAccumulator
     End Function
 
-    Private Sub AdlibTick()
-        For currentChannel As Byte = 0 To 9 - 1
-            If AdlibFrequency(currentChannel) <> 0 Then
-                If adlibAttack(currentChannel) <> 0 Then
-                    adlibEnv(currentChannel) *= adlibDecay(currentChannel)
-                Else
-                    adlibEnv(currentChannel) *= adlibAttack(currentChannel)
-                    If adlibEnv(currentChannel) >= 1 Then adlibAttack(currentChannel) = 1
-                End If
-            End If
-        Next
-    End Sub
+    'Private Sub AdlibTick()
+    '    For currentChannel As Byte = 0 To 9 - 1
+    '        If AdlibFrequency(currentChannel) <> 0 Then
+    '            If adlibAttack(currentChannel) <> 0 Then
+    '                adlibEnv(currentChannel) *= adlibDecay(currentChannel)
+    '            Else
+    '                adlibEnv(currentChannel) *= adlibAttack(currentChannel)
+    '                If adlibEnv(currentChannel) >= 1 Then adlibAttack(currentChannel) = 1
+    '            End If
+    '        End If
+    '    Next
+    'End Sub
 
     Public Overrides ReadOnly Property Name As String
         Get
