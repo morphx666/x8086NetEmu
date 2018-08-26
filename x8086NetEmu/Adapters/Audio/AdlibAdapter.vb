@@ -184,11 +184,11 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         End Select
 
         If port >= &H60 AndAlso port <= &H75 Then ' Attack / Decay
-            port = port And 15
-            adlibAttack(port Mod 9) = attackTable(15 - (value >> 4)) * 1.006
-            adlibDecay(port Mod 9) = decayTable(value And 15)
+            port = (port And 15) Mod 9
+            adlibAttack(port) = attackTable(15 - (value >> 4)) * 1.006
+            adlibDecay(port) = decayTable(value And 15)
         ElseIf port >= &HA0 AndAlso port <= &HB8 Then ' Octave / Frequency / Key On
-            port = port And 15
+            port = (port And 15) Mod 9
             If Not adlibChan(port).KeyOn AndAlso ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1 Then
                 adlibAttack(port) = 0
                 adlibEnv(port) = 0.0025
@@ -199,8 +199,8 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             adlibChan(port).KeyOn = ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1
             adlibChan(port).Octave = (adlibRegMem(&HB0 + port) >> 2) And 7
         ElseIf port >= &HE0 And port <= &HF5 Then ' Waveform select
-            port = port And 15
-            If port < 9 Then adlibChan(port).WaveformSelect = value And 3
+            port = (port And 15) Mod 9
+            adlibChan(port).WaveformSelect = value And 3
         End If
     End Sub
 
@@ -230,7 +230,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Dim idx As Byte = (adlibStep(channel) / (fullStep / 256.0)) Mod 255
         Dim tmpSample As Int32 = oplWave(adlibChan(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = adlibEnv(channel)
-        'If tmpStep > 1.0 Then tmpStep = 1.0
+        If tmpStep > 1.0 Then tmpStep = 1.0
         tmpSample = CDbl(tmpSample) * tmpStep * 2.0
 
         adlibStep(channel) += 1

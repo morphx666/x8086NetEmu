@@ -14,11 +14,11 @@ Public Class CGAWinForms
     Private brushCache(CGAPalette.Length - 1) As Color
     Private cursorBrush As Color = Color.FromArgb(128, Color.White)
 
-    Private preferredFont As String = "Perfect DOS VGA 437"
+    Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
     Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
-    Private fontSourceMode As FontSources
+    Private ReadOnly fontSourceMode As FontSources
     Private g As Graphics
 
     Private scale As New SizeF(1, 1)
@@ -233,7 +233,7 @@ Public Class CGAWinForms
             'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-                If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
+                If blinkCounter < BlinkRate Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
                                            r.X + 0, r.Y - 1 + mCellSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
                                            mCellSize.Width, (MyBase.CursorEnd - MyBase.CursorStart) + 1)

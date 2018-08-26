@@ -5,7 +5,6 @@
     Private charSizeCache As New Dictionary(Of Integer, Size)
 
     Private cursorSize As Size
-    Private blinkCounter As Integer
     Private frameRate As Integer = 30
     Private cursorAddress As New List(Of Integer)
 
@@ -168,7 +167,7 @@
             SyncLock videoBMP
                 Select Case MainMode
                     Case MainModes.Text
-                        Try ' FIXME: Fix the issues instead of ignoring them!
+                        Try ' FIXME: Fix the issues instead of ignoring them! (VideoChar.Paint generates an exception every time the resolution is changed)
                             RenderText()
                         Catch
                         End Try
@@ -304,6 +303,8 @@
         Dim intensity As Boolean = (portRAM(&H3D8) And &H80) <> 0
         Dim mode As Boolean = (portRAM(&H3D8) = 9) AndAlso (portRAM(&H3D4) = 9)
 
+        UpdateCursorState()
+
         For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
             b0 = mCPU.Memory(address)
             b1 = mCPU.Memory(address + 1)
@@ -325,24 +326,15 @@
             End If
 
             'If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
-            If cursorAddress.Contains(address) Then
-                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
-                cursorAddress.Remove(address)
-            End If
+            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
+            cursorAddress.Remove(address)
+            'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-                If (blinkCounter < BlinkRate AndAlso CursorVisible) Then
-                    videoBMP.FillRectangle(brushCache(b1.LowNib()),
+                videoBMP.FillRectangle(brushCache(b1.LowNib()),
                                            r.X + 0, r.Y - 1 + CellSize.Height - (CursorEnd - CursorStart) - 1,
                                            CellSize.Width, (CursorEnd - CursorStart) + 1)
-                    cursorAddress.Add(address)
-                End If
-
-                If blinkCounter >= 2 * BlinkRate Then
-                    blinkCounter = 0
-                Else
-                    blinkCounter += 1
-                End If
+                cursorAddress.Add(address)
             End If
 
             r.X += CellSize.Width

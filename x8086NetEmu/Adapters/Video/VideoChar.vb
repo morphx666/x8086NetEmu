@@ -30,6 +30,8 @@
         End Get
     End Property
 
+    Private tmp As New Object()
+
     Public Sub Paint(dbmp As DirectBitmap, p As Point, scale As SizeF)
         Dim w4s As Integer = mBitmap.Width * 4
         Dim w4d As Integer = dbmp.Width * 4
