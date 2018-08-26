@@ -9,10 +9,10 @@ Partial Public Class X8086
 
         Dim ret As Integer
         Dim AL As Integer
+        Dim offset As Long
 
-        ' Select floppy drive
         Dim dskImg As DiskImage = mFloppyController.DiskImage(mRegisters.DL)
-        Dim bufSize As Integer = mRegisters.AL * If(dskImg IsNot Nothing, dskImg.SectorSize, 0)
+        Dim bufSize As Integer
 
         Select Case mRegisters.AH
             Case &H0 ' Reset drive
@@ -32,8 +32,8 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
-                Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                offset = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
                     X8086.Notify("Read Sectors: Drive {0} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
@@ -62,7 +62,7 @@ Partial Public Class X8086
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
-                CopyToRAM(buf, address)
+                CopyToRAM(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
                 AL = bufSize / dskImg.SectorSize
 
             Case &H3 ' Write sectors
@@ -78,8 +78,8 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As UInt32 = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
-                Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                offset = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
                     X8086.Notify("Write Sectors: Drive {0} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
@@ -98,7 +98,7 @@ Partial Public Class X8086
                                 mRegisters.BX)
 
                 Dim buf(bufSize - 1) As Byte
-                CopyFromRAM(buf, address)
+                CopyFromRAM(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
                 ret = dskImg.Write(offset, buf)
                 If ret = DiskImage.EIO Then
                     X8086.Notify("Write Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)
@@ -118,8 +118,8 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
-                Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                offset = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
                     X8086.Notify("Verify Sector: Drive {0} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
@@ -147,8 +147,8 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
-                Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                offset = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
                     X8086.Notify("Format Track: Drive {0} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
@@ -242,8 +242,8 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim address As Integer = X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX)
-                Dim offset As Long = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                offset = dskImg.LBA(mRegisters.CH, mRegisters.DH, mRegisters.CL)
+                bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
                     X8086.Notify("Read Sectors Long: Drive {0} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
@@ -278,7 +278,7 @@ Partial Public Class X8086
                 buf(buf.Length - 3) = ecc(0)
                 buf(buf.Length - 2) = ecc(3)
                 buf(buf.Length - 1) = ecc(2)
-                CopyToRAM(buf, address)
+                CopyToRAM(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
                 AL = bufSize \ dskImg.SectorSize
 
             Case &HC ' Seek to Cylinder
@@ -349,8 +349,7 @@ Partial Public Class X8086
                 bufSize = RAM(dap + 3) << 8 Or RAM(dap + 2)
                 Dim seg As Integer = RAM(dap + 7) << 8 Or RAM(dap + 6)
                 Dim off As Integer = RAM(dap + 5) << 8 Or RAM(dap + 4)
-                Dim address As UInt32 = X8086.SegmentOffetToAbsolute(seg, off)
-                Dim offset As Long = RAM(dap + &HF) << 56 Or RAM(dap + &HE) << 48 Or
+                offset = RAM(dap + &HF) << 56 Or RAM(dap + &HE) << 48 Or
                                      RAM(dap + &HD) << 40 Or RAM(dap + &HC) << 32 Or
                                      RAM(dap + &HB) << 24 Or RAM(dap + &HA) << 16 Or
                                      RAM(dap + &H9) << 8 Or RAM(dap + &H8)
@@ -379,7 +378,7 @@ Partial Public Class X8086
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
-                CopyToRAM(buf, address)
+                CopyToRAM(buf, X8086.SegmentOffetToAbsolute(seg, off))
                 AL = bufSize / dskImg.SectorSize
 
             Case &H43 ' Extended Sectors Write
@@ -393,8 +392,7 @@ Partial Public Class X8086
                 bufSize = RAM(dap + 3) << 8 Or RAM(dap + 2)
                 Dim seg As Integer = RAM(dap + 7) << 8 Or RAM(dap + 6)
                 Dim off As Integer = RAM(dap + 5) << 8 Or RAM(dap + 4)
-                Dim address As UInt32 = X8086.SegmentOffetToAbsolute(seg, off)
-                Dim offset As Long = RAM(dap + &HF) << 56 Or RAM(dap + &HE) << 48 Or
+                offset = RAM(dap + &HF) << 56 Or RAM(dap + &HE) << 48 Or
                                      RAM(dap + &HD) << 40 Or RAM(dap + &HC) << 32 Or
                                      RAM(dap + &HB) << 24 Or RAM(dap + &HA) << 16 Or
                                      RAM(dap + &H9) << 8 Or RAM(dap + &H8)
@@ -413,7 +411,7 @@ Partial Public Class X8086
                                 off)
 
                 Dim buf(bufSize - 1) As Byte
-                CopyFromRAM(buf, address)
+                CopyFromRAM(buf, X8086.SegmentOffetToAbsolute(seg, off))
                 ret = dskImg.Write(offset, buf)
                 If ret = DiskImage.EIO Then
                     X8086.Notify("Write Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)

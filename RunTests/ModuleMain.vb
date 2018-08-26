@@ -21,7 +21,7 @@ Module ModuleMain
             Dim fileName As String = f.Name.Replace(f.Extension, "")
             Dim dataFileName As String = IO.Path.Combine(f.DirectoryName, $"res_{fileName}.bin")
 
-            'If fileName <> "rep" Then Continue For
+            'If fileName <> "div" Then Continue For
             'If fileName = "rep" Then Continue For
 
             If Not IO.File.Exists(dataFileName) Then Continue For
@@ -56,7 +56,19 @@ Module ModuleMain
         Next
         If invalidData.Any() Then
             Console.WriteLine($" > FAILED [{invalidData.Count}]")
-            invalidData.ForEach(Sub(id) Console.WriteLine($"  {id}"))
+            invalidData.ForEach(Sub(id)
+                                    Dim t() As String = id.Split(" "c)
+                                    Console.ForegroundColor = ConsoleColor.White
+                                    Console.Write($"  {t(0)}")
+                                    Console.ForegroundColor = ConsoleColor.Red
+                                    Console.Write($" {t(1)}")
+                                    Console.ForegroundColor = ConsoleColor.Gray
+                                    Console.Write($" {t(2)}")
+                                    Console.ForegroundColor = ConsoleColor.Green
+                                    Console.WriteLine($" {t(3)}")
+                                    Console.ForegroundColor = ConsoleColor.Gray
+                                    'Console.WriteLine($"  {id}")
+                                End Sub)
         Else
             Console.WriteLine(" > PASSED")
         End If

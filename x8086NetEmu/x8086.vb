@@ -98,7 +98,7 @@ Public Class X8086
     Public PIT As PIT8254
     Public PPI As PPI8255
     'Public PPI As PPI8255_ALT
-    Public RTC As RTC
+    'Public RTC As RTC
     Public FPU As x8087
 
     Private picIsAvailable As Boolean
@@ -322,20 +322,38 @@ Public Class X8086
         If Not picIsAvailable Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
-        PPI.SetSwitchData(Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
-        '                             │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ ├─┼────── old PC system board RAM < 256K
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
-        '                              │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
-        '                              │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode
-        '                              │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
-        '                              │ │ │ │ │ │ │ └───────────── 0 if DMA installed
-        '                              │ │ │ │ └─┴─┴────────────── number of serial ports
-        '                              │ │ │ └─────────────────── game adapter installed
-        '                              │ │ └──────────────────── unused, internal modem (PS/2)
-        '                              └─┴───────────────────── number of printer ports
+        Dim equipmentByte As Byte = (Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
+        '                                        │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
+        '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
+        '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
+        '                                         │ │ │ │ │ │ │ │ │ │ │ │ ├─┼────── old PC system board RAM < 256K
+        '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
+        '                                         │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
+        '                                         │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode
+        '                                         │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
+        '                                         │ │ │ │ │ │ │ └───────────── 0 if DMA installed
+        '                                         │ │ │ │ └─┴─┴────────────── number of serial ports
+        '                                         │ │ │ └─────────────────── game adapter installed
+        '                                         │ │ └──────────────────── unused, internal modem (PS/2)
+        '                                         └─┴───────────────────── number of printer ports
+
+        PPI.SetSwitchData(equipmentByte)
+
+        'RTC.CmosWrite(RTC.CMOS_BIOS_BOOTFLAG1, 1 Or (2 Or &H213) >> 4 And &HF0)
+        'RTC.CmosWrite(RTC.CMOS_BIOS_BOOTFLAG2, (2 Or &H213) >> 4 And &HFF)
+        'RTC.CmosWrite(RTC.CMOS_MEM_BASE_LOW, 640 And &HFF)
+        'RTC.CmosWrite(RTC.CMOS_MEM_BASE_HIGH, 640 >> 8)
+        'RTC.CmosWrite(RTC.CMOS_MEM_OLD_EXT_LOW, 0)
+        'RTC.CmosWrite(RTC.CMOS_MEM_OLD_EXT_HIGH, 0)
+        'RTC.CmosWrite(RTC.CMOS_MEM_EXTMEM_LOW, 0)
+        'RTC.CmosWrite(RTC.CMOS_MEM_EXTMEM_HIGH, 0)
+        'RTC.CmosWrite(RTC.CMOS_MEM_EXTMEM2_LOW, 0)
+        'RTC.CmosWrite(RTC.CMOS_MEM_EXTMEM2_HIGH, 0)
+        'RTC.CmosWrite(RTC.CMOS_MEM_HIGHMEM_LOW, 0)
+        'RTC.CmosWrite(RTC.CMOS_MEM_HIGHMEM_MID, 0)
+        'RTC.CmosWrite(RTC.CMOS_MEM_HIGHMEM_HIGH, 0)
+        'RTC.CmosWrite(RTC.CMOS_EQUIPMENT_INFO, equipmentByte)
+        'RTC.CmosWrite(RTC.CMOS_BIOS_SMP_COUNT, 0)
 
         'PPI.PortA(0) = &H30 Or &HC
         'PPI.PortA(1) = &H0
@@ -525,7 +543,7 @@ Public Class X8086
 
     Private Sub FlushCycles()
         Dim t As ULong = clkCyc * Scheduler.CLOCKRATE + leftCycleFrags
-        Sched.AdvanceTime(t / mCyclesPerSecond)
+        Sched.AdvanceTime(t \ mCyclesPerSecond)
         leftCycleFrags = t Mod mCyclesPerSecond
         clkCyc = 0
 
@@ -2141,10 +2159,9 @@ Public Class X8086
                 Dim sign As Boolean
 
                 If addrMode.IsDirect Then
-                    div = mRegisters.Val(addrMode.Register2)
                     If addrMode.Size = DataSize.Byte Then
                         num = mRegisters.AX
-                        div = To16bitsWithSign(div)
+                        div = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         sign = ((num Xor div) And &H8000) <> 0
                         num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
@@ -2153,7 +2170,7 @@ Public Class X8086
                         clkCyc += 80
                     Else
                         num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
-                        div = To32bitsWithSign(div)
+                        div = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         sign = ((num Xor div) And &H80000000UI) <> 0
                         num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
@@ -2162,10 +2179,9 @@ Public Class X8086
                         clkCyc += 144
                     End If
                 Else
-                    div = addrMode.IndMem
                     If addrMode.Size = DataSize.Byte Then
                         num = mRegisters.AX
-                        div = To16bitsWithSign(div)
+                        div = To16bitsWithSign(addrMode.IndMem)
 
                         sign = ((num Xor div) And &H8000) <> 0
                         num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
@@ -2174,7 +2190,7 @@ Public Class X8086
                         clkCyc += 86
                     Else
                         num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
-                        div = To32bitsWithSign(div)
+                        div = To32bitsWithSign(addrMode.IndMem)
 
                         sign = ((num Xor div) And &H80000000UI) <> 0
                         num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)

@@ -23,7 +23,7 @@
     Private priochannel As Integer
 
     ' Four DMA channels in the I8237 chip
-    Private channels() As Channel
+    Private ReadOnly channels() As Channel
 
     ' CPU
     Private cpu As X8086

@@ -8,8 +8,10 @@ Public Class Scheduler
     Private Const NOTASK As Long = Long.MaxValue
     Private Const STOPPING As Long = Long.MinValue
 
-    ' Number of scheduler time units per simulated second (1.0 GHz)
-    Public Shared CLOCKRATE As Long = 1 * X8086.GHz
+    Public Const BASECLOCK = 1.19318 * X8086.GHz
+
+    ' Number of scheduler time units per simulated second (~1.0 GHz)
+    Private Shared mCLOCKRATE As Long = BASECLOCK
 
     ' Current simulation time in scheduler time units (ns)
     Private mCurrentTime As Long
@@ -21,10 +23,10 @@ Public Class Scheduler
     Private syncScheduler As Boolean = True
 
     ' Determines how often the time synchronization is checked
-    Private syncQuantum As Long = CLng(CLOCKRATE / 20)
+    Private Shared syncQuantum As Long
 
     ' Determines speed of the simulation
-    Private syncSimTimePerWallMs As Long = CLng(CLOCKRATE / 1000)
+    Private Shared syncSimTimePerWallMs As Long
 
     ' Gain on wall time since last synchronization, plus one syncQuantum
     Private syncTimeSaldo As Long
@@ -93,20 +95,11 @@ Public Class Scheduler
             Return True
         End Function
 
-        Public Function lastExecutionTime() As Long
+        Public Function LastExecutionTime() As Long
             Return LastTime
         End Function
 
         Public Sub Start()
-            'If mThread IsNot Nothing Then
-            '    Do While mThread.IsAlive
-            '        Thread.Sleep(1)
-            '    Loop
-            '    mThread = Nothing
-            'End If
-
-            'mThread = New System.Threading.Thread(AddressOf Me.Run)
-            'mThread.Start()
             Me.Run()
         End Sub
 
@@ -117,6 +110,8 @@ Public Class Scheduler
         mCPU = cpu
         pq = New PriorityQueue()
         pendingInput = New ArrayList()
+
+        CLOCKRATE = BASECLOCK
     End Sub
 
     Public ReadOnly Property CurrentTime As Long
@@ -129,6 +124,17 @@ Public Class Scheduler
         Get
             Return Now.Ticks / 10000 * mSimulationMultiplier
         End Get
+    End Property
+
+    Public Shared Property CLOCKRATE
+        Get
+            Return mCLOCKRATE
+        End Get
+        Set(value)
+            mCLOCKRATE = value
+            syncQuantum = mCLOCKRATE / 20
+            syncSimTimePerWallMs = mCLOCKRATE / 1000
+        End Set
     End Property
 
     'Public Sub SetInputHandler(inputHandler As KeyboardAdapter)

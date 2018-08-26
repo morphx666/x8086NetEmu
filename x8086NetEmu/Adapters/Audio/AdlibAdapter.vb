@@ -188,19 +188,18 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             adlibAttack(port) = attackTable(15 - (value >> 4)) * 1.006
             adlibDecay(port) = decayTable(value And 15)
         ElseIf port >= &HA0 AndAlso port <= &HB8 Then ' Octave / Frequency / Key On
-            port = (port And 15) Mod 9
-            If Not adlibChan(port).KeyOn AndAlso ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1 Then
-                adlibAttack(port) = 0
-                adlibEnv(port) = 0.0025
+            port = (port And 15)
+            If Not adlibChan(port Mod 9).KeyOn AndAlso ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1 Then
+                adlibAttack(port Mod 9) = 0
+                adlibEnv(port Mod 9) = 0.0025
             End If
 
-            adlibChan(port).Frequency = adlibRegMem(&HA0 + port) Or ((adlibRegMem(&HB0 + port) And 3) << 8)
-            adlibChan(port).ConvFreq = adlibChan(port).Frequency * 0.7626459
-            adlibChan(port).KeyOn = ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1
-            adlibChan(port).Octave = (adlibRegMem(&HB0 + port) >> 2) And 7
+            adlibChan(port Mod 9).Frequency = adlibRegMem(&HA0 + port) Or ((adlibRegMem(&HB0 + port) And 3) << 8)
+            adlibChan(port Mod 9).ConvFreq = adlibChan(port Mod 9).Frequency * 0.7626459
+            adlibChan(port Mod 9).KeyOn = ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1
+            adlibChan(port Mod 9).Octave = (adlibRegMem(&HB0 + port) >> 2) And 7
         ElseIf port >= &HE0 And port <= &HF5 Then ' Waveform select
-            port = (port And 15) Mod 9
-            adlibChan(port).WaveformSelect = value And 3
+            adlibChan((port And 15) Mod 9).WaveformSelect = value And 3
         End If
     End Sub
 
@@ -224,14 +223,14 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     End Function
 
     Private Function AdlibSample(channel As Byte) As Int32
-        If adlibPrecussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
+        If AdlibFrequency(channel) = 0 OrElse (adlibPrecussion AndAlso channel >= 6 AndAlso channel <= 8) Then Return 0
 
         Dim fullStep As UInt32 = SampleRate \ AdlibFrequency(channel)
         Dim idx As Byte = (adlibStep(channel) / (fullStep / 256.0)) Mod 255
         Dim tmpSample As Int32 = oplWave(adlibChan(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = adlibEnv(channel)
         If tmpStep > 1.0 Then tmpStep = 1.0
-        tmpSample = CDbl(tmpSample) * tmpStep * 2.0
+        tmpSample = CDbl(tmpSample) * tmpStep * 3.0
 
         adlibStep(channel) += 1
         If adlibStep(channel) > fullStep Then adlibStep(channel) = 0

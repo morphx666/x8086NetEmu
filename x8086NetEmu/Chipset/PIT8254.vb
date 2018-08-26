@@ -516,11 +516,13 @@
         End Sub
     End Class
 
+    Private Const OverclockMultiplier As Double = 1.0 ' This will affect the speed of the internal clock!
+
     ' Global counter clock rate (1.19318 MHz) 
-    Public Const COUNTRATE As Long = 1.19318 * X8086.MHz
+    Private Shared ReadOnly COUNTRATE As Long = Scheduler.BASECLOCK / X8086.KHz * OverclockMultiplier
 
     ' Three counters in the I8254 chip 
-    Private mChannels(3 - 1) As Counter
+    Private ReadOnly mChannels(3 - 1) As Counter
 
     ' Interrupt request line for channel 0 
     Private irq As InterruptRequest
@@ -530,6 +532,8 @@
 
     ' Current time mirrored from Scheduler
     Private currentTime As Long
+
+    Private speakerBaseFrequency As Double
 
     Private cpu As X8086
 
@@ -569,6 +573,8 @@
         For i As Integer = &H40 To &H43
             ValidPortAddress.Add(i)
         Next
+
+        speakerBaseFrequency = CDbl(COUNTRATE) * 760.0 * 1.335 / OverclockMultiplier
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean
@@ -679,7 +685,7 @@
                 ' FIXME: Multiplying by 2000 moves notes three octaves up, 
                 '        while multiplying by 500, the notes played through the speaker, match the notes detected by any tuner.
                 '        But, multiplying by 2000 matches other emulators (such as DosBox) frequency.
-                mSpeaker.Frequency = COUNTRATE / period * 2000 * 1.335 
+                mSpeaker.Frequency = speakerBaseFrequency / period
             End If
         End If
 #End If
@@ -730,5 +736,7 @@
         ' reschedule task for next output change
         Dim t As Long = mChannels(0).NextOutputChangeTime()
         If t > 0 Then cpu.Sched.RunTaskAt(task, t)
+
+        'cpu.RTC.Run()
     End Sub
 End Class

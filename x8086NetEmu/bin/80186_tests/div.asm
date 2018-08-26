@@ -216,7 +216,7 @@ mov word[86],dx
 pushf
 
 
-mov dx,0fbb4h
+mov dx,0fbb4h	; F000:01E5
 mov ax,0c3dah
 mov cx,0ae8eh
 
