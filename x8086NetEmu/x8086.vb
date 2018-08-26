@@ -602,7 +602,42 @@ Public Class X8086
         opCodeSize = 1
 
         opCodes(opCode).Invoke()
-        GoTo SkipSelect
+
+        If useIPAddrOffset Then
+            mRegisters.IP = IPAddrOffet
+        Else
+            IncIP(opCodeSize)
+        End If
+
+        clkCyc += opCodeSize * 4
+
+        If Not isStringOp Then
+            If repeLoopMode <> REPLoopModes.None Then repeLoopMode = REPLoopModes.None
+            If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
+                mRegisters.ResetActiveSegment()
+                clkCyc += 2
+            End If
+        End If
+    End Sub
+
+    Public Sub Execute_OLD()
+        isStringOp = False
+        instrucionsCounter += 1
+
+        If mFlags.TF = 1 Then
+            ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
+            ' but it even allows it to pass it successfully!!!
+            If ignoreINTs Then HandleInterrupt(1, False)
+        ElseIf ignoreINTs Then
+            ignoreINTs = False
+        Else
+            HandlePendingInterrupt()
+        End If
+
+        'Prefetch()
+        'opCode = Prefetch.Buffer(0)
+        opCode = RAM8(mRegisters.CS, mRegisters.IP)
+        opCodeSize = 1
 
         Select Case opCode
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
@@ -1667,8 +1702,6 @@ Public Class X8086
             Case Else
                 OpCodeNotImplemented()
         End Select
-
-SkipSelect:
 
         If useIPAddrOffset Then
             mRegisters.IP = IPAddrOffet

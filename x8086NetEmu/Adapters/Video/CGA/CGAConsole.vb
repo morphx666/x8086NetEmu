@@ -16,6 +16,7 @@ Public Class CGAConsole
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)
         InitiAdapter()
+        AutoSize()
 
         Console.TreatControlCAsInput = True
         Console.OutputEncoding = New Text.UTF8Encoding()
