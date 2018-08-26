@@ -10,7 +10,8 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - Full 8086 architecture emulation: CPU, Memory, Flags, Registers and Stack
 - Peripherals: PIC/8259, PIT/8254, DMA/8237 and PPI/8255
   - RTC, 8087, Serial/Mouse and VGA are currently being implemented and some features are partially working
-- Adapters: CGA, Speaker and Keyboard
+- Mostly working Adapters: CGA, Speaker and Keyboard
+- Partially working Adapters: VGA, Adlib, Mouse
 - Integrated Debugger and Console
 - Support for both Floppy and Hard Disk images
 - No BIOS hacks required
