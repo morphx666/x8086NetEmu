@@ -15,12 +15,13 @@
         End Property
     End Class
 
-    Private Sub OpCodeNotImplemented(opCode As Byte, Optional comment As String = "")
+    Private Sub OpCodeNotImplemented(Optional comment As String = "")
         Dim originalOpCodeSize As Integer = opCodeSize
         ThrowException(String.Format("OpCode '{0}' at {1} Not Implemented{2}", Decode(Me, True).Mnemonic.Replace("h:", ""),
                                                                                mRegisters.PointerAddressToString().Replace("h", ""),
                                                                                If(comment = "", "", ": " + comment)))
         opCodeSize = originalOpCodeSize
+        If mVic20 Then HandleInterrupt(6, False) ' 80186
     End Sub
 
     Private Sub InterruptNotImplemented(intNum As Integer)

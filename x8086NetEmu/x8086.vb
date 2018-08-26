@@ -63,17 +63,17 @@ Public Class X8086
     Private repeLoopMode As REPLoopModes
 
     Private forceNewIPAddress As UInt16
-    Private Property IPAddrOff As UInt16
+    Private Property IPAddrOffet As UInt16
         Get
-            useIPAddrOff = False
+            useIPAddrOffset = False
             Return forceNewIPAddress
         End Get
         Set(value As UInt16)
             forceNewIPAddress = value
-            useIPAddrOff = True
+            useIPAddrOffset = True
         End Set
     End Property
-    Private useIPAddrOff As Boolean
+    Private useIPAddrOffset As Boolean
 
     Public Const KHz As ULong = 1000
     Public Const MHz As ULong = KHz * KHz
@@ -289,8 +289,8 @@ Public Class X8086
         isDecoding = False
         ignoreINTs = False
         repeLoopMode = REPLoopModes.None
-        IPAddrOff = 0
-        useIPAddrOff = False
+        IPAddrOffet = 0
+        useIPAddrOffset = False
 
         mRegisters.ResetActiveSegment()
 
@@ -563,21 +563,26 @@ Public Class X8086
             While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)
                 debugWaiter.WaitOne()
 
-                If Not isDecoding Then Execute()
+                If Not isDecoding Then
+                    mIsExecuting = True
+                    Execute()
+                    mIsExecuting = False
+                End If
 
                 RaiseEvent InstructionDecoded()
             End While
         Else
+            mIsExecuting = True
             While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule)
                 Execute()
             End While
+            mIsExecuting = False
         End If
 
         FlushCycles()
     End Sub
 
     Public Sub Execute()
-        mIsExecuting = True
         isStringOp = False
         instrucionsCounter += 1
 
@@ -595,6 +600,9 @@ Public Class X8086
         'opCode = Prefetch.Buffer(0)
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
+
+        opCodes(opCode).Invoke()
+        GoTo SkipSelect
 
         Select Case opCode
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
@@ -1050,7 +1058,7 @@ Public Class X8086
 
             Case &H70 ' jo
                 If mFlags.OF = 1 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1059,7 +1067,7 @@ Public Class X8086
 
             Case &H71 ' jno
                 If mFlags.OF = 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1068,7 +1076,7 @@ Public Class X8086
 
             Case &H72 ' jb/jnae
                 If mFlags.CF = 1 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1077,7 +1085,7 @@ Public Class X8086
 
             Case &H73 ' jnb/jae
                 If mFlags.CF = 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1086,7 +1094,7 @@ Public Class X8086
 
             Case &H74 ' je/jz
                 If mFlags.ZF = 1 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1095,7 +1103,7 @@ Public Class X8086
 
             Case &H75 ' jne/jnz
                 If mFlags.ZF = 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1104,7 +1112,7 @@ Public Class X8086
 
             Case &H76 ' jbe/jna
                 If mFlags.CF = 1 OrElse mFlags.ZF = 1 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1114,7 +1122,7 @@ Public Class X8086
 
             Case &H77 ' jnbe/ja
                 If mFlags.CF = 0 AndAlso mFlags.ZF = 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1123,7 +1131,7 @@ Public Class X8086
 
             Case &H78 ' js
                 If mFlags.SF = 1 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1132,7 +1140,7 @@ Public Class X8086
 
             Case &H79 ' jns
                 If mFlags.SF = 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1141,7 +1149,7 @@ Public Class X8086
 
             Case &H7A ' jp/jpe
                 If mFlags.PF = 1 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1150,7 +1158,7 @@ Public Class X8086
 
             Case &H7B ' jnp/jpo
                 If mFlags.PF = 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1159,7 +1167,7 @@ Public Class X8086
 
             Case &H7C ' jl/jnge
                 If mFlags.SF <> mFlags.OF Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1168,7 +1176,7 @@ Public Class X8086
 
             Case &H7D ' jnl/jge
                 If mFlags.SF = mFlags.OF Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1177,7 +1185,7 @@ Public Class X8086
 
             Case &H7E ' jle/jng
                 If mFlags.ZF = 1 OrElse (mFlags.SF <> mFlags.OF) Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1186,7 +1194,7 @@ Public Class X8086
 
             Case &H7F ' jnle/jg
                 If mFlags.ZF = 0 AndAlso (mFlags.SF = mFlags.OF) Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1304,7 +1312,7 @@ Public Class X8086
                 clkCyc += 5
 
             Case &H9A ' call direct intersegment
-                IPAddrOff = Param(SelPrmIndex.First, , DataSize.Word)
+                IPAddrOffet = Param(SelPrmIndex.First, , DataSize.Word)
                 tmpVal = Param(SelPrmIndex.Second, , DataSize.Word)
 
                 PushIntoStack(mRegisters.CS)
@@ -1375,12 +1383,12 @@ Public Class X8086
                 End If
 
             Case &HC2 ' ret (ret n) within segment adding imm to sp
-                IPAddrOff = PopFromStack()
+                IPAddrOffet = PopFromStack()
                 mRegisters.SP += Param(SelPrmIndex.First, , DataSize.Word)
                 clkCyc += 20
 
             Case &HC3 ' ret within segment
-                IPAddrOff = PopFromStack()
+                IPAddrOffet = PopFromStack()
                 clkCyc += 16
 
             Case &HC4 To &HC5 ' les | lds
@@ -1438,13 +1446,13 @@ Public Class X8086
 
             Case &HCA ' ret intersegment adding imm to sp (ret n /retf)
                 tmpVal = Param(SelPrmIndex.First, , DataSize.Word)
-                IPAddrOff = PopFromStack()
+                IPAddrOffet = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 mRegisters.SP += tmpVal
                 clkCyc += 17
 
             Case &HCB ' ret intersegment (retf)
-                IPAddrOff = PopFromStack()
+                IPAddrOffet = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 clkCyc += 18
 
@@ -1465,7 +1473,7 @@ Public Class X8086
                 End If
 
             Case &HCF ' iret
-                IPAddrOff = PopFromStack()
+                IPAddrOffet = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 mFlags.EFlags = PopFromStack()
                 clkCyc += 32
@@ -1516,7 +1524,7 @@ Public Class X8086
             Case &HE0 ' loopne/loopnz
                 mRegisters.CX -= 1
                 If mRegisters.CX > 0 AndAlso mFlags.ZF = 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 19
                 Else
                     opCodeSize += 1
@@ -1526,7 +1534,7 @@ Public Class X8086
             Case &HE1 ' loope/loopz
                 mRegisters.CX -= 1
                 If mRegisters.CX > 0 AndAlso mFlags.ZF = 1 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 18
                 Else
                     opCodeSize += 1
@@ -1536,7 +1544,7 @@ Public Class X8086
             Case &HE2 ' loop
                 mRegisters.CX -= 1
                 If mRegisters.CX > 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 17
                 Else
                     opCodeSize += 1
@@ -1545,7 +1553,7 @@ Public Class X8086
 
             Case &HE3 ' jcxz
                 If mRegisters.CX = 0 Then
-                    IPAddrOff = OffsetIP(DataSize.Byte)
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 18
                 Else
                     opCodeSize += 1
@@ -1571,21 +1579,21 @@ Public Class X8086
                 clkCyc += 10
 
             Case &HE8 ' call direct within segment
-                IPAddrOff = OffsetIP(DataSize.Word)
+                IPAddrOffet = OffsetIP(DataSize.Word)
                 PushIntoStack(Registers.IP + opCodeSize)
                 clkCyc += 19
 
             Case &HE9 ' jmp direct within segment
-                IPAddrOff = OffsetIP(DataSize.Word)
+                IPAddrOffet = OffsetIP(DataSize.Word)
                 clkCyc += 15
 
             Case &HEA ' jmp direct intersegment
-                IPAddrOff = Param(SelPrmIndex.First, , DataSize.Word)
+                IPAddrOffet = Param(SelPrmIndex.First, , DataSize.Word)
                 mRegisters.CS = Param(SelPrmIndex.Second, , DataSize.Word)
                 clkCyc += 15
 
             Case &HEB ' jmp direct within segment short
-                IPAddrOff = OffsetIP(DataSize.Byte)
+                IPAddrOffet = OffsetIP(DataSize.Byte)
                 clkCyc += 15
 
             Case &HEC  ' in to al from variable port
@@ -1605,7 +1613,7 @@ Public Class X8086
                 clkCyc += 8
 
             Case &HF0 ' lock
-                OpCodeNotImplemented(opCode, "LOCK")
+                OpCodeNotImplemented("LOCK")
                 clkCyc += 2
 
             Case &HF2 ' repne/repnz
@@ -1657,12 +1665,13 @@ Public Class X8086
             Case &HFE, &HFF : ExecuteGroup4_And_5()
 
             Case Else
-                OpCodeNotImplemented(opCode)
-                If mVic20 Then HandleInterrupt(6, False) ' 80186
+                OpCodeNotImplemented()
         End Select
 
-        If useIPAddrOff Then
-            mRegisters.IP = IPAddrOff
+SkipSelect:
+
+        If useIPAddrOffset Then
+            mRegisters.IP = IPAddrOffet
         Else
             IncIP(opCodeSize)
         End If
@@ -1671,10 +1680,11 @@ Public Class X8086
 
         If Not isStringOp Then
             If repeLoopMode <> REPLoopModes.None Then repeLoopMode = REPLoopModes.None
-            If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then mRegisters.ResetActiveSegment()
+            If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
+                mRegisters.ResetActiveSegment()
+                clkCyc += 2
+            End If
         End If
-
-        mIsExecuting = False
     End Sub
 
     Private Sub ExecuteGroup1() ' &H80 To &H83
@@ -1902,7 +1912,7 @@ Public Class X8086
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case Else
-                OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group2)")
+                OpCodeNotImplemented($"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group2)")
         End Select
 
         If addrMode.IsDirect Then
@@ -2164,7 +2174,7 @@ Public Class X8086
                 End If
 
             Case Else
-                OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group3)")
+                OpCodeNotImplemented($"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group3)")
         End Select
     End Sub
 
@@ -2193,29 +2203,29 @@ Public Class X8086
             Case 2 ' 010 call indirect within segment
                 PushIntoStack(mRegisters.IP + opCodeSize)
                 If addrMode.IsDirect Then
-                    IPAddrOff = mRegisters.Val(addrMode.Register2)
+                    IPAddrOffet = mRegisters.Val(addrMode.Register2)
                 Else
-                    IPAddrOff = addrMode.IndMem
+                    IPAddrOffet = addrMode.IndMem
                 End If
                 clkCyc += 11
 
             Case 3 ' 011 call indirect inter-segment
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
-                IPAddrOff = addrMode.IndMem
+                IPAddrOffet = addrMode.IndMem
                 mRegisters.CS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 clkCyc += 37
 
             Case 4 ' 100 jmp indirect within segment
                 If addrMode.IsDirect Then
-                    IPAddrOff = mRegisters.Val(addrMode.Register2)
+                    IPAddrOffet = mRegisters.Val(addrMode.Register2)
                 Else
-                    IPAddrOff = addrMode.IndMem
+                    IPAddrOffet = addrMode.IndMem
                 End If
                 clkCyc += 15
 
             Case 5 ' 101 jmp indirect inter-segment
-                IPAddrOff = addrMode.IndMem
+                IPAddrOffet = addrMode.IndMem
                 mRegisters.CS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 clkCyc += 24
 
@@ -2232,7 +2242,7 @@ Public Class X8086
                 clkCyc += 16
 
             Case Else
-                OpCodeNotImplemented(opCode, $"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group4&5)")
+                OpCodeNotImplemented($"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group4&5)")
         End Select
     End Sub
 

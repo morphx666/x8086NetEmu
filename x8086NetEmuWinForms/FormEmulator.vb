@@ -265,8 +265,8 @@ Public Class FormEmulator
 
         'cpu.LoadBIN("80186_tests\rep.bin", &HF000, &H0)
         'cpu.Run(True, &HF000, 0)
-        'ShowDebugger()
         cpu.Run()
+        If cpu.DebugMode Then ShowDebugger()
 
         SetupVideoPortEventHandlers()
         SetupCpuEventHandlers()

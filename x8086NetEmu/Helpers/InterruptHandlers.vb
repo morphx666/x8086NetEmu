@@ -7,7 +7,7 @@ Partial Public Class X8086
 
     Public Sub HandleHardwareInterrupt(intNum As Byte)
         HandleInterrupt(intNum, True)
-        mRegisters.IP = IPAddrOff
+        mRegisters.IP = IPAddrOffet
     End Sub
 
     Private Sub HandlePendingInterrupt()
@@ -42,7 +42,7 @@ Partial Public Class X8086
             End If
 
             tmpVal = intNum * 4
-            IPAddrOff = RAM16(0, tmpVal)
+            IPAddrOffet = RAM16(0, tmpVal)
             mRegisters.CS = RAM16(0, tmpVal + 2)
 
             If intNum = 0 Then DivisionByZero()
