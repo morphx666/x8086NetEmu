@@ -1,4 +1,8 @@
-﻿Module ModuleMain
+﻿' This code is flugly as hell... but it works.
+' It parses the huge "Select Case" in x8086 that processes opcodes and converts it into an array of functions,
+' which results in a +2x performance improvement
+
+Module ModuleMain
     Sub Main()
         Dim src As String = IO.File.ReadAllText("..\x8086.vb")
         Dim trg As String = "Partial Public Class X8086

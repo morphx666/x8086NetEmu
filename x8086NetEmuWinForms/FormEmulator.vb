@@ -256,7 +256,7 @@ Public Class FormEmulator
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
-        'cpu.Adapters.Add(New AdlibAdapter(cpu))
+        cpu.Adapters.Add(New AdlibAdapter(cpu))
 #End If
 
         cpu.VideoAdapter.AutoSize()
