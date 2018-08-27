@@ -78,8 +78,8 @@ Public Class X8086
     Public Const KHz As ULong = 1000
     Public Const MHz As ULong = KHz * KHz
     Public Const GHz As ULong = MHz * KHz
-    Private Const BaseClock As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
-    Private mCyclesPerSecond As ULong = BaseClock
+    Private Const BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
+    Private mCyclesPerSecond As ULong = BASECLOCK
     Private clkCyc As ULong = 0
 
     Private mDoReSchedule As Boolean
@@ -125,7 +125,7 @@ Public Class X8086
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
 
-        Scheduler.CLOCKRATE = GetCpuSpeed() * X8086.MHz
+        'Scheduler.BASECLOCK = GetCpuSpeed() * X8086.MHz
 
         BuildSZPTables()
         Init()
@@ -542,8 +542,8 @@ Public Class X8086
     End Sub
 
     Private Sub FlushCycles()
-        Dim t As ULong = clkCyc * Scheduler.CLOCKRATE + leftCycleFrags
-        Sched.AdvanceTime(t \ mCyclesPerSecond)
+        Dim t As ULong = clkCyc * Scheduler.BASECLOCK + leftCycleFrags
+        Sched.AdvanceTime(t / mCyclesPerSecond)
         leftCycleFrags = t Mod mCyclesPerSecond
         clkCyc = 0
 
@@ -563,9 +563,9 @@ Public Class X8086
         Const syncQuantum As Double = 0.05
         FlushCycles()
         Sched.SetSynchronization(True,
-                                         Scheduler.CLOCKRATE * syncQuantum,
-                                         Scheduler.CLOCKRATE * mSimulationMultiplier / 1000,
-                                         mSimulationMultiplier)
+                                Scheduler.BASECLOCK * syncQuantum,
+                                Scheduler.BASECLOCK * mSimulationMultiplier / 1000,
+                                mSimulationMultiplier)
     End Sub
 
     Public Sub PreExecute()
@@ -574,12 +574,8 @@ Public Class X8086
         mDoReSchedule = False
 
         Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
-        If maxRunTime = 0 Then ' FIXME: Temporary fix to prevent the emulator never exiting the While/Execute loop; are we missing a FlushCycles somewhere?
-            maxRunTime = Scheduler.CLOCKRATE
-        ElseIf maxRunTime > Scheduler.CLOCKRATE Then
-            maxRunTime = Scheduler.CLOCKRATE
-        End If
-        Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.CLOCKRATE - 1) / Scheduler.CLOCKRATE
+        If maxRunTime > Scheduler.BASECLOCK OrElse maxRunTime <= 0 Then maxRunTime = Scheduler.BASECLOCK
+        Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.BASECLOCK - 1) / Scheduler.BASECLOCK
 
         If mDebugMode Then
             While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)

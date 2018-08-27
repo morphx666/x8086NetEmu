@@ -182,9 +182,10 @@
     End Function
 
     Private Sub SendToPort(portAddress As UInt32, value As UInt32)
+        FlushCycles()
+
         If portsCache.ContainsKey(portAddress) Then
             portsCache(portAddress).Out(portAddress, value)
-            'FlushCycles()
             'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), portsCache(portAddress).Name), NotificationReasons.Info)
             Exit Sub
         Else
@@ -194,7 +195,6 @@
                     'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, p)
-                    'FlushCycles()
                     Exit Sub
                 End If
             Next
@@ -205,7 +205,6 @@
                     'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, a)
-                    'FlushCycles()
                     Exit Sub
                 End If
             Next
@@ -215,8 +214,9 @@
     End Sub
 
     Private Function ReceiveFromPort(portAddress As UInt32) As UInt32
+        FlushCycles()
+
         If portsCache.ContainsKey(portAddress) Then
-            FlushCycles()
             'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), portsCache(portAddress).Name), NotificationReasons.Info)
             Return portsCache(portAddress).In(portAddress)
         Else
@@ -225,7 +225,6 @@
                     'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, p)
-                    FlushCycles()
                     Return p.In(portAddress)
                 End If
             Next
@@ -235,7 +234,6 @@
                     'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
 
                     portsCache.Add(portAddress, a)
-                    FlushCycles()
                     Return a.In(portAddress)
                 End If
             Next

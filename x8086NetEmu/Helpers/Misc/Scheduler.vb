@@ -8,10 +8,8 @@ Public Class Scheduler
     Private Const NOTASK As Long = Long.MaxValue
     Private Const STOPPING As Long = Long.MinValue
 
-    Public Const BASECLOCK = 1.19318 * X8086.GHz
-
     ' Number of scheduler time units per simulated second (~1.0 GHz)
-    Private Shared mCLOCKRATE As Long = BASECLOCK
+    Public Const BASECLOCK = 1.19318 * X8086.GHz
 
     ' Current simulation time in scheduler time units (ns)
     Private mCurrentTime As Long
@@ -111,7 +109,8 @@ Public Class Scheduler
         pq = New PriorityQueue()
         pendingInput = New ArrayList()
 
-        CLOCKRATE = BASECLOCK
+        syncQuantum = BASECLOCK / 20
+        syncSimTimePerWallMs = BASECLOCK / 1000
     End Sub
 
     Public ReadOnly Property CurrentTime As Long
@@ -126,29 +125,6 @@ Public Class Scheduler
         End Get
     End Property
 
-    Public Shared Property CLOCKRATE
-        Get
-            Return mCLOCKRATE
-        End Get
-        Set(value)
-            mCLOCKRATE = value
-            syncQuantum = mCLOCKRATE / 20
-            syncSimTimePerWallMs = mCLOCKRATE / 1000
-        End Set
-    End Property
-
-    'Public Sub SetInputHandler(inputHandler As KeyboardAdapter)
-    '    Me.inputHandler = inputHandler
-    'End Sub
-
-    ' Set simulation synchronization parameters.
-    ' @param enable Enables slowing the simulation to keep it
-    '   in sync with real time.
-    ' @param quantum Determines how often the synchronization is checked
-    '   (in simulated nanoseconds).
-    ' @param simTimePerWallMs Determines the speed of the simulation
-    '   (in simulated nanoseconds per real millisecond).
-    '
     Public Sub SetSynchronization(enabled As Boolean, quantum As Long, simTimePerWallMs As Long, simulationMultiplier As Double)
 #If DEBUG Then
         If enabled And quantum < 1 Then Throw New ArgumentException("Invalid value for quantum")
@@ -229,7 +205,7 @@ Public Class Scheduler
     End Sub
 
     Public Function GetTimeToNextEvent() As Long
-        If nextTime = STOPPING OrElse Not (pendingInput.Count = 0) Then
+        If nextTime = STOPPING OrElse pendingInput.Count <> 0 Then
             Return 0
         ElseIf syncScheduler AndAlso (nextTime > mCurrentTime + syncQuantum) Then
             Return syncQuantum
@@ -300,7 +276,7 @@ Public Class Scheduler
                 Dim wallTime As Long = CurrentTimeMillis()
                 Dim wallDelta As Long = wallTime - syncWallTimeMillis
                 syncWallTimeMillis = wallTime
-                If (wallDelta < 0) Then wallDelta = 0 ' some clown has set the system clock back
+                If wallDelta < 0 Then wallDelta = 0 ' some clown has set the system clock back
                 syncTimeSaldo -= wallDelta * syncSimTimePerWallMs
                 If syncTimeSaldo < 0 Then syncTimeSaldo = 0
                 If syncTimeSaldo > 2 * syncQuantum Then
@@ -353,7 +329,7 @@ Public Class Scheduler
 
         SyncLock tsk
             If (tsk.NextTime = Task.NOSCHED) OrElse (tsk.NextTime > mCurrentTime) Then
-                ' Cancelled or rescheduled
+                ' Canceled or rescheduled
                 tsk = Nothing
             Else
                 ' Task is ok to run
@@ -380,14 +356,14 @@ Public Class Scheduler
         syncWallTimeMillis = CurrentTimeMillis()
         syncTimeSaldo = 0
 
-        loopThread = New Thread(AddressOf Run)
-        loopThread.Start()
+        Tasks.Task.Run(AddressOf Run)
     End Sub
 
     Private Sub Run()
         Dim cleanInputBuf As New ArrayList()
         Dim inputBuf As New ArrayList()
         Dim tsk As Task = Nothing
+        Dim evt As ExternalInputEvent
 
         While True
             ' Detect the end of the simulation run
@@ -403,10 +379,7 @@ Public Class Scheduler
             ElseIf nextTime <= mCurrentTime Then
                 ' Fetch the next pending task
                 tsk = NextTask()
-                If tsk Is Nothing Then
-                    ' This task was canceled, go round again
-                    Continue While
-                End If
+                If tsk Is Nothing Then Continue While ' This task was canceled, go round again
                 inputBuf.Clear()
             Else
                 tsk = Nothing
@@ -415,10 +388,11 @@ Public Class Scheduler
             If inputBuf.Count > 0 Then
                 ' Process pending input events
                 For i As Integer = 0 To inputBuf.Count - 1
-                    Dim evt As ExternalInputEvent = CType(inputBuf.Item(i), ExternalInputEvent)
+                    evt = CType(inputBuf.Item(i), ExternalInputEvent)
                     evt.TimeStamp = mCurrentTime
                     ' Tasks.Task.Run(Sub() evt.Handler.HandleInput(evt)) ' <- This freezes Windows 10!!!!
-                    evt.Handler.HandleInput(evt)
+                    Tasks.Task.Run(Sub() evt.Handler.HandleInput(evt))
+                    'evt.Handler.HandleInput(evt)
                 Next
                 inputBuf.Clear()
                 cleanInputBuf = inputBuf
@@ -436,10 +410,7 @@ Public Class Scheduler
                                                                  ex.Message)
                 End Try
 
-                If mCPU.IsHalted() Then
-                    ' The CPU is halted, skip immediately to the next event
-                    SkipToNextEvent()
-                End If
+                If mCPU.IsHalted() Then SkipToNextEvent() ' The CPU is halted, skip immediately to the next event
             End If
         End While
     End Sub

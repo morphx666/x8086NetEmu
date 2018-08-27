@@ -94,7 +94,7 @@
                 Update()
                 ' fill status latch register:
                 ' bit7   = output
-                ' bit6   = nullcount
+                ' bit6   = null count
                 ' bit4-5 = rwMode
                 ' bit1-3 = countMode
                 ' bit0   = bcdMode
@@ -650,12 +650,10 @@
     End Property
 
     Private Sub UpdateCh0()
-        ' State of channel 0 may have changed;
-        '' run the IRQ task immediately to take this into account
-        If irq IsNot Nothing Then
-            task.Cancel()
-            task.Start()
-        End If
+        ' State of channel 0 may have changed
+        ' Run the IRQ task immediately to take this into account
+        task.Cancel()
+        task.Start()
     End Sub
 
     Private Sub UpdateCh1()
@@ -665,7 +663,7 @@
 
     Private Sub UpdateCh2(v As Integer)
         'If cpu.PPI IsNot Nothing Then
-        '    If cpu.Model = x8086.Models.PCE_IBMPC_5150 Then
+        '    If cpu.Model = X8086.Models.IBMPC_5150 Then
         '        If v <> 0 Then
         '            cpu.PPI.PortC(0) = cpu.PPI.PortC(0) Or &H20
         '            cpu.PPI.PortC(1) = cpu.PPI.PortC(1) Or &H20
@@ -692,13 +690,13 @@
     End Sub
 
     Public Shared Function TimeToClocks(t As Long) As Long
-        Return (t \ Scheduler.CLOCKRATE) * COUNTRATE +
-               ((t Mod Scheduler.CLOCKRATE) * COUNTRATE) \ Scheduler.CLOCKRATE
+        Return (t \ Scheduler.BASECLOCK) * COUNTRATE +
+               ((t Mod Scheduler.BASECLOCK) * COUNTRATE) \ Scheduler.BASECLOCK
     End Function
 
     Public Shared Function ClocksToTime(c As Long) As Long
-        Return (c \ COUNTRATE) * Scheduler.CLOCKRATE +
-               ((c Mod COUNTRATE) * Scheduler.CLOCKRATE + COUNTRATE - 1) \ COUNTRATE
+        Return (c \ COUNTRATE) * Scheduler.BASECLOCK +
+               ((c Mod COUNTRATE) * Scheduler.BASECLOCK + COUNTRATE - 1) \ COUNTRATE
     End Function
 
     Public Property Speaker As SpeakerAdpater
@@ -722,15 +720,15 @@
         End Get
     End Property
 
-    Private lastValue As Boolean = False
+    Private lastChan0 As Boolean = False
     ' Scheduled task to drive IRQ 0 based on counter 0 output signal
     Public Overrides Sub Run()
         currentTime = cpu.Sched.CurrentTime
-        ' set IRQ 0 signal equal to counter 0 output
+        ' Set IRQ 0 signal equal to counter 0 output
         Dim s As Boolean = mChannels(0).GetOutput()
-        If s <> lastValue Then
+        If s <> lastChan0 Then
             irq.Raise(s)
-            lastValue = s
+            lastChan0 = s
         End If
 
         ' reschedule task for next output change

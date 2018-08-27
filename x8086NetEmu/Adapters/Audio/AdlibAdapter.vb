@@ -134,8 +134,8 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate, 8, 1)
         waveOut.Init(audioProvider)
 
-        'adlibTicks = (Scheduler.CLOCKRATE / SampleRate) * waveOut.NumberOfBuffers  ' FIXME: I don't think this is 100% correct
-        'adlibTicks = (Scheduler.CLOCKRATE / SampleRate)
+        'adlibTicks = (Scheduler.BASECLOCK / SampleRate) * waveOut.NumberOfBuffers  ' FIXME: I don't think this is 100% correct
+        'adlibTicks = (Scheduler.BASECLOCK / SampleRate)
         'lastAdlibTicks = Long.MaxValue
 
         waveOut.Play()
@@ -194,10 +194,12 @@ Public Class AdlibAdapter ' Based on fake86's implementation
                 adlibEnv(port Mod 9) = 0.0025
             End If
 
-            adlibChan(port Mod 9).Frequency = adlibRegMem(&HA0 + port) Or ((adlibRegMem(&HB0 + port) And 3) << 8)
-            adlibChan(port Mod 9).ConvFreq = adlibChan(port Mod 9).Frequency * 0.7626459
-            adlibChan(port Mod 9).KeyOn = ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1
-            adlibChan(port Mod 9).Octave = (adlibRegMem(&HB0 + port) >> 2) And 7
+            SyncLock adlibChan
+                adlibChan(port Mod 9).Frequency = adlibRegMem(&HA0 + port) Or ((adlibRegMem(&HB0 + port) And 3) << 8)
+                adlibChan(port Mod 9).ConvFreq = adlibChan(port Mod 9).Frequency * 0.7626459
+                adlibChan(port Mod 9).KeyOn = ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1
+                adlibChan(port Mod 9).Octave = (adlibRegMem(&HB0 + port) >> 2) And 7
+            End SyncLock
         ElseIf port >= &HE0 And port <= &HF5 Then ' Waveform select
             adlibChan((port And 15) Mod 9).WaveformSelect = value And 3
         End If
@@ -223,7 +225,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     End Function
 
     Private Function AdlibSample(channel As Byte) As Int32
-        If AdlibFrequency(channel) = 0 OrElse (adlibPrecussion AndAlso channel >= 6 AndAlso channel <= 8) Then Return 0
+        If adlibPrecussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
 
         Dim fullStep As UInt32 = SampleRate \ AdlibFrequency(channel)
         Dim idx As Byte = (adlibStep(channel) / (fullStep / 256.0)) Mod 255
@@ -239,9 +241,11 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Private Function AdlibGenerateSample() As Int16
         Dim adlibAccumulator As Int16 = 0
-        For currentChannel As Byte = 0 To 9 - 1
-            If AdlibFrequency(currentChannel) <> 0 Then adlibAccumulator += AdlibSample(currentChannel)
-        Next
+        SyncLock adlibChan
+            For currentChannel As Byte = 0 To 9 - 1
+                If AdlibFrequency(currentChannel) <> 0 Then adlibAccumulator += AdlibSample(currentChannel)
+            Next
+        End SyncLock
         Return adlibAccumulator
     End Function
 

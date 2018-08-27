@@ -6,8 +6,8 @@ Public MustInherit Class CGAAdapter
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
-    Protected ht As Long = Scheduler.CLOCKRATE \ HORIZSYNC
-    Protected vt As Long = (Scheduler.CLOCKRATE \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
+    Protected ht As Long = Scheduler.BASECLOCK \ HORIZSYNC
+    Protected vt As Long = (Scheduler.BASECLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
 
     Public Enum VideoModes
         Mode0_Text_BW_40x25 = &H4
