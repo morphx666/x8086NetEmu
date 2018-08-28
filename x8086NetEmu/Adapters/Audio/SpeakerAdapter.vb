@@ -235,7 +235,7 @@ Public Class SpeakerAdpater
 
     Public Overrides ReadOnly Property Type As Adapter.AdapterType
         Get
-            Return AdapterType.Speaker
+            Return AdapterType.AudioDevice
         End Get
     End Property
 

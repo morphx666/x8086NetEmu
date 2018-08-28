@@ -1,4 +1,5 @@
-﻿Imports System.Threading
+﻿#If Win32 Then
+Imports System.Threading
 Imports NAudio.Wave
 
 Public Class AdlibAdapter ' Based on fake86's implementation
@@ -308,3 +309,4 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         End Get
     End Property
 End Class
+#end if
