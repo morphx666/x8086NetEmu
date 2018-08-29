@@ -107,7 +107,6 @@ Public MustInherit Class CGAAdapter
     Private mZoom As Double = 1.0
 
     Protected videoBMP As DirectBitmap = New DirectBitmap(1, 1)
-    Private loopThread As Thread
     Private waiter As AutoResetEvent
     Protected cancelAllThreads As Boolean
     Private useInternalTimer As Boolean
@@ -265,12 +264,7 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides Sub InitiAdapter()
         isInit = (mCPU IsNot Nothing)
-        If isInit Then
-            If useInternalTimer Then
-                loopThread = New Thread(AddressOf MainLoop)
-                loopThread.Start()
-            End If
-        End If
+        If isInit AndAlso useInternalTimer Then Tasks.Task.Run(Sub() MainLoop())
     End Sub
 
     Private Sub MainLoop()
