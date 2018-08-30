@@ -1,7 +1,4 @@
-﻿Imports System.Threading
-Imports System.Runtime.InteropServices
-
-Public Class KeyboardAdapter
+﻿Public Class KeyboardAdapter
     Inherits Adapter
     Implements IExternalInputHandler
 

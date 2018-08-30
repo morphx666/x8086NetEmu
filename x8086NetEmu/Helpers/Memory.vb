@@ -324,7 +324,7 @@
     End Class
 
     Public Sub LoadBIN(fileName As String, segment As UInt16, offset As UInt16)
-        'Debug.WriteLine($"Loading: {fileName} @ {segment:X4}:{offset:X4}")
+        'Console.WriteLine($"Loading: {fileName} @ {segment:X4}:{offset:X4}")
         fileName = X8086.FixPath(fileName)
 
         If IO.File.Exists(fileName) Then

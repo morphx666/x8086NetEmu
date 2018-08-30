@@ -5,7 +5,18 @@ Module MainModule
 
     Sub Main()
         X8086.LogToConsole = False
+
+        AddHandler X8086.Error, Sub(s As Object, e As X8086.EmulatorErrorEventArgs)
+                                    cpu?.Pause()
+                                    Console.Clear()
+                                    Console.WriteLine(e.Message)
+                                    cpu?.Close()
+                                    Environment.Exit(1)
+                                End Sub
+
         cpu = New X8086(True, True)
+
+
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAConsole(cpu))

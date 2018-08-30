@@ -106,7 +106,7 @@ Public Class X8086
     Public Event EmulationTerminated()
     Public Event EmulationHalted()
     Public Event InstructionDecoded()
-    Public Event [Error](sender As Object, e As EmulatorErrorEventArgs)
+    Public Shared Event [Error](sender As Object, e As EmulatorErrorEventArgs)
     Public Shared Event Output(message As String, reason As NotificationReasons, arg() As Object)
     Public Event MIPsUpdated()
 
@@ -410,7 +410,7 @@ Public Class X8086
 
     Private Sub LoadBIOS()
         ' BIOS
-        LoadBIN("roms\PCXTBIOS.ROM", &HFE00, &H0)
+        LoadBIN("roms\pcxtbios.rom", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios2\EPROMS\2764\XTBIOS.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios25\EPROMS\2764\PCXTBIOS.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\pcxtbios.ROM", &HFE00, &H0)
@@ -421,7 +421,7 @@ Public Class X8086
         'LoadBIN("..\..\Other Emulators & Resources\PCE - PC Emulator\bin\rom\ibm-pc-1982.rom", &HFE00, &H0)
 
         ' BASIC C1.10
-        LoadBIN("roms\BASICC11.BIN", &HF600, &H0)
+        LoadBIN("roms\basicc11.bin", &HF600, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicf6.rom", &HF600, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicf8.rom", &HF800, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\basicfa.rom", &HFA00, &H0)
