@@ -5,7 +5,9 @@ Public Class FormDiskExplorer
     Private sdf As StandardDiskFormat
     Private selectedParitionIndex As Integer
     Private ignoreNextEvent As Boolean
-    Private isMouseDown As Boolean
+    Private draggedItems As New List(Of String)
+    Private isLeftMouseDown As Boolean
+    Private mouseDownLocation As Point
 
     Public Sub Initialize(fileName As String)
         sdf = New StandardDiskFormat(New IO.FileStream(fileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite))
@@ -34,7 +36,7 @@ Public Class FormDiskExplorer
 
                                                                 Dim rootNode As TreeNode
                                                                 Dim volLabels As IEnumerable(Of String) = (From de In sdf.RootDirectoryEntries(selectedParitionIndex)
-                                                                                                           Where (de.Attribute And FAT12_16.EntryAttributes.VolumeName) = FAT12_16.EntryAttributes.VolumeName
+                                                                                                           Where (de.Attribute And FAT12.EntryAttributes.VolumeName) = FAT12.EntryAttributes.VolumeName
                                                                                                            Select (de.FileName))
 
                                                                 TreeViewDirs.Nodes.Clear()
@@ -49,25 +51,26 @@ Public Class FormDiskExplorer
                                                             End Sub
 
         For i As Integer = 0 To sdf.MasterBootRecord.Partitions.Length - 1
-            If sdf.MasterBootRecord.Partitions(i).SystemId = StandardDiskFormat.SystemIds.FAT_12 OrElse sdf.MasterBootRecord.Partitions(i).SystemId = StandardDiskFormat.SystemIds.FAT_16 Then
-                ComboBoxPartitions.Items.Add(sdf.MasterBootRecord.Partitions(i).ToString() +
+            Select Case sdf.MasterBootRecord.Partitions(i).SystemId
+                Case StandardDiskFormat.SystemIds.FAT_12, StandardDiskFormat.SystemIds.FAT_16, StandardDiskFormat.SystemIds.FAT_BIGDOS
+                    ComboBoxPartitions.Items.Add(sdf.MasterBootRecord.Partitions(i).ToString() +
                                              $" {If(sdf.IsBootable(i), "BOOT", "")} [H:{sdf.Heads(i)} C:{sdf.Cylinders(i)} S:{sdf.Sectors(i)}]")
-            End If
+            End Select
         Next
 
         If ComboBoxPartitions.Items.Count > 0 Then ComboBoxPartitions.SelectedIndex = 0
     End Sub
 
-    Private Sub DisplayFileSystem(parentNode As TreeNode, entries() As FAT12_16.DirectoryEntry)
+    Private Sub DisplayFileSystem(parentNode As TreeNode, entries() As FAT12.DirectoryEntry)
         If entries Is Nothing Then entries = sdf.RootDirectoryEntries(selectedParitionIndex)
 
         Dim directories = From de In entries
-                          Where (de.Attribute And FAT12_16.EntryAttributes.Directory) = FAT12_16.EntryAttributes.Directory AndAlso
+                          Where (de.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory AndAlso
                                 Convert.ToByte(de.FileNameChars(0)) < &H5E
                           Order By de.FileName
         Dim files = From de In entries
-                    Where (de.Attribute And FAT12_16.EntryAttributes.Directory) <> FAT12_16.EntryAttributes.Directory AndAlso
-                          (de.Attribute And FAT12_16.EntryAttributes.VolumeName) <> FAT12_16.EntryAttributes.VolumeName AndAlso
+                    Where (de.Attribute And FAT12.EntryAttributes.Directory) <> FAT12.EntryAttributes.Directory AndAlso
+                          (de.Attribute And FAT12.EntryAttributes.VolumeName) <> FAT12.EntryAttributes.VolumeName AndAlso
                           Convert.ToByte(de.FileNameChars(0)) < &H5E
                     Order By GetTypeDescription(de.FileExtension)
 
@@ -146,13 +149,13 @@ Public Class FormDiskExplorer
         Return index
     End Function
 
-    Private Function FindNode(d As FAT12_16.DirectoryEntry, parentNode As TreeNode) As TreeNode
+    Private Function FindNode(d As FAT12.DirectoryEntry, parentNode As TreeNode) As TreeNode
         For Each n As TreeNode In parentNode.Nodes
-            If n.Tag IsNot Nothing AndAlso CType(n.Tag, FAT12_16.DirectoryEntry) = d Then
+            If n.Tag IsNot Nothing AndAlso CType(n.Tag, FAT12.DirectoryEntry) = d Then
                 Return n
             ElseIf n.Nodes.Count > 0 Then
                 n = FindNode(d, n)
-                If n?.Tag IsNot Nothing AndAlso CType(n.Tag, FAT12_16.DirectoryEntry) = d Then Return n
+                If n?.Tag IsNot Nothing AndAlso CType(n.Tag, FAT12.DirectoryEntry) = d Then Return n
             End If
         Next
         Return Nothing
@@ -175,7 +178,7 @@ Public Class FormDiskExplorer
         Dim node As TreeNode = e.Node
         If node Is Nothing Then Exit Sub
 
-        Dim entry As FAT12_16.DirectoryEntry = CType(node.Tag, FAT12_16.DirectoryEntry)
+        Dim entry As FAT12.DirectoryEntry = CType(node.Tag, FAT12.DirectoryEntry)
         DisplayFileSystem(node, sdf.GetDirectoryEntries(0, If(entry.StartingCluster = 0, -1, entry.StartingCluster)))
     End Sub
 
@@ -185,6 +188,9 @@ Public Class FormDiskExplorer
         Dim address As String
         Dim bsc() As Byte = sdf.BootSector(selectedParitionIndex).BootStrapCode
         Array.Copy(bsc, 0, emu.Memory, 0, bsc.Length)
+
+        ListViewCode.Items.Clear()
+        If Not sdf.MasterBootRecord.IsBootable Then Exit Sub
 
         For i As Integer = 0 To bsc.Length - 1
             address = X8086.SegmentOffetToAbsolute(0, i).ToString("X")
@@ -252,74 +258,126 @@ Public Class FormDiskExplorer
     End Sub
 
     Private Sub ListViewFileSystem_DoubleClick(sender As Object, e As EventArgs) Handles ListViewFileSystem.DoubleClick
+        isLeftMouseDown = False
         If ListViewFileSystem.SelectedItems.Count <> 1 Then Exit Sub
 
         Dim slvi As ListViewItem = ListViewFileSystem.SelectedItems(0)
-        If slvi.Tag IsNot Nothing Then ' It's a folder
+        If slvi.Tag IsNot Nothing Then ' It's a folder or a file
             Dim objs() As Object = CType(slvi.Tag, Object())
             Dim node As TreeNode = CType(objs(0), TreeNode)
-            Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
-            If (entry.Attribute And FAT12_16.EntryAttributes.Directory) = FAT12_16.EntryAttributes.Directory Then ' It's a directory
+            Dim entry As FAT12.DirectoryEntry = CType(objs(1), FAT12.DirectoryEntry)
+            If (entry.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory Then ' It's a directory
                 DisplayFileSystem(node, sdf.GetDirectoryEntries(0, entry.StartingCluster))
             Else ' It's a file
                 Dim b() As Byte = sdf.ReadFile(selectedParitionIndex, entry)
                 Dim targetFileName As String = IO.Path.Combine(IO.Path.GetTempPath(), entry.FullFileName)
                 IO.File.WriteAllBytes(targetFileName, b)
                 Try
-                    Process.Start(targetFileName)
+                    Process.Start(targetFileName).WaitForExit()
+                    IO.File.Delete(targetFileName)
                 Catch ex As Exception
+                    MsgBox(ex.Message, MsgBoxStyle.Exclamation)
                 End Try
             End If
         End If
     End Sub
 
-    Private Sub ListViewFileSystem_MouseDown(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseDown
-        isMouseDown = True
+    Private Sub SaveDirectory(tmpDirectory As String, entry As FAT12.DirectoryEntry)
+        For Each subEntry As FAT12.DirectoryEntry In sdf.GetDirectoryEntries(0, entry.StartingCluster)
+            If subEntry.FileName.StartsWith(".") Then Continue For
+            If (subEntry.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory Then ' It's a directory
+                SaveDirectory(tmpDirectory, subEntry)
+            Else
+                SaveFile(tmpDirectory, subEntry)
+            End If
+        Next
     End Sub
 
+    Private Function SaveFile(tmpDirectory As String, entry As FAT12.DirectoryEntry) As String
+        Dim targetFileName As String = IO.Path.Combine(tmpDirectory, entry.FullFileName)
+        If IO.File.Exists(targetFileName) Then IO.File.Delete(targetFileName)
+        IO.File.WriteAllBytes(targetFileName, sdf.ReadFile(selectedParitionIndex, entry))
+        Return targetFileName
+    End Function
+
     Private Sub ListViewFileSystem_MouseMove(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseMove
-        If isMouseDown Then
-            Dim filesCount As Integer = ListViewFileSystem.SelectedItems.Count
-            Dim si(filesCount - 1) As DataObjectEx.SelectedItem
+        If Not isLeftMouseDown OrElse draggedItems.Count > 0 Then Exit Sub
+        If Math.Sqrt((mouseDownLocation.X - e.X) ^ 2 + (mouseDownLocation.Y - e.Y) ^ 2) < 6 Then Exit Sub
 
-            For i As Integer = 0 To ListViewFileSystem.SelectedItems.Count - 1
-                Dim objs() As Object = CType(ListViewFileSystem.SelectedItems(i).Tag, Object())
-                Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
+        Dim tmpDirectory As String = IO.Path.GetTempPath()
 
-                si(i).FileName = entry.FullFileName
-                si(i).WriteTime = entry.WriteDateTime
-                si(i).FileSize = entry.FileSize
-            Next
+        For Each slvi As ListViewItem In ListViewFileSystem.SelectedItems
+            If slvi.Tag IsNot Nothing Then ' It's a folder or a file
+                Dim entry As FAT12.DirectoryEntry = CType(CType(slvi.Tag, Object())(1), FAT12.DirectoryEntry)
+                If (entry.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory Then ' It's a directory
+                    Dim subDirectory As String = IO.Path.Combine(tmpDirectory, entry.FileName)
+                    If Not IO.Directory.Exists(subDirectory) Then IO.Directory.CreateDirectory(subDirectory)
+                    SaveDirectory(subDirectory, entry)
+                    draggedItems.Add(subDirectory)
+                Else ' It's a file
+                    draggedItems.Add(SaveFile(tmpDirectory, entry))
+                End If
+            End If
+        Next
 
-            Dim dox As New DataObjectEx(si, Function(selItem As DataObjectEx.SelectedItem) As Byte()
-                                                Dim b() As Byte = Nothing
-                                                Me.Invoke(New MethodInvoker(Sub()
-                                                                                For i As Integer = 0 To ListViewFileSystem.SelectedItems.Count - 1
-                                                                                    Dim objs() As Object = CType(ListViewFileSystem.SelectedItems(i).Tag, Object())
-                                                                                    Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
+        If draggedItems.Count > 0 Then ListViewFileSystem.DoDragDrop(New DataObject(DataFormats.FileDrop, draggedItems.ToArray()), DragDropEffects.Move)
+    End Sub
 
-                                                                                    If selItem.FileName = entry.FullFileName AndAlso
-                                                                                        selItem.WriteTime = entry.WriteDateTime AndAlso
-                                                                                        selItem.FileSize = entry.FileSize Then
-                                                                                        b = sdf.ReadFile(selectedParitionIndex, entry)
-                                                                                    End If
-                                                                                Next
-                                                                            End Sub))
-
-                                                Return b
-                                            End Function)
-            dox.SetData(NativeMethods.CFSTR_FILEDESCRIPTORW, Nothing)
-            dox.SetData(NativeMethods.CFSTR_FILECONTENTS, Nothing)
-            dox.SetData(NativeMethods.CFSTR_PERFORMEDDROPEFFECT, Nothing)
-
-            'ListViewFileSystem.DoDragDrop(dox, DragDropEffects.All)
-            Clipboard.SetDataObject(dox)
-            isMouseDown = False
-        End If
+    Private Sub ListViewFileSystem_MouseDown(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseDown
+        isLeftMouseDown = (e.Button = MouseButtons.Left)
+        mouseDownLocation = e.Location
     End Sub
 
     Private Sub ListViewFileSystem_MouseUp(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseUp
-        If Clipboard.ContainsFileDropList() Then SendKeys.Send("^V")
-        isMouseDown = False
+        isLeftMouseDown = Not (e.Button = MouseButtons.Left)
+        If Not isLeftMouseDown Then
+            'draggedItems.ForEach(Sub(di) IO.File.Delete(di))
+            draggedItems.Clear()
+        End If
     End Sub
+
+    'Private Sub ListViewFileSystem_MouseMove(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseMove
+    '    If isMouseDown Then
+    '        Dim filesCount As Integer = ListViewFileSystem.SelectedItems.Count
+    '        Dim si(filesCount - 1) As DataObjectEx.SelectedItem
+
+    '        For i As Integer = 0 To ListViewFileSystem.SelectedItems.Count - 1
+    '            Dim objs() As Object = CType(ListViewFileSystem.SelectedItems(i).Tag, Object())
+    '            Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
+
+    '            si(i).FileName = entry.FullFileName
+    '            si(i).WriteTime = entry.WriteDateTime
+    '            si(i).FileSize = entry.FileSize
+    '        Next
+
+    '        Dim dox As New DataObjectEx(si, Function(selItem As DataObjectEx.SelectedItem) As Byte()
+    '                                            Dim b() As Byte = Nothing
+    '                                            Me.Invoke(New MethodInvoker(Sub()
+    '                                                                            For i As Integer = 0 To ListViewFileSystem.SelectedItems.Count - 1
+    '                                                                                Dim objs() As Object = CType(ListViewFileSystem.SelectedItems(i).Tag, Object())
+    '                                                                                Dim entry As FAT12_16.DirectoryEntry = CType(objs(1), FAT12_16.DirectoryEntry)
+
+    '                                                                                If selItem.FileName = entry.FullFileName AndAlso
+    '                                                                                    selItem.WriteTime = entry.WriteDateTime AndAlso
+    '                                                                                    selItem.FileSize = entry.FileSize Then
+    '                                                                                    b = sdf.ReadFile(selectedParitionIndex, entry)
+    '                                                                                End If
+    '                                                                            Next
+    '                                                                        End Sub))
+
+    '                                            Return b
+    '                                        End Function)
+    '        dox.SetData(NativeMethods.CFSTR_FILEDESCRIPTORW, Nothing)
+    '        dox.SetData(NativeMethods.CFSTR_FILECONTENTS, Nothing)
+    '        dox.SetData(NativeMethods.CFSTR_PERFORMEDDROPEFFECT, Nothing)
+
+    '        ListViewFileSystem.DoDragDrop(dox, DragDropEffects.All)
+    '        'Clipboard.SetDataObject(dox)
+    '        isMouseDown = False
+    '    End If
+    'End Sub
+
+    'Private Sub ListViewFileSystem_MouseUp(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseUp
+    '    'If Clipboard.ContainsFileDropList() Then SendKeys.Send("^V")
+    'End Sub
 End Class

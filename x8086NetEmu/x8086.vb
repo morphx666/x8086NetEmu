@@ -117,6 +117,7 @@ Public Class X8086
                    Optional int13 As Boolean = True,
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
                    Optional model As Models = Models.IBMPC_5160)
+
         mVic20 = v20
         mEmulateINT13 = int13
         reCallback = restartEmulationCallback

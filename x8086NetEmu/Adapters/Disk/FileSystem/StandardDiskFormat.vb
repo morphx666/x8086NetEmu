@@ -88,16 +88,22 @@ Public Class StandardDiskFormat
     Public Structure MBR
         <MarshalAs(UnmanagedType.ByValArray, SizeConst:=446)> Public BootCode() As Byte
         <MarshalAs(UnmanagedType.ByValArray, ArraySubType:=UnmanagedType.Struct, SizeConst:=4)> Public Partitions() As Partition
-        Public Signature As UInt16 ' AA55 = bootable
+        Public Signature As UInt16
+
+        Public ReadOnly Property IsBootable As Boolean
+            Get
+                Return Signature = &HAA55
+            End Get
+        End Property
     End Structure
 
     Private mMasterBootRecord As MBR
-    Private mBootSectors(4 - 1) As FAT12_16.BootSector ' FIXME: In case we wanted to support additional file systems we should use an inheritable class instead of hard coding it to FAT12/16
-    Private mFATDataPointers(4 - 1)() As UInt16
-    Private mRootDirectoryEntries(4 - 1)() As FAT12_16.DirectoryEntry
+    Private ReadOnly mBootSectors(4 - 1) As FAT12.BootSector ' FIXME: In case we wanted to support additional file systems we should use an inheritable class instead of hard coding it to FAT12/16
+    Private ReadOnly mFATDataPointers(4 - 1)() As UInt16
+    Private ReadOnly mRootDirectoryEntries(4 - 1)() As FAT12.DirectoryEntry
 
     Private strm As IO.Stream
-    Private fatRegionStart(4 - 1) As Long
+    Private ReadOnly fatRegionStart(4 - 1) As Long
 
     Public Sub New(s As IO.Stream)
         Dim pb As GCHandle
@@ -111,7 +117,7 @@ Public Class StandardDiskFormat
         strm.Position = 0
         strm.Read(b, 0, b.Length)
         pb = GCHandle.Alloc(b, GCHandleType.Pinned)
-        Dim bs As FAT12_16.BootSector = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.BootSector))
+        Dim bs As FAT12.BootSector = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
         pb.Free()
         If bs.BIOSParameterBlock.BytesPerSector = 512 Then
             LoadAsFloppyImage()
@@ -140,8 +146,9 @@ Public Class StandardDiskFormat
 
         strm.Position = 0
         strm.Read(b, 0, b.Length)
+
         pb = GCHandle.Alloc(b, GCHandleType.Pinned)
-        mBootSectors(0) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.BootSector))
+        mBootSectors(0) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
         pb.Free()
 
         Select Case mBootSectors(0).ExtendedBIOSParameterBlock.FileSystemType
@@ -166,22 +173,23 @@ Public Class StandardDiskFormat
         pb.Free()
 
         For partitionNumber As Integer = 0 To 4 - 1
-            If mMasterBootRecord.Partitions(partitionNumber).SystemId = StandardDiskFormat.SystemIds.FAT_12 OrElse mMasterBootRecord.Partitions(partitionNumber).SystemId = StandardDiskFormat.SystemIds.FAT_16 Then
-                strm.Position = mMasterBootRecord.Partitions(partitionNumber).RelativeSector * 512
-                strm.Read(b, 0, b.Length)
-                pb = GCHandle.Alloc(b, GCHandleType.Pinned)
-                mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.BootSector))
-                pb.Free()
+            Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
+                Case StandardDiskFormat.SystemIds.FAT_12, StandardDiskFormat.SystemIds.FAT_16, StandardDiskFormat.SystemIds.FAT_BIGDOS
+                    strm.Position = mMasterBootRecord.Partitions(partitionNumber).RelativeSector * 512
+                    strm.Read(b, 0, b.Length)
+                    pb = GCHandle.Alloc(b, GCHandleType.Pinned)
+                    mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
+                    pb.Free()
 
-                ReadFAT(partitionNumber)
-            End If
+                    ReadFAT(partitionNumber)
+            End Select
         Next
     End Sub
 
     Private Sub ReadFAT(partitionNumber As Integer)
         fatRegionStart(partitionNumber) = strm.Position
 
-        ReDim mFATDataPointers(partitionNumber)(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
+        ReDim mFATDataPointers(partitionNumber)(CInt(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT) * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mBootSectors(partitionNumber).ExtendedBIOSParameterBlock.FileSystemType
                 Case "FAT12" ' FIXME: FAT cluster chain is not correctly built when the file system if FAT12
@@ -198,14 +206,14 @@ Public Class StandardDiskFormat
         End If
     End Sub
 
-    Public Function GetDirectoryEntries(partitionNumber As Integer, Optional clusterIndex As Integer = -1) As FAT12_16.DirectoryEntry()
+    Public Function GetDirectoryEntries(partitionNumber As Integer, Optional clusterIndex As Integer = -1) As FAT12.DirectoryEntry()
         Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
         Dim pb As GCHandle
-        Dim des() As FAT12_16.DirectoryEntry = Nothing
+        Dim des() As FAT12.DirectoryEntry = Nothing
         Dim b(32 - 1) As Byte
         Dim bytesRead As UInt32
         Dim dirEntryCount As Integer = -1
-        Dim de As FAT12_16.DirectoryEntry
+        Dim de As FAT12.DirectoryEntry
 
         While clusterIndex < &HFFF8
             If clusterIndex = -1 Then
@@ -217,11 +225,11 @@ Public Class StandardDiskFormat
             Do
                 strm.Read(b, 0, b.Length)
                 Select Case b(0) ' First char of FileName
-                    Case 0 : Exit Do
+                    Case 0 : clusterIndex = -1 : Exit Do
                     Case 5 : b(0) = &HE5
                 End Select
                 pb = GCHandle.Alloc(b, GCHandleType.Pinned)
-                de = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12_16.DirectoryEntry))
+                de = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.DirectoryEntry))
                 pb.Free()
 
                 If de.StartingCluster > 0 Then
@@ -246,13 +254,13 @@ Public Class StandardDiskFormat
     End Function
 
     Private Function ClusterToSector(partitionNumber As Integer, clusterIndex As Integer) As Long
-        Dim bs As FAT12_16.BootSector = mBootSectors(partitionNumber)
+        Dim bs As FAT12.BootSector = mBootSectors(partitionNumber)
         Dim rootDirectoryRegionStart As Long = fatRegionStart(partitionNumber) + bs.BIOSParameterBlock.NumberOfFATCopies * bs.BIOSParameterBlock.SectorsPerFAT * bs.BIOSParameterBlock.BytesPerSector
         Dim dataRegionStart As Long = rootDirectoryRegionStart + bs.BIOSParameterBlock.RootEntries * 32
         Return dataRegionStart + (clusterIndex - 2) * bs.BIOSParameterBlock.SectorsPerCluster * bs.BIOSParameterBlock.BytesPerSector
     End Function
 
-    Public Function ReadFile(partitionNumber As Integer, de As FAT12_16.DirectoryEntry) As Byte()
+    Public Function ReadFile(partitionNumber As Integer, de As FAT12.DirectoryEntry) As Byte()
         Dim bytesInCluster As UInt32 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
         Dim clustersInFile As UInt32 = Math.Ceiling(de.FileSize / bytesInCluster)
         Dim b(clustersInFile * bytesInCluster - 1) As Byte
@@ -283,7 +291,7 @@ Public Class StandardDiskFormat
         End Get
     End Property
 
-    Public ReadOnly Property BootSector(partitionIndex As Integer) As FAT12_16.BootSector
+    Public ReadOnly Property BootSector(partitionIndex As Integer) As FAT12.BootSector
         Get
             Return mBootSectors(partitionIndex)
         End Get
@@ -308,7 +316,7 @@ Public Class StandardDiskFormat
         End Get
     End Property
 
-    Public ReadOnly Property RootDirectoryEntries(partitionIndex As Integer) As FAT12_16.DirectoryEntry()
+    Public ReadOnly Property RootDirectoryEntries(partitionIndex As Integer) As FAT12.DirectoryEntry()
         Get
             Return mRootDirectoryEntries(partitionIndex)
         End Get
