@@ -390,9 +390,8 @@ Public Class Scheduler
                 For i As Integer = 0 To inputBuf.Count - 1
                     evt = CType(inputBuf.Item(i), ExternalInputEvent)
                     evt.TimeStamp = mCurrentTime
-                    ' Tasks.Task.Run(Sub() evt.Handler.HandleInput(evt)) ' <- This freezes Windows 10!!!!
-                    Tasks.Task.Run(Sub() evt.Handler.HandleInput(evt))
-                    'evt.Handler.HandleInput(evt)
+                    'Tasks.Task.Run(Sub() evt.Handler.HandleInput(evt))
+                    evt.Handler.HandleInput(evt)
                 Next
                 inputBuf.Clear()
                 cleanInputBuf = inputBuf
