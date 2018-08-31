@@ -250,8 +250,6 @@ Public Class Scheduler
     End Sub
 
     Private Sub Wait(delay As Integer)
-        If delay > 1000 Then Exit Sub ' FIXME: Don't know why, sometimes, delay gets extremely large!
-
         Monitor.Enter(Me)
         Monitor.Wait(Me, delay)
         Monitor.Exit(Me)

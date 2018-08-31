@@ -574,7 +574,8 @@ Public Class X8086
         mDoReSchedule = False
 
         Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
-        If maxRunTime > Scheduler.BASECLOCK OrElse maxRunTime <= 0 Then maxRunTime = Scheduler.BASECLOCK
+        If maxRunTime <= 0 Then Exit Sub
+        If maxRunTime > Scheduler.BASECLOCK Then maxRunTime = Scheduler.BASECLOCK
         Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.BASECLOCK - 1) / Scheduler.BASECLOCK
 
         If mDebugMode Then

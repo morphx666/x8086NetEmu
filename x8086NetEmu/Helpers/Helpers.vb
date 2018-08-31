@@ -157,19 +157,19 @@
         opCodeSize += 1
     End Sub
 
-    Private Function To16bitsWithSign(v As UInt16) As UInt16
-        If (v And &H80US) <> 0 Then
-            Return &HFF00US Or v
+    Private Function To16bitsWithSign(v As UShort) As UInt16
+        If (v And &H80) <> 0 Then
+            Return &HFF00 Or v
         Else
-            Return v And &HFFUS
+            Return v
         End If
     End Function
 
-    Private Function To32bitsWithSign(v As UInt32) As UInt32
+    Private Function To32bitsWithSign(v As UInt16) As UInt32
         If (v And &H8000UI) <> 0 Then
             Return &HFFFF0000UI Or v
         Else
-            Return v And &HFFFFUI
+            Return v
         End If
     End Function
 

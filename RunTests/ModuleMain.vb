@@ -37,10 +37,8 @@ Module ModuleMain
         Next
         cpu.Close()
 
-#If DEBUG Then
         Console.WriteLine("Press any key to exit")
         Console.ReadKey()
-#End If
     End Sub
 
     Private Sub Compare()
