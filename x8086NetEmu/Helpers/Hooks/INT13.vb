@@ -62,7 +62,7 @@ Partial Public Class X8086
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
-                CopyToRAM(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
+                CopyToMemory(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
                 AL = bufSize / dskImg.SectorSize
 
             Case &H3 ' Write sectors
@@ -98,7 +98,7 @@ Partial Public Class X8086
                                 mRegisters.BX)
 
                 Dim buf(bufSize - 1) As Byte
-                CopyFromRAM(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
+                CopyFromMemory(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
                 ret = dskImg.Write(offset, buf)
                 If ret = DiskImage.EIO Then
                     X8086.Notify("Write Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)
@@ -278,7 +278,7 @@ Partial Public Class X8086
                 buf(buf.Length - 3) = ecc(0)
                 buf(buf.Length - 2) = ecc(3)
                 buf(buf.Length - 1) = ecc(2)
-                CopyToRAM(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
+                CopyToMemory(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
                 AL = bufSize \ dskImg.SectorSize
 
             Case &HC ' Seek to Cylinder
@@ -378,7 +378,7 @@ Partial Public Class X8086
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
-                CopyToRAM(buf, X8086.SegmentOffetToAbsolute(seg, off))
+                CopyToMemory(buf, X8086.SegmentOffetToAbsolute(seg, off))
                 AL = bufSize / dskImg.SectorSize
 
             Case &H43 ' Extended Sectors Write
@@ -411,7 +411,7 @@ Partial Public Class X8086
                                 off)
 
                 Dim buf(bufSize - 1) As Byte
-                CopyFromRAM(buf, X8086.SegmentOffetToAbsolute(seg, off))
+                CopyFromMemory(buf, X8086.SegmentOffetToAbsolute(seg, off))
                 ret = dskImg.Write(offset, buf)
                 If ret = DiskImage.EIO Then
                     X8086.Notify("Write Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)

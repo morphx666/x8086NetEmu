@@ -4,6 +4,7 @@
 
     Public Memory(MemSize - 1) As Byte
 
+    Private address As UInt32
     Private Const shl2 As UInt16 = 1 << 2
     Private Const shl3 As UInt16 = 1 << 3
 
@@ -328,24 +329,24 @@
         fileName = X8086.FixPath(fileName)
 
         If IO.File.Exists(fileName) Then
-            CopyToRAM(IO.File.ReadAllBytes(fileName), segment, offset)
+            CopyToMemory(IO.File.ReadAllBytes(fileName), segment, offset)
         Else
             ThrowException("File Not Found: " + vbCrLf + fileName)
         End If
     End Sub
 
-    Public Sub CopyToRAM(bytes() As Byte, segment As UInt16, offset As UInt16)
-        CopyToRAM(bytes, X8086.SegmentOffetToAbsolute(segment, offset))
+    Public Sub CopyToMemory(bytes() As Byte, segment As UInt16, offset As UInt16)
+        CopyToMemory(bytes, X8086.SegmentOffetToAbsolute(segment, offset))
     End Sub
 
-    Public Sub CopyToRAM(bytes() As Byte, address As UInt32)
+    Public Sub CopyToMemory(bytes() As Byte, address As UInt32)
         ' TODO: We need to implement some checks to prevent loading code into ROM areas.
         '       Something like this, for example:
-        '       If address + bytes.Length >= ROMStart Then Stop
+        '       If address + bytes.Length >= ROMStart Then ...
         Array.Copy(bytes, 0, Memory, address, bytes.Length)
     End Sub
 
-    Public Sub CopyFromRAM(bytes() As Byte, address As UInt32)
+    Public Sub CopyFromMemory(bytes() As Byte, address As UInt32)
         Array.Copy(Memory, address, bytes, 0, bytes.Length)
     End Sub
 
@@ -378,15 +379,15 @@
     End Function
 
     Public Shared Function SegmentOffetToAbsolute(segment As UInt16, offset As UInt16) As UInt32
-        Return (CUInt(segment) << 4) + offset
+        Return (CUInt(segment) << 4UI) + offset
     End Function
 
     Public Shared Function AbsoluteToSegment(address As UInt32) As UInt16
-        Return (address >> 4) And &HFFF00
+        Return (address >> 4UI) And &HFFF00UI
     End Function
 
     Public Shared Function AbsoluteToOffset(address As UInt32) As UInt16
-        Return address And &HFFF
+        Return address And &HFFFUI
     End Function
 
     Public Property RAM(address As UInt32) As Byte
@@ -401,14 +402,11 @@
             Return Memory(address And &HFFFFFUI) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
         End Get
         Set(value As Byte)
-            'If address >= ROMStart OrElse Memory(address) = value Then Exit Property
-            If address >= ROMStart Then Exit Property
-
             For i As Integer = 0 To memHooks.Count - 1
                 If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property
             Next
 
-            Memory(address) = value
+            If address < ROMStart Then Memory(address) = value
 
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set
@@ -425,11 +423,11 @@
 
     Public Property RAM16(segment As UInt16, offset As UInt16, Optional inc As Byte = 0) As UInt16
         Get
-            Dim address As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
-            Return (CUInt(RAM(address + 1UI)) << 8UI Or RAM(address))
+            address = SegmentOffetToAbsolute(segment, offset + inc)
+            Return (CUInt(RAM(address + 1UI)) << 8UI) Or RAM(address)
         End Get
         Set(value As UInt16)
-            Dim address As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
+            address = SegmentOffetToAbsolute(segment, offset + inc)
             RAM(address) = value
             RAM(address + 1UI) = (value >> 8UI)
         End Set

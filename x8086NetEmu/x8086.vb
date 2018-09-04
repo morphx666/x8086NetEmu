@@ -1354,12 +1354,7 @@ Public Class X8086
                 clkCyc += 3
 
             Case &H98 ' cbw
-                If (mRegisters.AL And &H80) = &H80 Then
-                    mRegisters.AH = &HFF
-                Else
-                    mRegisters.AH = &H0
-                End If
-                'mRegisters.AX = To16bitsWithSign(mRegisters.AL)
+                mRegisters.AX = To16bitsWithSign(mRegisters.AL)
                 clkCyc += 2
 
             Case &H99 ' cwd
@@ -1438,8 +1433,9 @@ Public Class X8086
                 End If
 
             Case &HC2 ' ret (ret n) within segment adding imm to sp
+                tmpVal = Param(SelPrmIndex.First, , DataSize.Word)
                 IPAddrOffet = PopFromStack()
-                mRegisters.SP += Param(SelPrmIndex.First, , DataSize.Word)
+                mRegisters.SP += tmpVal
                 clkCyc += 20
 
             Case &HC3 ' ret within segment
@@ -2046,7 +2042,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                If Not mVic20 Then mFlags.ZF = If(tmpVal <> 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
+                If mVic20 Then mFlags.ZF = If(tmpVal <> 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
 
             Case 5 ' 101    --  imul
                 If addrMode.IsDirect Then

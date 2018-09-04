@@ -259,7 +259,7 @@ Public Class FormEmulator
         cpu.Adapters.Add(New AdlibAdapter(cpu))
 #End If
 
-        cpu.VideoAdapter.AutoSize()
+        cpu.VideoAdapter?.AutoSize()
 
         X8086.LogToConsole = False
 

@@ -28,13 +28,18 @@ Module ModuleMain
         Dim startIndex As Integer
         Dim endIndex As Integer
 
+        Dim comment As String
+
         src = src.Replace(" : ", "' " + vbCrLf)
         Dim eof As Integer = src.IndexOf("If useIPAddrOffset Then", p1)
         needle = "Case &H"
 
         Dim addSubCall = Sub(addComment As Boolean, v As Integer)
                              subCalls(v) = $"AddressOf {subName},"
-                             If addComment Then subCalls(v) += $"{vbTab}{src.Substring(p2, p3 - p2)}"
+                             If addComment Then
+                                 comment = $"{vbTab}{src.Substring(p2, p3 - p2)}"
+                                 subCalls(v) += comment
+                             End If
                          End Sub
 
         Dim addSubCalls = Sub(fName As String, range As Boolean)
@@ -58,12 +63,12 @@ Module ModuleMain
                             p2 = src.IndexOf("Case &H", p3)
                             If p2 > eof Then p2 = src.IndexOf("Case Else", p3) - Len("Case Else")
                             tmp = src.Substring(p3, p2 - p3).Trim().Replace("Exit Select", "Exit Sub")
-                            subBody += subSkel.Replace("%1", subName).Replace("%2", tmp) + vbCrLf + vbCrLf
+                            subBody += subSkel.Replace("%1", subName + comment).Replace("%2", tmp) + vbCrLf + vbCrLf
                         End Sub
 
         Dim parseCase = Sub()
                             startIndex = Integer.Parse(tokens(0).Replace("&H", ""), Globalization.NumberStyles.HexNumber)
-                            subName = $"_{tokens(0).Replace("&H", "").PadLeft(2, "0")}"
+                            subName += $"_{tokens(0).Replace("&H", "").PadLeft(2, "0")}"
                         End Sub
 
         Dim parseCaseTo = Sub()
@@ -76,7 +81,7 @@ Module ModuleMain
                                  Dim subTokens() As String
                                  Dim fName As String = ""
 
-                                 If tmp.Contains("A4") Then Stop
+                                 'If tmp.Contains("C0") Then Stop
 
                                  subTokens = tmp.Split(","c)
                                  ReDim tokens(0)
@@ -101,6 +106,9 @@ Module ModuleMain
                              End Sub
 
         Do
+            comment = ""
+            subName = ""
+
             p1 = src.IndexOf(needle, p1) + needle.Length
             p2 = src.IndexOf("'", p1)
             p3 = src.IndexOf(vbCr, p2)
