@@ -8,15 +8,15 @@
     Private frameRate As Integer = 30
     Private cursorAddress As New List(Of Integer)
 
-    Private preferredFont As String = "Perfect DOS VGA 437"
+    Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
     Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
-    Private brushCache(CGAPalette.Length - 1) As Color
+    Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
     Private cursorBrush As Color = Color.FromArgb(128, Color.White)
     Private cursorYOffset As Integer
 
-    Private fontSourceMode As FontSources
+    Private ReadOnly fontSourceMode As FontSources
     Private g As Graphics
 
     Private scale As New SizeF(1, 1)
@@ -215,7 +215,7 @@
             For x As Integer = 0 To GraphicsResolution.Width - 1
                 Select Case mVideoMode
                     Case 4, 5
-                        b = mCPU.ram(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> 2))
+                        b = mCPU.RAM(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> 2))
                         Select Case x And 3
                             Case 3 : b = b And 3
                             Case 2 : b = (b >> 2) And 3
@@ -260,7 +260,7 @@
                     Case &H13
                         If planeMode Then
                             address = ((y * mVideoResolution.Width + x) >> 2) + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And 15)
-                            b = VRAM(address)
+                            b = vRAM(address)
                         Else
                             b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)
                         End If
@@ -305,9 +305,9 @@
 
         UpdateCursorState()
 
-        For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
-            b0 = mCPU.Memory(address)
-            b1 = mCPU.Memory(address + 1)
+        For address As Integer = 0 To MEMSIZE - 2 Step 2
+            b0 = vRAM(address)
+            b1 = vRAM(address + 1)
 
             If mVideoMode = 7 OrElse mVideoMode = 127 Then
                 If (b1 And &H70) <> 0 Then

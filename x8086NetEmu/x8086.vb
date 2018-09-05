@@ -232,6 +232,12 @@ Public Class X8086
         Return True
     End Function
 
+    Public Function TryDetachHook(memHandler As MemHandler) As Boolean
+        If Not memHooks.Contains(memHandler) Then Return False
+        memHooks.Remove(memHandler)
+        Return True
+    End Function
+
     Public Shared ReadOnly Property IsRunningOnMono As Boolean
         Get
             Return Type.GetType("Mono.Runtime") IsNot Nothing

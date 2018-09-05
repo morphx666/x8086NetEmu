@@ -202,10 +202,7 @@ Public Class CGAWinForms
         If VideoEnabled Then
             SyncLock videoBMP
                 Select Case MainMode
-                    Case MainModes.Text
-                        Try ' FIXME: Fix the issues instead of ignoring them! (VideoChar.Paint generates an exception every time the resolution is changed)
-                            RenderText()
-                        Catch : End Try
+                    Case MainModes.Text : RenderText()
                     Case MainModes.Graphics : RenderGraphics()
                 End Select
             End SyncLock

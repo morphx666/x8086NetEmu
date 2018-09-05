@@ -6,7 +6,7 @@ Public MustInherit Class CGAAdapter
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
-    Protected Const MEMSIZE As UInt16 = &H4000
+    Protected MEMSIZE As UInt32 = &H4000
     Protected Const ht As Long = Scheduler.BASECLOCK \ HORIZSYNC
     Protected Const vt As Long = (Scheduler.BASECLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
 
@@ -123,8 +123,8 @@ Public MustInherit Class CGAAdapter
 
     Private mCPU As X8086
     Protected vRAM(MEMSIZE - 1) As Byte
-
     Private Const vidModeChangeFlag As Integer = &B1000
+    Protected ReadOnly cgaMemHook As X8086.MemHandler
 
     Public MustOverride Overrides Sub AutoSize()
     Protected MustOverride Sub Render()
@@ -146,31 +146,33 @@ Public MustInherit Class CGAAdapter
             End If
         Next
 
-        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
-                                                    Select Case mMainMode
-                                                        Case MainModes.Text
-                                                            If address >= mStartTextVideoAddress AndAlso address < mEndTextVideoAddress Then
-                                                                Select Case mode
-                                                                    Case X8086.MemHookMode.Read
-                                                                        value = vRAM(address - mStartTextVideoAddress)
-                                                                    Case X8086.MemHookMode.Write
-                                                                        vRAM(address - mStartTextVideoAddress) = value
-                                                                End Select
-                                                                Return True
-                                                            End If
-                                                        Case MainModes.Graphics
-                                                            If address >= mStartGraphicsVideoAddress AndAlso address < mEndGraphicsVideoAddress Then
-                                                                Select Case mode
-                                                                    Case X8086.MemHookMode.Read
-                                                                        value = vRAM(address - mStartGraphicsVideoAddress)
-                                                                    Case X8086.MemHookMode.Write
-                                                                        vRAM(address - mStartGraphicsVideoAddress) = value
-                                                                End Select
-                                                                Return True
-                                                            End If
-                                                    End Select
-                                                    Return False
-                                                End Function))
+        cgaMemHook = New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
+                                              Select Case mMainMode
+                                                  Case MainModes.Text
+                                                      If address >= mStartTextVideoAddress AndAlso address <= mEndTextVideoAddress Then
+                                                          Select Case mode
+                                                              Case X8086.MemHookMode.Read
+                                                                  value = vRAM(address - mStartTextVideoAddress)
+                                                              Case X8086.MemHookMode.Write
+                                                                  vRAM(address - mStartTextVideoAddress) = value
+                                                          End Select
+                                                          Return True
+                                                      End If
+                                                  Case MainModes.Graphics
+                                                      If address >= mStartGraphicsVideoAddress AndAlso address <= mEndGraphicsVideoAddress Then
+                                                          Select Case mode
+                                                              Case X8086.MemHookMode.Read
+                                                                  value = vRAM(address - mStartGraphicsVideoAddress)
+                                                              Case X8086.MemHookMode.Write
+                                                                  vRAM(address - mStartGraphicsVideoAddress) = value
+                                                          End Select
+                                                          Return True
+                                                      End If
+                                              End Select
+                                              Return False
+                                          End Function)
+
+        mCPU.TryAttachHook(cgaMemHook)
 
         waiter = New AutoResetEvent(False)
         Reset()
