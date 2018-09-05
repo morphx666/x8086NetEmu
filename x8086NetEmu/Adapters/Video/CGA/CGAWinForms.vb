@@ -221,9 +221,9 @@ Public Class CGAWinForms
 
         Dim r As New Rectangle(Point.Empty, mCellSize)
 
-        For address As Integer = StartTextVideoAddress To EndTextVideoAddress Step 2
-            b0 = mCPU.Memory(address)
-            b1 = mCPU.Memory(address + 1)
+        For address As Integer = 0 To MEMSIZE - 2 Step 2
+            b0 = vRAM(address)
+            b1 = vRAM(address + 1)
 
             If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
                 If (blinkCounter < BlinkRate) Then b0 = 0
@@ -271,8 +271,8 @@ Public Class CGAWinForms
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1
-                address = StartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
-                b = CPU.Memory(address)
+                address = ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
+                b = vRAM(address)
 
                 If PixelsPerByte = 4 Then
                     Select Case x And 3

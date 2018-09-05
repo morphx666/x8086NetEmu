@@ -145,8 +145,8 @@ Public Class CGAConsole
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1
-                address = StartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
-                b = CPU.Memory(address)
+                address = ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
+                b = vRAM(address)
 
                 If PixelsPerByte = 4 Then
                     Select Case x And 3
@@ -176,9 +176,9 @@ Public Class CGAConsole
 
         ' The "-4" is to prevent the code from printing the last character and avoid scrolling.
         ' Unfortunately, this causes the last char to not be printed
-        For address As Integer = StartTextVideoAddress To StartTextVideoAddress + buffer.Length - 4 Step 2
-            b0 = CPU.RAM(address)
-            b1 = CPU.RAM(address + 1)
+        For address As Integer = 0 To MEMSIZE + buffer.Length - 4 Step 2
+            b0 = vRAM(address)
+            b1 = vRAM(address + 1)
 
             If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
 

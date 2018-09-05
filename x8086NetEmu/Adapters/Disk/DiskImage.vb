@@ -37,7 +37,7 @@ Public Class DiskImage
     Protected Friend mSectorSize As UInt16
     Protected Friend mReadOnly As Boolean
     Protected Friend mStatus As ImageStatus = ImageStatus.NoDisk
-    Protected Friend mFileLength As Long
+    Protected Friend mFileLength As ULong
     Protected Friend mIsHardDisk As Boolean
     Protected Friend mFileName As String
     Protected Friend mDriveType As DriveTypes
@@ -247,7 +247,7 @@ Public Class DiskImage
         Return True
     End Function
 
-    Public Function LBA(cylinder As UInt16, head As UInt16, sector As UInt16) As Long
+    Public Function LBA(cylinder As UInt16, head As UInt16, sector As UInt16) As ULong
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         cylinder = cylinder Or ((sector And &HC0) << 2)
@@ -267,13 +267,13 @@ Public Class DiskImage
         End Try
     End Sub
 
-    Public ReadOnly Property FileLength() As Long
+    Public ReadOnly Property FileLength() As ULong
         Get
             Return mFileLength
         End Get
     End Property
 
-    Public Overridable Function Read(offset As Long, data() As Byte) As Integer
+    Public Overridable Function Read(offset As ULong, data() As Byte) As Integer
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         If offset < 0 OrElse offset + data.Length > mFileLength Then Return EOF
@@ -288,7 +288,7 @@ Public Class DiskImage
         End Try
     End Function
 
-    Public Overridable Function Write(offset As Long, data() As Byte) As Integer
+    Public Overridable Function Write(offset As ULong, data() As Byte) As Integer
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         If offset < 0 OrElse offset + data.Length > mFileLength Then Return EOF

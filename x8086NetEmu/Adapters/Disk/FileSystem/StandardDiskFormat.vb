@@ -2,6 +2,7 @@
 
 ' http://www.maverick-os.dk/Mainmenu_NoFrames.html
 ' http://www.patersontech.com/dos/byte%E2%80%93inside-look.aspx
+' https://506889e3-a-62cb3a1a-s-sites.googlegroups.com/site/pcdosretro/fatgen.pdf?attachauth=ANoY7cr_oPcwxUv1I3jB9eaDf2z368nLQUQBc6_zKTfZw8FAs47xAK7Mf3btR_bQEpE5UwDLFgDJrTMovoZOrlC4Eg2qMn935KsT6IAvl5GxhoO_fqmzH7lcAY-7u9y-pbrUKVweCor3XkJPcSg1p-c7COBrRPjHhCgmAIJz1KCZ0iDBzxeE-pGWJ7gbj9-51DovkOLBzmYEcdJVH8xGIwGR_qufNhUuvQ%3D%3D&attredirects=0
 
 Public Class StandardDiskFormat
     Private geometryTable(,) As Integer = {

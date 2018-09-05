@@ -31,7 +31,7 @@ Public Class HostFolderAsDisk
         X8086.Notify("DiskImage '{0}': {1}", X8086.NotificationReasons.Info, mFileName, mStatus.ToString())
     End Sub
 
-    Public Overrides Function Read(offset As Long, data() As Byte) As Integer
+    Public Overrides Function Read(offset As ULong, data() As Byte) As Integer
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         If offset < 0 OrElse offset + data.Length > mFileLength Then Return EOF
@@ -46,7 +46,7 @@ Public Class HostFolderAsDisk
         End Try
     End Function
 
-    Public Overrides Function Write(offset As Long, data() As Byte) As Integer
+    Public Overrides Function Write(offset As ULong, data() As Byte) As Integer
         'If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         'If offset < 0 OrElse offset + data.Length > mFileLength Then Return EOF

@@ -372,6 +372,7 @@ Public Class FormDebugger
 
     Private Function EvaluateExpression(value As String) As EvaluateResult
         If value = "" Then Return New EvaluateResult()
+        value = value.ToUpper()
         Dim result As Integer = 0
 
         If value.Contains("AS") Then

@@ -6,8 +6,9 @@ Public MustInherit Class CGAAdapter
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
-    Protected ht As Long = Scheduler.BASECLOCK \ HORIZSYNC
-    Protected vt As Long = (Scheduler.BASECLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
+    Protected Const MEMSIZE As UInt16 = &H4000
+    Protected Const ht As Long = Scheduler.BASECLOCK \ HORIZSYNC
+    Protected Const vt As Long = (Scheduler.BASECLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
 
     Public Enum VideoModes
         Mode0_Text_BW_40x25 = &H4
@@ -82,6 +83,11 @@ Public MustInherit Class CGAAdapter
         blue_border_in_40x25_or_blue_background_in_320x200_or_blue_foreground_in_640x200 = 0
     End Enum
 
+    Private ReadOnly CtrlMask() As Byte = {
+        &HFF, &HFF, &HFF, &HFF, &H7F, &H1F, &H7F, &H7F, &HF3, &H1F, &H7F, &H1F, &H3F, &HFF, &H3F, &HFF,
+        &HFF, &HFF, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0
+    }
+
     Protected Friend CRT6845IndexRegister As Byte = 0
     Protected Friend CRT6845DataRegister(256 - 1) As Byte
 
@@ -109,13 +115,14 @@ Public MustInherit Class CGAAdapter
     Protected videoBMP As DirectBitmap = New DirectBitmap(1, 1)
     Private waiter As AutoResetEvent
     Protected cancelAllThreads As Boolean
-    Private useInternalTimer As Boolean
+    Private ReadOnly useInternalTimer As Boolean
 
     'Public Event VideoRefreshed(sender As Object)
 
     Protected chars(256 - 1) As Char
 
     Private mCPU As X8086
+    Protected vRAM(MEMSIZE - 1) As Byte
 
     Private Const vidModeChangeFlag As Integer = &B1000
 
@@ -138,6 +145,32 @@ Public MustInherit Class CGAAdapter
                 chars(i) = " "
             End If
         Next
+
+        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
+                                                    Select Case mMainMode
+                                                        Case MainModes.Text
+                                                            If address >= mStartTextVideoAddress AndAlso address < mEndTextVideoAddress Then
+                                                                Select Case mode
+                                                                    Case X8086.MemHookMode.Read
+                                                                        value = vRAM(address - mStartTextVideoAddress)
+                                                                    Case X8086.MemHookMode.Write
+                                                                        vRAM(address - mStartTextVideoAddress) = value
+                                                                End Select
+                                                                Return True
+                                                            End If
+                                                        Case MainModes.Graphics
+                                                            If address >= mStartGraphicsVideoAddress AndAlso address < mEndGraphicsVideoAddress Then
+                                                                Select Case mode
+                                                                    Case X8086.MemHookMode.Read
+                                                                        value = vRAM(address - mStartGraphicsVideoAddress)
+                                                                    Case X8086.MemHookMode.Write
+                                                                        vRAM(address - mStartGraphicsVideoAddress) = value
+                                                                End Select
+                                                                Return True
+                                                            End If
+                                                    End Select
+                                                    Return False
+                                                End Function))
 
         waiter = New AutoResetEvent(False)
         Reset()
@@ -410,18 +443,13 @@ Public MustInherit Class CGAAdapter
         Return &HFF
     End Function
 
-    Private ctrlMask() As Byte = {
-        &HFF, &HFF, &HFF, &HFF, &H7F, &H1F, &H7F, &H7F, &HF3, &H1F, &H7F, &H1F, &H3F, &HFF, &H3F, &HFF,
-        &HFF, &HFF, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0, &H0
-    }
-
     Public Overrides Sub Out(port As UInt32, value As UInt32)
         Select Case port
             Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
                 CRT6845IndexRegister = value And 31
 
             Case &H3D1, &H3D3, &H3D5, &H3D7 ' CRT (6845) data register
-                CRT6845DataRegister(CRT6845IndexRegister) = value And ctrlMask(CRT6845IndexRegister)
+                CRT6845DataRegister(CRT6845IndexRegister) = value And CtrlMask(CRT6845IndexRegister)
                 OnDataRegisterChanged()
 
             Case &H3D8 ' CGA mode control register  (except PCjr)

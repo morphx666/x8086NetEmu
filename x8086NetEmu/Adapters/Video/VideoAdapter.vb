@@ -43,8 +43,8 @@
     Public MustOverride Sub Reset()
     Public MustOverride Sub AutoSize()
 
-    Protected mStartTextVideoAddress As Integer
-    Protected mEndTextVideoAddress As Integer
+    Protected mStartTextVideoAddress As Integer = &HB0000
+    Protected mEndTextVideoAddress As Integer = &HA0000
 
     Protected mStartGraphicsVideoAddress As Integer
     Protected mEndGraphicsVideoAddress As Integer
