@@ -699,6 +699,7 @@ Public Class X8086
 
             Case &H7 ' pop es
                 mRegisters.ES = PopFromStack()
+                ignoreINTs = True
                 clkCyc += 8
 
             Case &H8 To &HB ' or
@@ -735,6 +736,7 @@ Public Class X8086
             Case &HF ' pop cs
                 If Not mVic20 Then
                     mRegisters.CS = PopFromStack()
+                    ignoreINTs = True
                     clkCyc += 8
                 End If
 
@@ -773,6 +775,7 @@ Public Class X8086
                 mRegisters.SS = PopFromStack()
                 ' Lesson 4: http://ntsecurity.nu/onmymind/2007/2007-08-22.html
                 ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
+                ' http://www.vcfed.org/forum/archive/index.php/t-41453.html
                 ignoreINTs = True
                 clkCyc += 8
 
@@ -809,6 +812,7 @@ Public Class X8086
 
             Case &H1F ' pop ds
                 mRegisters.DS = PopFromStack()
+                ignoreINTs = True
                 clkCyc += 8
 
             Case &H20 To &H23 ' and reg/mem and reg to either
@@ -1339,7 +1343,9 @@ Public Class X8086
                 End If
                 ignoreINTs = ignoreINTs Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.CS) Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.SS)
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
 
             Case &H8F ' pop reg/mem
                 SetAddressing()
@@ -1396,7 +1402,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9F ' lahf
-                mRegisters.AH = mFlags.EFlags And &HFF
+                mRegisters.AH = mFlags.EFlags
                 clkCyc += 4
 
             Case &HA0 To &HA3 ' mov mem to acc | mov acc to mem
@@ -1458,6 +1464,7 @@ Public Class X8086
                 End If
                 mRegisters.Val(addrMode.Register1) = addrMode.IndMem
                 mRegisters.Val(If(opCode = &HC4, GPRegisters.RegistersTypes.ES, GPRegisters.RegistersTypes.DS)) = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
+                ignoreINTs = True
                 clkCyc += 16
 
             Case &HC6 To &HC7 ' mov imm to reg/mem
@@ -2306,7 +2313,7 @@ Public Class X8086
             ExecStringOpCode()
         Else
             While mRegisters.CX > 0
-                mRegisters.CX -= 1 ' We don't really need all the safety checks from AddValues(mRegisters.CX, -1, DataSize.Word)
+                mRegisters.CX -= 1
                 If ExecStringOpCode() Then
                     If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
                         (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
