@@ -149,7 +149,7 @@ Public MustInherit Class CGAAdapter
         cgaMemHook = New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
                                               Select Case mMainMode
                                                   Case MainModes.Text
-                                                      If address >= mStartTextVideoAddress AndAlso address <= mEndTextVideoAddress Then
+                                                      If address >= mStartTextVideoAddress AndAlso address < mEndTextVideoAddress Then
                                                           Select Case mode
                                                               Case X8086.MemHookMode.Read
                                                                   value = vRAM(address - mStartTextVideoAddress)
@@ -159,7 +159,7 @@ Public MustInherit Class CGAAdapter
                                                           Return True
                                                       End If
                                                   Case MainModes.Graphics
-                                                      If address >= mStartGraphicsVideoAddress AndAlso address <= mEndGraphicsVideoAddress Then
+                                                      If address >= mStartGraphicsVideoAddress AndAlso address < mEndGraphicsVideoAddress Then
                                                           Select Case mode
                                                               Case X8086.MemHookMode.Read
                                                                   value = vRAM(address - mStartGraphicsVideoAddress)

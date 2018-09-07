@@ -305,7 +305,7 @@
         mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
                                                     Select Case mMainMode
                                                         Case MainModes.Text
-                                                            If address >= mStartTextVideoAddress AndAlso address <= mEndTextVideoAddress Then
+                                                            If address >= mStartTextVideoAddress AndAlso address < mEndTextVideoAddress Then
                                                                 Select Case mode
                                                                     Case X8086.MemHookMode.Read
                                                                         value = Read(address - mStartTextVideoAddress)
@@ -316,7 +316,7 @@
                                                             End If
                                                             Return False
                                                         Case MainModes.Graphics
-                                                            If address >= mStartGraphicsVideoAddress AndAlso address <= mEndGraphicsVideoAddress Then
+                                                            If address >= mStartGraphicsVideoAddress AndAlso address < mEndGraphicsVideoAddress Then
                                                                 Select Case mode
                                                                     Case X8086.MemHookMode.Read
                                                                         If (mVideoMode = &HD) OrElse (mVideoMode = &HE) OrElse (mVideoMode = &H10) OrElse (mVideoMode = &H12) Then

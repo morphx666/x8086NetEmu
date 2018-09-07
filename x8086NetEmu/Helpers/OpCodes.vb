@@ -1124,9 +1124,8 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _C2()   ' ret (ret n) within segment adding imm to sp
-        tmpVal = Param(SelPrmIndex.First, , DataSize.Word)
         IPAddrOffet = PopFromStack()
-        mRegisters.SP += tmpVal
+        mRegisters.SP += Param(SelPrmIndex.First, , DataSize.Word)
         clkCyc += 20
     End Sub
 
