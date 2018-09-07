@@ -550,7 +550,7 @@ Public Class X8086
 
     Private Sub FlushCycles()
         Dim t As ULong = clkCyc * Scheduler.BASECLOCK + leftCycleFrags
-        Sched.AdvanceTime(t / mCyclesPerSecond)
+        Sched.AdvanceTime(t \ mCyclesPerSecond)
         leftCycleFrags = t Mod mCyclesPerSecond
         clkCyc = 0
 

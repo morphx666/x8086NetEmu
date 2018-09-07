@@ -60,8 +60,10 @@ Public Class SpeakerAdpater
             Return mFrequency
         End Get
         Set(value As Double)
-            mFrequency = value
-            UpdateWaveformParameters()
+            If mFrequency <> value Then
+                mFrequency = value
+                UpdateWaveformParameters()
+            End If
         End Set
     End Property
 
