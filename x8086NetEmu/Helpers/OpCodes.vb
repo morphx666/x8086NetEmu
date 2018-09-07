@@ -999,7 +999,9 @@ AddressOf _FE_FF}
             mRegisters.Val(addrMode.Register2) = addrMode.IndMem
             clkCyc += 8
         End If
-        ignoreINTs = ignoreINTs Or (addrMode.Register2 = GPRegisters.RegistersTypes.CS)
+        ignoreINTs = ignoreINTs Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.CS) Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.SS)
     End Sub
 
     Private Sub _8F()   ' pop reg/mem

@@ -1337,7 +1337,9 @@ Public Class X8086
                     mRegisters.Val(addrMode.Register2) = addrMode.IndMem
                     clkCyc += 8
                 End If
-                ignoreINTs = ignoreINTs Or (addrMode.Register2 = GPRegisters.RegistersTypes.CS)
+                ignoreINTs = ignoreINTs Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.CS) Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.SS)
 
             Case &H8F ' pop reg/mem
                 SetAddressing()
