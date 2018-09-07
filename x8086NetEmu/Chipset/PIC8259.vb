@@ -138,19 +138,19 @@
         If (port And 1) = 0 Then
             ' A0 = 0
             If (value And &H10) <> 0 Then
-                doICW1(value)
+                DoICW1(value)
             ElseIf (value And &H8) = 0 Then
-                doOCW2(value)
+                DoOCW2(value)
             Else
-                doOCW3(value)
+                DoOCW3(value)
             End If
         Else
             ' A0 == 1
             Select Case state
-                Case States.ICW2 : doICW2(value)
-                Case States.ICW3 : doICW3(value)
-                Case States.ICW4 : doICW4(value)
-                Case Else : doOCW1(value)
+                Case States.ICW2 : DoICW2(value)
+                Case States.ICW3 : DoICW3(value)
+                Case States.ICW4 : DoICW4(value)
+                Case Else : DoOCW1(value)
             End Select
         End If
     End Sub
@@ -168,7 +168,7 @@
         If master IsNot Nothing Then master.slave(cascadeId) = Me
     End Sub
 
-    Private Sub doICW1(v As Integer)
+    Private Sub DoICW1(v As Integer)
         state = States.ICW2
         rIMR = 0
         rISR = 0
@@ -189,12 +189,12 @@
         If master IsNot Nothing Then UpdateSlaveOutput()
     End Sub
 
-    Private Sub doICW2(v As Integer)
+    Private Sub DoICW2(v As Integer)
         baseVector = v And &HF8
         state = If(expectICW3, If(expectICW4, States.ICW4, States.Ready), States.ICW3)
     End Sub
 
-    Private Sub doICW3(v As Integer)
+    Private Sub DoICW3(v As Integer)
         slaveInput = v
         If master IsNot Nothing Then master.slave(cascadeId) = Nothing
         cascadeId = v And &H7
@@ -202,18 +202,18 @@
         state = If(expectICW4, States.ICW4, States.Ready)
     End Sub
 
-    Private Sub doICW4(v As Integer)
+    Private Sub DoICW4(v As Integer)
         specialNest = (v And &H10) <> 0
         autoEOI = (v And &H2) <> 0
         state = States.Ready
     End Sub
 
-    Private Sub doOCW1(v As Integer)
+    Private Sub DoOCW1(v As Integer)
         rIMR = v
         If master IsNot Nothing Then UpdateSlaveOutput()
     End Sub
 
-    Private Sub doOCW2(v As Integer)
+    Private Sub DoOCW2(v As Integer)
         Dim irq As Integer = v And &H7
         Dim rotate As Boolean = (v And &H80) <> 0
         Dim specific As Boolean = (v And &H40) <> 0
@@ -244,7 +244,7 @@
         End If
     End Sub
 
-    Private Sub doOCW3(v As Integer)
+    Private Sub DoOCW3(v As Integer)
         If (v And &H40) <> 0 Then
             specialMask = (v And &H20) <> 0
             If master IsNot Nothing Then UpdateSlaveOutput()

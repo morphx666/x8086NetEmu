@@ -1439,9 +1439,8 @@ Public Class X8086
                 End If
 
             Case &HC2 ' ret (ret n) within segment adding imm to sp
-                tmpVal = Param(SelPrmIndex.First, , DataSize.Word)
                 IPAddrOffet = PopFromStack()
-                mRegisters.SP += tmpVal
+                mRegisters.SP += Param(SelPrmIndex.First, , DataSize.Word)
                 clkCyc += 20
 
             Case &HC3 ' ret within segment
