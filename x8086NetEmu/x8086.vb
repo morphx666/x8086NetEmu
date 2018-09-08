@@ -613,8 +613,6 @@ Public Class X8086
         instrucionsCounter += 1
 
         If mFlags.TF = 1 Then
-            ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
-            ' but it even allows it to pass it successfully!!!
             If ignoreINTs Then HandleInterrupt(1, False)
         ElseIf ignoreINTs Then
             ignoreINTs = False
