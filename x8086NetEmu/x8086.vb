@@ -567,11 +567,11 @@ Public Class X8086
     End Property
 
     Private Sub SetSynchronization()
-        Const syncQuantum As Double = 0.05
+        Const syncQuantum As Double = 0.01
         FlushCycles()
         Sched.SetSynchronization(True,
                                 Scheduler.BASECLOCK * syncQuantum,
-                                Scheduler.BASECLOCK * mSimulationMultiplier / 1000,
+                                Scheduler.BASECLOCK / 1000,
                                 mSimulationMultiplier)
     End Sub
 

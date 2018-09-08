@@ -131,8 +131,8 @@ Public Class Scheduler
         If enabled And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid value for simTimePerWallMs")
 #End If
         syncScheduler = enabled
-        syncQuantum = quantum
-        syncSimTimePerWallMs = simTimePerWallMs
+        syncQuantum = quantum * simulationMultiplier
+        syncSimTimePerWallMs = simTimePerWallMs * simulationMultiplier
         syncTimeSaldo = 0
         syncWallTimeMillis = CurrentTimeMillis()
 

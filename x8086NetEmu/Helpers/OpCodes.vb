@@ -1,7 +1,7 @@
 Partial Public Class X8086
     Private Delegate Sub ExecOpcode()
     Private opCodes() As ExecOpcode = {
-        AddressOf _00_03,   ' add reg<->reg / reg<->mem
+                                    AddressOf _00_03,   ' add reg<->reg / reg<->mem
 AddressOf _00_03,
 AddressOf _00_03,
 AddressOf _00_03,
@@ -32,20 +32,20 @@ AddressOf _18_1B,
 AddressOf _1C,  ' sbb al and imm
 AddressOf _1D,  ' sbb ax and imm
 AddressOf _1E,  ' push ds
-AddressOf _1F,      ' pop ds
-AddressOf _20_23,       ' and reg/mem and reg to either
+AddressOf _1F,  ' pop ds
+AddressOf _20_23,   ' and reg/mem and reg to either
 AddressOf _20_23,
 AddressOf _20_23,
 AddressOf _20_23,
 AddressOf _24,  ' and al and imm
 AddressOf _25,  ' and ax and imm
 AddressOf _26_2E_36_3E,
-AddressOf _27,      ' daa
+AddressOf _27,  ' daa
 AddressOf _28_2B,   ' sub reg/mem with reg to either
 AddressOf _28_2B,
 AddressOf _28_2B,
 AddressOf _28_2B,
-AddressOf _2C,      ' sub al and imm
+AddressOf _2C,  ' sub al and imm
 AddressOf _2D,  ' sub ax and imm
 AddressOf _26_2E_36_3E,
 AddressOf _2F,  ' das
@@ -56,12 +56,12 @@ AddressOf _30_33,
 AddressOf _34,  ' xor al and imm
 AddressOf _35,  ' xor ax and imm
 AddressOf _26_2E_36_3E,
-AddressOf _37,      ' aaa
+AddressOf _37,  ' aaa
 AddressOf _38_3B,   ' cmp reg/mem and reg
 AddressOf _38_3B,
 AddressOf _38_3B,
 AddressOf _38_3B,
-AddressOf _3C,      ' cmp al and imm
+AddressOf _3C,  ' cmp al and imm
 AddressOf _3D,  ' cmp ax and imm
 AddressOf _26_2E_36_3E,
 AddressOf _3F,  ' aas
@@ -99,7 +99,7 @@ AddressOf _58_5F,
 AddressOf _58_5F,
 AddressOf _60,  ' pusha (80186)
 AddressOf _61,  ' popa (80186)
-AddressOf _62,      ' bound (80186)
+AddressOf _62,  ' bound (80186)
 AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
@@ -109,23 +109,23 @@ AddressOf _68,  ' push (80186)
 AddressOf _69,  ' imul (80186)
 AddressOf _6A,  ' push (80186)
 AddressOf _6B,  ' imul (80186)
-AddressOf _6C_6F,       ' Ignore 80186/V20 port operations... for now...
+AddressOf _6C_6F,   ' Ignore 80186/V20 port operations... for now...
 AddressOf _6C_6F,
 AddressOf _6C_6F,
 AddressOf _6C_6F,
 AddressOf _70,  ' jo
 AddressOf _71,  ' jno
-AddressOf _72,      ' jb/jnae
+AddressOf _72,  ' jb/jnae
 AddressOf _73,  ' jnb/jae
 AddressOf _74,  ' je/jz
 AddressOf _75,  ' jne/jnz
 AddressOf _76,  ' jbe/jna
-AddressOf _77,      ' jnbe/ja
+AddressOf _77,  ' jnbe/ja
 AddressOf _78,  ' js
 AddressOf _79,  ' jns
 AddressOf _7A,  ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
-AddressOf _7C,      ' jl/jnge
+AddressOf _7C,  ' jl/jnge
 AddressOf _7D,  ' jnl/jge
 AddressOf _7E,  ' jle/jng
 AddressOf _7F,  ' jnle/jg
@@ -157,7 +157,7 @@ AddressOf _98,  ' cbw
 AddressOf _99,  ' cwd
 AddressOf _9A,  ' call direct intersegment
 AddressOf _9B,  ' wait
-AddressOf _9C,      ' pushf
+AddressOf _9C,  ' pushf
 AddressOf _9D,  ' popf
 AddressOf _9E,  ' sahf
 AddressOf _9F,  ' lahf
@@ -195,7 +195,7 @@ AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _C0_C1,
 AddressOf _C0_C1,
-AddressOf _C2,      ' ret (ret n) within segment adding imm to sp
+AddressOf _C2,  ' ret (ret n) within segment adding imm to sp
 AddressOf _C3,  ' ret within segment
 AddressOf _C4_C5,   ' les | lds
 AddressOf _C4_C5,
@@ -205,7 +205,7 @@ AddressOf _C8,  ' enter (80186)
 AddressOf _C9,  ' leave (80186)
 AddressOf _CA,  ' ret intersegment adding imm to sp (ret n /retf)
 AddressOf _CB,  ' ret intersegment (retf)
-AddressOf _CC,      ' int with type 3
+AddressOf _CC,  ' int with type 3
 AddressOf _CD,  ' int with type specified
 AddressOf _CE,  ' into
 AddressOf _CF,  ' iret
@@ -216,7 +216,7 @@ AddressOf _D0_D3,
 AddressOf _D4,  ' aam
 AddressOf _D5,  ' aad
 AddressOf _D6,  ' xlat 
-AddressOf _D7,      ' xlatb
+AddressOf _D7,  ' xlatb
 AddressOf _D8_DF,   ' Ignore co-processor instructions
 AddressOf _D8_DF,
 AddressOf _D8_DF,
@@ -227,23 +227,23 @@ AddressOf _D8_DF,
 AddressOf _D8_DF,
 AddressOf _E0,  ' loopne/loopnz
 AddressOf _E1,  ' loope/loopz
-AddressOf _E2,      ' loop
+AddressOf _E2,  ' loop
 AddressOf _E3,  ' jcxz
 AddressOf _E4,  ' in to al from fixed port
 AddressOf _E5,  ' inw to ax from fixed port
 AddressOf _E6,  ' out to al to fixed port
-AddressOf _E7,      ' outw to ax to fixed port
+AddressOf _E7,  ' outw to ax to fixed port
 AddressOf _E8,  ' call direct within segment
 AddressOf _E9,  ' jmp direct within segment
 AddressOf _EA,  ' jmp direct intersegment
 AddressOf _EB,  ' jmp direct within segment short
-AddressOf _EC,      ' in to al from variable port
+AddressOf _EC,  ' in to al from variable port
 AddressOf _ED,  ' inw to ax from variable port
 AddressOf _EE,  ' out to port dx from al
 AddressOf _EF,  ' out to port dx from ax
 AddressOf _F0,  ' lock
 AddressOf OpCodeNotImplemented,
-AddressOf _F2,      ' repne/repnz
+AddressOf _F2,  ' repne/repnz
 AddressOf _F3,  ' repe/repz
 AddressOf _F4,  ' hlt
 AddressOf _F5,  ' cmc
@@ -253,7 +253,7 @@ AddressOf _F8,  ' clc
 AddressOf _F9,  ' stc
 AddressOf _FA,  ' cli
 AddressOf _FB,  ' sti
-AddressOf _FC,      ' cld
+AddressOf _FC,  ' cld
 AddressOf _FD,  ' std
 AddressOf _FE_FF,
 AddressOf _FE_FF}
@@ -1004,10 +1004,10 @@ AddressOf _FE_FF}
             clkCyc += 8
         End If
         ignoreINTs = ignoreINTs Or
-                (addrMode.Register2 = GPRegisters.RegistersTypes.CS) Or
-                (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
-                (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
-                (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.CS) Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
+                        (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
     End Sub
 
     Private Sub _8F()   ' pop reg/mem
