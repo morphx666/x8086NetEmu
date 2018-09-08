@@ -100,13 +100,15 @@
     End Function
 
     Public Function Decode(segment As Integer, offset As Integer, Optional force As Boolean = False) As Instruction
-        'Threading.Monitor.Enter(Sched)
+        Dim r = mRegisters.Clone()
+        Dim f = mFlags.Clone()
         If (Not force) AndAlso (mIsExecuting OrElse isDecoding) Then
             Return InvalidOpCode()
         Else
             Return DoDecode(segment, offset)
         End If
-        'Threading.Monitor.Exit(Sched)
+        mRegisters = r
+        mFlags = f
     End Function
 
     Private Function DoDecode(segment As Integer, offset As Integer) As Instruction
