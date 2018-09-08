@@ -235,7 +235,10 @@ Public Class FormEmulator
     End Sub
 
     Private Sub StartEmulation()
-        cpu = New X8086(v20Emulation, True, AddressOf StartEmulation)
+        cpu = New X8086(v20Emulation, int13Emulation, Sub()
+                                                          SaveSettings()
+                                                          StartEmulation()
+                                                      End Sub)
 
         cpuState = New EmulatorState(cpu)
 
