@@ -4,6 +4,9 @@ Imports System.Threading
 Module ModuleMain
     Private cpu As X8086
     Private validData() As Byte = Nothing
+    Private testsTotal As Integer = 0
+    Private failedTotal As Integer = 0
+    Private prefix As String
 
     Sub Main()
         Dim waiter As New AutoResetEvent(False)
@@ -27,7 +30,8 @@ Module ModuleMain
             If Not IO.File.Exists(dataFileName) Then Continue For
             validData = IO.File.ReadAllBytes(dataFileName)
 
-            Console.Write($"Running: {fileName}")
+            prefix = $"Running: {fileName}"
+            Console.Write(prefix)
 
             If cpu.IsHalted Then cpu.HardReset()
             cpu.LoadBIN(f.FullName, &HF000, &H0)
@@ -37,15 +41,28 @@ Module ModuleMain
         Next
         cpu.Close()
 
+        Dim passedTotal As Integer = testsTotal - failedTotal
+        Console.ForegroundColor = ConsoleColor.Magenta
+        Console.WriteLine($"Score: {passedTotal}/{testsTotal} [{passedTotal / testsTotal * 100:N2}%]")
+        Console.ForegroundColor = ConsoleColor.Gray
+        Console.WriteLine()
+
         Console.WriteLine("Press any key to exit")
         Console.ReadKey()
     End Sub
 
     Private Sub Compare()
+        Const p As Integer = 28
+
+        Dim txt As String = ""
         Dim v1 As String
         Dim v2 As String
         Dim invalidData As New List(Of String)
-        For i As Integer = 0 To validData.Length / 2 - 1 Step 2
+        Dim dataLen As Integer = validData.Length / 2
+
+        testsTotal += dataLen
+
+        For i As Integer = 0 To dataLen - 1 Step 2
             v1 = cpu.RAM16(0, i).ToString("X4")
             v2 = BitConverter.ToInt16(validData, i).ToString("X4")
             If v1 <> v2 Then
@@ -53,7 +70,8 @@ Module ModuleMain
             End If
         Next
         If invalidData.Any() Then
-            Console.WriteLine($" > FAILED [{invalidData.Count}]")
+            txt = $" > FAILED [{invalidData.Count}/{dataLen}]"
+            Console.WriteLine(txt.PadLeft(p - prefix.Length + txt.Length))
             invalidData.ForEach(Sub(id)
                                     Dim t() As String = id.Split(" "c)
                                     Console.ForegroundColor = ConsoleColor.White
@@ -67,8 +85,10 @@ Module ModuleMain
                                     Console.ForegroundColor = ConsoleColor.Gray
                                     'Console.WriteLine($"  {id}")
                                 End Sub)
+            failedTotal += invalidData.Count
         Else
-            Console.WriteLine(" > PASSED")
+            txt = $" > PASSED [{dataLen}]"
+            Console.WriteLine(txt.PadLeft(p - prefix.Length + txt.Length))
         End If
     End Sub
 End Module
