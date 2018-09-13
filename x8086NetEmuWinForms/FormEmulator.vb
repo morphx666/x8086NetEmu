@@ -239,7 +239,6 @@ Public Class FormEmulator
                                                           SaveSettings()
                                                           StartEmulation()
                                                       End Sub)
-
         cpuState = New EmulatorState(cpu)
 
         If videoPort IsNot Nothing Then

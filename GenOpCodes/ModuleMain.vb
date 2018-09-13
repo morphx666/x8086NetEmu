@@ -4,6 +4,13 @@
 
 Module ModuleMain
     Sub Main()
+        Console.WriteLine("Are you sure you want to parse the opcodes' emulation code? [y/N]")
+        If Console.ReadKey(True).Key <> ConsoleKey.Y Then
+            Console.WriteLine("Process aborted...")
+            Console.ReadKey()
+            Exit Sub
+        End If
+
         Dim src As String = IO.File.ReadAllText("..\x8086.vb")
         Dim trg As String = "Partial Public Class X8086
                                 Private Delegate Sub ExecOpcode()
@@ -28,7 +35,7 @@ Module ModuleMain
         Dim startIndex As Integer
         Dim endIndex As Integer
 
-        Dim comment As String
+        Dim comment As String = ""
 
         src = src.Replace(" : ", "' " + vbCrLf)
         Dim eof As Integer = src.IndexOf("If useIPAddrOffset Then", p1)
