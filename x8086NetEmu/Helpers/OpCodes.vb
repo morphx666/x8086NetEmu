@@ -39,7 +39,7 @@ AddressOf _20_23,
 AddressOf _20_23,
 AddressOf _24,  ' and al and imm
 AddressOf _25,  ' and ax and imm
-AddressOf _26_2E_36_3E,
+AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _27,  ' daa
 AddressOf _28_2B,   ' sub reg/mem with reg to either
 AddressOf _28_2B,
@@ -47,7 +47,7 @@ AddressOf _28_2B,
 AddressOf _28_2B,
 AddressOf _2C,  ' sub al and imm
 AddressOf _2D,  ' sub ax and imm
-AddressOf _26_2E_36_3E,
+AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _2F,  ' das
 AddressOf _30_33,   ' xor reg/mem and reg to either
 AddressOf _30_33,
@@ -55,7 +55,7 @@ AddressOf _30_33,
 AddressOf _30_33,
 AddressOf _34,  ' xor al and imm
 AddressOf _35,  ' xor ax and imm
-AddressOf _26_2E_36_3E,
+AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _37,  ' aaa
 AddressOf _38_3B,   ' cmp reg/mem and reg
 AddressOf _38_3B,
@@ -63,7 +63,7 @@ AddressOf _38_3B,
 AddressOf _38_3B,
 AddressOf _3C,  ' cmp al and imm
 AddressOf _3D,  ' cmp ax and imm
-AddressOf _26_2E_36_3E,
+AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _3F,  ' aas
 AddressOf _40_47,   ' inc reg
 AddressOf _40_47,
@@ -129,7 +129,7 @@ AddressOf _7C,  ' jl/jnge
 AddressOf _7D,  ' jnl/jge
 AddressOf _7E,  ' jle/jng
 AddressOf _7F,  ' jnle/jg
-AddressOf _80_83,   ' 
+AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
@@ -193,8 +193,8 @@ AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _B0_BF,
-AddressOf _C0_C1,
-AddressOf _C0_C1,
+AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
+AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
 AddressOf _C2,  ' ret (ret n) within segment adding imm to sp
 AddressOf _C3,  ' ret within segment
 AddressOf _C4_C5,   ' les | lds
@@ -209,7 +209,7 @@ AddressOf _CC,  ' int with type 3
 AddressOf _CD,  ' int with type specified
 AddressOf _CE,  ' into
 AddressOf _CF,  ' iret
-AddressOf _D0_D3,   ' 
+AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D0_D3,
@@ -247,7 +247,7 @@ AddressOf _F2,  ' repne/repnz
 AddressOf _F3,  ' repe/repz
 AddressOf _F4,  ' hlt
 AddressOf _F5,  ' cmc
-AddressOf _F6_F7,   ' 
+AddressOf _F6_F7,
 AddressOf _F6_F7,
 AddressOf _F8,  ' clc
 AddressOf _F9,  ' stc
@@ -457,7 +457,7 @@ AddressOf _FE_FF}
         clkCyc += 4
     End Sub
 
-    Private Sub _26_2E_36_3E()
+    Private Sub _26_2E_36_3E()  ' ES, CS, SS and DS segment override prefix
         addrMode.Decode(opCode, opCode)
         mRegisters.ActiveSegmentRegister = (addrMode.Register1 - GPRegisters.RegistersTypes.AH) + GPRegisters.RegistersTypes.ES
         isStringOp = True
@@ -922,7 +922,7 @@ AddressOf _FE_FF}
         End If
     End Sub
 
-    Private Sub _80_83()    ' 
+    Private Sub _80_83()
         ExecuteGroup1()
     End Sub
 
@@ -1124,7 +1124,7 @@ AddressOf _FE_FF}
         clkCyc += 4
     End Sub
 
-    Private Sub _C0_C1()
+    Private Sub _C0_C1()    ' GRP2 byte/word imm8/16 ??? (80186)
         If mVic20 Then
             ' PRE ALPHA CODE - UNTESTED
             ExecuteGroup2()
@@ -1243,7 +1243,7 @@ AddressOf _FE_FF}
         clkCyc += 32
     End Sub
 
-    Private Sub _D0_D3()    ' 
+    Private Sub _D0_D3()
         ExecuteGroup2()
     End Sub
 
@@ -1428,7 +1428,7 @@ AddressOf _FE_FF}
         clkCyc += 2
     End Sub
 
-    Private Sub _F6_F7()    ' 
+    Private Sub _F6_F7()
         ExecuteGroup3()
     End Sub
 

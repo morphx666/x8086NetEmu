@@ -43,7 +43,7 @@ Module ModuleMain
 
         Dim addSubCall = Sub(addComment As Boolean, v As Integer)
                              subCalls(v) = $"AddressOf {subName},"
-                             If addComment Then
+                             If addComment AndAlso src.Substring(p2, p3 - p2).Trim() <> "'" Then
                                  comment = $"{vbTab}{src.Substring(p2, p3 - p2)}"
                                  subCalls(v) += comment
                              End If
@@ -61,7 +61,7 @@ Module ModuleMain
                                   Next
                               Else
                                   For i As Integer = 1 To subTokens.Length - 1
-                                      addSubCall(False, Integer.Parse(subTokens(i).Replace("&H", ""), Globalization.NumberStyles.HexNumber))
+                                      addSubCall(True, Integer.Parse(subTokens(i).Replace("&H", ""), Globalization.NumberStyles.HexNumber))
                                   Next
                               End If
                           End Sub
@@ -88,7 +88,7 @@ Module ModuleMain
                                  Dim subTokens() As String
                                  Dim fName As String = ""
 
-                                 'If tmp.Contains("C0") Then Stop
+                                 If tmp.Contains("FE") Then Stop
 
                                  subTokens = tmp.Split(","c)
                                  ReDim tokens(0)
