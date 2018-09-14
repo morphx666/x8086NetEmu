@@ -90,6 +90,8 @@
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 
         Dim p As New Point(m.X - MidPoint.X, m.Y - MidPoint.Y)
+        p.X *= 0.4
+        p.Y *= 0.4
 
         Dim highbits As Byte = 0
         If p.X < 0 Then highbits = 3
@@ -142,7 +144,7 @@
 
     Public Overrides ReadOnly Property VersionMajor As Integer
         Get
-            Return 0
+            Return 1
         End Get
     End Property
 
@@ -154,7 +156,7 @@
 
     Public Overrides ReadOnly Property VersionRevision As Integer
         Get
-            Return 1
+            Return 0
         End Get
     End Property
 End Class
