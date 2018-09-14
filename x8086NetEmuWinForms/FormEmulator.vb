@@ -33,6 +33,9 @@ Public Class FormEmulator
     Private fromColRow As Point
     Private toColRow As Point
 
+    Private lastZoomLevel As Double
+    Private lastLocation As Point
+
     Private v20Emulation As Boolean
     Private int13Emulation As Boolean
 
@@ -404,13 +407,17 @@ Public Class FormEmulator
 
         AddHandler videoPort.Click, Sub(s1 As Object, e1 As EventArgs)
                                         If isSelectingText Then Exit Sub
-                                        Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
-                                        CursorVisible = False
-                                        If cpu.Mouse IsNot Nothing Then
-                                            cpu.Mouse.MidPoint = PointToClient(New Point(videoPort.Width * cpu.VideoAdapter.Zoom / 2, videoPort.Height * cpu.VideoAdapter.Zoom / 2))
-                                            cpu.Mouse.IsCaptured = True
-                                        End If
+                                        CaptureMouse()
                                     End Sub
+    End Sub
+
+    Private Sub CaptureMouse()
+        Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
+        CursorVisible = False
+        If cpu.Mouse IsNot Nothing Then
+            cpu.Mouse.MidPoint = PointToClient(New Point(videoPort.Width / 2, videoPort.Height / 2))
+            cpu.Mouse.IsCaptured = True
+        End If
     End Sub
 
     Private Sub ShowConsole()
@@ -442,7 +449,36 @@ Public Class FormEmulator
     End Sub
 
     Private Sub SetZoomFromMenu(sender As Object, e As EventArgs) Handles Zoom25ToolStripMenuItem.Click, Zoom50ToolStripMenuItem.Click, Zoom100ToolStripMenuItem.Click,
-                                                                        Zoom150ToolStripMenuItem.Click, Zoom200ToolStripMenuItem.Click, Zoom400ToolStripMenuItem.Click
+                                                                        Zoom150ToolStripMenuItem.Click, Zoom200ToolStripMenuItem.Click, Zoom400ToolStripMenuItem.Click,
+                                                                        ZoomFullScreenToolStripMenuItem.Click
+
+        If Me.TopMost Then
+            Me.FormBorderStyle = FormBorderStyle.FixedSingle
+            Me.Location = lastLocation
+            Me.TopMost = False
+            SetZoomLevel(lastZoomLevel)
+        End If
+
+        If sender Is ZoomFullScreenToolStripMenuItem Then
+            lastZoomLevel = cpu.VideoAdapter.Zoom
+            lastLocation = Me.Location
+
+            Me.FormBorderStyle = FormBorderStyle.None
+            Me.Location = Point.Empty
+            Me.TopMost = True
+
+            'cpu.VideoAdapter.TextResolution.Width * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Width
+            While 80 * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Width
+                SetZoomLevel(cpu.VideoAdapter.Zoom + 0.1)
+            End While
+            ZoomFullScreenToolStripMenuItem.Checked = True
+
+            Me.Size = Screen.FromControl(Me).Bounds.Size
+
+            CaptureMouse()
+
+            Exit Sub
+        End If
 
         Dim zoomText As String = CType(sender, ToolStripMenuItem).Text
         Dim zoomPercentage As Integer = Integer.Parse(zoomText.Replace("%", ""))
@@ -517,7 +553,15 @@ Public Class FormEmulator
             Next
 
             SetCPUClockSpeed(Double.Parse(xml.<clockSpeed>.Value))
-            SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))
+            If xml.<extras>.<fullScreen>.Value IsNot Nothing AndAlso Boolean.Parse(xml.<extras>.<fullScreen>.Value) Then
+                SetZoomLevel(Double.Parse(xml.<extras>.<lastZoomLevel>.Value))
+                Threading.Tasks.Task.Run(Sub()
+                                             Threading.Thread.Sleep(250)
+                                             Me.Invoke(New MethodInvoker(Sub() SetZoomFromMenu(ZoomFullScreenToolStripMenuItem, New EventArgs())))
+                                         End Sub)
+            Else
+                SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))
+            End If
 
             If cpu.FloppyContoller IsNot Nothing Then
                 For i As Integer = 0 To 512 - 1
@@ -597,6 +641,8 @@ Public Class FormEmulator
                                   <debuggerVisible><%= fDebugger IsNot Nothing %></debuggerVisible>
                                   <emulateINT13><%= int13Emulation %></emulateINT13>
                                   <vic20><%= v20Emulation %></vic20>
+                                  <fullScreen><%= Me.TopMost %></fullScreen>
+                                  <lastZoomLevel><%= lastZoomLevel %></lastZoomLevel>
                               </extras>)
     End Sub
 
