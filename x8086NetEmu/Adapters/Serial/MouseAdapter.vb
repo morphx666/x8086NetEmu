@@ -12,8 +12,8 @@
     Private sm As New SerialMouse()
     Private irq As PIC8259.IRQLine
 
-    Private lastX As Integer = Integer.MinValue
-    Private lastY As Integer = Integer.MinValue
+    Public Property MidPoint As Point
+    Public Property IsCaptured As Boolean
 
     Private Const M As Integer = Asc("M")
 
@@ -89,50 +89,19 @@
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 
-        ' TODO: The scaling code needs to be adjusted so that the size of the screen is properly mapped to the emulator window
+        Dim p As New Point(m.X - MidPoint.X, m.Y - MidPoint.Y)
 
-        If lastX = Integer.MinValue Then lastX = m.X
-        If lastY = Integer.MinValue Then lastY = m.Y
+        Dim highbits As Byte = 0
+        If p.X < 0 Then highbits = 3
+        If p.Y < 0 Then highbits = highbits Or &HC
 
-        Dim va As VideoAdapter = mCPU.VideoAdapter
-        Dim rc As Control
+        Dim btns As Byte = 0
+        If (m.Button And MouseButtons.Left) = MouseButtons.Left Then btns = btns Or 2
+        If (m.Button And MouseButtons.Right) = MouseButtons.Right Then btns = btns Or 1
 
-        If TypeOf va Is CGAWinForms Then
-            rc = CType(va, CGAWinForms).RenderControl
-        Else
-            rc = CType(va, VGAWinForms).RenderControl
-        End If
-
-        Dim rw As Double = rc.Width / If(va.MainMode = VideoAdapter.MainModes.Text, rc.Width, va.GraphicsResolution.Width)
-        Dim rh As Double = rc.Height / If(va.MainMode = VideoAdapter.MainModes.Text, rc.Height, va.GraphicsResolution.Height)
-
-        Dim rX As Integer = 1
-        Dim ry As Integer = 1
-
-        Dim p As New Point(m.X / va.Zoom, m.Y / va.Zoom / (rh / rw))
-
-        Dim sX As Integer = Math.Sign(p.X - lastX)
-        Dim sy As Integer = Math.Sign(p.Y - lastY)
-
-        Do
-            rX = If(p.X = lastX, 0, sX)
-            ry = If(p.Y = lastY, 0, sy)
-
-            Dim highbits As Integer = 0
-            If rX < 0 Then highbits = 3
-            If ry < 0 Then highbits = highbits Or &HC
-
-            Dim btns As Integer = 0
-            If (m.Button And MouseButtons.Left) = MouseButtons.Left Then btns = btns Or 2
-            If (m.Button And MouseButtons.Right) = MouseButtons.Right Then btns = btns Or 1
-
-            BufSerMouseData(&H40 Or (btns << 4) Or highbits)
-            BufSerMouseData(rX And &H3F)
-            BufSerMouseData(ry And &H3F)
-
-            lastX += rX
-            lastY += ry
-        Loop Until p.X = lastX AndAlso p.Y = lastY
+        BufSerMouseData(&H40 Or (btns << 4) Or highbits)
+        BufSerMouseData(p.X And &H3F)
+        BufSerMouseData(p.Y And &H3F)
     End Sub
 
     Public Overrides Sub CloseAdapter()

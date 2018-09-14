@@ -1,34 +1,17 @@
 ﻿Public Class VideoChar
-    Private mCGAChar As Integer
-    Private mForeColor As Color
-    Private mBackColor As Color
+    Public ReadOnly Property CGAChar As Integer
+    Public ReadOnly Property ForeColor As Color
+    Public ReadOnly Property BackColor As Color
+
     Private mBitmap As DirectBitmap
 
     Public Shared FontBitmaps() As Byte
 
     Public Sub New(c As Integer, fb As Color, bb As Color)
-        mCGAChar = c
-        mForeColor = fb
-        mBackColor = bb
+        CGAChar = c
+        ForeColor = fb
+        BackColor = bb
     End Sub
-
-    Public ReadOnly Property CGAChar As Integer
-        Get
-            Return mCGAChar
-        End Get
-    End Property
-
-    Public ReadOnly Property ForeColor As Color
-        Get
-            Return mForeColor
-        End Get
-    End Property
-
-    Public ReadOnly Property BackColor As Color
-        Get
-            Return mBackColor
-        End Get
-    End Property
 
     Private tmp As New Object()
 
@@ -49,10 +32,10 @@
 
             For y As Integer = 0 To h - 1
                 For x As Integer = 0 To w - 1
-                    If FontBitmaps(mCGAChar * (w * h) + y * w + x) = 1 Then
-                        mBitmap.Pixel(x, y) = mForeColor
+                    If FontBitmaps(CGAChar * (w * h) + y * w + x) = 1 Then
+                        mBitmap.Pixel(x, y) = ForeColor
                     Else
-                        mBitmap.Pixel(x, y) = mBackColor
+                        mBitmap.Pixel(x, y) = BackColor
                     End If
                 Next
             Next
@@ -75,13 +58,13 @@
 
     Public Overrides Function ToString() As String
         Return String.Format("{0:000} [{1:000}:{2:000}:{3:000}] [{4:000}:{5:000}:{6:000}]",
-                             mCGAChar,
-                             mForeColor.R,
-                             mForeColor.G,
-                             mForeColor.B,
-                             mBackColor.R,
-                             mBackColor.G,
-                             mBackColor.B)
+                             CGAChar,
+                             ForeColor.R,
+                             ForeColor.G,
+                             ForeColor.B,
+                             BackColor.R,
+                             BackColor.G,
+                             BackColor.B)
     End Function
 
     ' http://goughlui.com/2016/05/01/project-examining-vga-bios-from-old-graphic-cards/

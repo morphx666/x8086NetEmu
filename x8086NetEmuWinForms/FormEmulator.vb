@@ -118,6 +118,7 @@ Public Class FormEmulator
                                                  If (e1.KeyData And Keys.Control) = Keys.Control AndAlso Convert.ToBoolean(GetAsyncKeyState(Keys.RControlKey)) Then
                                                      Cursor.Clip = Rectangle.Empty
                                                      CursorVisible = True
+                                                     If cpu.Mouse IsNot Nothing Then cpu.Mouse.IsCaptured = False
 
                                                      Select Case e1.KeyCode
                                                          Case Keys.Home
@@ -254,7 +255,7 @@ Public Class FormEmulator
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start)
+        cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start)
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
@@ -375,9 +376,11 @@ Public Class FormEmulator
                                         End Sub
 
         AddHandler videoPort.MouseMove, Sub(s As Object, e As MouseEventArgs)
-                                            If isLeftMouseButtonDown Then
-                                                toColRow = New Point(e.X / videoPort.Width * cpu.VideoAdapter.TextResolution.Width,
-                                                                     e.Y / videoPort.Height * cpu.VideoAdapter.TextResolution.Height)
+                                            If CursorVisible Then
+                                                If isLeftMouseButtonDown Then
+                                                    toColRow = New Point(e.X / videoPort.Width * cpu.VideoAdapter.TextResolution.Width,
+                                                                         e.Y / videoPort.Height * cpu.VideoAdapter.TextResolution.Height)
+                                                End If
                                             End If
                                         End Sub
 
@@ -403,6 +406,10 @@ Public Class FormEmulator
                                         If isSelectingText Then Exit Sub
                                         Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
                                         CursorVisible = False
+                                        If cpu.Mouse IsNot Nothing Then
+                                            cpu.Mouse.MidPoint = PointToClient(New Point(videoPort.Width * cpu.VideoAdapter.Zoom / 2, videoPort.Height * cpu.VideoAdapter.Zoom / 2))
+                                            cpu.Mouse.IsCaptured = True
+                                        End If
                                     End Sub
     End Sub
 

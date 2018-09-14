@@ -3,12 +3,11 @@
 
     Private sched As Scheduler
     Private irq As InterruptRequest
-    Private switchS2 As Integer
     Private timer As PIT8254
 
-    Private port61 As Integer
+    Private ppiB As UInt32
     Private keyBuf As String
-    Private lastKeyCode As Integer
+    Private lastKeyCode As UInt16 = 0
     Private keyShiftPending As Boolean
 
     Private keyMap As KeyMap
@@ -49,7 +48,7 @@
         Me.irq = irq
         If cpu.PIT IsNot Nothing Then
             timer = cpu.PIT
-            timer.SetCh2Gate((port61 And 1) <> 0)
+            timer.SetCh2Gate((ppiB And 1) <> 0)
         End If
 
         keyBuf = ""
@@ -73,14 +72,10 @@
         Select Case (port And 3)
             Case 0 ' port &h60 (PPI port A)
                 ' Return keyboard data if bit 7 in port B is cleared.
-                If (port61 And &H80) = 0 Then
-                    Return GetKeyData()
-                Else
-                    Return 0
-                End If
+                Return If((ppiB And &H80) = 0, GetKeyData(), 0)
             Case 1 ' port &h61 (PPI port B)
                 ' Return last value written to the port.
-                Return port61
+                Return ppiB
             Case 2 ' port &h62 (PPI port C)
                 Return GetStatusByte()
             Case Else
@@ -101,16 +96,14 @@
                 ' bit 6: enable(1) or disable(0) keyboard clock ??
                 ' bit 7: pulse 1 to reset keyboard and IRQ1
 
-                Dim oldv As Integer = port61
-                port61 = v
+                Dim oldv As UInt32 = ppiB
+                ppiB = v
                 If (timer IsNot Nothing) AndAlso ((oldv Xor v) And 1) <> 0 Then
-                    timer.SetCh2Gate((port61 And 1) <> 0)
+                    timer.SetCh2Gate((ppiB And 1) <> 0)
 #If Win32 Then
                     If timer.Speaker IsNot Nothing Then timer.Speaker.Enabled = (v And 1) = 1
 #End If
                 End If
-            Case 3
-
         End Select
     End Sub
 
@@ -128,9 +121,7 @@
     ' bits 5-4: initial video mode:
     '   00=EGA/VGA, 01=CGA 40x25, 10=CGA 80x25 color, 11=MDA 80x25
     ' bits 7-6: one less than number of diskette drives (1 - 4 drives)
-    Public Sub SetSwitchData(S2 As Integer)
-        switchS2 = S2
-    End Sub
+    Public Property SwitchData As Byte
 
     Private Sub TrimBuffer()
         SyncLock keyBuf
@@ -174,7 +165,7 @@
     End Function
 
     ' Get a scancode byte from the buffer
-    Public Function GetKeyData() As Integer
+    Public Function GetKeyData() As UInt16
         ' release interrupt
         If irq IsNot Nothing Then irq.Raise(False)
         ' if the buffer is empty, we just return the most recent byte 
@@ -203,11 +194,11 @@
     ' bit 5: timer 2 output status
     ' bit 6: I/O channel parity error occurred (we always set it to 0)
     ' bit 7: RAM parity error occurred (we always set it to 0)
-    Private Function GetStatusByte() As Integer
-        Dim timerout As Boolean = (timer IsNot Nothing) AndAlso timer.GetOutput(2)
-        Dim speakerout As Boolean = timerout AndAlso ((port61 And 2) <> 0)
+    Private Function GetStatusByte() As Byte
+        Dim timerout As Boolean = timer?.GetOutput(2)
+        Dim speakerout As Boolean = timerout AndAlso ((ppiB And 2) <> 0)
         Dim vh As Integer = If(speakerout, 0, &H10) Or If(timerout, &H20, 0)
-        Dim vl As Integer = If((port61 And &H8) = 0, switchS2, switchS2 >> 4)
+        Dim vl As Integer = If((ppiB And &H8) = 0, SwitchData, SwitchData >> 4)
         Return (vh And &HF0) Or (vl And &HF)
     End Function
 End Class

@@ -56,7 +56,12 @@ Public Class CGAWinForms
         AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs) HandleKeyUp(Me, e)
 
         AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, e)
-        AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs) OnMouseMove(Me, e)
+        AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
+                                                 If mCPU.Mouse?.IsCaptured Then
+                                                     OnMouseMove(Me, e)
+                                                     Cursor.Position = mRenderControl.PointToScreen(mCPU.Mouse.MidPoint)
+                                                 End If
+                                             End Sub
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, e)
 
         Dim fontCGAPath As String = X8086.FixPath("roms\" + bitmapFontFile)

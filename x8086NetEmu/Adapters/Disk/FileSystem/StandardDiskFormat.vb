@@ -99,7 +99,7 @@ Public Class StandardDiskFormat
     End Structure
 
     Private mMasterBootRecord As MBR
-    Private ReadOnly mBootSectors(4 - 1) As FAT12.BootSector ' FIXME: In case we wanted to support additional file systems we should use an inheritable class instead of hard coding it to FAT12/16
+    Private ReadOnly mBootSectors(4 - 1) As FAT12.BootSector
     Private ReadOnly mFATDataPointers(4 - 1)() As UInt16
     Private ReadOnly mRootDirectoryEntries(4 - 1)() As FAT12.DirectoryEntry
 
@@ -134,14 +134,15 @@ Public Class StandardDiskFormat
         strm.Position = 0
 
         ReDim mMasterBootRecord.Partitions(0)
-        mMasterBootRecord.Partitions(0) = New Partition()
-        mMasterBootRecord.Partitions(0).BootIndicator = BootIndicators.SystemPartition
+        mMasterBootRecord.Partitions(0) = New Partition With {.BootIndicator = BootIndicators.SystemPartition}
 
         For i As Integer = 0 To geometryTable.Length / 4 - 1
             If strm.Length = geometryTable(i, 3) Then
-                mMasterBootRecord.Partitions(0).EndingSectorCylinder = ((geometryTable(i, 0) And &H3FC) << 8) Or ((geometryTable(i, 0) And &H3) << 6) Or
+                mMasterBootRecord.Partitions(0).EndingSectorCylinder = ((geometryTable(i, 0) And &H3FC) << 8) Or
+                                                                       ((geometryTable(i, 0) And &H3) << 6) Or
                                                                         geometryTable(i, 2)
                 mMasterBootRecord.Partitions(0).EndingHead = geometryTable(i, 1)
+                Exit For
             End If
         Next
 

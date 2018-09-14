@@ -1,9 +1,6 @@
 ﻿Imports System.Runtime.InteropServices
 
-Public Class FAT
-End Class
-
-Public Class FAT12
+Public Structure FAT12
     Public Enum EntryAttributes As Byte
         [ReadOnly] = 2 ^ 0
         Hidden = 2 ^ 1
@@ -160,9 +157,9 @@ Public Class FAT12
             End Get
         End Property
     End Structure
-End Class
+End Structure
 
-Public Class FAT16
+Public Structure FAT16
     Public Enum EntryAttributes As Byte
         [ReadOnly] = 2 ^ 0
         Hidden = 2 ^ 1
@@ -319,9 +316,9 @@ Public Class FAT16
             End Get
         End Property
     End Structure
-End Class
+End Structure
 
-Public Class FAT32
+Public Structure FAT32
     Public Enum EntryAttributes As Byte
         [ReadOnly] = 2 ^ 0
         Hidden = 2 ^ 1
@@ -484,4 +481,4 @@ Public Class FAT32
             End Get
         End Property
     End Structure
-End Class
+End Structure

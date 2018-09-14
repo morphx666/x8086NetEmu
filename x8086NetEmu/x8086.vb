@@ -329,14 +329,14 @@ Public Class X8086
         If Not picIsAvailable Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
-        Dim equipmentByte As Byte = (Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 1".Replace(" ", "")))
+        Dim equipmentByte As Byte = (Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1".Replace(" ", "")))
         '                                        │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
         '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
         '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
-        '                                         │ │ │ │ │ │ │ │ │ │ │ │ ├─┼────── old PC system board RAM < 256K
+        '                                         │ │ │ │ │ │ │ │ │ │ │ │ ├─┼────── old PC system board RAM < 256K (00=256k, 01=512k, 10=576k, 11=640k)
         '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
         '                                         │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
-        '                                         │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode
+        '                                         │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode (00=EGA/VGA, 01=CGA 40x25, 10=CGA 80x25 color, 11=MDA 80x25)
         '                                         │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
         '                                         │ │ │ │ │ │ │ └───────────── 0 if DMA installed
         '                                         │ │ │ │ └─┴─┴────────────── number of serial ports
@@ -344,7 +344,7 @@ Public Class X8086
         '                                         │ │ └──────────────────── unused, internal modem (PS/2)
         '                                         └─┴───────────────────── number of printer ports
 
-        PPI.SetSwitchData(equipmentByte)
+        PPI.SwitchData = equipmentByte
 
         'RTC.CmosWrite(RTC.CMOS_BIOS_BOOTFLAG1, 1 Or (2 Or &H213) >> 4 And &HF0)
         'RTC.CmosWrite(RTC.CMOS_BIOS_BOOTFLAG2, (2 Or &H213) >> 4 And &HFF)
@@ -1955,7 +1955,7 @@ Public Class X8086
                     mFlags.CF = oldValue And 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
-                    newValue = If(count > mask8_16, 0, (oldValue >> (count - 1)))
+                    newValue = If(count > mask8_16, 0, oldValue >> (count - 1))
                     mFlags.CF = newValue And 1
                     newValue = (newValue >> 1)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
@@ -2171,8 +2171,8 @@ Public Class X8086
                         div = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         sign = ((num Xor div) And &H8000) <> 0
-                        num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
-                        div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
+                        num = If((num And &H8000) = 0, num, ((Not num) + 1) And &HFFFF)
+                        div = If((div And &H8000) = 0, div, ((Not div) + 1) And &HFFFF)
 
                         clkCyc += 80
                     Else
@@ -2180,8 +2180,8 @@ Public Class X8086
                         div = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         sign = ((num Xor div) And &H80000000UI) <> 0
-                        num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
-                        div = If(div < &H80000000UI, div, ((Not div) + 1) And &HFFFFFFFFUI)
+                        num = If((num And &H80000000UI) = 0, num, ((Not num) + 1) And &HFFFFFFFFUI)
+                        div = If((div And &H80000000UI) = 0, div, ((Not div) + 1) And &HFFFFFFFFUI)
 
                         clkCyc += 144
                     End If
@@ -2191,8 +2191,8 @@ Public Class X8086
                         div = To16bitsWithSign(addrMode.IndMem)
 
                         sign = ((num Xor div) And &H8000) <> 0
-                        num = If(num < &H8000, num, ((Not num) + 1) And &HFFFF)
-                        div = If(div < &H8000, div, ((Not div) + 1) And &HFFFF)
+                        num = If((num And &H8000) = 0, num, ((Not num) + 1) And &HFFFF)
+                        div = If((div And &H8000) = 0, div, ((Not div) + 1) And &HFFFF)
 
                         clkCyc += 86
                     Else
@@ -2200,8 +2200,8 @@ Public Class X8086
                         div = To32bitsWithSign(addrMode.IndMem)
 
                         sign = ((num Xor div) And &H80000000UI) <> 0
-                        num = If(num < &H80000000UI, num, ((Not num) + 1) And &HFFFFFFFFUI)
-                        div = If(div < &H80000000UI, div, ((Not div) + 1) And &HFFFFFFFFUI)
+                        num = If((num And &H80000000UI) = 0, num, ((Not num) + 1) And &HFFFFFFFFUI)
+                        div = If((div And &H80000000UI) = 0, div, ((Not div) + 1) And &HFFFFFFFFUI)
 
                         clkCyc += 150
                     End If

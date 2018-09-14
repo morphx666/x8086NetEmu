@@ -300,6 +300,8 @@
         MEMSIZE = &H100000UI
         ReDim vRAM(MEMSIZE - 1)
 
+        mCPU.PPI.SwitchData = mCPU.PPI.SwitchData And &B1111_1111_1101_1111
+
         mCPU.TryDetachHook(cgaMemHook)
 
         mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
@@ -348,9 +350,9 @@
                                                 End Function))
 
         If useROM Then
-            'mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
+            mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
             'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-            mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
+            'mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
         Else
             mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
                                                         If mode = X8086.MemHookMode.Read AndAlso address = &H410 Then

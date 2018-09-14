@@ -254,7 +254,7 @@
     <Compile Include="Adapters\Adapters.vb" />
     <Compile Include="Adapters\Audio\AdlibAdapter.vb" />
     <Compile Include="Adapters\Audio\SpeakerAdapter.vb" />
-    <Compile Include="Adapters\Disk\FileSystem\FAT.vb" />
+    <Compile Include="Adapters\Disk\FileSystem\FileSystemStructs.vb" />
     <Compile Include="Adapters\Disk\FileSystem\StandardDiskFormat.vb" />
     <Compile Include="Adapters\Disk\FloppyController.vb" />
     <Compile Include="Adapters\Disk\FileSystem\HostFolderAsDisk.vb" />
@@ -378,7 +378,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
