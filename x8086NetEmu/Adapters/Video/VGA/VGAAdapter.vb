@@ -260,10 +260,10 @@
         Color.FromArgb(0, 0, 0)
     }
 
-    Public VGA_SC(&H100 - 1) As UInt16
-    Protected VGA_CRTC(&H100 - 1) As UInt16
-    Protected VGA_ATTR(&H100 - 1) As UInt16
-    Protected VGA_GC(&H100 - 1) As UInt16
+    Public VGA_SC(&H100 - 1) As Byte
+    Protected VGA_ATTR(&H100 - 1) As Byte
+    Protected VGA_CRTC(&H100 - 1) As Byte
+    Protected VGA_GC(&H100 - 1) As Byte
 
     Private flip3C0 As Boolean = False
     Private ReadOnly VGA_Latch(4 - 1) As Byte
@@ -655,15 +655,15 @@
                 Return latchReadPal
 
             Case &H3C9
-                Select Case (latchReadRGB)
-                    Case 0 ' R
+                Select Case latchReadRGB
+                    Case 0 ' B
                         Return (mVGAPalette(latchReadPal).ToArgb() >> 2) And &H3F
                     Case 1 ' G
                         Return (mVGAPalette(latchReadPal).ToArgb() >> 10) And &H3F
-                    Case 2 ' B
-                        latchReadRGB = 0
+                    Case 2 ' R
                         Dim tmp As Integer = (mVGAPalette(latchReadPal).ToArgb() >> 18) And &H3F
                         latchReadPal += 1
+                        latchReadRGB = 0
                         Return tmp
                 End Select
                 latchReadRGB += 1
@@ -676,10 +676,6 @@
                 Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
 
                 Return (If(hRetrace, 1, 0) Or If(vRetrace, 8, 0))
-                'Return port3DA
-
-                'Case >= &H3D0
-                '    Return MyBase.In(port)
 
         End Select
 
@@ -690,9 +686,7 @@
         value = value And &HFF
         Select Case port
             Case &H3B8
-                If ((value And 2) = 2) AndAlso VideoMode <> 127 Then
-                    VideoMode = 127
-                End If
+                If ((value And 2) = 2) AndAlso VideoMode <> 127 Then VideoMode = 127
 
             Case &H3C0 ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
                 If flip3C0 Then
@@ -712,23 +706,23 @@
                 latchReadPal = value
                 latchReadRGB = 0
                 stateDAC = 0
-                'latchWritePal = (value + 1) And &HFF
+                'latchWritePal = (value + 1)
 
             Case &H3C8 ' Color index register (write operations)
                 latchWritePal = value
                 latchWriteRGB = 0
                 tempRGB = 0
                 stateDAC = 3
-                'latchReadPal = (value - 1) And &HFF
+                'latchReadPal = (value - 1)
 
             Case &H3C9 ' RGB data register
                 Select Case latchWriteRGB
                     Case 0 ' R
-                        tempRGB = value << 2
+                        tempRGB = value << 18
                     Case 1 ' G
                         tempRGB = tempRGB Or (value << 10)
                     Case 2 ' B
-                        mVGAPalette(latchWritePal) = Color.FromArgb(tempRGB Or (value << 18))
+                        mVGAPalette(latchWritePal) = Color.FromArgb(tempRGB Or (value << 2))
                         latchWritePal += 1
                 End Select
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
@@ -757,9 +751,6 @@
 
             Case &H3CF
                 VGA_GC(portRAM(&H3CE)) = value
-
-                'Case >= &H3D0
-                '    MyBase.Out(port, value)
 
             Case Else
                 portRAM(port) = value
