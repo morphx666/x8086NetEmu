@@ -1,3 +1,3 @@
 ﻿Public Interface IInterruptController
-    Function GetPendingInterrupt() As Integer
+    Function GetPendingInterrupt() As Byte
 End Interface

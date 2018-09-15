@@ -21,7 +21,7 @@ Public MustInherit Class IOPortHandler
     Public MustOverride ReadOnly Property Name As String Implements IIOPortHandler.Name
     Public MustOverride Sub Run() Implements IIOPortHandler.Run
 
-    Public Overridable Function GetPendingInterrupt() As Integer Implements IInterruptController.GetPendingInterrupt
+    Public Overridable Function GetPendingInterrupt() As Byte Implements IInterruptController.GetPendingInterrupt
         Return -1
     End Function
 

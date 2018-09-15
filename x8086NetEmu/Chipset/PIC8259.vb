@@ -15,30 +15,30 @@
 
     Private slave() As PIC8259
     Private master As PIC8259
-    Private masterIrq As Integer
+    Private masterIrq As Byte
 
     Private levelTriggered As Boolean
     Private autoEOI As Boolean
     Private autoRotate As Boolean
-    Private baseVector As Integer
+    Private baseVector As Byte
     Private specialMask As Boolean
     Private specialNest As Boolean
     Private pollMode As Boolean
     Private readISR As Boolean
-    Private lowPrio As Integer
-    Private slaveInput As Integer
-    Private cascadeId As Integer
-    Private rIMR As Integer
-    Private rIRR As Integer
-    Private rISR As Integer
+    Private lowPrio As Byte
+    Private slaveInput As Byte
+    Private cascadeId As Byte
+    Private rIMR As Byte
+    Private rIRR As Byte
+    Private rISR As Byte
 
     Public Class IRQLine
         Inherits InterruptRequest
 
         Private mPic As PIC8259
-        Private mIrq As Integer
+        Private mIrq As Byte
 
-        Public Sub New(pic As PIC8259, irq As Integer)
+        Public Sub New(pic As PIC8259, irq As Byte)
             mPic = pic
             mIrq = irq
         End Sub
@@ -68,30 +68,27 @@
         state = States.ICW1
     End Sub
 
-    Public Overrides Function GetPendingInterrupt() As Integer
+    Public Overrides Function GetPendingInterrupt() As Byte
         If state <> States.Ready Then Return -1
 
         ' Determine set of pending interrupt requests
-        Dim reqmask As Integer = rIRR And (Not rIMR)
+        Dim reqmask As Byte = rIRR And (Not rIMR)
         If specialNest Then
             reqmask = reqmask And ((Not rISR) Or slaveInput)
         Else
             reqmask = reqmask And (Not rISR)
         End If
 
-        ' NOTE: This appears to fix an issue with the current mouse adapter
-        reqmask = reqmask And &HFF
-
         ' Select non-masked request with highest priority
-        If reqmask = 0 Then Return -1
+        If reqmask = 0 Then Return &HFF
 
         Dim irq As Integer = (lowPrio + 1) And 7
         While (reqmask And (1 << irq)) = 0
-            If Not specialMask AndAlso ((rISR And (1 << irq)) <> 0) Then Return -1 ' ISR bit blocks all lower-priority requests
+            If Not specialMask AndAlso ((rISR And (1 << irq)) <> 0) Then Return &HFF ' ISR bit blocks all lower-priority requests
             irq = (irq + 1) And 7
         End While
 
-        Dim irqbit As Integer = (1 << irq)
+        Dim irqbit As Byte = (1 << irq)
 
         ' Update controller state
         If Not autoEOI Then rISR = rISR Or irqbit
@@ -107,11 +104,11 @@
         End If
     End Function
 
-    Public Function GetIrqLine(i As Integer) As IRQLine
+    Public Function GetIrqLine(i As Byte) As IRQLine
         Return New IRQLine(Me, i)
     End Function
 
-    Public Sub RaiseIrq(irq As Integer, enable As Boolean)
+    Public Sub RaiseIrq(irq As Byte, enable As Boolean)
         If enable Then
             rIRR = rIRR Or (1 << irq)
         Else
@@ -124,8 +121,8 @@
         If (port And 1) = 0 Then
             ' A0 == 0
             If pollMode Then
-                Dim a = GetPendingInterrupt()
-                Return If(a = -1, 0, &H80 Or a)
+                Dim pi As Byte = GetPendingInterrupt()
+                Return If(pi = -1, 0, &H80 Or pi)
             End If
             Return If(readISR, rISR, rIRR)
         Else
@@ -161,14 +158,14 @@
         If master IsNot Nothing Then master.RaiseIrq(masterIrq, (reqmask <> 0))
     End Sub
 
-    Public Sub SetMaster(pic As PIC8259, irq As Integer)
+    Public Sub SetMaster(pic As PIC8259, irq As Byte)
         If master IsNot Nothing Then master.slave(cascadeId) = Nothing
         master = pic
         masterIrq = irq
         If master IsNot Nothing Then master.slave(cascadeId) = Me
     End Sub
 
-    Private Sub DoICW1(v As Integer)
+    Private Sub DoICW1(v As Byte)
         state = States.ICW2
         rIMR = 0
         rISR = 0
@@ -189,12 +186,12 @@
         If master IsNot Nothing Then UpdateSlaveOutput()
     End Sub
 
-    Private Sub DoICW2(v As Integer)
+    Private Sub DoICW2(v As Byte)
         baseVector = v And &HF8
         state = If(expectICW3, If(expectICW4, States.ICW4, States.Ready), States.ICW3)
     End Sub
 
-    Private Sub DoICW3(v As Integer)
+    Private Sub DoICW3(v As Byte)
         slaveInput = v
         If master IsNot Nothing Then master.slave(cascadeId) = Nothing
         cascadeId = v And &H7
@@ -202,27 +199,27 @@
         state = If(expectICW4, States.ICW4, States.Ready)
     End Sub
 
-    Private Sub DoICW4(v As Integer)
+    Private Sub DoICW4(v As Byte)
         specialNest = (v And &H10) <> 0
         autoEOI = (v And &H2) <> 0
         state = States.Ready
     End Sub
 
-    Private Sub DoOCW1(v As Integer)
+    Private Sub DoOCW1(v As Byte)
         rIMR = v
         If master IsNot Nothing Then UpdateSlaveOutput()
     End Sub
 
-    Private Sub DoOCW2(v As Integer)
-        Dim irq As Integer = v And &H7
+    Private Sub DoOCW2(v As Byte)
+        Dim irq As Byte = v And &H7
         Dim rotate As Boolean = (v And &H80) <> 0
         Dim specific As Boolean = (v And &H40) <> 0
         Dim eoi As Boolean = (v And &H20) <> 0
 
         ' Resolve non-specific EOI
         If Not specific Then
-            Dim m As Integer = If(specialMask, rISR And (Not rIMR), rISR)
-            Dim i As Integer = lowPrio
+            Dim m As Byte = If(specialMask, rISR And (Not rIMR), rISR)
+            Dim i As Byte = lowPrio
             Do
                 i = (i + 1) And 7
                 If (m And (1 << i)) <> 0 Then
@@ -244,7 +241,7 @@
         End If
     End Sub
 
-    Private Sub DoOCW3(v As Integer)
+    Private Sub DoOCW3(v As Byte)
         If (v And &H40) <> 0 Then
             specialMask = (v And &H20) <> 0
             If master IsNot Nothing Then UpdateSlaveOutput()

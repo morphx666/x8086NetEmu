@@ -21,7 +21,7 @@ Module MainModule
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAConsole(cpu))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' Not Compatible with MINIX
+        ' cpu.Adapters.Add(New MouseAdapter(cpu)) ' So far, useless in Console mode
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))

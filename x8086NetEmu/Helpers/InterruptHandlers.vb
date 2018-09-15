@@ -20,8 +20,8 @@ Partial Public Class X8086
            repeLoopMode = REPLoopModes.None AndAlso
            picIsAvailable Then
 
-            Dim pendingIntNum As Integer = PIC.GetPendingInterrupt()
-            If pendingIntNum >= 0 Then
+            Dim pendingIntNum As Byte = PIC.GetPendingInterrupt()
+            If pendingIntNum <> &HFF Then
                 mIsHalted = False
                 HandleHardwareInterrupt(pendingIntNum)
             End If
