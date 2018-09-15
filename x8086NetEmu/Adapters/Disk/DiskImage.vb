@@ -255,7 +255,7 @@ Public Class DiskImage
 
         If cylinder >= mCylinders OrElse sector < 1 OrElse sector > mSectors OrElse head > mHeads Then Return -1
 
-        Return (((cylinder * mHeads) + head) * mSectors + sector - 1) * mSectorSize
+        Return (((CUInt(cylinder) * mHeads) + head) * mSectors + sector - 1) * mSectorSize
     End Function
 
     Public Sub Close()

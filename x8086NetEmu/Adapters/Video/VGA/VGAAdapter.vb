@@ -391,7 +391,6 @@
                                                               mCPU.Registers.BL = &H8
                                                               Return True
                                                           End If
-
                                                           Return False
                                                       End Function))
         lastScanLineTick = 0
