@@ -109,6 +109,8 @@
                                             Loop Until cancelAllThreads
                                         End Sub)
         tmp.Start()
+
+        InitVideoMemory(False)
     End Sub
 
     Public Property RenderControl As Control
@@ -171,11 +173,7 @@
         If VideoEnabled Then
             SyncLock videoBMP
                 Select Case MainMode
-                    Case MainModes.Text
-                        Try ' FIXME: Fix the issues instead of ignoring them! (VideoChar.Paint generates an exception every time the resolution is changed)
-                            RenderText()
-                        Catch
-                        End Try
+                    Case MainModes.Text : RenderText()
                     Case MainModes.Graphics : RenderGraphics()
                 End Select
             End SyncLock
@@ -247,19 +245,19 @@
                         h2 = y '>> 1
                         address = h2 * 40 + (h1 >> 3)
                         h1 = 7 - (h1 And 7)
-                        b = (VRAM(address) >> h1) And 1
-                        b = b + ((VRAM(address + &H10000) >> h1) And 1) << 1
-                        b = b + ((VRAM(address + &H20000) >> h1) And 1) << 2
-                        b = b + ((VRAM(address + &H30000) >> h1) And 1) << 3
+                        b = (vRAM(address) >> h1) And 1
+                        b = b + ((vRAM(address + &H10000) >> h1) And 1) << 1
+                        b = b + ((vRAM(address + &H20000) >> h1) And 1) << 2
+                        b = b + ((vRAM(address + &H30000) >> h1) And 1) << 3
                         videoBMP.Pixel(x, y) = VGAPalette(b)
 
                     Case &H10, &H12
                         address = (y * 80) + (x >> 3)
                         h1 = 7 - (x And 7)
-                        b = (VRAM(address) >> h1) And 1
-                        b = b Or ((VRAM(address + &H10000) >> h1) And 1) << 1
-                        b = b Or ((VRAM(address + &H20000) >> h1) And 1) << 2
-                        b = b Or ((VRAM(address + &H30000) >> h1) And 1) << 3
+                        b = (vRAM(address) >> h1) And 1
+                        b = b Or ((vRAM(address + &H10000) >> h1) And 1) << 1
+                        b = b Or ((vRAM(address + &H20000) >> h1) And 1) << 2
+                        b = b Or ((vRAM(address + &H30000) >> h1) And 1) << 3
                         videoBMP.Pixel(x, y) = VGAPalette(b)
 
                     Case &H13
@@ -316,17 +314,9 @@
 
             If mVideoMode = 7 OrElse mVideoMode = 127 Then
                 If (b1 And &H70) <> 0 Then
-                    If b0 = 0 Then
-                        b1 = 7
-                    Else
-                        b1 = 0
-                    End If
+                    b1 = If(b0 = 0, 7, 0)
                 Else
-                    If b0 = 0 Then
-                        b1 = 0
-                    Else
-                        b1 = 7
-                    End If
+                    b1 = If(b0 = 0, 0, 7)
                 End If
             End If
 
@@ -430,28 +420,30 @@
         MyBase.InitVideoMemory(clearScreen)
 
         If mRenderControl IsNot Nothing Then
-            If clearScreen OrElse charSizeCache.Count = 0 Then
-                charSizeCache.Clear()
-                Using g = mRenderControl.CreateGraphics()
-                    For i As Integer = 0 To 255
-                        MeasureChar(g, i, chars(i), mFont)
-                    Next
-                End Using
-            End If
-
-            charsCache.Clear()
-
-            If videoBMP IsNot Nothing Then videoBMP.Dispose()
-            If GraphicsResolution.Width = 0 Then
-                videoBMP = New DirectBitmap(640, 480)
-            Else
+            SyncLock videoBMP
+                If videoBMP IsNot Nothing Then videoBMP.Dispose()
+                If GraphicsResolution.Width = 0 Then
+                    VideoMode = 3
+                    Exit Sub
+                End If
                 videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
-            End If
 
-            If fontSourceMode = FontSources.TrueType Then
-                If g IsNot Nothing Then g.Dispose()
-                g = Graphics.FromImage(videoBMP)
-            End If
+                If clearScreen OrElse charSizeCache.Count = 0 Then
+                    charSizeCache.Clear()
+                    Using g = mRenderControl.CreateGraphics()
+                        For i As Integer = 0 To 255
+                            MeasureChar(g, i, chars(i), mFont)
+                        Next
+                    End Using
+                End If
+
+                charsCache.Clear()
+
+                If fontSourceMode = FontSources.TrueType Then
+                    If g IsNot Nothing Then g.Dispose()
+                    g = Graphics.FromImage(videoBMP)
+                End If
+            End SyncLock
         End If
     End Sub
 

@@ -90,8 +90,8 @@
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 
         Dim p As New Point(m.X - MidPoint.X, m.Y - MidPoint.Y)
-        p.X *= 0.4
-        p.Y *= 0.4
+        If p.X >= 3 Then p.X *= 0.4
+        If p.Y >= 3 Then p.Y *= 0.4
 
         Dim highbits As Byte = 0
         If p.X < 0 Then highbits = 3

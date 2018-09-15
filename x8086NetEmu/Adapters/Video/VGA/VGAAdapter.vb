@@ -471,11 +471,7 @@
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
                             mUseVRAM = False
-                            If value And &HF = 4 Then
-                                portRAM(&H3D9) = 48
-                            Else
-                                portRAM(&H3D9) = 0
-                            End If
+                            portRAM(&H3D9) = If(value And &HF = 4, 48, 0)
 
                         Case 6 ' 640x200 2 Colors
                             mStartTextVideoAddress = &HB8000
@@ -583,14 +579,14 @@
                             '    portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                         Case Else
-                            mStartTextVideoAddress = &HB0000
-                            mStartGraphicsVideoAddress = &HB0000
-                            mTextResolution = New Size(80, 25)
-                            mVideoResolution = New Size(640, 200)
-                            mCellSize = New Size(8, 8)
-                            mMainMode = MainModes.Text
-                            mPixelsPerByte = 1
-                            mUseVRAM = False
+                            'mStartTextVideoAddress = &HB0000
+                            'mStartGraphicsVideoAddress = &HB0000
+                            'mTextResolution = New Size(132, 25)
+                            'mVideoResolution = New Size(640, 200)
+                            'mCellSize = New Size(8, 8)
+                            'mMainMode = MainModes.Text
+                            'mPixelsPerByte = 1
+                            'mUseVRAM = False
 
                     End Select
 
@@ -659,17 +655,18 @@
                 Return latchReadPal
 
             Case &H3C9
-                latchReadRGB += 1
-                Select Case (latchReadRGB - 1)
+                Select Case (latchReadRGB)
                     Case 0 ' R
                         Return (mVGAPalette(latchReadPal).ToArgb() >> 2) And &H3F
                     Case 1 ' G
                         Return (mVGAPalette(latchReadPal).ToArgb() >> 10) And &H3F
                     Case 2 ' B
                         latchReadRGB = 0
+                        Dim tmp As Integer = (mVGAPalette(latchReadPal).ToArgb() >> 18) And &H3F
                         latchReadPal += 1
-                        Return (mVGAPalette(latchReadPal - 1).ToArgb() >> 18) And &H3F
+                        Return tmp
                 End Select
+                latchReadRGB += 1
 
             Case &H3DA ' Using the CGA timing code appears to solve many problems
                 flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
@@ -812,6 +809,11 @@
             Return 1
         End Get
     End Property
+
+    Public Overrides Sub Reset()
+        MyBase.Reset()
+        InitVideoMemory(False)
+    End Sub
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
         If Not isInit Then Exit Sub
