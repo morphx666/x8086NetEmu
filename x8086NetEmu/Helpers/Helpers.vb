@@ -108,28 +108,28 @@
             Case 0 ' 00
                 addrMode.IsDirect = False
                 Select Case addrMode.Rm
-                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7                          ' 000 [BX+SI]
-                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8                          ' 001 [BX+DI]
-                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8                          ' 010 [BP+SI]
-                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7                          ' 011 [BP+DI]
-                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5                                          ' 100 [SI]
-                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5                                          ' 101 [DI]
-                    Case 6 : addrMode.IndAdr = To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word)) : clkCyc += 9             ' 110 Direct Addressing
-                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7UL                        ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8UL                        ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8UL                        ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7UL                        ' 011 [BP+DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5UL                                        ' 100 [SI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5UL                                        ' 101 [DI]
+                    Case 6 : addrMode.IndAdr = To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word)) : clkCyc += 9UL           ' 110 Direct Addressing
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5UL                                        ' 111 [BX]
                 End Select
                 addrMode.IndMem = RAMn
 
             Case 1 ' 01 - 8bit
                 addrMode.IsDirect = False
                 Select Case addrMode.Rm
-                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7                          ' 000 [BX+SI]
-                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8                          ' 001 [BX+DI]
-                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8                          ' 010 [BP+SI]
-                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7                          ' 011 [BP+DI]
-                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5                                          ' 100 [SI]
-                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5                                          ' 101 [DI]
-                    Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5                                          ' 110 [BP]
-                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7UL                        ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8UL                        ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8UL                        ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7UL                        ' 011 [BP+DI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5UL                                        ' 101 [DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5UL                                        ' 100 [SI]
+                    Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5UL                                        ' 110 [BP]
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5UL                                        ' 111 [BX]
                 End Select
                 addrMode.IndAdr += To16bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Byte))
                 addrMode.IndMem = RAMn
@@ -137,14 +137,14 @@
             Case 2 ' 10 - 16bit
                 addrMode.IsDirect = False
                 Select Case addrMode.Rm
-                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7                          ' 000 [BX+SI]
-                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8                          ' 001 [BX+DI]
-                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8                          ' 010 [BP+SI]
-                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7                          ' 011 [BP+DI]
-                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5                                          ' 100 [SI]
-                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5                                          ' 101 [DI]
-                    Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5                                          ' 110 [BP]
-                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5                                          ' 111 [BX]
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : clkCyc += 7UL                        ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : clkCyc += 8UL                        ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : clkCyc += 8UL                        ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7UL                        ' 011 [BP+DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5UL                                        ' 100 [SI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5UL                                        ' 101 [DI]
+                    Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5UL                                        ' 110 [BP]
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5UL                                        ' 111 [BX]
                 End Select
                 addrMode.IndAdr += To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word))
                 addrMode.IndMem = RAMn

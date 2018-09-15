@@ -172,10 +172,13 @@
     Protected Overrides Sub Render()
         If VideoEnabled Then
             SyncLock videoBMP
-                Select Case MainMode
-                    Case MainModes.Text : RenderText()
-                    Case MainModes.Graphics : RenderGraphics()
-                End Select
+                Try ' FIXME: This sill fails (sometimes) when switching modes
+                    Select Case MainMode
+                        Case MainModes.Text : RenderText()
+                        Case MainModes.Graphics : RenderGraphics()
+                    End Select
+                Catch
+                End Try
             End SyncLock
         End If
     End Sub
@@ -206,9 +209,9 @@
         Dim usePal As Integer = (portRAM(&H3D9) >> 5) And 1
         Dim intensity As Integer = ((portRAM(&H3D9) >> 4) And 1) << 3
 
-        ' For mode &h12 and &h13
-        Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
-        Dim vgaPage As UInt32 = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
+        ' For modes &h12 and &h13
+        Dim planeMode As Boolean = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (VGA_SC(4) And 6) <> 0, False)
+        Dim vgaPage As UInt32 = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD), 0)
 
         Dim address As UInt32
         Dim h1 As UInt32
@@ -229,7 +232,7 @@
                             b = b * 2 + usePal + intensity
                             If b = (usePal + intensity) Then b = 0
                         Else
-                            b = b * 63
+                            b = b * &H3F
                             b = b Mod CGAPalette.Length
                         End If
                         videoBMP.Pixel(x, y) = CGAPalette(b)
@@ -249,7 +252,7 @@
                         b = b + ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b = b + ((vRAM(address + &H20000) >> h1) And 1) << 2
                         b = b + ((vRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = VGAPalette(b)
+                        videoBMP.Pixel(x, y) = vgaPalette(b)
 
                     Case &H10, &H12
                         address = (y * 80) + (x >> 3)
@@ -258,7 +261,7 @@
                         b = b Or ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b = b Or ((vRAM(address + &H20000) >> h1) And 1) << 2
                         b = b Or ((vRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = VGAPalette(b)
+                        videoBMP.Pixel(x, y) = vgaPalette(b)
 
                     Case &H13
                         If planeMode Then
@@ -267,7 +270,7 @@
                         Else
                             b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)
                         End If
-                        videoBMP.Pixel(x, y) = VGAPalette(b)
+                        videoBMP.Pixel(x, y) = vgaPalette(b)
 
                     Case 127
                         b = mCPU.Memory(mStartGraphicsVideoAddress + ((y And 3) << 13) + ((y >> 2) * 90) + (x >> 3))

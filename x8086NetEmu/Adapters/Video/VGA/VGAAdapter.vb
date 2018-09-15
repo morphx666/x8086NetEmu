@@ -264,17 +264,17 @@
     Protected VGA_ATTR(&H100 - 1) As Byte
     Protected VGA_CRTC(&H100 - 1) As Byte
     Protected VGA_GC(&H100 - 1) As Byte
+    Private ReadOnly VGA_Latch(4 - 1) As Byte
 
     Private flip3C0 As Boolean = False
-    Private ReadOnly VGA_Latch(4 - 1) As Byte
     Private stateDAC As Byte
     Private latchReadRGB As Byte
     Private latchReadPal As Byte
     Private latchWriteRGB As Byte
     Private latchWritePal As Byte
-    Protected portRAM(&H10000 - 1) As Byte
+    Protected portRAM(&HFFF - 1) As Byte
     Private tempRGB As UInt32
-    Private mVGAPalette(VGABasePalette.Length - 1) As Color
+    Protected vgaPalette(VGABasePalette.Length - 1) As Color
     Private mUseVRAM As Boolean
 
     'Private port3DA As UInt32
@@ -285,7 +285,7 @@
     Private cursorPosition As UInt32
     Private blinkCounter As Integer
 
-    Private ReadOnly useROM As Boolean = True ' FIXME: Enabling ROM support breaks CGA compatibility
+    Private tmpVal As Byte
 
     Private mCPU As X8086
 
@@ -321,26 +321,40 @@
                                                             If address >= mStartGraphicsVideoAddress AndAlso address < mEndGraphicsVideoAddress Then
                                                                 Select Case mode
                                                                     Case X8086.MemHookMode.Read
-                                                                        If (mVideoMode = &HD) OrElse (mVideoMode = &HE) OrElse (mVideoMode = &H10) OrElse (mVideoMode = &H12) Then
+                                                                        'If (mVideoMode = &HD) OrElse (mVideoMode = &HE) OrElse (mVideoMode = &H10) OrElse (mVideoMode = &H12) Then
+                                                                        '    value = Read(address - mStartGraphicsVideoAddress)
+                                                                        '    Return True
+                                                                        'End If
+                                                                        'If (mVideoMode <> &H13) AndAlso (mVideoMode <> &H12) AndAlso (mVideoMode <> &HD) Then Return False
+                                                                        'If (VGA_SC(4) And 6) = 0 Then
+                                                                        '    Return False
+                                                                        'Else
+                                                                        '    value = Read(address - mStartGraphicsVideoAddress)
+                                                                        '    Return True
+                                                                        'End If
+                                                                        If (VGA_SC(4) And 6) = 0 Then Return False
+                                                                        If mUseVRAM Then
                                                                             value = Read(address - mStartGraphicsVideoAddress)
                                                                             Return True
-                                                                        End If
-                                                                        If (mVideoMode <> &H13) AndAlso (mVideoMode <> &H12) AndAlso (mVideoMode <> &HD) Then Return False
-                                                                        If (VGA_SC(4) And 6) = 0 Then
-                                                                            Return False
                                                                         Else
-                                                                            value = Read(address - mStartGraphicsVideoAddress)
-                                                                            Return True
+                                                                            Return False
                                                                         End If
 
                                                                     Case X8086.MemHookMode.Write
-                                                                        If mVideoMode <> &H13 AndAlso mVideoMode <> &H12 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 Then
-                                                                            Return False
-                                                                        ElseIf ((VGA_SC(4) And 6) = 0) AndAlso (mVideoMode <> &HD) AndAlso (mVideoMode <> &H10) AndAlso (mVideoMode <> &H12) Then
-                                                                            Return False
-                                                                        Else
+                                                                        'If mVideoMode <> &H13 AndAlso mVideoMode <> &H12 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 Then
+                                                                        '    Return False
+                                                                        'ElseIf ((VGA_SC(4) And 6) = 0) AndAlso (mVideoMode <> &HD) AndAlso (mVideoMode <> &H10) AndAlso (mVideoMode <> &H12) Then
+                                                                        '    Return False
+                                                                        'Else
+                                                                        '    Write(address - mStartGraphicsVideoAddress, value)
+                                                                        '    Return True
+                                                                        'End If
+                                                                        If ((VGA_SC(4) And 6) = 0) Then Return False
+                                                                        If mUseVRAM Then
                                                                             Write(address - mStartGraphicsVideoAddress, value)
                                                                             Return True
+                                                                        Else
+                                                                            Return False
                                                                         End If
                                                                 End Select
                                                             End If
@@ -349,24 +363,13 @@
                                                     Return False
                                                 End Function))
 
-        If useROM Then
-            mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
-            'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-            'mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
-        Else
-            mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
-                                                        If mode = X8086.MemHookMode.Read AndAlso address = &H410 Then
-                                                            value = &H41
-                                                            Return True
-                                                        Else
-                                                            Return False
-                                                        End If
-                                                    End Function))
-        End If
+        'mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
+        'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
+        mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
 
         ValidPortAddress.Clear()
-        ValidPortAddress.Add(&H3BA) ' Dummy port to speed ET4000 ROM initialization
-        ValidPortAddress.Add(&H3B8) ' Monochrome support
+        'ValidPortAddress.Add(&H3BA) ' Dummy port to speed up ET4000 ROM initialization
+        'ValidPortAddress.Add(&H3B8) ' Monochrome support
         For i As UInt32 = &H3C0 To &H3CF ' EGA/VGA
             ValidPortAddress.Add(i)
         Next
@@ -375,7 +378,7 @@
         Next
 
         For i As Integer = 0 To VGABasePalette.Length - 1
-            mVGAPalette(i) = VGABasePalette(i)
+            vgaPalette(i) = VGABasePalette(i)
         Next
 
         mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
@@ -397,12 +400,6 @@
     Public ReadOnly Property UseVRAM As Boolean
         Get
             Return mUseVRAM
-        End Get
-    End Property
-
-    Public ReadOnly Property VGAPalette(index As Integer) As Color
-        Get
-            Return mVGAPalette(index)
         End Get
     End Property
 
@@ -608,13 +605,13 @@
                 Case &H10 ' VGA DAC functions
                     Select Case value And &HFF
                         Case &H10 ' Set individual DAC register
-                            mVGAPalette(mCPU.Registers.BX) = Color.FromArgb(RGBToUInt(CUInt(mCPU.Registers.DH And &H3F) << 2,
+                            vgaPalette(mCPU.Registers.BX) = Color.FromArgb(RGBToUInt(CUInt(mCPU.Registers.DH And &H3F) << 2,
                                                                                       CUInt(mCPU.Registers.CH And &H3F) << 2,
                                                                                       CUInt(mCPU.Registers.CL And &H3F) << 2))
                         Case &H12 ' Set block of DAC registers
                             Dim addr As Integer = CUInt(mCPU.Registers.ES) * 16UI + mCPU.Registers.DX
                             For n As Integer = mCPU.Registers.BX To mCPU.Registers.BX + mCPU.Registers.CX - 1
-                                mVGAPalette(n) = Color.FromArgb(RGBToUInt(mCPU.RAM(addr + 0) << 2,
+                                vgaPalette(n) = Color.FromArgb(RGBToUInt(mCPU.RAM(addr + 0) << 2,
                                                                           mCPU.RAM(addr + 1) << 2,
                                                                           mCPU.RAM(addr + 2) << 2))
                                 addr += 3
@@ -639,34 +636,29 @@
 
                 Return If(hRetrace, 1, 0) Or If(vRetrace, 8, 0)
 
-            Case &H3C1
-                Return VGA_ATTR(portRAM(&H3C0))
+            Case &H3C1 : Return VGA_ATTR(portRAM(&H3C0))
 
-            Case &H3C5
-                Return VGA_SC(portRAM(&H3C4))
+            Case &H3C5 : Return VGA_SC(portRAM(&H3C4))
 
-            Case &H3D5
-                Return VGA_CRTC(portRAM(&H3D4)) And &H1F
+            Case &H3D5 : Return VGA_CRTC(portRAM(&H3D4)) And &H1F
 
-            Case &H3C7
-                Return stateDAC
+            Case &H3C7 : Return stateDAC
 
-            Case &H3C8
-                Return latchReadPal
+            Case &H3C8 : Return latchReadPal
 
             Case &H3C9
-                Select Case latchReadRGB
+                latchReadRGB += 1
+                Select Case latchReadRGB - 1
                     Case 0 ' B
-                        Return (mVGAPalette(latchReadPal).ToArgb() >> 2) And &H3F
+                        Return (vgaPalette(latchReadPal).ToArgb() >> 2) And &H3F
                     Case 1 ' G
-                        Return (mVGAPalette(latchReadPal).ToArgb() >> 10) And &H3F
+                        Return (vgaPalette(latchReadPal).ToArgb() >> 10) And &H3F
                     Case 2 ' R
-                        Dim tmp As Integer = (mVGAPalette(latchReadPal).ToArgb() >> 18) And &H3F
+                        tmpVal = (vgaPalette(latchReadPal).ToArgb() >> 18) And &H3F
                         latchReadPal += 1
                         latchReadRGB = 0
-                        Return tmp
+                        Return tmpVal
                 End Select
-                latchReadRGB += 1
 
             Case &H3DA ' Using the CGA timing code appears to solve many problems
                 flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
@@ -683,21 +675,20 @@
     End Function
 
     Public Overrides Sub Out(port As UInt32, value As UInt32)
-        value = value And &HFF
         Select Case port
             Case &H3B8
                 If ((value And 2) = 2) AndAlso VideoMode <> 127 Then VideoMode = 127
 
             Case &H3C0 ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
                 If flip3C0 Then
-                    portRAM(&H3C0) = value
+                    portRAM(port) = value
                 Else
-                    VGA_ATTR(portRAM(&H3C0)) = value
+                    VGA_ATTR(portRAM(port)) = value
                 End If
                 flip3C0 = Not flip3C0
 
             Case &H3C4 ' Sequence controller index
-                portRAM(&H3C4) = value
+                portRAM(port) = value
 
             Case &H3C5 ' Sequence controller data
                 VGA_SC(portRAM(&H3C4)) = value
@@ -711,7 +702,7 @@
             Case &H3C8 ' Color index register (write operations)
                 latchWritePal = value
                 latchWriteRGB = 0
-                tempRGB = 0
+                tempRGB = 0 ' FIXME: Isn't this unnecessary?
                 stateDAC = 3
                 'latchReadPal = (value - 1)
 
@@ -722,13 +713,13 @@
                     Case 1 ' G
                         tempRGB = tempRGB Or (value << 10)
                     Case 2 ' B
-                        mVGAPalette(latchWritePal) = Color.FromArgb(tempRGB Or (value << 2))
+                        vgaPalette(latchWritePal) = Color.FromArgb(tempRGB Or (value << 2))
                         latchWritePal += 1
                 End Select
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
 
-            Case &H3D4 ' 6845 index register
-                portRAM(&H3D4) = value
+            'Case &H3D4 ' 6845 index register
+            '    portRAM(port) = value
 
             Case &H3D5 ' 6845 data register
                 VGA_CRTC(portRAM(&H3D4)) = value
@@ -747,7 +738,7 @@
                 mCursorCol = cursorPosition Mod mTextResolution.Width
 
             Case &H3CE
-                VGA_GC(portRAM(&H3CE)) = value And &HF
+                ' Without this, text rendering doesn't work...
 
             Case &H3CF
                 VGA_GC(portRAM(&H3CE)) = value
@@ -818,68 +809,48 @@
 
     Public Overrides Sub Write(address As UInt32, value As UInt16)
         Dim curValue As Byte
-        value = ShiftVGA(value)
 
         Select Case (VGA_GC(5) And 3)
             Case 0
+                value = ShiftVGA(value)
                 If (VGA_SC(2) And 1) <> 0 Then
                     If (VGA_GC(1) And 1) <> 0 Then
-                        If (VGA_GC(0) And 1) <> 0 Then
-                            curValue = 255
-                        Else
-                            curValue = 0
-                        End If
+                        curValue = If((VGA_GC(0) And 1) <> 0, 255, 0)
                     Else
                         curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_Latch(0))
-                    curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(0))
-                    vRAM(address + planeSize * 0) = curValue
+                    vRAM(address + planeSize * 0) = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(0))
                 End If
 
                 If (VGA_SC(2) And 2) <> 0 Then
                     If (VGA_GC(1) And 2) <> 0 Then
-                        If (VGA_GC(0) And 2) <> 0 Then
-                            curValue = 255
-                        Else
-                            curValue = 0
-                        End If
+                        curValue = If((VGA_GC(0) And 2) <> 0, 255, 0)
                     Else
                         curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_Latch(1))
-                    curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(1))
-                    vRAM(address + planeSize * 1) = curValue
+                    vRAM(address + planeSize * 1) = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(1))
                 End If
 
                 If (VGA_SC(2) And 4) <> 0 Then
                     If (VGA_GC(1) And 4) <> 0 Then
-                        If (VGA_GC(0) And 4) <> 0 Then
-                            curValue = 255
-                        Else
-                            curValue = 0
-                        End If
+                        curValue = If((VGA_GC(0) And 4) <> 0, 255, 0)
                     Else
                         curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_Latch(2))
-                    curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(2))
-                    vRAM(address + planeSize * 2) = curValue
+                    vRAM(address + planeSize * 2) = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(2))
                 End If
 
                 If (VGA_SC(2) And 8) <> 0 Then
                     If (VGA_GC(1) And 8) <> 0 Then
-                        If (VGA_GC(0) And 8) <> 0 Then
-                            curValue = 255
-                        Else
-                            curValue = 0
-                        End If
+                        curValue = If((VGA_GC(0) And 8) <> 0, 255, 0)
                     Else
                         curValue = value
                     End If
                     curValue = LogicVGA(curValue, VGA_Latch(3))
-                    curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(3))
-                    vRAM(address + planeSize * 3) = curValue
+                    vRAM(address + planeSize * 3) = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(3))
                 End If
 
             Case 1
@@ -950,7 +921,8 @@
                 End If
 
             Case 3
-                Dim tmp As UInt32 = value And VGA_GC(8)
+                tmpVal = value And VGA_GC(8)
+                value = ShiftVGA(value)
 
                 If (VGA_SC(2) And 1) <> 0 Then
                     If (VGA_GC(0) And 1) <> 0 Then
@@ -961,7 +933,7 @@
                         End If
                     End If
                     curValue = LogicVGA(curValue, VGA_Latch(0))
-                    curValue = ((Not tmp) And curValue) Or (tmp And VGA_Latch(0))
+                    curValue = ((Not tmpVal) And curValue) Or (tmpVal And VGA_Latch(0))
                     vRAM(address + planeSize * 0) = curValue
                 End If
 
@@ -974,7 +946,7 @@
                         End If
                     End If
                     curValue = LogicVGA(curValue, VGA_Latch(1))
-                    curValue = ((Not tmp) And curValue) Or (tmp And VGA_Latch(1))
+                    curValue = ((Not tmpVal) And curValue) Or (tmpVal And VGA_Latch(1))
                     vRAM(address + planeSize * 1) = curValue
                 End If
 
@@ -987,7 +959,7 @@
                         End If
                     End If
                     curValue = LogicVGA(curValue, VGA_Latch(2))
-                    curValue = ((Not tmp) And curValue) Or (tmp And VGA_Latch(2))
+                    curValue = ((Not tmpVal) And curValue) Or (tmpVal And VGA_Latch(2))
                     vRAM(address + planeSize * 2) = curValue
                 End If
 
@@ -1000,12 +972,13 @@
                         End If
                     End If
                     curValue = LogicVGA(curValue, VGA_Latch(3))
-                    curValue = ((Not tmp) And curValue) Or (tmp And VGA_Latch(3))
+                    curValue = ((Not tmpVal) And curValue) Or (tmpVal And VGA_Latch(3))
                     vRAM(address + planeSize * 3) = curValue
                 End If
         End Select
     End Sub
 
+#Disable Warning BC42353
     Public Overrides Function Read(address As UInt32) As UInt16
         VGA_Latch(0) = vRAM(address + planeSize * 0)
         VGA_Latch(1) = vRAM(address + planeSize * 1)
@@ -1016,11 +989,9 @@
         If (VGA_SC(2) And 2) <> 0 Then Return vRAM(address + planeSize * 1)
         If (VGA_SC(2) And 4) <> 0 Then Return vRAM(address + planeSize * 2)
         If (VGA_SC(2) And 8) <> 0 Then Return vRAM(address + planeSize * 3)
-
-        Return 0
     End Function
 
-    Private Function ShiftVGA(value As UInt16) As UInt16
+    Private Function ShiftVGA(value As Byte) As Byte
         For i As Integer = 0 To (VGA_GC(3) And 7) - 1
             value = (value >> 1) Or ((value And 1) << 7)
         Next
@@ -1029,10 +1000,10 @@
 
     Private Function LogicVGA(curValue As Byte, latchValue As Byte) As Byte
         Select Case (VGA_GC(3) >> 3) And 3 ' Raster Op
-            Case 1 : curValue = curValue And latchValue
-            Case 2 : curValue = curValue Or latchValue
-            Case 3 : curValue = curValue Xor latchValue
+            Case 1 : Return curValue And latchValue
+            Case 2 : Return curValue Or latchValue
+            Case 3 : Return curValue Xor latchValue
+            Case Else : Return curValue
         End Select
-        Return curValue
     End Function
 End Class

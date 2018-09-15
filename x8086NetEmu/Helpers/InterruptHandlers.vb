@@ -58,6 +58,7 @@ Partial Public Class X8086
         Select Case opCode
             Case &H26, &H2E, &H36, &H3E, &HF2, &HF3 : Return True
         End Select
+        Return False
     End Function
 
     Private Function AdjustIP(v As UShort) As UShort
