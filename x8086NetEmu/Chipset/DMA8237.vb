@@ -383,14 +383,14 @@
                 Case 8 ' write command register
                     cmdreg = v
                     If (v And &H10) = 0 Then priochannel = 0 ' enable fixed priority
-                    If (v And 1) = 1 Then cpu.RaiseException("DMB8237: memory-to-memory transfer not implemented")
+                    If (v And 1) = 1 Then cpu.RaiseException("DMA8237: memory-to-memory transfer not implemented")
 
                 Case 9 ' set/reset request register
                     If ((v And 4) = 0) Then
                         reqreg = reqreg And (Not (1 << (v And 3))) ' reset request bit
                     Else
                         reqreg = reqreg Or (1 << (v And 3))  ' set request bit
-                        If ((v And 7) = 4) Then cpu.RaiseException("DMB8237: software request on channel 0 not implemented")
+                        If ((v And 7) = 4) Then cpu.RaiseException("DMA8237: software request on channel 0 not implemented")
                     End If
 
                 Case 10 ' set/reset mask register
@@ -402,7 +402,7 @@
 
                 Case 11 ' write mode register
                     channels(v And 3).mode = v
-                    If ((v And 3) = 0 AndAlso (v And &HDC) <> &H58) Then cpu.RaiseException("DMB8237: unsupported mode on channel 0")
+                    If ((v And 3) = 0 AndAlso (v And &HDC) <> &H58) Then cpu.RaiseException("DMA8237: unsupported mode on channel 0")
 
                 Case 12 ' clear msb flipflop
                     msbFlipFlop = False

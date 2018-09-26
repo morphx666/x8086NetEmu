@@ -71,12 +71,12 @@ Public Class FormEmulator
         AddHandler ConsoleToolStripMenuItem.Click, Sub() ShowConsole()
         AddHandler SoftResetToolStripMenuItem.Click, Sub()
                                                          runningApp = ""
-                                                         Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
+                                                         Me.Invoke(Sub() SetTitleText())
                                                          cpu.SoftReset()
                                                      End Sub
         AddHandler HardResetToolStripMenuItem.Click, Sub()
                                                          runningApp = ""
-                                                         Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
+                                                         Me.Invoke(Sub() SetTitleText())
                                                          cpu.HardReset()
                                                      End Sub
         AddHandler MediaToolStripMenuItem.Click, Sub() RunMediaManager()
@@ -148,7 +148,7 @@ Public Class FormEmulator
                                             If e1.Button = Windows.Forms.MouseButtons.Middle Then ContextMenuStripMain.Show(Cursor.Position)
                                         End Sub
 #End If
-        AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(New MethodInvoker(AddressOf SetTitleText))
+        AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(Sub() SetTitleText())
     End Sub
 
     Private Sub WarnAboutRestart()
@@ -557,7 +557,7 @@ Public Class FormEmulator
                 SetZoomLevel(Double.Parse(xml.<extras>.<lastZoomLevel>.Value))
                 Threading.Tasks.Task.Run(Sub()
                                              Threading.Thread.Sleep(250)
-                                             Me.Invoke(New MethodInvoker(Sub() SetZoomFromMenu(ZoomFullScreenToolStripMenuItem, New EventArgs())))
+                                             Me.Invoke(Sub() SetZoomFromMenu(ZoomFullScreenToolStripMenuItem, New EventArgs()))
                                          End Sub)
             Else
                 SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))

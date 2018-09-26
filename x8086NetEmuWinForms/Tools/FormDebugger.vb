@@ -276,16 +276,16 @@ Public Class FormDebugger
         SyncLock syncObject
             ignoreEvents = True
 
-            Me.Invoke(New MethodInvoker(Sub()
-                                            GenCodeAhead()
-                                            UpdateFlagsAndRegisters()
+            Me.Invoke(Sub()
+                          GenCodeAhead()
+                          UpdateFlagsAndRegisters()
 
-                                            If Now.Second Mod 2 = 0 Then
-                                                UpdateMemory()
-                                                SetSegmentTextBoxesState()
-                                                UpdateStack()
-                                            End If
-                                        End Sub))
+                          If Now.Second Mod 2 = 0 Then
+                              UpdateMemory()
+                              SetSegmentTextBoxesState()
+                              UpdateStack()
+                          End If
+                      End Sub)
             ignoreEvents = False
         End SyncLock
     End Sub
@@ -773,9 +773,7 @@ Public Class FormDebugger
             ohpWaiter.WaitOne(30)
             If abortThreads Then Exit Sub
 
-            If offsetHistoryDirection <> 0 Then
-                Me.Invoke(New MethodInvoker(Sub() OffsetHistoryPointer(offsetHistoryDirection)))
-            End If
+            If offsetHistoryDirection <> 0 Then Me.Invoke(Sub() OffsetHistoryPointer(offsetHistoryDirection))
         Loop
     End Sub
 

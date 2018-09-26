@@ -60,13 +60,13 @@ Public Class FormConsole
     End Sub
 
     Private Sub UpdateRtf()
-        Me.Invoke(New MethodInvoker(Sub()
-                                        SyncLock Me
-                                            RichTextBoxConsole.Rtf = rtfTextStd.Replace("%", rtfText)
-                                            RichTextBoxConsole.SelectionStart = RichTextBoxConsole.TextLength
-                                            RichTextBoxConsole.ScrollToCaret()
-                                        End SyncLock
-                                    End Sub))
+        Me.Invoke(Sub()
+                      SyncLock Me
+                          RichTextBoxConsole.Rtf = rtfTextStd.Replace("%", rtfText)
+                          RichTextBoxConsole.SelectionStart = RichTextBoxConsole.TextLength
+                          RichTextBoxConsole.ScrollToCaret()
+                      End SyncLock
+                  End Sub)
     End Sub
 
     Private ReadOnly Property MillTime As String

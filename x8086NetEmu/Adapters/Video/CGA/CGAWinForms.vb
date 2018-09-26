@@ -148,7 +148,7 @@ Public Class CGAWinForms
     Public Overrides Sub AutoSize()
         If mRenderControl IsNot Nothing Then
             If mRenderControl.InvokeRequired Then
-                mRenderControl.Invoke(New MethodInvoker(AddressOf ResizeRenderControl))
+                mRenderControl.Invoke(Sub() ResizeRenderControl())
             Else
                 ResizeRenderControl()
             End If

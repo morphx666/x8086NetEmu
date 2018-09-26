@@ -34,6 +34,16 @@
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
+    ' Set configuration switch data to be reported by PPI.
+    ' bit 0: diskette drive present
+    ' bit 1: math coprocessor present
+    ' bits 3-2: memory size:
+    '   00=256k, 01=512k, 10=576k, 11=640k
+    ' bits 5-4: initial video mode:
+    '   00=EGA/VGA, 01=CGA 40x25, 10=CGA 80x25 color, 11=MDA 80x25
+    ' bits 7-6: one less than number of diskette drives (1 - 4 drives)
+    Public Property SwitchData As Byte
+
     Public Sub New(cpu As X8086, irq As InterruptRequest)
         For i As Integer = &H60 To &H6F
             ValidPortAddress.Add(i)
@@ -69,7 +79,7 @@
     End Property
 
     Public Overrides Function [In](port As UInt32) As UInt32
-        Select Case (port And 3)
+        Select Case port And 3
             Case 0 ' port &h60 (PPI port A)
                 ' Return keyboard data if bit 7 in port B is cleared.
                 Return If((ppiB And &H80) = 0, GetKeyData(), 0)
@@ -85,7 +95,7 @@
     End Function
 
     Public Overrides Sub Out(port As UInt32, v As UInt32)
-        Select Case (port And 3)
+        Select Case port And 3
             Case 1
                 ' Write to port 0x61 (system control port)
                 ' bit 0: gate signal for timer channel 2
@@ -95,7 +105,6 @@
                 ' bit 5: NMI I/O check disable
                 ' bit 6: enable(1) or disable(0) keyboard clock ??
                 ' bit 7: pulse 1 to reset keyboard and IRQ1
-
                 Dim oldv As UInt32 = ppiB
                 ppiB = v
                 If (timer IsNot Nothing) AndAlso ((oldv Xor v) And 1) <> 0 Then
@@ -112,16 +121,6 @@
         TrimBuffer()
         If keyBuf.Length() > 0 AndAlso irq IsNot Nothing Then irq.Raise(True)
     End Sub
-
-    ' Set configuration switch data to be reported by PPI.
-    ' bit 0: diskette drive present
-    ' bit 1: math coprocessor present
-    ' bits 3-2: memory size:
-    '   00=256k, 01=512k, 10=576k, 11=640k
-    ' bits 5-4: initial video mode:
-    '   00=EGA/VGA, 01=CGA 40x25, 10=CGA 80x25 color, 11=MDA 80x25
-    ' bits 7-6: one less than number of diskette drives (1 - 4 drives)
-    Public Property SwitchData As Byte
 
     Private Sub TrimBuffer()
         SyncLock keyBuf

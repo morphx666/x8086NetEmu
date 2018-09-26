@@ -25,6 +25,7 @@ Module MainModule
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
+        cpu.Adapters.Add(New AdlibAdapter(cpu))
 #End If
 
         LoadSettings()

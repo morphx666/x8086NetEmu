@@ -50,9 +50,9 @@
                     tmp = 0
                 End If
 
-                'Return tmp
+                Return tmp
                 'Return &H60 Or tmp
-                Return &H1
+                'Return &H1
         End Select
 
         Return sm.reg(port And 7)
