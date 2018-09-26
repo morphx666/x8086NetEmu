@@ -75,7 +75,7 @@
         End Operator
 
         Public Shared Operator <>(i1 As Instruction, i2 As Instruction) As Boolean
-            Return Not (i1 = i2)
+            Return Not i1 = i2
         End Operator
     End Structure
 
@@ -392,7 +392,7 @@
 
             Case &H26, &H2E, &H36, &H3E ' segment override prefix
                 addrMode.Decode(decOpCode, decOpCode)
-                addrMode.Register1 = (addrMode.Register1 - GPRegisters.RegistersTypes.AH) + GPRegisters.RegistersTypes.ES
+                addrMode.Register1 = addrMode.Register1 - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
                 opCodeASM = addrMode.Register1.ToString() + ":"
                 segOvr = opCodeASM
                 clkCycDecoder += 2
@@ -530,7 +530,7 @@
                 SetDecoderAddressing()
                 If decOpCode = &H8C Then
                     If (addrMode.Register1 And &H4) = &H4 Then
-                        addrMode.Register1 = addrMode.Register1 And (Not (1 << 2))
+                        addrMode.Register1 = addrMode.Register1 And (Not 1 << 2)
                     Else
                         addrMode.Register1 += GPRegisters.RegistersTypes.ES
                         If addrMode.Register2 > &H3 Then
@@ -691,7 +691,7 @@
                 clkCycDecoder += 15
 
             Case &HB0 To &HBF ' mov imm to reg
-                addrMode.Register1 = (decOpCode And &H7)
+                addrMode.Register1 = decOpCode And &H7
                 If (decOpCode And &H8) = &H8 Then
                     addrMode.Register1 += GPRegisters.RegistersTypes.AX
                     If (decOpCode And &H4) = &H4 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
@@ -726,7 +726,7 @@
                 If (addrMode.Register1 And shl2) = shl2 Then
                     addrMode.Register1 = (addrMode.Register1 + GPRegisters.RegistersTypes.ES) Or shl3
                 Else
-                    addrMode.Register1 = (addrMode.Register1 Or shl3)
+                    addrMode.Register1 = addrMode.Register1 Or shl3
                 End If
                 'If addrMode.IsDirect Then
                 '    If (addrMode.Register2 And shl2) = shl2 Then

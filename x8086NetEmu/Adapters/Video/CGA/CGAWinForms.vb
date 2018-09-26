@@ -228,7 +228,7 @@ Public Class CGAWinForms
             b1 = vRAM(address + 1)
 
             If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
-                If (blinkCounter < BlinkRate) Then b0 = 0
+                If blinkCounter < BlinkRate Then b0 = 0
                 'IsDirty(address) = True
             End If
 
@@ -241,7 +241,7 @@ Public Class CGAWinForms
                 If blinkCounter < BlinkRate Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
                                            r.X + 0, r.Y - 1 + mCellSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
-                                           mCellSize.Width, (MyBase.CursorEnd - MyBase.CursorStart) + 1)
+                                           mCellSize.Width, MyBase.CursorEnd - MyBase.CursorStart + 1)
                     cursorAddress.Add(address)
                 End If
 

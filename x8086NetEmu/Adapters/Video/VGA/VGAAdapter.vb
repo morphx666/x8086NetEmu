@@ -280,7 +280,7 @@
     'Private port3DA As UInt32
     Private Const planeSize As UInt32 = &H10000
     Private lastScanLineTick As Long
-    Private ReadOnly scanLineTiming As Long = (Scheduler.BASECLOCK / X8086.KHz) / 31500
+    Private ReadOnly scanLineTiming As Long = Scheduler.BASECLOCK / X8086.KHz / 31500
     Private curScanLine As Long
     Private cursorPosition As UInt32
     Private blinkCounter As Integer
@@ -349,7 +349,7 @@
                                                                         '    Write(address - mStartGraphicsVideoAddress, value)
                                                                         '    Return True
                                                                         'End If
-                                                                        If ((VGA_SC(4) And 6) = 0) Then Return False
+                                                                        If (VGA_SC(4) And 6) = 0 Then Return False
                                                                         If mUseVRAM Then
                                                                             Write(address - mStartGraphicsVideoAddress, value)
                                                                             Return True
@@ -666,7 +666,7 @@
                 Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
                 Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
 
-                Return (If(hRetrace, 1, 0) Or If(vRetrace, 8, 0))
+                Return If(hRetrace, 1, 0) Or If(vRetrace, 8, 0)
 
         End Select
 
@@ -809,7 +809,7 @@
     Public Overrides Sub Write(address As UInt32, value As UInt16)
         Dim curValue As Byte
 
-        Select Case (VGA_GC(5) And 3)
+        Select Case VGA_GC(5) And 3
             Case 0
                 value = ShiftVGA(value)
                 If (VGA_SC(2) And 1) <> 0 Then

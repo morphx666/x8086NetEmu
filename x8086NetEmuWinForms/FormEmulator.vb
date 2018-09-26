@@ -310,7 +310,7 @@ Public Class FormEmulator
                                                                   Return System.Text.Encoding.ASCII.GetString(b.ToArray())
                                                               End Function
 
-                                            runningApp = GetFileName() ' ParseRunningApp()
+                                            runningApp = GetFileName()
 
                                             Select Case cpu.Registers.AL
                                                 Case 0 : mode = "L&X" ' Load & Execute
@@ -321,10 +321,10 @@ Public Class FormEmulator
                                             End Select
 
                                             Const offset As UInt32 = &H12
-                                            Dim cs As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
-                                            Dim ip As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
+                                            'Dim cs As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
+                                            'Dim ip As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
                                             X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
-                                            X8086.Notify($"DOS {mode}: {runningApp} -> {cs:X4}:{ip:X4}", X8086.NotificationReasons.Dbg)
+                                            'X8086.Notify($"DOS {mode}: {runningApp} -> {cs:X4}:{ip:X4}", X8086.NotificationReasons.Dbg)
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.

@@ -459,7 +459,7 @@ AddressOf _FE_FF}
 
     Private Sub _26_2E_36_3E()  ' ES, CS, SS and DS segment override prefix
         addrMode.Decode(opCode, opCode)
-        mRegisters.ActiveSegmentRegister = (addrMode.Register1 - GPRegisters.RegistersTypes.AH) + GPRegisters.RegistersTypes.ES
+        mRegisters.ActiveSegmentRegister = addrMode.Register1 - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
         isStringOp = True
         clkCyc += 2
     End Sub
@@ -1112,7 +1112,7 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _B0_BF()    ' mov imm to reg
-        addrMode.Register1 = (opCode And &H7)
+        addrMode.Register1 = opCode And &H7
         If (opCode And &H8) = &H8 Then
             addrMode.Register1 += GPRegisters.RegistersTypes.AX
             If (opCode And &H4) = &H4 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
@@ -1147,7 +1147,7 @@ AddressOf _FE_FF}
         If (addrMode.Register1 And shl2) = shl2 Then
             addrMode.Register1 = (addrMode.Register1 + GPRegisters.RegistersTypes.ES) Or shl3
         Else
-            addrMode.Register1 = (addrMode.Register1 Or shl3)
+            addrMode.Register1 = addrMode.Register1 Or shl3
         End If
         mRegisters.Val(addrMode.Register1) = addrMode.IndMem
         mRegisters.Val(If(opCode = &HC4, GPRegisters.RegistersTypes.ES, GPRegisters.RegistersTypes.DS)) = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)

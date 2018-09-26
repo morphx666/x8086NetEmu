@@ -258,7 +258,7 @@
             If singlemode AndAlso maxlen > 25 Then maxlen = 25
 
             ' Execute transfer
-            Select Case (mode And &HC)
+            Select Case mode And &HC
                 Case &H0
                     ' DMA verify
                     curcount -= maxlen
@@ -291,7 +291,7 @@
             End Select
 
             ' Update registers
-            Dim termcount As Boolean = (curcount < 0)
+            Dim termcount As Boolean = curcount < 0
             chan.curcount = If(termcount, &HFFFF, curcount)
             chan.curaddr = curaddr
 
@@ -306,7 +306,7 @@
                     chan.curaddr = chan.baseaddr
                 End If
                 ' Clear software request
-                reqreg = reqreg And (Not (1 << i))
+                reqreg = reqreg And (Not 1 << i)
                 ' Set TC bit in status register
                 statusreg = statusreg Or (1 << i)
             End If
@@ -386,23 +386,23 @@
                     If (v And 1) = 1 Then cpu.RaiseException("DMA8237: memory-to-memory transfer not implemented")
 
                 Case 9 ' set/reset request register
-                    If ((v And 4) = 0) Then
-                        reqreg = reqreg And (Not (1 << (v And 3))) ' reset request bit
+                    If (v And 4) = 0 Then
+                        reqreg = reqreg And (Not 1 << (v And 3)) ' reset request bit
                     Else
                         reqreg = reqreg Or (1 << (v And 3))  ' set request bit
-                        If ((v And 7) = 4) Then cpu.RaiseException("DMA8237: software request on channel 0 not implemented")
+                        If (v And 7) = 4 Then cpu.RaiseException("DMA8237: software request on channel 0 not implemented")
                     End If
 
                 Case 10 ' set/reset mask register
-                    If ((v And 4) = 0) Then
-                        maskreg = maskreg And (Not (1 << (v And 3))) ' reset mask bit
+                    If (v And 4) = 0 Then
+                        maskreg = maskreg And (Not 1 << (v And 3)) ' reset mask bit
                     Else
                         maskreg = maskreg Or (1 << (v And 3))  ' set mask bit
                     End If
 
                 Case 11 ' write mode register
                     channels(v And 3).mode = v
-                    If ((v And 3) = 0 AndAlso (v And &HDC) <> &H58) Then cpu.RaiseException("DMA8237: unsupported mode on channel 0")
+                    If (v And 3) = 0 AndAlso (v And &HDC) <> &H58 Then cpu.RaiseException("DMA8237: unsupported mode on channel 0")
 
                 Case 12 ' clear msb flipflop
                     msbFlipFlop = False

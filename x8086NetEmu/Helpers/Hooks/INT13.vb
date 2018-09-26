@@ -209,7 +209,7 @@ Partial Public Class X8086
                     ret = &HAA
                 Else
                     mRegisters.CH = (dskImg.Cylinders - 1) And &HFF
-                    mRegisters.CL = (dskImg.Sectors And 63)
+                    mRegisters.CL = dskImg.Sectors And 63
                     mRegisters.CL += ((dskImg.Cylinders - 1) \ 256) * 64
                     mRegisters.DH = dskImg.Heads - 1
 

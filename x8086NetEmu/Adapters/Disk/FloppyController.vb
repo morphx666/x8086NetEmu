@@ -272,8 +272,8 @@ Public Class FloppyControllerAdapter
                 ' Respond to a completed seek command.
                 For i As Integer = 0 To 4 - 1
                     If (driveSeeking And (1 << i)) <> 0 Then
-                        driveSeeking = driveSeeking And CByte(((Not (1 << i)) And &HFF))
-                        pendingReadyChange = pendingReadyChange And CByte(((Not (1 << i)) And &HFF))
+                        driveSeeking = driveSeeking And CByte((Not 1 << i) And &HFF)
+                        pendingReadyChange = pendingReadyChange And CByte((Not 1 << i) And &HFF)
                         CommandEndSense(CByte(&H20 Or i), curCylinder(i))
                         Exit Sub
                     End If
@@ -282,7 +282,7 @@ Public Class FloppyControllerAdapter
                 ' Respond to a disk-ready change.
                 For i As Integer = 0 To 4 - 1
                     If (pendingReadyChange And (1 << i)) <> 0 Then
-                        pendingReadyChange = pendingReadyChange And CByte(((Not (1 << i)) And &HFF))
+                        pendingReadyChange = pendingReadyChange And CByte((Not 1 << i) And &HFF)
                         CommandEndSense(CByte(&HC0 Or i), curCylinder(i))
                         Exit Sub
                     End If
@@ -295,7 +295,7 @@ Public Class FloppyControllerAdapter
                 ctlStepRateTime = CByte((commandbuf(1) >> 4) And &HF)
                 ctlHeadUnloadTime = CByte(commandbuf(1) And &HF)
                 ctlHeadLoadTime = CByte((commandbuf(2) >> 1) And &H7F)
-                ctlNonDma = ((commandbuf(2) And 1) = 1)
+                ctlNonDma = (commandbuf(2) And 1) = 1
                 CommandEndVoid()
 
             Case Commands.SENSE_DRIVE ' SENSE DRIVE: respond immediately
@@ -733,7 +733,7 @@ Public Class FloppyControllerAdapter
             If state = States.IDLE Then
                 ' CPU writes first command byte
                 state = States.COMMAND
-                cmdCmd = (v And &H1F)
+                cmdCmd = v And &H1F
                 commandlen = CommandLength()
             End If
 

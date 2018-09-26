@@ -178,7 +178,7 @@
         Dim sx As Integer
         Dim sy As Integer
 
-        Dim sizeChanged As Boolean = (lastCanvasSize <> mCanvasSize)
+        Dim sizeChanged As Boolean = lastCanvasSize <> mCanvasSize
 
         If sizeChanged Then
             If mSurface IsNot Nothing Then mSurface.Dispose()

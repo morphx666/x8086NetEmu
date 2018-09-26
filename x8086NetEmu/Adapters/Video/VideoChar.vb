@@ -32,7 +32,7 @@
 
             For y As Integer = 0 To h - 1
                 For x As Integer = 0 To w - 1
-                    If FontBitmaps(CGAChar * (w * h) + y * w + x) = 1 Then
+                    If FontBitmaps(CGAChar * w * h + y * w + x) = 1 Then
                         mBitmap.Pixel(x, y) = ForeColor
                     Else
                         mBitmap.Pixel(x, y) = BackColor
@@ -49,7 +49,7 @@
     End Operator
 
     Public Shared Operator <>(c1 As VideoChar, c2 As VideoChar) As Boolean
-        Return Not (c1 = c2)
+        Return Not c1 = c2
     End Operator
 
     Public Overrides Function Equals(obj As Object) As Boolean
@@ -91,9 +91,9 @@
                 While tempCount < dataW
                     While mask <> 0
                         If (rom((base + (tempCount * dataH) + (row * dataW * dataH) + offset) Mod romSize) And mask) <> 0 Then
-                            VideoChar.FontBitmaps(i * (fw * fh) + y * fw + x) = 1
+                            VideoChar.FontBitmaps(i * fw * fh + y * fw + x) = 1
                         Else
-                            VideoChar.FontBitmaps(i * (fw * fh) + y * fw + x) = 0
+                            VideoChar.FontBitmaps(i * fw * fh + y * fw + x) = 0
                         End If
                         x += 1
                         mask = mask >> 1

@@ -148,6 +148,6 @@
     End Function
 
     Public Function ColRowToAddress(col As Integer, row As Integer) As Integer
-        Return StartTextVideoAddress + row * (TextResolution.Width * 2) + (col * 2)
+        Return StartTextVideoAddress + row * TextResolution.Width * 2 + (col * 2)
     End Function
 End Class

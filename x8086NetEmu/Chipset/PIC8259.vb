@@ -88,7 +88,7 @@
             irq = (irq + 1) And 7
         End While
 
-        Dim irqbit As Byte = (1 << irq)
+        Dim irqbit As Byte = 1 << irq
 
         ' Update controller state
         If Not autoEOI Then rISR = rISR Or irqbit
@@ -112,7 +112,7 @@
         If enable Then
             rIRR = rIRR Or (1 << irq)
         Else
-            rIRR = rIRR And (Not (1 << irq))
+            rIRR = rIRR And (Not 1 << irq)
         End If
         If master IsNot Nothing Then UpdateSlaveOutput()
     End Sub
@@ -155,7 +155,7 @@
     Private Sub UpdateSlaveOutput()
         Dim reqmask As Integer = rIRR And (Not rIMR)
         If Not specialMask Then reqmask = reqmask And (Not rISR)
-        If master IsNot Nothing Then master.RaiseIrq(masterIrq, (reqmask <> 0))
+        If master IsNot Nothing Then master.RaiseIrq(masterIrq, reqmask <> 0)
     End Sub
 
     Public Sub SetMaster(pic As PIC8259, irq As Byte)
@@ -230,7 +230,7 @@
         End If
 
         If eoi Then
-            rISR = rISR And (Not (1 << irq))
+            rISR = rISR And (Not 1 << irq)
             If master IsNot Nothing Then UpdateSlaveOutput()
         End If
 
@@ -248,7 +248,7 @@
         End If
 
         pollMode = (v And &H4) <> 0
-        If (v And &H2) <> 0 Then readISR = ((v And &H1) <> 0)
+        If (v And &H2) <> 0 Then readISR = (v And &H1) <> 0
     End Sub
 
     Public Overrides ReadOnly Property Name As String

@@ -99,7 +99,7 @@
 
     Public ReadOnly Property IsEmpty As Boolean
         Get
-            Return (nHeap = 0)
+            Return nHeap = 0
         End Get
     End Property
 End Class

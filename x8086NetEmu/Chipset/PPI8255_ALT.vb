@@ -93,7 +93,7 @@ Public Class PPI8255_ALT
 
                                                            If ((old Xor v) And 2) <> 0 Then
 #If Win32 Then
-                                                               cpu.PIT.Speaker.Enabled = ((v And 2) = 2)
+                                                               cpu.PIT.Speaker.Enabled = (v And 2) = 2
 #End If
                                                            End If
                                                        End Sub)
@@ -139,7 +139,7 @@ Public Class PPI8255_ALT
     End Property
 
     Public Overrides Function [In](port As UInt32) As UInt32
-        Select Case (port And 3)
+        Select Case port And 3
             Case 0 ' A
                 Return ReadFromPort(0)
             Case 1 ' B
@@ -176,7 +176,7 @@ Public Class PPI8255_ALT
                     If (v And 1) <> 0 Then
                         v = ports(2).Output Or (1 << bit)
                     Else
-                        v = ports(2).Output And (Not (1 << bit))
+                        v = ports(2).Output And (Not 1 << bit)
                     End If
 
                     WriteToPort(2, v)
@@ -201,7 +201,7 @@ Public Class PPI8255_ALT
         End If
 
         v = ports(port).Input And ports(port).Inp
-        v = v Or (ports(port).Output And (Not (ports(port).Inp)))
+        v = v Or (ports(port).Output And (Not ports(port).Inp))
 
         Return v
     End Function

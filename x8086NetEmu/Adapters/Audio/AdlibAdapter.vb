@@ -189,7 +189,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             adlibAttack(port) = attackTable(15 - (value >> 4)) * 1.006
             adlibDecay(port) = decayTable(value And 15)
         ElseIf port >= &HA0 AndAlso port <= &HB8 Then ' Octave / Frequency / Key On
-            port = (port And 15)
+            port = port And 15
             If Not adlibChan(port Mod 9).KeyOn AndAlso ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1 Then
                 adlibAttack(port Mod 9) = 0
                 adlibEnv(port Mod 9) = 0.0025

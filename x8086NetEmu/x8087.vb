@@ -69,13 +69,13 @@ Public Class x8087
                         FCOM()
                         If fpu.Tags(TOP) = TAGe.Empty Then Stop ' E_Exit("FPU stack underflow")
                         fpu.Tags(TOP) = TAGe.Empty
-                        TOP = ((TOP + 1) And 7)
+                        TOP = (TOP + 1) And 7
                 End Select
             Case &HD9
                 Select Case opCode2
                     Case &HD0 ' FNOP
                     Case &HE0 ' FCHS
-                        fpu.Regs(TOP).d = -1.0 * (fpu.Regs(TOP).d)
+                        fpu.Regs(TOP).d = -1.0 * fpu.Regs(TOP).d
                     Case &HE1 ' FABS
                         fpu.Regs(TOP).d = Math.Abs(fpu.Regs(TOP).d)
                     Case &HF0 ' F2XM1

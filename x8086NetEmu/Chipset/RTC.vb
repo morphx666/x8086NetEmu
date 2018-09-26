@@ -160,13 +160,13 @@
 
     Private Function ToBCD(v As UInt16) As UInt16
         If v >= 100 Then v = v Mod 100
-        Return ((v Mod 10) + 16 * (v / 10))
+        Return (v Mod 10) + 16 * (v / 10)
     End Function
 
     Private Function FromBCD(v As UInt16) As UInt16
         If (v And &HF) > &H9 Then v += &H6
         If (v And &HF0) > &H90 Then v += &H60
-        Return ((v And &HF) + 10 * ((v >> 4) And &HF0))
+        Return (v And &HF) + 10 * ((v >> 4) And &HF0)
     End Function
 
     Public Overrides Function [In](port As UInt32) As UInt32

@@ -146,7 +146,7 @@
         End Function
 
         Public Sub PutByte(v As Integer)
-            If (countMode < 0) Then Return ' undefined state
+            If countMode < 0 Then Return ' undefined state
 
             ' write to count register
             Select Case rwMode
@@ -179,13 +179,13 @@
                 mGgate = value
                 ' mode 2 and mode 3: when gate goes low, output
                 ' is set high immediately
-                If ((Not mGgate) AndAlso ((countMode = 2) OrElse (countMode = 3))) Then outputValue = True
+                If (Not mGgate) AndAlso ((countMode = 2) OrElse (countMode = 3)) Then outputValue = True
             End Set
         End Property
 
         ' Returns current output state
         Public Function GetOutput() As Boolean
-            If (countMode >= 0) Then Update()
+            If countMode >= 0 Then Update()
             Return outputValue
         End Function
 
@@ -201,7 +201,7 @@
                     If active AndAlso mGgate AndAlso (Not outputValue) Then clocks = FromCounter(counterValue) + If(nullCount, 1, 0)
                 Case 1
                     ' output goes high on terminal count
-                    If (Not outputValue) Then clocks = FromCounter(counterValue) + If(trigger, 1, 0)
+                    If Not outputValue Then clocks = FromCounter(counterValue) + If(trigger, 1, 0)
                     ' output goes low on next clock after trigger
                     If outputValue AndAlso trigger Then clocks = 1
                 Case 2
@@ -288,7 +288,7 @@
                                     ((counterValue >> 8) And &HF) * 100 +
                                     ((counterValue >> 4) And &HF) * 10 +
                                     (counterValue And &HF)
-                zero = (c >= 10000 OrElse (v <> 0 AndAlso c >= v))
+                zero = c >= 10000 OrElse (v <> 0 AndAlso c >= v)
                 v += 10000 - (c Mod 10000)
                 counterValue =
                   ((v \ 1000) Mod 10) << 12 Or
@@ -296,7 +296,7 @@
                     ((v \ 10) Mod 10) << 4 Or
                       (v Mod 10)
             Else
-                zero = (c > &HFFFF OrElse (counterValue <> 0 AndAlso c >= counterValue))
+                zero = c > &HFFFF OrElse (counterValue <> 0 AndAlso c >= counterValue)
                 counterValue = (counterValue - c) And &HFFFF
             End If
 
@@ -366,7 +366,7 @@
             ' trigger:   reload counter
             ' on one:    output strobes low
             ' on zero:   reload counter
-            If (trigger) Then
+            If trigger Then
                 ' load counter on trigger
                 counterValue = countRegister
                 nullCount = False
@@ -388,7 +388,7 @@
                 counterValue = ToCounter(v)
             End If
             ' output strobes low on decrement to 1
-            outputValue = (Not mGgate OrElse counterValue <> 1)
+            outputValue = Not mGgate OrElse counterValue <> 1
         End Sub
 
         ' MODE 3 - SQUARE WAVE
@@ -460,7 +460,7 @@
             '  init:      output high, counter running
             '  set count: load counter
             '  on zero:   output strobes low, counter wraps
-            If (active AndAlso nullCount) Then
+            If active AndAlso nullCount Then
                 '  load counter on first clock
                 counterValue = countRegister
                 nullCount = False
@@ -471,7 +471,7 @@
                 '  count down
                 CountDown(clocks)
                 '  output strobes low on zero
-                outputValue = (Not active OrElse counterValue <> 0)
+                outputValue = Not active OrElse counterValue <> 0
             Else
                 '  end previous strobe
                 outputValue = True
@@ -492,11 +492,11 @@
                 active = True
                 clocks -= 1
             End If
-            If (clocks < 0) Then Return
+            If clocks < 0 Then Return
             '  count down
             CountDown(clocks)
             '  output strobes low on zero
-            outputValue = (Not active OrElse counterValue <> 0)
+            outputValue = Not active OrElse counterValue <> 0
         End Sub
 
         ' Called when a new count is written to the Count Register
@@ -609,7 +609,7 @@
             If c = 3 Then
                 '  Read Back command
                 For i As Integer = 0 To 3 - 1
-                    s = (2 << i)
+                    s = 2 << i
                     If (v And (&H10 Or s)) = s Then mChannels(i).LatchStatus()
                     If (v And (&H20 Or s)) = s Then mChannels(i).LatchOutput()
                 Next

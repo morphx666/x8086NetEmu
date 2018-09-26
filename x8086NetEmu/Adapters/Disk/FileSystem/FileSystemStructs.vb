@@ -114,7 +114,7 @@ Public Structure FAT12
         End Function
 
         Private Function FSDateToNative(v As UInt16) As Integer()
-            Dim d As Integer = (v And &H1F)
+            Dim d As Integer = v And &H1F
             Dim m As Integer = (v And &H1E0) >> 5
             Dim y As Integer = ((v And &HFE00) >> 9) + 1980
             Return {y, m, d}
@@ -138,7 +138,7 @@ Public Structure FAT12
         End Operator
 
         Public Shared Operator <>(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
-            Return Not (d1 = d2)
+            Return Not d1 = d2
         End Operator
     End Structure
 
@@ -273,7 +273,7 @@ Public Structure FAT16
         End Function
 
         Private Function FSDateToNative(v As UInt16) As Integer()
-            Dim d As Integer = (v And &H1F)
+            Dim d As Integer = v And &H1F
             Dim m As Integer = (v And &H1E0) >> 5
             Dim y As Integer = ((v And &HFE00) >> 9) + 1980
             Return {y, m, d}
@@ -297,7 +297,7 @@ Public Structure FAT16
         End Operator
 
         Public Shared Operator <>(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
-            Return Not (d1 = d2)
+            Return Not d1 = d2
         End Operator
     End Structure
 
@@ -438,7 +438,7 @@ Public Structure FAT32
         End Function
 
         Private Function FSDateToNative(v As UInt16) As Integer()
-            Dim d As Integer = (v And &H1F)
+            Dim d As Integer = v And &H1F
             Dim m As Integer = (v And &H1E0) >> 5
             Dim y As Integer = ((v And &HFE00) >> 9) + 1980
             Return {y, m, d}
@@ -462,7 +462,7 @@ Public Structure FAT32
         End Operator
 
         Public Shared Operator <>(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
-            Return Not (d1 = d2)
+            Return Not d1 = d2
         End Operator
     End Structure
 

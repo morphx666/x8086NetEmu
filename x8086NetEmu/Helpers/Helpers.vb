@@ -65,7 +65,7 @@
             Reg = (addressingModeByte >> 3US) And 7US           ' (0011 1000)
             Rm = addressingModeByte And 7US                     ' (0000 0111)
 
-            regOffset = (Size << 3US)
+            regOffset = Size << 3US
 
             Register1 = Reg Or regOffset
             If Register1 >= GPRegisters.RegistersTypes.ES Then Register1 += GPRegisters.RegistersTypes.ES
@@ -247,7 +247,7 @@
     Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
         Get
             If size = DataSize.UseAddressingMode Then size = addrMode.Size
-            opCodeSize += (size + 1)
+            opCodeSize += size + 1
             Return ParamNOPS(index, ipOffset, size)
         End Get
     End Property
@@ -287,7 +287,7 @@
                 SetAddSubFlags(result, v1, v2, size, False)
 
             Case Operation.AddWithCarry
-                result = v1 + (v2 + mFlags.CF)
+                result = v1 + v2 + mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, False)
 
             Case Operation.Substract, Operation.Compare
@@ -387,7 +387,7 @@
                 mMouse = adptr
             Case Adapter.AdapterType.Video
                 mVideoAdapter = adptr
-                isVideoAdapterAvailable = (adptr IsNot Nothing)
+                isVideoAdapterAvailable = adptr IsNot Nothing
             Case Adapter.AdapterType.Floppy
                 mFloppyController = adptr
         End Select

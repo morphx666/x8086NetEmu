@@ -149,7 +149,7 @@
 
         Public Property AX As UInt16
             Get
-                Return ((CShort(AH) << 8) Or AL)
+                Return (CShort(AH) << 8) Or AL
             End Get
             Set(value As UInt16)
                 AH = value >> 8
@@ -161,7 +161,7 @@
 
         Public Property BX As UInt16
             Get
-                Return ((CShort(BH) << 8) Or BL)
+                Return (CShort(BH) << 8) Or BL
             End Get
             Set(value As UInt16)
                 BH = value >> 8
@@ -173,7 +173,7 @@
 
         Public Property CX As UInt16
             Get
-                Return ((CShort(CH) << 8) Or CL)
+                Return (CShort(CH) << 8) Or CL
             End Get
             Set(value As UInt16)
                 CH = value >> 8
@@ -185,7 +185,7 @@
 
         Public Property DX As UInt16
             Get
-                Return ((CShort(DH) << 8) Or DL)
+                Return (CShort(DH) << 8) Or DL
             End Get
             Set(value As UInt16)
                 DH = value >> 8
@@ -429,7 +429,7 @@
         Set(value As UInt16)
             address = SegmentOffetToAbsolute(segment, offset + inc)
             RAM(address) = value
-            RAM(address + 1UI) = (value >> 8UI)
+            RAM(address + 1UI) = value >> 8UI
         End Set
     End Property
 

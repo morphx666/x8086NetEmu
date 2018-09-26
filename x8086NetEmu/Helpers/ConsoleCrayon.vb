@@ -77,7 +77,7 @@ Public NotInheritable Class ConsoleCrayon
                 End If
 
                 If row = Console.WindowHeight - 1 AndAlso col + text.Length >= Console.WindowWidth Then
-                    text = text.Substring(0, (text.Length * 2 + col) - Console.WindowWidth - 1)
+                    text = text.Substring(0, text.Length * 2 + col - Console.WindowWidth - 1)
                 End If
 
                 Console.Write(text)
@@ -181,7 +181,7 @@ Public NotInheritable Class ConsoleCrayon
     End Sub
 
     Public Shared Sub DrawLine(c As Char, fromCol As Integer, fromRow As Integer, toCol As Integer, toRow As Integer, foreColor As ConsoleColor, backColor As ConsoleColor)
-        Dim angle As Double = Atan2((toCol - fromCol), (toRow - fromRow))
+        Dim angle As Double = Atan2(toCol - fromCol, toRow - fromRow)
         Dim length As Integer = Math.Sqrt((toCol - fromCol) ^ 2 + (toRow - fromRow) ^ 2)
         Dim px As Integer
         Dim py As Integer

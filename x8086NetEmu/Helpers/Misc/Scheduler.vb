@@ -428,7 +428,7 @@ Public Class Scheduler
             Else
                 isCtrlDown = False
             End If
-            If ((theEvent.Modifiers And Keys.Alt) = Keys.Alt) Then
+            If (theEvent.Modifiers And Keys.Alt) = Keys.Alt Then
                 isAltDown = Not CType(e.Extra, Boolean)
             Else
                 isAltDown = False

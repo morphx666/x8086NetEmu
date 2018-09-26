@@ -138,7 +138,7 @@ Public Class DirectBitmap
     End Function
 
     Private Function GetAlpha(a1p As Double, a2p As Double) As Double
-        Return (a1p + a2p * (1 - a1p))
+        Return a1p + a2p * (1 - a1p)
     End Function
 
 #Region "IDisposable Support"

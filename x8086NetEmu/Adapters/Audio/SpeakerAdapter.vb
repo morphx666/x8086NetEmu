@@ -104,7 +104,7 @@ Public Class SpeakerAdpater
                     End If
                 Case WaveForms.Sinusoidal
                     If mEnabled AndAlso waveLength > 0 Then
-                        v = Math.Floor(Math.Sin((currentStep / waveLength) * (mFrequency / 2) * ToRad) * 128)
+                        v = Math.Floor(Math.Sin(currentStep / waveLength * (mFrequency / 2) * ToRad) * 128)
                     Else
                         v = 0
                     End If

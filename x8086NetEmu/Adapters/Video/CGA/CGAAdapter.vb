@@ -298,7 +298,7 @@ Public MustInherit Class CGAAdapter
     End Property
 
     Public Overrides Sub InitiAdapter()
-        isInit = (mCPU IsNot Nothing)
+        isInit = mCPU IsNot Nothing
         If isInit AndAlso useInternalTimer Then Tasks.Task.Run(Sub() MainLoop())
     End Sub
 
@@ -352,7 +352,7 @@ Public MustInherit Class CGAAdapter
             Return mVideoMode
         End Get
         Set(value As UInt32)
-            mVideoMode = (value And (Not &H80))
+            mVideoMode = value And (Not &H80)
 
             mStartTextVideoAddress = &HB8000
             mStartGraphicsVideoAddress = &HB8000
@@ -508,7 +508,7 @@ Public MustInherit Class CGAAdapter
     'End Sub
 
     Protected Overridable Sub OnDataRegisterChanged()
-        mCursorVisible = ((CRT6845DataRegister(&HA) And &H60) = 0)
+        mCursorVisible = (CRT6845DataRegister(&HA) And &H60) = 0
 
         If mCursorVisible Then
             Dim startOffset As Integer = ((CRT6845DataRegister(&HC) And &H3F) << 8) Or (CRT6845DataRegister(&HD) And &HFF)
@@ -550,8 +550,8 @@ Public MustInherit Class CGAAdapter
             Select Case VideoMode
                 Case VideoModes.Mode4_Graphic_Color_320x200
                     Dim intense As Integer = (cgaColorReg And &H10) >> 1
-                    Dim pal1 As Integer = (cgaColorReg >> 5) And (Not (cgaModeReg >> 2)) And 1
-                    Dim pal2 As Integer = ((Not cgaColorReg) >> 5) And (Not (cgaModeReg >> 2)) And 1
+                    Dim pal1 As Integer = (cgaColorReg >> 5) And (Not cgaModeReg >> 2) And 1
+                    Dim pal2 As Integer = ((Not cgaColorReg) >> 5) And (Not cgaModeReg >> 2) And 1
 
                     colors = New Color() {
                             CGABasePalette(cgaColorReg And &HF),

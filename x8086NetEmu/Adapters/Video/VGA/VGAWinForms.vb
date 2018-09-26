@@ -331,7 +331,7 @@
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 videoBMP.FillRectangle(brushCache(b1.LowNib()),
                                            r.X + 0, r.Y - 1 + CellSize.Height - (CursorEnd - CursorStart) - 1,
-                                           CellSize.Width, (CursorEnd - CursorStart) + 1)
+                                           CellSize.Width, CursorEnd - CursorStart + 1)
                 cursorAddress.Add(address)
             End If
 

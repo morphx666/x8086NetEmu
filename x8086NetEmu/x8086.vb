@@ -183,7 +183,7 @@ Public Class X8086
             If (c And 64) <> 0 Then d += 1
             If (c And 128) <> 0 Then d += 1
 
-            If ((d And 1) <> 0) Then
+            If (d And 1) <> 0 Then
                 szpLUT8(c) = 0
             Else
                 szpLUT8(c) = GPFlags.FlagsTypes.PF
@@ -203,7 +203,7 @@ Public Class X8086
             If (c And 64) <> 0 Then d += 1
             If (c And 128) <> 0 Then d += 1
 
-            If ((d And 1) <> 0) Then
+            If (d And 1) <> 0 Then
                 szpLUT16(c) = 0
             Else
                 szpLUT16(c) = GPFlags.FlagsTypes.PF
@@ -325,11 +325,11 @@ Public Class X8086
     End Sub
 
     Private Sub SetupSystem()
-        picIsAvailable = (PIC IsNot Nothing)
+        picIsAvailable = PIC IsNot Nothing
         If Not picIsAvailable Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
-        Dim equipmentByte As Byte = (Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1".Replace(" ", "")))
+        Dim equipmentByte As Byte = Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1".Replace(" ", ""))
         '                                        │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
         '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
         '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
@@ -521,7 +521,7 @@ Public Class X8086
         Do
             mipsWaiter.WaitOne(delay)
 
-            mMPIs = (instrucionsCounter / delay) / 1000
+            mMPIs = instrucionsCounter / delay / 1000
             instrucionsCounter = 0
 
             If cancelAllThreads Then Exit Do
@@ -586,7 +586,7 @@ Public Class X8086
         Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.BASECLOCK - 1) / Scheduler.BASECLOCK
 
         If mDebugMode Then
-            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)
+            While clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode
                 debugWaiter.WaitOne()
 
                 If Not isDecoding Then
@@ -599,7 +599,7 @@ Public Class X8086
             End While
         Else
             mIsExecuting = True
-            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule)
+            While clkCyc < maxRunCycl AndAlso Not mDoReSchedule
                 Execute()
             End While
             mIsExecuting = False
@@ -842,7 +842,7 @@ Public Class X8086
 
             Case &H26, &H2E, &H36, &H3E ' ES, CS, SS and DS segment override prefix
                 addrMode.Decode(opCode, opCode)
-                mRegisters.ActiveSegmentRegister = (addrMode.Register1 - GPRegisters.RegistersTypes.AH) + GPRegisters.RegistersTypes.ES
+                mRegisters.ActiveSegmentRegister = addrMode.Register1 - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
                 isStringOp = True
                 clkCyc += 2
 
@@ -1427,7 +1427,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &HB0 To &HBF ' mov imm to reg
-                addrMode.Register1 = (opCode And &H7)
+                addrMode.Register1 = opCode And &H7
                 If (opCode And &H8) = &H8 Then
                     addrMode.Register1 += GPRegisters.RegistersTypes.AX
                     If (opCode And &H4) = &H4 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
@@ -1458,7 +1458,7 @@ Public Class X8086
                 If (addrMode.Register1 And shl2) = shl2 Then
                     addrMode.Register1 = (addrMode.Register1 + GPRegisters.RegistersTypes.ES) Or shl3
                 Else
-                    addrMode.Register1 = (addrMode.Register1 Or shl3)
+                    addrMode.Register1 = addrMode.Register1 Or shl3
                 End If
                 mRegisters.Val(addrMode.Register1) = addrMode.IndMem
                 mRegisters.Val(If(opCode = &HC4, GPRegisters.RegistersTypes.ES, GPRegisters.RegistersTypes.DS)) = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
@@ -1943,7 +1943,7 @@ Public Class X8086
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
-                    newValue = If(count > mask8_16, 0, (oldValue << count))
+                    newValue = If(count > mask8_16, 0, oldValue << count)
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
@@ -1957,7 +1957,7 @@ Public Class X8086
                 Else
                     newValue = If(count > mask8_16, 0, oldValue >> (count - 1))
                     mFlags.CF = newValue And 1
-                    newValue = (newValue >> 1)
+                    newValue = newValue >> 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
@@ -2031,7 +2031,7 @@ Public Class X8086
                     Else
                         tmpVal = CUInt(mRegisters.Val(addrMode.Register2)) * mRegisters.AX
                         mRegisters.AX = tmpVal
-                        mRegisters.DX = (tmpVal >> 16)
+                        mRegisters.DX = tmpVal >> 16
                         clkCyc += 118
                     End If
                 Else
@@ -2041,7 +2041,7 @@ Public Class X8086
                     Else
                         tmpVal = CUInt(addrMode.IndMem) * mRegisters.AX
                         mRegisters.AX = tmpVal
-                        mRegisters.DX = (tmpVal >> 16)
+                        mRegisters.DX = tmpVal >> 16
                         clkCyc += 134
                     End If
                 End If
