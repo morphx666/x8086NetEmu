@@ -2222,7 +2222,8 @@ Public Class X8086
 
                 If sign Then
                     result = (Not result) + 1
-                    remain = (Not remain) + 1
+                    ' Not negating the remainder solves one issue with Michael Chambers' tests, but... is that correct?
+                    'remain = (Not remain) + 1
                 End If
 
                 If addrMode.Size = DataSize.Byte Then

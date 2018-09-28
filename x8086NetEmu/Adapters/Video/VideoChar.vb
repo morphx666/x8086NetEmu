@@ -87,7 +87,7 @@
         Dim y As Integer = 0
 
         For i As Integer = 0 To 512 - 1
-            While base < dataH
+            While base < fh
                 While tempCount < dataW
                     While mask <> 0
                         If (rom((base + (tempCount * dataH) + (row * dataW * dataH) + offset) Mod romSize) And mask) <> 0 Then

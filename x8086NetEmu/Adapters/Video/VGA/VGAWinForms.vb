@@ -79,7 +79,7 @@
                     fontSourceMode = FontSources.TrueType
                 End If
             Case FontSources.ROM
-                VideoChar.BuildFontBitmapsFromROM(8, 16, 14, &HC0000 + &H32B4 - 6, mCPU.Memory)
+                VideoChar.BuildFontBitmapsFromROM(8, 16, 14, &HC0000 + &H3310, mCPU.Memory)
         End Select
 
         If fontSourceMode = FontSources.TrueType Then

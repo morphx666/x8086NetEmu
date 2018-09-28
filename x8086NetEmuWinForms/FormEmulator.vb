@@ -320,7 +320,7 @@ Public Class FormEmulator
                                                 Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
                                             End Select
 
-                                            Const offset As UInt32 = &H12
+                                            'Const offset As UInt32 = &H12
                                             'Dim cs As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
                                             'Dim ip As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
                                             X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)

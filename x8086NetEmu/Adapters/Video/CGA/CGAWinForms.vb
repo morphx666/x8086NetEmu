@@ -82,7 +82,7 @@ Public Class CGAWinForms
                     fontSourceMode = FontSources.TrueType
                 End If
             Case FontSources.ROM
-                VideoChar.BuildFontBitmapsFromROM(8, 8, 8, &HFE00 + &H1A6E, mCPU.Memory)
+                VideoChar.BuildFontBitmapsFromROM(8, 8, 4, &HFE000 + &H1A6E, mCPU.Memory)
                 mCellSize = New Size(8, 8)
         End Select
 
