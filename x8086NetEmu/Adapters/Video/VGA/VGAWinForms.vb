@@ -211,7 +211,7 @@
 
         ' For modes &h12 and &h13
         Dim planeMode As Boolean = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (VGA_SC(4) And 6) <> 0, False)
-        Dim vgaPage As UInt32 = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD), 0)
+        Dim vgaPage As UInt32 = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (CUInt(VGA_CRTC(&HC)) << 8) + CUInt(VGA_CRTC(&HD)), 0)
 
         Dim address As UInt32
         Dim h1 As UInt32
@@ -265,10 +265,10 @@
 
                     Case &H13
                         If planeMode Then
-                            address = ((y * mVideoResolution.Width + x) >> 2) + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And 15)
+                            address = ((y * mVideoResolution.Width + x) >> 2) + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And &HF)
                             b = vRAM(address)
                         Else
-                            b = mCPU.Memory(mStartGraphicsVideoAddress + y * mVideoResolution.Width + x)
+                            b = mCPU.Memory(mStartGraphicsVideoAddress + vgaPage + y * mVideoResolution.Width + x)
                         End If
                         videoBMP.Pixel(x, y) = vgaPalette(b)
 
@@ -308,8 +308,6 @@
         Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
         Dim intensity As Boolean = (portRAM(&H3D8) And &H80) <> 0
         Dim mode As Boolean = (portRAM(&H3D8) = 9) AndAlso (portRAM(&H3D4) = 9)
-
-        UpdateCursorState()
 
         For address As Integer = 0 To MEMSIZE - 2 Step 2
             b0 = vRAM(address)
