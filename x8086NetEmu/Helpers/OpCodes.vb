@@ -1,7 +1,7 @@
 Partial Public Class X8086
     Private Delegate Sub ExecOpcode()
     Private opCodes() As ExecOpcode = {
-                                    AddressOf _00_03,   ' add reg<->reg / reg<->mem
+        AddressOf _00_03,   ' add reg<->reg / reg<->mem
 AddressOf _00_03,
 AddressOf _00_03,
 AddressOf _00_03,
@@ -32,12 +32,12 @@ AddressOf _18_1B,
 AddressOf _1C,  ' sbb al and imm
 AddressOf _1D,  ' sbb ax and imm
 AddressOf _1E,  ' push ds
-AddressOf _1F,  ' pop ds
+AddressOf _1F,      ' pop ds
 AddressOf _20_23,   ' and reg/mem and reg to either
 AddressOf _20_23,
 AddressOf _20_23,
 AddressOf _20_23,
-AddressOf _24,  ' and al and imm
+AddressOf _24,      ' and al and imm
 AddressOf _25,  ' and ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _27,  ' daa
@@ -48,12 +48,12 @@ AddressOf _28_2B,
 AddressOf _2C,  ' sub al and imm
 AddressOf _2D,  ' sub ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
-AddressOf _2F,  ' das
+AddressOf _2F,      ' das
 AddressOf _30_33,   ' xor reg/mem and reg to either
 AddressOf _30_33,
 AddressOf _30_33,
 AddressOf _30_33,
-AddressOf _34,  ' xor al and imm
+AddressOf _34,      ' xor al and imm
 AddressOf _35,  ' xor ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _37,  ' aaa
@@ -64,7 +64,7 @@ AddressOf _38_3B,
 AddressOf _3C,  ' cmp al and imm
 AddressOf _3D,  ' cmp ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
-AddressOf _3F,  ' aas
+AddressOf _3F,      ' aas
 AddressOf _40_47,   ' inc reg
 AddressOf _40_47,
 AddressOf _40_47,
@@ -106,7 +106,7 @@ AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf _68,  ' push (80186)
-AddressOf _69,  ' imul (80186)
+AddressOf _69,      ' imul (80186)
 AddressOf _6A,  ' push (80186)
 AddressOf _6B,  ' imul (80186)
 AddressOf _6C_6F,   ' Ignore 80186/V20 port operations... for now...
@@ -117,23 +117,23 @@ AddressOf _70,  ' jo
 AddressOf _71,  ' jno
 AddressOf _72,  ' jb/jnae
 AddressOf _73,  ' jnb/jae
-AddressOf _74,  ' je/jz
+AddressOf _74,      ' je/jz
 AddressOf _75,  ' jne/jnz
 AddressOf _76,  ' jbe/jna
 AddressOf _77,  ' jnbe/ja
 AddressOf _78,  ' js
-AddressOf _79,  ' jns
+AddressOf _79,      ' jns
 AddressOf _7A,  ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
 AddressOf _7C,  ' jl/jnge
 AddressOf _7D,  ' jnl/jge
 AddressOf _7E,  ' jle/jng
-AddressOf _7F,  ' jnle/jg
+AddressOf _7F,      ' jnle/jg
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
-AddressOf _84_85,   ' test reg with reg/mem
+AddressOf _84_85,       ' test reg with reg/mem
 AddressOf _84_85,
 AddressOf _86_87,   ' xchg reg/mem with reg
 AddressOf _86_87,
@@ -144,7 +144,7 @@ AddressOf _88_8C,
 AddressOf _88_8C,
 AddressOf _8D,  ' lea
 AddressOf _8E,  ' mov reg/mem to seg reg
-AddressOf _8F,  ' pop reg/mem
+AddressOf _8F,      ' pop reg/mem
 AddressOf _90_97,   ' xchg reg with acc
 AddressOf _90_97,
 AddressOf _90_97,
@@ -154,13 +154,13 @@ AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _98,  ' cbw
-AddressOf _99,  ' cwd
+AddressOf _99,      ' cwd
 AddressOf _9A,  ' call direct intersegment
 AddressOf _9B,  ' wait
 AddressOf _9C,  ' pushf
 AddressOf _9D,  ' popf
 AddressOf _9E,  ' sahf
-AddressOf _9F,  ' lahf
+AddressOf _9F,      ' lahf
 AddressOf _A0_A3,   ' mov mem to acc | mov acc to mem
 AddressOf _A0_A3,
 AddressOf _A0_A3,
@@ -170,7 +170,7 @@ AddressOf _A4_A7,
 AddressOf _A4_A7,
 AddressOf _A4_A7,
 AddressOf _A8,  ' test al imm8
-AddressOf _A9,  ' test ax imm16
+AddressOf _A9,      ' test ax imm16
 AddressOf _AA_AF,
 AddressOf _AA_AF,
 AddressOf _AA_AF,
@@ -197,23 +197,23 @@ AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
 AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
 AddressOf _C2,  ' ret (ret n) within segment adding imm to sp
 AddressOf _C3,  ' ret within segment
-AddressOf _C4_C5,   ' les | lds
+AddressOf _C4_C5,       ' les | lds
 AddressOf _C4_C5,
 AddressOf _C6_C7,   ' mov imm to reg/mem
 AddressOf _C6_C7,
 AddressOf _C8,  ' enter (80186)
-AddressOf _C9,  ' leave (80186)
+AddressOf _C9,      ' leave (80186)
 AddressOf _CA,  ' ret intersegment adding imm to sp (ret n /retf)
 AddressOf _CB,  ' ret intersegment (retf)
 AddressOf _CC,  ' int with type 3
 AddressOf _CD,  ' int with type specified
 AddressOf _CE,  ' into
-AddressOf _CF,  ' iret
+AddressOf _CF,      ' iret
 AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D0_D3,
-AddressOf _D4,  ' aam
+AddressOf _D4,      ' aam
 AddressOf _D5,  ' aad
 AddressOf _D6,  ' xlat 
 AddressOf _D7,  ' xlatb
@@ -229,28 +229,28 @@ AddressOf _E0,  ' loopne/loopnz
 AddressOf _E1,  ' loope/loopz
 AddressOf _E2,  ' loop
 AddressOf _E3,  ' jcxz
-AddressOf _E4,  ' in to al from fixed port
+AddressOf _E4,      ' in to al from fixed port
 AddressOf _E5,  ' inw to ax from fixed port
 AddressOf _E6,  ' out to al to fixed port
 AddressOf _E7,  ' outw to ax to fixed port
 AddressOf _E8,  ' call direct within segment
-AddressOf _E9,  ' jmp direct within segment
+AddressOf _E9,      ' jmp direct within segment
 AddressOf _EA,  ' jmp direct intersegment
 AddressOf _EB,  ' jmp direct within segment short
 AddressOf _EC,  ' in to al from variable port
 AddressOf _ED,  ' inw to ax from variable port
 AddressOf _EE,  ' out to port dx from al
-AddressOf _EF,  ' out to port dx from ax
+AddressOf _EF,      ' out to port dx from ax
 AddressOf _F0,  ' lock
 AddressOf OpCodeNotImplemented,
 AddressOf _F2,  ' repne/repnz
 AddressOf _F3,  ' repe/repz
-AddressOf _F4,  ' hlt
+AddressOf _F4,      ' hlt
 AddressOf _F5,  ' cmc
 AddressOf _F6_F7,
 AddressOf _F6_F7,
 AddressOf _F8,  ' clc
-AddressOf _F9,  ' stc
+AddressOf _F9,      ' stc
 AddressOf _FA,  ' cli
 AddressOf _FB,  ' sti
 AddressOf _FC,  ' cld
@@ -465,22 +465,24 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _27()   ' daa
-        If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
-            tmpVal = CUInt(mRegisters.AL) + 6
-            mRegisters.AL += 6
+        Dim al As Byte = mRegisters.AL
+        Dim cf As Byte = mFlags.CF
+
+        If (al And &HF) > 9 OrElse mFlags.AF = 1 Then
+            al += 6
             mFlags.AF = 1
-            mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
+            mFlags.CF = cf Or If((al And &HFF00) <> 0, 1, 0)
         Else
             mFlags.AF = 0
         End If
-        If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
-            tmpVal = CUInt(mRegisters.AL) + &H60
-            mRegisters.AL += &H60
+        If (al And &HF0) > &H90 OrElse cf = 1 Then
+            al += &H60
             mFlags.CF = 1
         Else
             mFlags.CF = 0
         End If
-        SetSZPFlags(tmpVal, DataSize.Byte)
+        mRegisters.AL = al
+        SetSZPFlags(al, DataSize.Byte)
         clkCyc += 4
     End Sub
 
@@ -515,23 +517,24 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _2F()   ' das
-        Dim al = mRegisters.AL
-        If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
-            tmpVal = CShort(mRegisters.AL) - 6
-            mRegisters.AL -= 6
+        Dim al As Byte = mRegisters.AL
+        Dim cf As Byte = mFlags.CF
+
+        If (al And &HF) > 9 OrElse mFlags.AF = 1 Then
+            al -= 6
             mFlags.AF = 1
-            mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
+            cf = cf Or If((al And &HFF00) <> 0, 1, 0)
         Else
             mFlags.AF = 0
         End If
-        If al > &H99 OrElse mFlags.CF = 1 Then
-            tmpVal = CShort(mRegisters.AL) - &H60
-            mRegisters.AL -= &H60
+        If (al And &HF0) > &H90 OrElse cf = 1 Then
+            al -= &H60
             mFlags.CF = 1
         Else
             mFlags.CF = 0
         End If
-        SetSZPFlags(tmpVal, DataSize.Byte)
+        mRegisters.AL = al
+        SetSZPFlags(al, DataSize.Byte)
         clkCyc += 4
     End Sub
 
@@ -575,8 +578,8 @@ AddressOf _FE_FF}
             mFlags.CF = 0
         End If
         mRegisters.AL = mRegisters.AL And &HF
-        mFlags.OF = 0
-        mFlags.SF = 0
+        'mFlags.OF = 0
+        'mFlags.SF = 0
         clkCyc += 8
     End Sub
 
@@ -1004,10 +1007,10 @@ AddressOf _FE_FF}
             clkCyc += 8
         End If
         ignoreINTs = ignoreINTs Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.CS) Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
+                (addrMode.Register2 = GPRegisters.RegistersTypes.CS) Or
+                (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
+                (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
+                (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
     End Sub
 
     Private Sub _8F()   ' pop reg/mem
@@ -1466,6 +1469,4 @@ AddressOf _FE_FF}
     Private Sub _FE_FF()
         ExecuteGroup4_And_5()
     End Sub
-
-
 End Class

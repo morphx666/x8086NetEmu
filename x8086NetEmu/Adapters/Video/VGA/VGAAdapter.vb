@@ -1,4 +1,6 @@
-﻿Public MustInherit Class VGAAdapter
+﻿' http://www.osdever.net/FreeVGA/vga/vgatext.htm
+
+Public MustInherit Class VGAAdapter
     Inherits CGAAdapter
 
     Private VGABasePalette() As Color = {
@@ -260,10 +262,10 @@
         Color.FromArgb(0, 0, 0)
     }
 
-    Public VGA_SC(&H100 - 1) As Byte
-    Protected VGA_ATTR(&H100 - 1) As Byte
-    Protected VGA_CRTC(&H100 - 1) As Byte
-    Protected VGA_GC(&H100 - 1) As Byte
+    Public VGA_SC(&HFF - 1) As Byte
+    Protected VGA_ATTR(&HFF - 1) As Byte
+    Protected VGA_CRTC(&HFF - 1) As Byte
+    Protected VGA_GC(&HFF - 1) As Byte
     Private ReadOnly VGA_Latch(4 - 1) As Byte
 
     Private flip3C0 As Boolean = False
@@ -302,6 +304,7 @@
         mCPU.PPI.SwitchData = mCPU.PPI.SwitchData And &B1111_1111_1101_1111
 
         mCPU.TryDetachHook(cgaMemHook)
+        MyBase.vidModeChangeFlag = 0 ' Prevent the CGA adapter from changing video modes
 
         mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
                                                     Select Case mMainMode
@@ -360,6 +363,7 @@
                                                           End If
                                                           Return False
                                                       End Function))
+
         lastScanLineTick = 0
     End Sub
 
@@ -600,7 +604,7 @@
 
             Case &H3C5 : Return VGA_SC(portRAM(&H3C4))
 
-            Case &H3D5 : Return VGA_CRTC(portRAM(&H3D4)) And &H1F
+            Case &H3D5 : Return VGA_CRTC(portRAM(&H3D4))
 
             Case &H3C7 : Return stateDAC
 
@@ -620,7 +624,7 @@
                 latchReadRGB = (latchReadRGB + 1) Mod 3
                 Return tmpVal And &H3F
 
-            Case &H3DA ' Using the CGA timing code appears to solve many problems
+            Case &H3DA
                 flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
                 Return MyBase.In(port)
 
@@ -656,7 +660,6 @@
             Case &H3C8 ' Color index register (write operations)
                 latchWritePal = value
                 latchWriteRGB = 0
-                tempRGB = 0 ' FIXME: Isn't this unnecessary?
                 stateDAC = 3
 
             Case &H3C9 ' RGB data register
@@ -669,8 +672,6 @@
                     Case 2 ' R
                         vgaPalette(latchWritePal) = Color.FromArgb(tempRGB Or (value << 2))
                         latchWritePal += 1
-                    Case Else
-                        Stop
                 End Select
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
 
@@ -679,11 +680,14 @@
                 MyBase.Out(port, value)
 
             Case &H3D5 ' 6845 data register
-                VGA_CRTC(portRAM(&H3D4)) = value
+                VGA_CRTC(portRAM(&H3D4)) = value And &H1F
                 MyBase.Out(port, value)
 
+            Case &H3CE ' VGA graphics index
+                portRAM(port) = value
+
             Case &H3CF
-                VGA_GC(portRAM(&H3CE)) = value
+                VGA_GC(portRAM(&H3CE) Mod &H8) = value
 
             Case Else
                 If port <= &H3DF Then
@@ -691,7 +695,6 @@
                 Else
                     portRAM(port) = value
                 End If
-
         End Select
     End Sub
 

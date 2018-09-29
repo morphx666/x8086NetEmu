@@ -89,9 +89,6 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private adlibStatus As Byte = 0
     Private ReadOnly adlibStep(9 - 1) As Double
 
-    'Private adlibTicks As Long
-    'Private lastAdlibTicks As Long
-
     Public Sub New(cpu As X8086)
         mCPU = cpu
 

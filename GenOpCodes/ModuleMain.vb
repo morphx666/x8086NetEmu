@@ -88,8 +88,6 @@ Module ModuleMain
                                  Dim subTokens() As String
                                  Dim fName As String = ""
 
-                                 If tmp.Contains("FE") Then Stop
-
                                  subTokens = tmp.Split(","c)
                                  ReDim tokens(0)
                                  For i As Integer = 0 To subTokens.Length - 1

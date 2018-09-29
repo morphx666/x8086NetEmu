@@ -123,7 +123,7 @@ Public MustInherit Class CGAAdapter
 
     Private mCPU As X8086
     Protected vRAM(MEMSIZE - 1) As Byte
-    Private Const vidModeChangeFlag As Integer = &B1000
+    Protected vidModeChangeFlag As Integer = &B1000
     Protected ReadOnly cgaMemHook As X8086.MemHandler
 
     Public MustOverride Overrides Sub AutoSize()
@@ -171,7 +171,6 @@ Public MustInherit Class CGAAdapter
                                               End Select
                                               Return False
                                           End Function)
-
         mCPU.TryAttachHook(cgaMemHook)
 
         waiter = New AutoResetEvent(False)
@@ -470,45 +469,14 @@ Public MustInherit Class CGAAdapter
 
             Case &H3DF ' CRT/CPU page register  (PCjr only)
                 'Stop
+
             Case Else
                 mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToString("X4"))
         End Select
     End Sub
 
-    'Public Overrides Sub Out(port As UInt32, value As UInt32)
-    '    Select Case port
-    '        Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
-    '            CRT6845IndexRegister = value And &HFF
-
-    '        Case &H3D1, &H3D3, &H3D5, &H3D7 ' CRT (6845) data register
-    '            Dim old As Byte = CRT6845DataRegister(CRT6845IndexRegister)
-    '            CRT6845DataRegister(CRT6845IndexRegister) = value
-
-    '            OnDataRegisterChanged()
-
-    '        Case &H3D8 ' CGA mode control register  (except PCjr)
-    '            X8086.WordToBitsArray(value, CGAModeControlRegister)
-    '            OnModeControlRegisterChanged()
-
-    '        Case &H3D9 ' CGA palette register
-    '            X8086.WordToBitsArray(value, CGAPaletteRegister)
-    '            OnPaletteRegisterChanged()
-
-    '        Case &H3DA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
-    '            X8086.WordToBitsArray(value, CGAStatusRegister)
-
-    '        Case &H3DB ' The trigger is cleared by writing any value to port 03DBh (undocumented)
-    '            CGAStatusRegister(CGAStatusRegisters.light_pen_trigger_set) = False
-
-    '        Case &H3DF ' CRT/CPU page register  (PCjr only)
-    '            'Stop
-    '        Case Else
-    '            mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToString("X4"))
-    '    End Select
-    'End Sub
-
     Protected Overridable Sub OnDataRegisterChanged()
-        mCursorVisible = (CRT6845DataRegister(&HA) And &H60) = 0
+        mCursorVisible = (CRT6845DataRegister(&HA) And &H60) <> &H20
 
         If mCursorVisible Then
             Dim startOffset As Integer = ((CRT6845DataRegister(&HC) And &H3F) << 8) Or (CRT6845DataRegister(&HD) And &HFF)

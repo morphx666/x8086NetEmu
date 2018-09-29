@@ -272,9 +272,9 @@
 
     Private Function OffsetIP(size As DataSize) As UInt16
         If size = DataSize.Byte Then
-            Return mRegisters.IP + To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte)) + opCodeSize
+            Return mRegisters.IP + To16bitsWithSign(Param(SelPrmIndex.First, , size)) + opCodeSize
         Else
-            Return mRegisters.IP + To32bitsWithSign(Param(SelPrmIndex.First, , DataSize.Word)) + opCodeSize
+            Return mRegisters.IP + To32bitsWithSign(Param(SelPrmIndex.First, , size)) + opCodeSize
         End If
     End Function
 
