@@ -854,24 +854,22 @@ Public Class X8086
                 clkCyc += 2
 
             Case &H27 ' daa
-                Dim al As Byte = mRegisters.AL
-                Dim cf As Byte = mFlags.CF
-
-                If (al And &HF) > 9 OrElse mFlags.AF = 1 Then
-                    al += 6
+                If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                    tmpVal = CUInt(mRegisters.AL) + 6
+                    mRegisters.AL += 6
                     mFlags.AF = 1
-                    mFlags.CF = cf Or If((al And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
                 Else
                     mFlags.AF = 0
                 End If
-                If (al And &HF0) > &H90 OrElse cf = 1 Then
-                    al += &H60
+                If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
+                    tmpVal = CUInt(mRegisters.AL) + &H60
+                    mRegisters.AL += &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                mRegisters.AL = al
-                SetSZPFlags(al, DataSize.Byte)
+                SetSZPFlags(tmpVal, DataSize.Byte)
                 clkCyc += 4
 
             Case &H28 To &H2B ' sub reg/mem with reg to either
@@ -903,23 +901,22 @@ Public Class X8086
 
             Case &H2F ' das
                 Dim al As Byte = mRegisters.AL
-                Dim cf As Byte = mFlags.CF
-
-                If (al And &HF) > 9 OrElse mFlags.AF = 1 Then
-                    al -= 6
+                If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                    tmpVal = CShort(mRegisters.AL) - 6
+                    mRegisters.AL -= 6
                     mFlags.AF = 1
-                    cf = cf Or If((al And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
                 Else
                     mFlags.AF = 0
                 End If
-                If (al And &HF0) > &H90 OrElse cf = 1 Then
-                    al -= &H60
+                If al > &H99 OrElse mFlags.CF = 1 Then
+                    tmpVal = CShort(mRegisters.AL) - &H60
+                    mRegisters.AL -= &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                mRegisters.AL = al
-                SetSZPFlags(al, DataSize.Byte)
+                SetSZPFlags(tmpVal, DataSize.Byte)
                 clkCyc += 4
 
             Case &H30 To &H33 ' xor reg/mem and reg to either
@@ -1354,6 +1351,8 @@ Public Class X8086
                         (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
+
+                If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then FlushCycles()
 
             Case &H8F ' pop reg/mem
                 SetAddressing()

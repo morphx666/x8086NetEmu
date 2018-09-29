@@ -253,7 +253,7 @@ Public Class DiskImage
         cylinder = cylinder Or ((sector And &HC0) << 2)
         sector = sector And &H3F
 
-        If cylinder >= mCylinders OrElse sector < 1 OrElse sector > mSectors OrElse head > mHeads Then Return -1
+        If cylinder >= mCylinders OrElse sector = 0 OrElse sector > mSectors OrElse head >= mHeads Then Return -1
 
         Return (((CUInt(cylinder) * mHeads) + head) * mSectors + sector - 1) * mSectorSize
     End Function

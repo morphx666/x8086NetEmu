@@ -29,8 +29,6 @@ Partial Public Class X8086
     End Sub
 
     Private Sub HandleInterrupt(intNum As Byte, isHard As Boolean)
-        'FlushCycles() ' Not calling FlushCycles provides a considerable performance boost
-
         If Not (intHooks.ContainsKey(intNum) AndAlso intHooks(intNum).Invoke()) Then
             PushIntoStack(mFlags.EFlags)
             PushIntoStack(mRegisters.CS)

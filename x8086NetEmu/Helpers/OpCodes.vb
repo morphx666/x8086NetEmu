@@ -32,12 +32,12 @@ AddressOf _18_1B,
 AddressOf _1C,  ' sbb al and imm
 AddressOf _1D,  ' sbb ax and imm
 AddressOf _1E,  ' push ds
-AddressOf _1F,      ' pop ds
+AddressOf _1F,  ' pop ds
 AddressOf _20_23,   ' and reg/mem and reg to either
 AddressOf _20_23,
 AddressOf _20_23,
 AddressOf _20_23,
-AddressOf _24,      ' and al and imm
+AddressOf _24,  ' and al and imm
 AddressOf _25,  ' and ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _27,  ' daa
@@ -48,12 +48,12 @@ AddressOf _28_2B,
 AddressOf _2C,  ' sub al and imm
 AddressOf _2D,  ' sub ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
-AddressOf _2F,      ' das
+AddressOf _2F,  ' das
 AddressOf _30_33,   ' xor reg/mem and reg to either
 AddressOf _30_33,
 AddressOf _30_33,
 AddressOf _30_33,
-AddressOf _34,      ' xor al and imm
+AddressOf _34,  ' xor al and imm
 AddressOf _35,  ' xor ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _37,  ' aaa
@@ -64,7 +64,7 @@ AddressOf _38_3B,
 AddressOf _3C,  ' cmp al and imm
 AddressOf _3D,  ' cmp ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
-AddressOf _3F,      ' aas
+AddressOf _3F,  ' aas
 AddressOf _40_47,   ' inc reg
 AddressOf _40_47,
 AddressOf _40_47,
@@ -106,7 +106,7 @@ AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf _68,  ' push (80186)
-AddressOf _69,      ' imul (80186)
+AddressOf _69,  ' imul (80186)
 AddressOf _6A,  ' push (80186)
 AddressOf _6B,  ' imul (80186)
 AddressOf _6C_6F,   ' Ignore 80186/V20 port operations... for now...
@@ -117,23 +117,23 @@ AddressOf _70,  ' jo
 AddressOf _71,  ' jno
 AddressOf _72,  ' jb/jnae
 AddressOf _73,  ' jnb/jae
-AddressOf _74,      ' je/jz
+AddressOf _74,  ' je/jz
 AddressOf _75,  ' jne/jnz
 AddressOf _76,  ' jbe/jna
 AddressOf _77,  ' jnbe/ja
 AddressOf _78,  ' js
-AddressOf _79,      ' jns
+AddressOf _79,  ' jns
 AddressOf _7A,  ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
 AddressOf _7C,  ' jl/jnge
 AddressOf _7D,  ' jnl/jge
 AddressOf _7E,  ' jle/jng
-AddressOf _7F,      ' jnle/jg
+AddressOf _7F,  ' jnle/jg
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
-AddressOf _84_85,       ' test reg with reg/mem
+AddressOf _84_85,   ' test reg with reg/mem
 AddressOf _84_85,
 AddressOf _86_87,   ' xchg reg/mem with reg
 AddressOf _86_87,
@@ -465,24 +465,22 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _27()   ' daa
-        Dim al As Byte = mRegisters.AL
-        Dim cf As Byte = mFlags.CF
-
-        If (al And &HF) > 9 OrElse mFlags.AF = 1 Then
-            al += 6
+        If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+            tmpVal = CUInt(mRegisters.AL) + 6
+            mRegisters.AL += 6
             mFlags.AF = 1
-            mFlags.CF = cf Or If((al And &HFF00) <> 0, 1, 0)
+            mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
         Else
             mFlags.AF = 0
         End If
-        If (al And &HF0) > &H90 OrElse cf = 1 Then
-            al += &H60
+        If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
+            tmpVal = CUInt(mRegisters.AL) + &H60
+            mRegisters.AL += &H60
             mFlags.CF = 1
         Else
             mFlags.CF = 0
         End If
-        mRegisters.AL = al
-        SetSZPFlags(al, DataSize.Byte)
+        SetSZPFlags(tmpVal, DataSize.Byte)
         clkCyc += 4
     End Sub
 
@@ -518,23 +516,22 @@ AddressOf _FE_FF}
 
     Private Sub _2F()   ' das
         Dim al As Byte = mRegisters.AL
-        Dim cf As Byte = mFlags.CF
-
-        If (al And &HF) > 9 OrElse mFlags.AF = 1 Then
-            al -= 6
+        If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+            tmpVal = CShort(mRegisters.AL) - 6
+            mRegisters.AL -= 6
             mFlags.AF = 1
-            cf = cf Or If((al And &HFF00) <> 0, 1, 0)
+            mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
         Else
             mFlags.AF = 0
         End If
-        If (al And &HF0) > &H90 OrElse cf = 1 Then
-            al -= &H60
+        If al > &H99 OrElse mFlags.CF = 1 Then
+            tmpVal = CShort(mRegisters.AL) - &H60
+            mRegisters.AL -= &H60
             mFlags.CF = 1
         Else
             mFlags.CF = 0
         End If
-        mRegisters.AL = al
-        SetSZPFlags(al, DataSize.Byte)
+        SetSZPFlags(tmpVal, DataSize.Byte)
         clkCyc += 4
     End Sub
 
@@ -1011,6 +1008,8 @@ AddressOf _FE_FF}
                 (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
                 (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
                 (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
+
+        If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then FlushCycles()
     End Sub
 
     Private Sub _8F()   ' pop reg/mem

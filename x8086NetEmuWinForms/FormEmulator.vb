@@ -258,7 +258,7 @@ Public Class FormEmulator
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat"))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
+        cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
