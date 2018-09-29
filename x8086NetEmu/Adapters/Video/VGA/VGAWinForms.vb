@@ -4,6 +4,7 @@
     Private charsCache As New List(Of VideoChar)
     Private charSizeCache As New Dictionary(Of Integer, Size)
 
+    Private blinkCounter As Integer
     Private cursorSize As Size
     Private frameRate As Integer = 30
     Private cursorAddress As New List(Of Integer)
@@ -170,16 +171,13 @@
     End Sub
 
     Protected Overrides Sub Render()
-        If VideoEnabled Then
-            SyncLock videoBMP
-                Try ' FIXME: This sill fails (sometimes) when switching modes
-                    Select Case MainMode
-                        Case MainModes.Text : RenderText()
-                        Case MainModes.Graphics : RenderGraphics()
-                    End Select
-                Catch
-                End Try
-            End SyncLock
+        If VideoEnabled  Then
+            Try
+                Select Case MainMode
+                    Case MainModes.Text : RenderText()
+                    Case MainModes.Graphics : RenderGraphics()
+                End Select
+            Catch : End Try
         End If
     End Sub
 
@@ -211,7 +209,7 @@
 
         ' For modes &h12 and &h13
         Dim planeMode As Boolean = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (VGA_SC(4) And 6) <> 0, False)
-        Dim vgaPage As UInt32 = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (CUInt(VGA_CRTC(&HC)) << 8) + CUInt(VGA_CRTC(&HD)), 0)
+        Dim vgaPage As UInt32 = If(mVideoMode <= 7 OrElse mVideoMode = &H12 OrElse mVideoMode = &H13, (CUInt(VGA_CRTC(&HC)) << 8) + CUInt(VGA_CRTC(&HD)), 0)
 
         Dim address As UInt32
         Dim h1 As UInt32
@@ -220,8 +218,46 @@
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1
                 Select Case mVideoMode
+                    Case 2
+                        h1 = If(mTextResolution.Width = 80, x / 8, x / 16)
+                        h2 = If(mTextResolution.Width = 80, 1, 2)
+                        Dim c As Color
+
+                        If portRAM(&H3D8) = 9 AndAlso portRAM(&H3D4) = 9 Then
+                            address = vgaPage + mStartGraphicsVideoAddress + (y / 4) * mTextResolution.Width * 2 + h1 * 2
+                            b = mCPU.Memory(address)
+                            b = VideoChar.FontBitmaps(b * 128 + (y Mod 4) * 8 + ((x / h2) Mod 8))
+                        Else
+                            address = mStartGraphicsVideoAddress + (y / 16) * mTextResolution.Width * 2 + h1 * 2
+                            b = mCPU.Memory(address)
+                            b = VideoChar.FontBitmaps(b * 128 + (y Mod 16) * 8 + ((x / h2) Mod 8))
+                        End If
+
+                        If (mVideoMode Mod 2) = 0 Then ' Color
+                            If b = 0 Then
+                                c = CGAPalette(mCPU.Memory(address + 1) / 16)
+                            Else
+                                c = CGAPalette(mCPU.Memory(address + 1) And 15)
+                            End If
+                        Else
+                            If (mCPU.Memory(address + 1) And &H70) <> 0 Then
+                                If b = 0 Then
+                                    c = CGAPalette(7)
+                                Else
+                                    c = CGAPalette(0)
+                                End If
+                            Else
+                                If b = 0 Then
+                                    c = CGAPalette(0)
+                                Else
+                                    c = CGAPalette(7)
+                                End If
+                            End If
+                        End If
+                        videoBMP.Pixel(x, y) = c
+
                     Case 4, 5
-                        b = mCPU.RAM(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> 2))
+                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> 2))
                         Select Case x And 3
                             Case 3 : b = b And 3
                             Case 2 : b = (b >> 2) And 3
@@ -238,15 +274,15 @@
                         videoBMP.Pixel(x, y) = CGAPalette(b)
 
                     Case 6
-                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> 3))
+                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> 3))
                         b = (b >> (7 - (x And 7))) And 1
                         b *= 15
                         videoBMP.Pixel(x, y) = CGAPalette(b)
 
                     Case &HD, &HE
-                        h1 = x '>> 1
-                        h2 = y '>> 1
-                        address = h2 * 40 + (h1 >> 3)
+                        h1 = x >> 1
+                        h2 = y >> 1
+                        address = h2 * mTextResolution.Width + (h1 >> 3)
                         h1 = 7 - (h1 And 7)
                         b = (vRAM(address) >> h1) And 1
                         b = b + ((vRAM(address + &H10000) >> h1) And 1) << 1
@@ -255,7 +291,7 @@
                         videoBMP.Pixel(x, y) = vgaPalette(b)
 
                     Case &H10, &H12
-                        address = (y * 80) + (x >> 3)
+                        address = (y * mTextResolution.Width) + (x >> 3)
                         h1 = 7 - (x And 7)
                         b = (vRAM(address) >> h1) And 1
                         b = b Or ((vRAM(address + &H10000) >> h1) And 1) << 1
@@ -265,8 +301,7 @@
 
                     Case &H13
                         If planeMode Then
-                            address = ((y * mVideoResolution.Width + x) >> 2) + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And &HF)
-                            b = vRAM(address)
+                            b = vRAM(((y * mVideoResolution.Width + x) >> 2) + (x And 3) * &H10000 + vgaPage - (VGA_ATTR(&H13) And &HF))
                         Else
                             b = mCPU.Memory(mStartGraphicsVideoAddress + vgaPage + y * mVideoResolution.Width + x)
                         End If
@@ -278,7 +313,7 @@
                         videoBMP.Pixel(x, y) = CGAPalette(b)
 
                     Case Else
-                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv))
+                        b = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> xDiv))
                         If PixelsPerByte = 4 Then
                             Select Case x And 3
                                 Case 3 : b = b And 3
@@ -309,9 +344,14 @@
         Dim intensity As Boolean = (portRAM(&H3D8) And &H80) <> 0
         Dim mode As Boolean = (portRAM(&H3D8) = 9) AndAlso (portRAM(&H3D4) = 9)
 
+        ' FIXME: Dummy workaround to support the cursor; Haven't found a better way yet...
+        mCursorCol = mCPU.Memory(&H450)
+        mCursorRow = mCPU.Memory(&H451)
+        mCursorVisible = True
+
         For address As Integer = 0 To MEMSIZE - 2 Step 2
-            b0 = vRAM(address)
-            b1 = vRAM(address + 1)
+            b0 = VideoRAM(address)
+            b1 = VideoRAM(address + 1)
 
             If mVideoMode = 7 OrElse mVideoMode = 127 Then
                 If (b1 And &H70) <> 0 Then
@@ -327,10 +367,18 @@
             'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-                videoBMP.FillRectangle(brushCache(b1.LowNib()),
+                If blinkCounter < BlinkRate Then
+                    videoBMP.FillRectangle(brushCache(b1.LowNib()),
                                            r.X + 0, r.Y - 1 + CellSize.Height - (CursorEnd - CursorStart) - 1,
                                            CellSize.Width, CursorEnd - CursorStart + 1)
-                cursorAddress.Add(address)
+                    cursorAddress.Add(address)
+                End If
+
+                If blinkCounter >= 2 * BlinkRate Then
+                    blinkCounter = 0
+                Else
+                    blinkCounter += 1
+                End If
             End If
 
             r.X += CellSize.Width
@@ -421,30 +469,28 @@
         MyBase.InitVideoMemory(clearScreen)
 
         If mRenderControl IsNot Nothing Then
-            SyncLock videoBMP
-                If videoBMP IsNot Nothing Then videoBMP.Dispose()
-                If GraphicsResolution.Width = 0 Then
-                    VideoMode = 3
-                    Exit Sub
-                End If
-                videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+            If videoBMP IsNot Nothing Then videoBMP.Dispose()
+            If GraphicsResolution.Width = 0 Then
+                VideoMode = 3
+                Exit Sub
+            End If
+            videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
 
-                If clearScreen OrElse charSizeCache.Count = 0 Then
-                    charSizeCache.Clear()
-                    Using g = mRenderControl.CreateGraphics()
-                        For i As Integer = 0 To 255
-                            MeasureChar(g, i, chars(i), mFont)
-                        Next
-                    End Using
-                End If
+            If clearScreen OrElse charSizeCache.Count = 0 Then
+                charSizeCache.Clear()
+                Using g = mRenderControl.CreateGraphics()
+                    For i As Integer = 0 To 255
+                        MeasureChar(g, i, chars(i), mFont)
+                    Next
+                End Using
+            End If
 
-                charsCache.Clear()
+            charsCache.Clear()
 
-                If fontSourceMode = FontSources.TrueType Then
-                    If g IsNot Nothing Then g.Dispose()
-                    g = Graphics.FromImage(videoBMP)
-                End If
-            End SyncLock
+            If fontSourceMode = FontSources.TrueType Then
+                If g IsNot Nothing Then g.Dispose()
+                g = Graphics.FromImage(videoBMP)
+            End If
         End If
     End Sub
 

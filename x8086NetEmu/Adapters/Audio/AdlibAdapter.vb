@@ -152,7 +152,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         'If (lastAdlibTicks Mod adlibTicks) = 8 Then AdlibTick()
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         If adlibRegMem(4) = 0 Then
             adlibStatus = 0
         Else
@@ -162,7 +162,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Return adlibStatus
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
         If port = &H388 Then
             adlibAddr = value
             Exit Sub

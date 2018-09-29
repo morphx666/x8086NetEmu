@@ -681,7 +681,7 @@ Public Class FloppyControllerAdapter
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         If (port And 3) = 0 Then
             ' main status register
             Return GetMainStatus()
@@ -715,10 +715,10 @@ Public Class FloppyControllerAdapter
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInt32, v As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
         If (port And 3) = 2 Then
             ' write to digital output register
-            If (v And &H4) = 0 Then
+            If (value And &H4) = 0 Then
                 ' reset controller
                 Reset()
             ElseIf (regDOR And &H4) = 0 Then
@@ -726,25 +726,25 @@ Public Class FloppyControllerAdapter
                 If irq IsNot Nothing Then irq.Raise(True)
                 pendingReadyChange = &HF
             End If
-            regDOR = v And &HFF
+            regDOR = value And &HFF
 
         ElseIf (port And 3) = 1 Then
             ' write to data register
             If state = States.IDLE Then
                 ' CPU writes first command byte
                 state = States.COMMAND
-                cmdCmd = v And &H1F
+                cmdCmd = value And &H1F
                 commandlen = CommandLength()
             End If
 
             If state = States.COMMAND Then
                 ' CPU writes a command byte
-                commandbuf(commandptr) = v
+                commandbuf(commandptr) = value
                 commandptr += 1
                 If commandptr = commandlen Then CommandStart()
             ElseIf state = States.TRANSFER_IN AndAlso ctlNonDma Then
                 ' CPU writes data byte
-                databuf(dataptr) = v
+                databuf(dataptr) = value
                 dataptr += 1
                 state = States.TRANSWAIT_IN
                 If irq IsNot Nothing Then irq.Raise(False)

@@ -113,7 +113,7 @@ Public Class StandardDiskFormat
         strm = s
 
         ' Assume Floppy Image (No partitions)
-        ' FIXME: There has to be a better way to know is the image is a floppy or a hard disk
+        ' FIXME: There has to be a better way to know if the image is a floppy or a hard disk
         '        Perhaps some better way to detect if the image has a master boot record or something...
         strm.Position = 0
         strm.Read(b, 0, b.Length)

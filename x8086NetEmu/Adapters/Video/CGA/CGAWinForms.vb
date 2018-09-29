@@ -205,12 +205,12 @@ Public Class CGAWinForms
 
     Protected Overrides Sub Render()
         If VideoEnabled Then
-            SyncLock videoBMP
+            Try
                 Select Case MainMode
                     Case MainModes.Text : RenderText()
                     Case MainModes.Graphics : RenderGraphics()
                 End Select
-            End SyncLock
+            Catch : End Try
         End If
     End Sub
 
@@ -223,9 +223,9 @@ Public Class CGAWinForms
 
         Dim r As New Rectangle(Point.Empty, mCellSize)
 
-        For address As Integer = 0 To MEMSIZE - 2 Step 2
-            b0 = vRAM(address)
-            b1 = vRAM(address + 1)
+        For address As Integer = mStartTextVideoAddress To mEndTextVideoAddress - 2 Step 2
+            b0 = CPU.Memory(address)
+            b1 = CPU.Memory(address + 1)
 
             If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
                 If blinkCounter < BlinkRate Then b0 = 0
@@ -265,16 +265,13 @@ Public Class CGAWinForms
         Next
     End Sub
 
-    ' FIXME: IsDirty is not working here. Also, scrolling games present a flickering issue
     Private Sub RenderGraphics()
         Dim b As Byte
-        Dim address As UInt32
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1
-                address = ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
-                b = vRAM(address)
+                b = CPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv))
 
                 If PixelsPerByte = 4 Then
                     Select Case x And 3

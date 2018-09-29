@@ -587,7 +587,7 @@
         UpdateCh2(0)
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then
@@ -599,46 +599,46 @@
         End If
     End Function
 
-    Public Overrides Sub Out(port As UInt32, v As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then
             '  write Control Word
             Dim s As Integer
-            c = (v >> 6) And 3
+            c = (value >> 6) And 3
             If c = 3 Then
                 '  Read Back command
                 For i As Integer = 0 To 3 - 1
                     s = 2 << i
-                    If (v And (&H10 Or s)) = s Then mChannels(i).LatchStatus()
-                    If (v And (&H20 Or s)) = s Then mChannels(i).LatchOutput()
+                    If (value And (&H10 Or s)) = s Then mChannels(i).LatchStatus()
+                    If (value And (&H20 Or s)) = s Then mChannels(i).LatchOutput()
                 Next
             Else
                 '  Channel Control Word
-                If (v And &H30) = 0 Then
+                If (value And &H30) = 0 Then
                     '  Counter Latch command
                     mChannels(c).LatchOutput()
                 Else
                     '  reprogram counter mode
-                    Dim countm As Integer = (v >> 1) And 7
+                    Dim countm As Integer = (value >> 1) And 7
                     If countm > 5 Then countm = countm And 3
-                    Dim rwm As Integer = (v >> 4) And 3
-                    Dim bcdm As Boolean = (v And 1) <> 0
+                    Dim rwm As Integer = (value >> 4) And 3
+                    Dim bcdm As Boolean = (value And 1) <> 0
                     mChannels(c).SetMode(countm, rwm, bcdm)
                     Select Case c
                         Case 0 : UpdateCh0()
                         Case 1 : UpdateCh1()
-                        Case 2 : UpdateCh2(v)
+                        Case 2 : UpdateCh2(value)
                     End Select
                 End If
             End If
         Else
             '  write to counter
-            mChannels(c).PutByte(v)
+            mChannels(c).PutByte(value)
             Select Case c
                 Case 0 : UpdateCh0()
                 Case 1 : UpdateCh1()
-                Case 2 : UpdateCh2(v)
+                Case 2 : UpdateCh2(value)
             End Select
         End If
     End Sub
@@ -680,9 +680,6 @@
             If period = 0 Then
                 mSpeaker.Frequency = 0
             Else
-                ' FIXME: Multiplying by 2000 moves notes three octaves up, 
-                '        while multiplying by 500, the notes played through the speaker, match the notes detected by any tuner.
-                '        But, multiplying by 2000 matches other emulators (such as DosBox) frequency.
                 mSpeaker.Frequency = speakerBaseFrequency / period
             End If
         End If

@@ -49,7 +49,7 @@ Public Class X8086
     Private mipsWaiter As AutoResetEvent
     Private mMPIs As Double
     Private instrucionsCounter As UInt32
-    Private isStringOp As Boolean = False
+    Private newPrefix As Boolean = False
 
     Public Shared Property LogToConsole As Boolean
 
@@ -616,7 +616,7 @@ Public Class X8086
     End Sub
 
     Public Sub Execute()
-        isStringOp = False
+        newPrefix = False
         instrucionsCounter += 1
 
         If mFlags.TF = 1 Then
@@ -642,7 +642,7 @@ Public Class X8086
 
         clkCyc += opCodeSize * 4
 
-        If Not isStringOp Then
+        If Not newPrefix Then
             If repeLoopMode <> REPLoopModes.None Then repeLoopMode = REPLoopModes.None
             If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
                 mRegisters.ResetActiveSegment()
@@ -652,7 +652,7 @@ Public Class X8086
     End Sub
 
     Public Sub Execute_OLD()
-        isStringOp = False
+        newPrefix = False
         instrucionsCounter += 1
 
         If mFlags.TF = 1 Then
@@ -850,7 +850,7 @@ Public Class X8086
             Case &H26, &H2E, &H36, &H3E ' ES, CS, SS and DS segment override prefix
                 addrMode.Decode(opCode, opCode)
                 mRegisters.ActiveSegmentRegister = addrMode.Register1 - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
-                isStringOp = True
+                newPrefix = True
                 clkCyc += 2
 
             Case &H27 ' daa
@@ -1425,7 +1425,7 @@ Public Class X8086
 
             Case &HA4 To &HA7, &HAA To &HAF
                 HandleREPMode()
-                isStringOp = True
+                newPrefix = True
 
             Case &HA8 ' test al imm8
                 Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
@@ -1553,13 +1553,13 @@ Public Class X8086
             Case &HD0 To &HD3 : ExecuteGroup2()
 
             Case &HD4 ' aam
-                Dim div As Byte = Param(SelPrmIndex.First, , DataSize.Byte)
-                If div = 0 Then
+                tmpVal = Param(SelPrmIndex.First, , DataSize.Byte)
+                If tmpVal = 0 Then
                     HandleInterrupt(0, True)
                     Exit Select
                 End If
-                mRegisters.AH = mRegisters.AL \ div
-                mRegisters.AL = mRegisters.AL Mod div
+                mRegisters.AH = mRegisters.AL \ tmpVal
+                mRegisters.AL = mRegisters.AL Mod tmpVal
                 SetSZPFlags(mRegisters.AX, DataSize.Word)
                 clkCyc += 83
 
@@ -1690,12 +1690,12 @@ Public Class X8086
 
             Case &HF2 ' repne/repnz
                 repeLoopMode = REPLoopModes.REPENE
-                isStringOp = True
+                newPrefix = True
                 clkCyc += 2
 
             Case &HF3 ' repe/repz
                 repeLoopMode = REPLoopModes.REPE
-                isStringOp = True
+                newPrefix = True
                 clkCyc += 2
 
             Case &HF4 ' hlt
@@ -1748,9 +1748,9 @@ Public Class X8086
 
         clkCyc += opCodeSize * 4
 
-        If Not isStringOp Then
+        If Not newPrefix Then
             If repeLoopMode <> REPLoopModes.None Then repeLoopMode = REPLoopModes.None
-            If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
+            If mRegisters.ActiveSegmentChanged Then
                 mRegisters.ResetActiveSegment()
                 clkCyc += 2
             End If
@@ -1904,47 +1904,57 @@ Public Class X8086
                 If count = 1 Then
                     newValue = (oldValue << 1) Or (oldValue >> mask07_15)
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
                     newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
                     mFlags.CF = newValue And 1
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
 
             Case 1 ' 001    --  ror
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue << mask07_15)
                     mFlags.CF = oldValue And 1
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
                     newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
                     mFlags.CF = If((newValue And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
 
             Case 2 ' 010    --  rcl
                 If count = 1 Then
                     newValue = (oldValue << 1) Or mFlags.CF
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
                     oldValue = oldValue Or (CUInt(mFlags.CF) << mask8_16)
                     newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
 
             Case 3 ' 011    --  rcr
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (CUInt(mFlags.CF) << mask07_15)
                     mFlags.CF = oldValue And 1
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
                     oldValue = oldValue Or (CUInt(mFlags.CF) << mask8_16)
                     newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
 
             Case 4, 6 ' 100/110    --  shl/sal
                 If count = 1 Then
                     newValue = oldValue << 1
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
                     newValue = If(count > mask8_16, 0, oldValue << count)
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
 
@@ -1952,10 +1962,12 @@ Public Class X8086
                 If count = 1 Then
                     newValue = oldValue >> 1
                     mFlags.CF = oldValue And 1
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
                     newValue = If(count > mask8_16, 0, oldValue >> (count - 1))
                     mFlags.CF = newValue And 1
                     newValue = newValue >> 1
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
 
@@ -2327,6 +2339,7 @@ Public Class X8086
                         Exit While
                     End If
                 End If
+
                 If mDebugMode Then ' TODO: Need to add a parameter to make this optional
                     IncIP(-opCodeSize)
                     Exit Sub

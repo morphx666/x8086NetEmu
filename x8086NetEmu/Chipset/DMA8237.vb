@@ -267,10 +267,7 @@
                 Case &H4
                     ' DMA write
                     While (maxlen > 0) AndAlso (Not chan.externalEop) AndAlso (blockmode OrElse chan.pendingRequest)
-                        If dev IsNot Nothing Then
-                            Dim b As Byte = dev.DMAWrite()
-                            cpu.RAM((page << 16) Or curaddr) = b
-                        End If
+                        If dev IsNot Nothing Then cpu.Memory((page << 16) Or curaddr) = dev.DMAWrite()
                         maxlen -= 1
                         curcount -= 1
                         curaddr = (curaddr + addrstep) And &HFFFF
@@ -279,10 +276,7 @@
                 Case &H8
                     ' DMA read
                     While maxlen > 0 AndAlso Not chan.externalEop AndAlso (blockmode OrElse chan.pendingRequest)
-                        If dev IsNot Nothing Then
-                            Dim b As Byte = cpu.RAM((page << 16) Or curaddr)
-                            dev.DMARead(b)
-                        End If
+                        If dev IsNot Nothing Then dev.DMARead(cpu.Memory((page << 16) Or curaddr))
                         maxlen -= 1
                         curcount -= 1
                         curaddr = (curaddr + addrstep) And &HFFFF
@@ -319,7 +313,7 @@
         cpu.Sched.RunTaskAfter(task, transferTime)
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel status
@@ -344,7 +338,7 @@
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInt32, v As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel setup
@@ -364,11 +358,11 @@
             Dim p As Boolean = msbFlipFlop
             msbFlipFlop = Not p
             If p Then
-                x = (x And &HFF) Or ((v << 8) And &HFF00)
-                y = (y And &HFF) Or ((v << 8) And &HFF00)
+                x = (x And &HFF) Or ((value << 8) And &HFF00)
+                y = (y And &HFF) Or ((value << 8) And &HFF00)
             Else
-                x = (x And &HFF00) Or (v And &HFF)
-                y = (y And &HFF00) Or (v And &HFF)
+                x = (x And &HFF00) Or (value And &HFF)
+                y = (y And &HFF00) Or (value And &HFF)
             End If
             If (port And 1) = 0 Then
                 chan.baseaddr = x
@@ -381,28 +375,28 @@
             ' DMA controller: operation registers
             Select Case port And &HF
                 Case 8 ' write command register
-                    cmdreg = v
-                    If (v And &H10) = 0 Then priochannel = 0 ' enable fixed priority
-                    If (v And 1) = 1 Then cpu.RaiseException("DMA8237: memory-to-memory transfer not implemented")
+                    cmdreg = value
+                    If (value And &H10) = 0 Then priochannel = 0 ' enable fixed priority
+                    If (value And 1) = 1 Then cpu.RaiseException("DMA8237: memory-to-memory transfer not implemented")
 
                 Case 9 ' set/reset request register
-                    If (v And 4) = 0 Then
-                        reqreg = reqreg And (Not 1 << (v And 3)) ' reset request bit
+                    If (value And 4) = 0 Then
+                        reqreg = reqreg And (Not 1 << (value And 3)) ' reset request bit
                     Else
-                        reqreg = reqreg Or (1 << (v And 3))  ' set request bit
-                        If (v And 7) = 4 Then cpu.RaiseException("DMA8237: software request on channel 0 not implemented")
+                        reqreg = reqreg Or (1 << (value And 3))  ' set request bit
+                        If (value And 7) = 4 Then cpu.RaiseException("DMA8237: software request on channel 0 not implemented")
                     End If
 
                 Case 10 ' set/reset mask register
-                    If (v And 4) = 0 Then
-                        maskreg = maskreg And (Not 1 << (v And 3)) ' reset mask bit
+                    If (value And 4) = 0 Then
+                        maskreg = maskreg And (Not 1 << (value And 3)) ' reset mask bit
                     Else
-                        maskreg = maskreg Or (1 << (v And 3))  ' set mask bit
+                        maskreg = maskreg Or (1 << (value And 3))  ' set mask bit
                     End If
 
                 Case 11 ' write mode register
-                    channels(v And 3).mode = v
-                    If (v And 3) = 0 AndAlso (v And &HDC) <> &H58 Then cpu.RaiseException("DMA8237: unsupported mode on channel 0")
+                    channels(value And 3).mode = value
+                    If (value And 3) = 0 AndAlso (value And &HDC) <> &H58 Then cpu.RaiseException("DMA8237: unsupported mode on channel 0")
 
                 Case 12 ' clear msb flipflop
                     msbFlipFlop = False
@@ -419,17 +413,17 @@
                     maskreg = 0
 
                 Case 15 ' write mask register
-                    maskreg = v
+                    maskreg = value
             End Select
             TryHandleRequest()
 
         ElseIf (port And &HFFF8) = &H80 Then
             ' DMA page registers
             Select Case port
-                Case &H81 : channels(2).page = v
-                Case &H82 : channels(3).page = v
-                Case &H83 : channels(1).page = v
-                Case &H87 : channels(0).page = v
+                Case &H81 : channels(2).page = value
+                Case &H82 : channels(3).page = value
+                Case &H83 : channels(1).page = value
+                Case &H87 : channels(0).page = value
             End Select
         End If
     End Sub

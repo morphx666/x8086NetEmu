@@ -303,8 +303,8 @@ Public Class FormEmulator
                                             Dim GetFileName = Function() As String
                                                                   Dim b As New List(Of Byte)
                                                                   Dim addr As UInt32 = X8086.SegmentOffetToAbsolute(cpu.Registers.DS, cpu.Registers.DX)
-                                                                  While cpu.RAM(addr) <> 0
-                                                                      b.Add(cpu.RAM(addr))
+                                                                  While cpu.Memory(addr) <> 0
+                                                                      b.Add(cpu.Memory(addr))
                                                                       addr += 1
                                                                   End While
                                                                   Return System.Text.Encoding.ASCII.GetString(b.ToArray())
@@ -528,7 +528,7 @@ Public Class FormEmulator
         Else
             If showPrompt Then
                 If MsgBox($"It looks like this is the first time you run the emulator.{Environment.NewLine}" +
-                          $"Use the 'RightCtrl + Home' hotkey to access the emulator settings.{Environment.NewLine}{Environment.NewLine}" +
+                          $"Use the 'RightCtrl + Home' hotkey to access the emulator settings or click over the title bar.{Environment.NewLine}{Environment.NewLine}" +
                           $"Would you like to configure the emulator's floppies and hard drives now?", MsgBoxStyle.Information Or MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                     RunMediaManager()
                 End If
@@ -697,7 +697,7 @@ Public Class FormEmulator
         cpu.Registers.BP = xml.<registers>.<BP>.Value
         cpu.Registers.ActiveSegmentRegister = [Enum].Parse(GetType(X8086.GPRegisters.RegistersTypes), xml.<registers>.<AS>.Value)
 
-        cpu.Memory = Convert.FromBase64String(xml.<memory>.Value)
+        Array.Copy(Convert.FromBase64String(xml.<memory>.Value), cpu.Memory, cpu.Memory.Length)
         cpu.DebugMode = Boolean.Parse(xml.<debugMode>.Value)
 
         cpu.VideoAdapter.VideoMode = [Enum].Parse(GetType(CGAAdapter.VideoModes), xml.<videoMode>.Value)

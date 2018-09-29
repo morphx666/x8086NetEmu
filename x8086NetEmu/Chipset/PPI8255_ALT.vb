@@ -138,7 +138,7 @@ Public Class PPI8255_ALT
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         Select Case port And 3
             Case 0 ' A
                 Return ReadFromPort(0)
@@ -153,33 +153,33 @@ Public Class PPI8255_ALT
         End Select
     End Function
 
-    Public Overrides Sub Out(port As UInt32, v As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
         Select Case port And 3
             Case 0 ' A
-                WriteToPort(0, v)
+                WriteToPort(0, value)
             Case 1 ' B
-                WriteToPort(1, v)
+                WriteToPort(1, value)
             Case 2 ' C
-                WriteToPort(2, v)
+                WriteToPort(2, value)
             Case 3
-                If (v And &H80) <> 0 Then
-                    mode = v
+                If (value And &H80) <> 0 Then
+                    mode = value
 
-                    modeGroupA = (v >> 5) And &H3
-                    modeGroupB = (v >> 2) And &H1
-                    ports(0).Inp = If((v And &H10) <> 0, &HFF, 0)
-                    ports(1).Inp = If((v And &H2) <> 0, &HFF, 0)
-                    ports(2).Inp = If((v And &H1) <> 0, &HF, 0)
-                    ports(2).Inp = ports(2).Inp Or If((v And &H8) <> 0, &HF0, 0)
+                    modeGroupA = (value >> 5) And &H3
+                    modeGroupB = (value >> 2) And &H1
+                    ports(0).Inp = If((value And &H10) <> 0, &HFF, 0)
+                    ports(1).Inp = If((value And &H2) <> 0, &HFF, 0)
+                    ports(2).Inp = If((value And &H1) <> 0, &HF, 0)
+                    ports(2).Inp = ports(2).Inp Or If((value And &H8) <> 0, &HF0, 0)
                 Else
-                    Dim bit As Byte = (v >> 1) And &H7
-                    If (v And 1) <> 0 Then
-                        v = ports(2).Output Or (1 << bit)
+                    Dim bit As Byte = (value >> 1) And &H7
+                    If (value And 1) <> 0 Then
+                        value = ports(2).Output Or (1 << bit)
                     Else
-                        v = ports(2).Output And (Not 1 << bit)
+                        value = ports(2).Output And (Not 1 << bit)
                     End If
 
-                    WriteToPort(2, v)
+                    WriteToPort(2, value)
                 End If
         End Select
     End Sub

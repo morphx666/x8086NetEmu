@@ -2,7 +2,7 @@
     Public Const MemSize As UInt32 = &H100000UI  ' 1MB
     Public Const ROMStart As UInt32 = &HC0000UI
 
-    Public Memory(MemSize - 1) As Byte
+    Public ReadOnly Memory(MemSize - 1) As Byte
 
     Private address As UInt32
     Private Const shl2 As UInt16 = 1 << 2
@@ -59,16 +59,6 @@
             SI = SP + 2
             DI = SP + 3
             IP = SP + 4
-
-            'ES = (AL + BX + 1) Or shl3
-            'CS = ES + 1
-            'SS = ES + 2
-            'DS = ES + 3
-            'SP = (AH + BX + 1) Or shl3
-            'BP = (CH + BX + 1) Or shl3
-            'SI = (DH + BX + 1) Or shl3
-            'DI = (BH + BX + 1) Or shl3
-            'IP = DI + 1
         End Enum
 
         Private mActiveSegmentRegister As RegistersTypes = RegistersTypes.DS

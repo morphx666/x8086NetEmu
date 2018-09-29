@@ -78,7 +78,7 @@
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         Select Case port And 3
             Case 0 ' port &h60 (PPI port A)
                 ' Return keyboard data if bit 7 in port B is cleared.
@@ -94,7 +94,7 @@
         End Select
     End Function
 
-    Public Overrides Sub Out(port As UInt32, v As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
         Select Case port And 3
             Case 1
                 ' Write to port 0x61 (system control port)
@@ -106,11 +106,11 @@
                 ' bit 6: enable(1) or disable(0) keyboard clock ??
                 ' bit 7: pulse 1 to reset keyboard and IRQ1
                 Dim oldv As UInt32 = ppiB
-                ppiB = v
-                If (timer IsNot Nothing) AndAlso ((oldv Xor v) And 1) <> 0 Then
+                ppiB = value
+                If (timer IsNot Nothing) AndAlso ((oldv Xor value) And 1) <> 0 Then
                     timer.SetCh2Gate((ppiB And 1) <> 0)
 #If Win32 Then
-                    If timer.Speaker IsNot Nothing Then timer.Speaker.Enabled = (v And 1) = 1
+                    If timer.Speaker IsNot Nothing Then timer.Speaker.Enabled = (value And 1) = 1
 #End If
                 End If
         End Select

@@ -50,7 +50,7 @@
     Public Overrides Sub CloseAdapter()
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         Return &HFF
     End Function
 
@@ -202,7 +202,7 @@
         End Get
     End Property
 
-    Public Overrides Sub Out(port As UInt32, value As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
     End Sub
 
     Public Overrides Sub Run()

@@ -117,23 +117,23 @@ AddressOf _70,  ' jo
 AddressOf _71,  ' jno
 AddressOf _72,  ' jb/jnae
 AddressOf _73,  ' jnb/jae
-AddressOf _74,  ' je/jz
+AddressOf _74,      ' je/jz
 AddressOf _75,  ' jne/jnz
 AddressOf _76,  ' jbe/jna
 AddressOf _77,  ' jnbe/ja
 AddressOf _78,  ' js
-AddressOf _79,  ' jns
+AddressOf _79,      ' jns
 AddressOf _7A,  ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
 AddressOf _7C,  ' jl/jnge
 AddressOf _7D,  ' jnl/jge
 AddressOf _7E,  ' jle/jng
-AddressOf _7F,  ' jnle/jg
+AddressOf _7F,      ' jnle/jg
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
-AddressOf _84_85,   ' test reg with reg/mem
+AddressOf _84_85,       ' test reg with reg/mem
 AddressOf _84_85,
 AddressOf _86_87,   ' xchg reg/mem with reg
 AddressOf _86_87,
@@ -213,7 +213,7 @@ AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D0_D3,
-AddressOf _D4,      ' aam
+AddressOf _D4,  ' aam
 AddressOf _D5,  ' aad
 AddressOf _D6,  ' xlat 
 AddressOf _D7,  ' xlatb
@@ -460,7 +460,7 @@ AddressOf _FE_FF}
     Private Sub _26_2E_36_3E()  ' ES, CS, SS and DS segment override prefix
         addrMode.Decode(opCode, opCode)
         mRegisters.ActiveSegmentRegister = addrMode.Register1 - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
-        isStringOp = True
+        newPrefix = True
         clkCyc += 2
     End Sub
 
@@ -1095,12 +1095,12 @@ AddressOf _FE_FF}
 
     Private Sub _A4_A7()
         HandleREPMode()
-        isStringOp = True
+        newPrefix = True
     End Sub
 
     Private Sub _AA_AF()
         HandleREPMode()
-        isStringOp = True
+        newPrefix = True
     End Sub
 
     Private Sub _A8()   ' test al imm8
@@ -1250,13 +1250,13 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _D4()   ' aam
-        Dim div As Byte = Param(SelPrmIndex.First, , DataSize.Byte)
-        If div = 0 Then
+        tmpVal = Param(SelPrmIndex.First, , DataSize.Byte)
+        If tmpVal = 0 Then
             HandleInterrupt(0, True)
             Exit Sub
         End If
-        mRegisters.AH = mRegisters.AL \ div
-        mRegisters.AL = mRegisters.AL Mod div
+        mRegisters.AH = mRegisters.AL \ tmpVal
+        mRegisters.AL = mRegisters.AL Mod tmpVal
         SetSZPFlags(mRegisters.AX, DataSize.Word)
         clkCyc += 83
     End Sub
@@ -1409,13 +1409,13 @@ AddressOf _FE_FF}
 
     Private Sub _F2()   ' repne/repnz
         repeLoopMode = REPLoopModes.REPENE
-        isStringOp = True
+        newPrefix = True
         clkCyc += 2
     End Sub
 
     Private Sub _F3()   ' repe/repz
         repeLoopMode = REPLoopModes.REPE
-        isStringOp = True
+        newPrefix = True
         clkCyc += 2
     End Sub
 
@@ -1468,4 +1468,6 @@ AddressOf _FE_FF}
     Private Sub _FE_FF()
         ExecuteGroup4_And_5()
     End Sub
+
+
 End Class

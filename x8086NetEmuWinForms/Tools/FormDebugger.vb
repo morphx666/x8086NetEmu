@@ -319,7 +319,7 @@ Public Class FormDebugger
                 Dim mem As String = ""
                 Dim bcr As String = "    "
                 For k = 0 To 15
-                    b = mEmulator.RAM(address + i + k)
+                    b = mEmulator.Memory(address + i + k)
                     If k = 8 Then mem += "- "
                     mem += $"{b:X2} "
                     If b <= 31 OrElse b > 122 Then

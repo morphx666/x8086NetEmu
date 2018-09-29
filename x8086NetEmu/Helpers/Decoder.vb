@@ -941,7 +941,7 @@
             Throw New Exception("Decoding error for decOpCode " + decOpCode.ToString("X2"))
         End If
 
-        Dim info As Instruction = New Instruction With {
+        Dim info As Instruction = New Instruction() With {
             .IsValid = True,
             .decOpCode = decOpCode,
             .CS = mRegisters.CS,

@@ -672,7 +672,7 @@ Partial Class FormDebugger
         Me.ButtonStep.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ButtonStep.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.ButtonStep.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ButtonStep.Location = New System.Drawing.Point(882, 604)
+        Me.ButtonStep.Location = New System.Drawing.Point(942, 604)
         Me.ButtonStep.Name = "ButtonStep"
         Me.ButtonStep.Size = New System.Drawing.Size(97, 32)
         Me.ButtonStep.TabIndex = 13
@@ -692,7 +692,7 @@ Partial Class FormDebugger
         Me.ListViewCode.HideSelection = False
         Me.ListViewCode.Location = New System.Drawing.Point(551, 18)
         Me.ListViewCode.Name = "ListViewCode"
-        Me.ListViewCode.Size = New System.Drawing.Size(531, 578)
+        Me.ListViewCode.Size = New System.Drawing.Size(591, 578)
         Me.ListViewCode.TabIndex = 15
         Me.ListViewCode.UseCompatibleStateImageBehavior = False
         Me.ListViewCode.View = System.Windows.Forms.View.Details
@@ -718,7 +718,7 @@ Partial Class FormDebugger
         Me.ButtonRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ButtonRefresh.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.ButtonRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ButtonRefresh.Location = New System.Drawing.Point(779, 604)
+        Me.ButtonRefresh.Location = New System.Drawing.Point(839, 604)
         Me.ButtonRefresh.Name = "ButtonRefresh"
         Me.ButtonRefresh.Size = New System.Drawing.Size(97, 32)
         Me.ButtonRefresh.TabIndex = 12
@@ -788,7 +788,7 @@ Partial Class FormDebugger
         Me.ButtonRun.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ButtonRun.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.ButtonRun.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ButtonRun.Location = New System.Drawing.Point(985, 604)
+        Me.ButtonRun.Location = New System.Drawing.Point(1045, 604)
         Me.ButtonRun.Name = "ButtonRun"
         Me.ButtonRun.Size = New System.Drawing.Size(97, 32)
         Me.ButtonRun.TabIndex = 14
@@ -846,7 +846,7 @@ Partial Class FormDebugger
         Me.CheckBoxBytesOrChars.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.CheckBoxBytesOrChars.AutoSize = True
         Me.CheckBoxBytesOrChars.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxBytesOrChars.Location = New System.Drawing.Point(761, 615)
+        Me.CheckBoxBytesOrChars.Location = New System.Drawing.Point(821, 615)
         Me.CheckBoxBytesOrChars.Name = "CheckBoxBytesOrChars"
         Me.CheckBoxBytesOrChars.Size = New System.Drawing.Size(12, 11)
         Me.CheckBoxBytesOrChars.TabIndex = 11
@@ -903,7 +903,7 @@ Partial Class FormDebugger
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(1094, 648)
+        Me.ClientSize = New System.Drawing.Size(1154, 648)
         Me.Controls.Add(Me.CheckBoxBytesOrChars)
         Me.Controls.Add(Me.ButtonMemForward)
         Me.Controls.Add(Me.ButtonMemBack)

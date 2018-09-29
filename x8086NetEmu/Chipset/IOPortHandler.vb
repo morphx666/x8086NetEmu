@@ -15,8 +15,8 @@ Public MustInherit Class IOPortHandler
         End Get
     End Property
 
-    Public MustOverride Sub Out(port As UInt32, value As UInt32) Implements IIOPortHandler.Out
-    Public MustOverride Function [In](port As UInt32) As UInt32 Implements IIOPortHandler.In
+    Public MustOverride Sub Out(port As UInt32, value As UInt16) Implements IIOPortHandler.Out
+    Public MustOverride Function [In](port As UInt32) As UInt16 Implements IIOPortHandler.In
     Public MustOverride ReadOnly Property Description As String Implements IIOPortHandler.Description
     Public MustOverride ReadOnly Property Name As String Implements IIOPortHandler.Name
     Public MustOverride Sub Run() Implements IIOPortHandler.Run

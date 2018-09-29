@@ -1,6 +1,4 @@
-﻿Imports System.IO
-
-Public Class EmulatorState
+﻿Public Class EmulatorState
     Private mCPU As X8086
 
     Public Sub New(cpu As X8086)

@@ -169,7 +169,7 @@
         Return (v And &HF) + 10 * ((v >> 4) And &HF0)
     End Function
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         Clock2RAM()
 
         data.Read()
@@ -179,7 +179,7 @@
         Return 0 ' Just to suppress the warning
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
         Stop
     End Sub
 

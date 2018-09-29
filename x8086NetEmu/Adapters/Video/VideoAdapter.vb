@@ -36,8 +36,8 @@
 
     Public MustOverride Overrides Sub CloseAdapter()
     Public MustOverride Overrides Sub InitiAdapter()
-    Public MustOverride Overrides Sub Out(port As UInt32, value As UInt32)
-    Public MustOverride Overrides Function [In](port As UInt32) As UInt32
+    Public MustOverride Overrides Sub Out(port As UInt32, value As UInt16)
+    Public MustOverride Overrides Function [In](port As UInt32) As UInt16
     Public MustOverride Overrides Sub Run()
 
     Public MustOverride Sub Reset()

@@ -147,11 +147,11 @@ Public Class SpeakerAdpater
         waveOut.Play()
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         Return &HFF ' Avoid warning BC42353
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
 
     End Sub
 
@@ -213,11 +213,11 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInt32) As UInt32
+    Public Overrides Function [In](port As UInt32) As UInt16
         Return 0
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt32)
+    Public Overrides Sub Out(port As UInt32, value As UInt16)
 
     End Sub
 
