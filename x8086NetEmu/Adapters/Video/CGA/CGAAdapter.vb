@@ -148,19 +148,23 @@ Public MustInherit Class CGAAdapter
     End Sub
 
     Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
-        MyBase.OnKeyDown(Me, e)
-        If e.Handled Then Exit Sub
-        'Debug.WriteLine($"KEY DOWN: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
-        If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, False))
+        If keyMap.GetScanCode(e.KeyValue) <> 0 Then
+            MyBase.OnKeyDown(Me, e)
+            If e.Handled Then Exit Sub
+            'Debug.WriteLine($"KEY DOWN: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
+            If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, False))
+        End If
         e.Handled = True
         e.SuppressKeyPress = True
     End Sub
 
     Public Sub HandleKeyUp(sender As Object, e As KeyEventArgs)
-        MyBase.OnKeyUp(Me, e)
-        If e.Handled Then Exit Sub
-        'Debug.WriteLine($"KEY UP: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
-        If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, True))
+        If keyMap.GetScanCode(e.KeyValue) <> 0 Then
+            MyBase.OnKeyUp(Me, e)
+            If e.Handled Then Exit Sub
+            'Debug.WriteLine($"KEY UP: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
+            If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, True))
+        End If
         e.Handled = True
     End Sub
 

@@ -54,6 +54,8 @@
     Protected mVideoResolution As Size = New Size(0, 0)
     Protected mCellSize As Size
 
+    Protected keyMap As New KeyMap()
+
     'Private Memory(X8086.MemSize - 1) As Boolean
 
     Public Sub New(cpu As X8086)

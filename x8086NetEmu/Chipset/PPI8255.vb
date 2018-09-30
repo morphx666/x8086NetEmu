@@ -173,8 +173,6 @@
             If keyBuf.Length() > 0 Then
                 ' read byte from buffer
                 lastKeyCode = keyMap.GetScanCode(Asc(keyBuf(0))) And &HFF
-                If lastKeyCode = 0 Then Return 0
-
                 If keyUpStates(0) Then lastKeyCode = lastKeyCode Or &H80
 
                 ' wait .5 msec before going to the next byte
