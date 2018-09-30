@@ -150,7 +150,7 @@ Public MustInherit Class CGAAdapter
     Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
         MyBase.OnKeyDown(Me, e)
         If e.Handled Then Exit Sub
-        'Debug.WriteLine("KEY DOWN: " + e.KeyCode.ToString() + " | " + e.Modifiers.ToString())
+        'Debug.WriteLine($"KEY DOWN: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
         If mCPU.Keyboard IsNot Nothing AndAlso e.KeyValue <= 101 Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, False))
         e.Handled = True
         e.SuppressKeyPress = True
@@ -159,7 +159,7 @@ Public MustInherit Class CGAAdapter
     Public Sub HandleKeyUp(sender As Object, e As KeyEventArgs)
         MyBase.OnKeyUp(Me, e)
         If e.Handled Then Exit Sub
-        'Debug.WriteLine("KEY UP:   " + e.KeyCode.ToString() + " | " + e.Modifiers.ToString())
+        'Debug.WriteLine($"KEY UP: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
         If mCPU.Keyboard IsNot Nothing AndAlso e.KeyValue <= 101 Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, True))
         e.Handled = True
     End Sub

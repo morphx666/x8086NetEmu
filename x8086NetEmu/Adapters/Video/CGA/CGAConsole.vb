@@ -29,34 +29,23 @@ Public Class CGAConsole
             .ScanMode = Image2Ascii.ScanModes.Fast
         }
 
-        Dim tmp As New Thread(Sub()
-                                  Do
-                                      Thread.Sleep(1000 \ frameRate)
+        Tasks.Task.Run(Sub()
+                           Do
+                               Thread.Sleep(1000 \ frameRate)
 
-                                      Try
-                                          If MainMode = MainModes.Graphics Then
-                                              i2a.ProcessImage(False)
+                               Try
+                                   If MainMode = MainModes.Graphics Then
+                                       i2a.ProcessImage(False)
 
-                                              For y As Integer = 0 To Console.WindowHeight - 1
-                                                  For x As Integer = 0 To Console.WindowWidth - 1
-                                                      ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character, Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color), ConsoleColor.Black, x, y)
-                                                  Next
-                                              Next
-                                          End If
-                                      Catch : End Try
-                                  Loop Until MyBase.cancelAllThreads
-                              End Sub)
-        tmp.Start()
-    End Sub
-
-    Private Sub HandleModifier(v As ConsoleModifiers, t As ConsoleModifiers, k As Keys)
-        If HasModifier(v, t) AndAlso Not HasModifier(lastModifiers, t) Then
-            MyBase.HandleKeyDown(Me, New KeyEventArgs(k))
-            Thread.Sleep(100)
-        ElseIf Not HasModifier(v, t) AndAlso HasModifier(lastModifiers, t) Then
-            MyBase.HandleKeyUp(Me, New KeyEventArgs(k))
-            Thread.Sleep(100)
-        End If
+                                       For y As Integer = 0 To Console.WindowHeight - 1
+                                           For x As Integer = 0 To Console.WindowWidth - 1
+                                               ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character, Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color), ConsoleColor.Black, x, y)
+                                           Next
+                                       Next
+                                   End If
+                               Catch : End Try
+                           Loop Until MyBase.cancelAllThreads
+                       End Sub)
     End Sub
 
     Private Function HasModifier(v As ConsoleModifiers, t As ConsoleModifiers) As Boolean
@@ -111,12 +100,22 @@ Public Class CGAConsole
 
             HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Shift, Keys.ShiftKey)
             HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Control, Keys.ControlKey)
-            HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Alt, Keys.Alt)
+            HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Alt, Keys.Alt Or Keys.Menu)
             lastModifiers = keyInfo.Modifiers
 
             MyBase.HandleKeyDown(Me, keyEvent)
             Thread.Sleep(100)
             MyBase.HandleKeyUp(Me, keyEvent)
+        End If
+    End Sub
+
+    Private Sub HandleModifier(v As ConsoleModifiers, t As ConsoleModifiers, k As Keys)
+        If HasModifier(v, t) AndAlso Not HasModifier(lastModifiers, t) Then
+            MyBase.HandleKeyDown(Me, New KeyEventArgs(k))
+            Thread.Sleep(100)
+        ElseIf Not HasModifier(v, t) AndAlso HasModifier(lastModifiers, t) Then
+            MyBase.HandleKeyUp(Me, New KeyEventArgs(k))
+            Thread.Sleep(100)
         End If
     End Sub
 
