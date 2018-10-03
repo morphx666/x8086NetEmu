@@ -54,7 +54,7 @@
     Protected mVideoResolution As Size = New Size(0, 0)
     Protected mCellSize As Size
 
-    Protected keyMap As New KeyMap()
+    Protected keyMap As New KeyMap() ' Used to filter unsupported keystrokes
 
     'Private Memory(X8086.MemSize - 1) As Boolean
 

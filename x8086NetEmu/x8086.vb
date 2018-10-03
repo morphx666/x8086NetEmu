@@ -330,19 +330,19 @@ Public Class X8086
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
         Dim equipmentByte As Byte = Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1".Replace(" ", ""))
-        '                                        │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
-        '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
-        '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
-        '                                         │ │ │ │ │ │ │ │ │ │ │ │ ├─┼────── old PC system board RAM < 256K (00=256k, 01=512k, 10=576k, 11=640k)
-        '                                         │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
-        '                                         │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
-        '                                         │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode (00=EGA/VGA, 01=CGA 40x25, 10=CGA 80x25 color, 11=MDA 80x25)
-        '                                         │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
-        '                                         │ │ │ │ │ │ │ └───────────── 0 if DMA installed
-        '                                         │ │ │ │ └─┴─┴────────────── number of serial ports
-        '                                         │ │ │ └─────────────────── game adapter installed
-        '                                         │ │ └──────────────────── unused, internal modem (PS/2)
-        '                                         └─┴───────────────────── number of printer ports
+        '                                       │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
+        '                                        │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
+        '                                        │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
+        '                                        │ │ │ │ │ │ │ │ │ │ │ │ ├─┼────── old PC system board RAM < 256K (00=256k, 01=512k, 10=576k, 11=640k)
+        '                                        │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
+        '                                        │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
+        '                                        │ │ │ │ │ │ │ │ │ │ └─┴─────── initial video mode (00=EGA/VGA, 01=CGA 40x25, 10=CGA 80x25 color, 11=MDA 80x25)
+        '                                        │ │ │ │ │ │ │ │ └─┴────────── # of diskette drives, less 1
+        '                                        │ │ │ │ │ │ │ └───────────── 0 if DMA installed
+        '                                        │ │ │ │ └─┴─┴────────────── number of serial ports
+        '                                        │ │ │ └─────────────────── game adapter installed
+        '                                        │ │ └──────────────────── unused, internal modem (PS/2)
+        '                                        └─┴───────────────────── number of printer ports
 
         PPI.SwitchData = equipmentByte
 

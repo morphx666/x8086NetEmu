@@ -171,12 +171,14 @@
     End Sub
 
     Protected Overrides Sub Render()
-        If VideoEnabled  Then
+        If VideoEnabled Then
             Try
-                Select Case MainMode
-                    Case MainModes.Text : RenderText()
-                    Case MainModes.Graphics : RenderGraphics()
-                End Select
+                SyncLock chars
+                    Select Case MainMode
+                        Case MainModes.Text : RenderText()
+                        Case MainModes.Graphics : RenderGraphics()
+                    End Select
+                End SyncLock
             Catch : End Try
         End If
     End Sub

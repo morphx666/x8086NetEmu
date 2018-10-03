@@ -20,6 +20,8 @@ Public MustInherit Class CGAAdapter
         Mode6_Graphic_Color_640x200 = &H16
         Mode6_Graphic_Color_640x200_Alt = &H12
 
+        Mode7_Text_BW_80x25 = &H7F
+
         Undefined = &HFF
     End Enum
 
@@ -104,7 +106,7 @@ Public MustInherit Class CGAAdapter
     Protected mCursorEnd As Integer = 1
 
     Protected mVideoEnabled As Boolean = True
-    Protected mVideoMode As UInt32 = VideoModes.Undefined
+    Protected mVideoMode As UInt32
     Protected mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
     Protected mBlinkCharOn As Boolean
     Protected mPixelsPerByte As Integer
@@ -131,7 +133,11 @@ Public MustInherit Class CGAAdapter
         mCPU = cpu
         Me.useInternalTimer = useInternalTimer
 
-        For i As UInt32 = &H3D0 To &H3DF
+        For i As UInt32 = &H3D0 To &H3DF ' CGA
+            ValidPortAddress.Add(i)
+        Next
+
+        For i As UInt32 = &H3B0 To &H3BB ' Hercules
             ValidPortAddress.Add(i)
         Next
 
@@ -145,6 +151,8 @@ Public MustInherit Class CGAAdapter
 
         waiter = New AutoResetEvent(False)
         Reset()
+
+        VideoMode = VideoModes.Mode7_Text_BW_80x25
     End Sub
 
     Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
@@ -366,6 +374,13 @@ Public MustInherit Class CGAAdapter
                     mVideoResolution = New Size(640, 200)
                     mMainMode = MainModes.Graphics
 
+                Case VideoModes.Mode7_Text_BW_80x25
+                    mStartTextVideoAddress = &HB0000
+                    mStartGraphicsVideoAddress = &HB0000
+                    mTextResolution = New Size(80, 25)
+                    mVideoResolution = New Size(720, 400)
+                    mMainMode = MainModes.Text
+
                 Case Else
                     mCPU.RaiseException("CGA: Unknown Video Mode " + CInt(value).ToString("X2"))
                     mVideoMode = VideoModes.Undefined
@@ -395,7 +410,7 @@ Public MustInherit Class CGAAdapter
             Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
                 Return CRT6845IndexRegister
 
-            Case &H3D1, &H3D3, &H3D5, &H3D7 ' CRT (6845) data register
+            Case &H3D1, &H3D3, &H3D5, &H3D7, &H3B5 ' CRT (6845) data register
                 Return CRT6845DataRegister(CRT6845IndexRegister)
 
             Case &H3D8 ' CGA mode control register  (except PCjr)
@@ -404,7 +419,7 @@ Public MustInherit Class CGAAdapter
             Case &H3D9 ' CGA palette register
                 Return X8086.BitsArrayToWord(CGAPaletteRegister)
 
-            Case &H3DA ' CGA status register
+            Case &H3DA, &H3BA ' CGA status register
                 UpdateStatusRegister()
                 Return X8086.BitsArrayToWord(CGAStatusRegister)
 
@@ -421,22 +436,27 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides Sub Out(port As UInt32, value As UInt16)
         Select Case port
-            Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
+            Case &H3B8
+                If (value And 2) = 2 Then VideoMode = VideoModes.Mode7_Text_BW_80x25
+
+            Case &H3D0, &H3D2, &H3D4, &H3D6,
+                 &H3B0, &H3B2, &H3B4 ' CRT (6845) index register
                 CRT6845IndexRegister = value And 31
 
-            Case &H3D1, &H3D3, &H3D5, &H3D7 ' CRT (6845) data register
+            Case &H3D1, &H3D3, &H3D5, &H3D7,
+                 &H3B1, &H3B3, &H3B5 ' CRT (6845) data register
                 CRT6845DataRegister(CRT6845IndexRegister) = value And CtrlMask(CRT6845IndexRegister)
                 OnDataRegisterChanged()
 
-            Case &H3D8 ' CGA mode control register  (except PCjr)
+            Case &H3D8, &H3B8 ' CGA mode control register  (except PCjr)
                 X8086.WordToBitsArray(value, CGAModeControlRegister)
                 OnModeControlRegisterChanged()
 
-            Case &H3D9 ' CGA palette register
+            Case &H3D9, &H3B9 ' CGA palette register
                 X8086.WordToBitsArray(value, CGAPaletteRegister)
                 OnPaletteRegisterChanged()
 
-            Case &H3DA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
+            Case &H3DA, &H3BA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
                 X8086.WordToBitsArray(value, CGAStatusRegister)
 
             Case &H3DB ' The trigger is cleared by writing any value to port 03DBh (undocumented)
@@ -479,7 +499,7 @@ Public MustInherit Class CGAAdapter
 
         If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
 
-        mVideoEnabled = CGAModeControlRegister(CGAModeControlRegisters.video_enabled)
+        mVideoEnabled = CGAModeControlRegister(CGAModeControlRegisters.video_enabled) OrElse VideoMode = VideoModes.Mode7_Text_BW_80x25
     End Sub
 
     Protected Overridable Sub OnPaletteRegisterChanged()

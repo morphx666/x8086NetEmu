@@ -654,7 +654,7 @@ Public MustInherit Class VGAAdapter
 
             Case &H3C9 ' RGB data register
                 value = value And &H3F
-                Select Case latchWriteRGB ' Inverting the Blue and Red fixes Wolf3D's palette
+                Select Case latchWriteRGB
                     Case 0 ' R
                         tempRGB = CUInt(value) << 18
                     Case 1 ' G
