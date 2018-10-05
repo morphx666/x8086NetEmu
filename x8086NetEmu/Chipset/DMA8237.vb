@@ -118,16 +118,16 @@
         maskreg = &HF '  mask all channels
         ch0NextTrigger = -1
 
-        For i As Integer = &H0 To &HF
+        For i As UInt32 = &H0 To &HF
             ValidPortAddress.Add(i)
         Next
 
-        For i As Integer = &H80 To &H8F
+        For i As UInt32 = &H80 To &H8F
             ValidPortAddress.Add(i)
         Next
     End Sub
 
-    Public Function GetChannel(channelNumber) As IDMAChannel
+    Public Function GetChannel(channelNumber As Integer) As IDMAChannel
         Return channels(channelNumber)
     End Function
 

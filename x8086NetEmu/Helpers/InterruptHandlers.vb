@@ -41,7 +41,7 @@ Partial Public Class X8086
 
             tmpVal = intNum * 4
             IPAddrOffet = RAM16(0, tmpVal)
-            mRegisters.CS = RAM16(0, tmpVal + 2)
+            mRegisters.CS = RAM16(0, tmpVal, 2)
 
             If intNum = 0 Then DivisionByZero()
         End If

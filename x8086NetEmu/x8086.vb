@@ -134,7 +134,7 @@ Public Class X8086
 
     Private Function GetCpuSpeed() As UInt32
         Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
-            Return managementObject("CurrentClockSpeed")
+            Return CUInt(managementObject("CurrentClockSpeed"))
         End Using
     End Function
 
@@ -548,7 +548,7 @@ Public Class X8086
     End Sub
 
     Private Sub FlushCycles()
-        Dim t As ULong = clkCyc * Scheduler.BASECLOCK + leftCycleFrags
+        Dim t As Long = clkCyc * Scheduler.BASECLOCK + leftCycleFrags
         Sched.AdvanceTime(t \ mCyclesPerSecond)
         leftCycleFrags = t Mod mCyclesPerSecond
         clkCyc = 0
@@ -854,7 +854,7 @@ Public Class X8086
                 clkCyc += 2
 
             Case &H27 ' daa
-                If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     tmpVal = CUInt(mRegisters.AL) + 6
                     mRegisters.AL += 6
                     mFlags.AF = 1
@@ -901,7 +901,7 @@ Public Class X8086
 
             Case &H2F ' das
                 Dim al As Byte = mRegisters.AL
-                If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     tmpVal = CShort(mRegisters.AL) - 6
                     mRegisters.AL -= 6
                     mFlags.AF = 1
@@ -947,7 +947,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H37 ' aaa
-                If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     mRegisters.AX += &H106
                     mFlags.AF = 1
                     mFlags.CF = 1
@@ -955,7 +955,7 @@ Public Class X8086
                     mFlags.AF = 0
                     mFlags.CF = 0
                 End If
-                mRegisters.AL = mRegisters.AL And &HF
+                mRegisters.AL = mRegisters.AL.LowNib()
                 'mFlags.OF = 0
                 'mFlags.SF = 0
                 clkCyc += 8
@@ -987,7 +987,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H3F ' aas
-                If (mRegisters.AL And &HF) > 9 OrElse mFlags.AF = 1 Then
+                If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     mRegisters.AX -= &H106
                     mFlags.AF = 1
                     mFlags.CF = 1
@@ -995,9 +995,9 @@ Public Class X8086
                     mFlags.AF = 0
                     mFlags.CF = 0
                 End If
-                mRegisters.AL = mRegisters.AL And &HF
-                mFlags.OF = 0
-                mFlags.SF = 0
+                mRegisters.AL = mRegisters.AL.LowNib()
+                'Flags.OF = 0
+                'Flags.SF = 0
                 clkCyc += 8
 
             Case &H40 To &H47 ' inc reg
@@ -1570,8 +1570,10 @@ Public Class X8086
                 mFlags.SF = 0
                 clkCyc += 60
 
-            Case &HD6 ' xlat 
-                If Not mVic20 Then
+            Case &HD6 ' xlat / salc
+                If mVic20 Then
+                    mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
+                Else
                     mRegisters.AL = If(mFlags.CF = 1, &HFF, &H0)
                     clkCyc += 4
                 End If
@@ -2335,7 +2337,7 @@ Public Class X8086
                 mRegisters.CX -= 1
                 If ExecStringOpCode() Then
                     If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
-                        (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
+                       (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
                         Exit While
                     End If
                 End If
@@ -2345,6 +2347,7 @@ Public Class X8086
                     Exit Sub
                 End If
             End While
+
             repeLoopMode = REPLoopModes.None
         End If
 

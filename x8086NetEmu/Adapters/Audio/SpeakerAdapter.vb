@@ -1,28 +1,27 @@
 ﻿#If Win32 Then
-Imports System.Runtime.InteropServices
 Imports NAudio.Wave
-
-Public Class CustomBufferProvider
-    Implements IWaveProvider
-
-    Public Delegate Sub FillBuffer(buffer() As Byte)
-
-    Public ReadOnly Property WaveFormat As WaveFormat Implements IWaveProvider.WaveFormat
-    Private fb As FillBuffer
-
-    Public Sub New(bufferFiller As FillBuffer, sampleRate As Integer, bitDepth As Integer, channels As Integer)
-        WaveFormat = New WaveFormat(sampleRate, bitDepth, channels)
-        fb = bufferFiller
-    End Sub
-
-    Public Function Read(buffer() As Byte, offset As Integer, count As Integer) As Integer Implements IWaveProvider.Read
-        fb.Invoke(buffer)
-        Return count
-    End Function
-End Class
 
 Public Class SpeakerAdpater
     Inherits Adapter
+
+    Public Class CustomBufferProvider
+        Implements IWaveProvider
+
+        Public Delegate Sub FillBuffer(buffer() As Byte)
+
+        Public ReadOnly Property WaveFormat As WaveFormat Implements IWaveProvider.WaveFormat
+        Private fb As FillBuffer
+
+        Public Sub New(bufferFiller As FillBuffer, sampleRate As Integer, bitDepth As Integer, channels As Integer)
+            WaveFormat = New WaveFormat(sampleRate, bitDepth, channels)
+            fb = bufferFiller
+        End Sub
+
+        Public Function Read(buffer() As Byte, offset As Integer, count As Integer) As Integer Implements IWaveProvider.Read
+            fb.Invoke(buffer)
+            Return count
+        End Function
+    End Class
 
     Private Enum WaveForms
         Squared

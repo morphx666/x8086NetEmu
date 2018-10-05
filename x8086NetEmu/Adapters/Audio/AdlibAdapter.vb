@@ -6,7 +6,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Inherits Adapter
 
     Private waveOut As WaveOut
-    Private audioProvider As CustomBufferProvider
+    Private audioProvider As SpeakerAdpater.CustomBufferProvider
     Private ReadOnly mAudioBuffer() As Byte
 
     Private ReadOnly mCPU As X8086
@@ -129,13 +129,8 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             .NumberOfBuffers = 4,
             .DesiredLatency = 200
         }
-        audioProvider = New CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate, 8, 1)
+        audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate, 8, 1)
         waveOut.Init(audioProvider)
-
-        'adlibTicks = (Scheduler.BASECLOCK / SampleRate) * waveOut.NumberOfBuffers  ' FIXME: I don't think this is 100% correct
-        'adlibTicks = (Scheduler.BASECLOCK / SampleRate)
-        'lastAdlibTicks = Long.MaxValue
-
         waveOut.Play()
     End Sub
 

@@ -23,7 +23,7 @@
         End Get
         Set(value As X8086)
             mCPU = value
-            InitiAdapter()
+            Threading.Tasks.Task.Run(AddressOf InitiAdapter)
         End Set
     End Property
 

@@ -388,7 +388,6 @@ Public Class Scheduler
                 For i As Integer = 0 To inputBuf.Count - 1
                     evt = CType(inputBuf.Item(i), ExternalInputEvent)
                     evt.TimeStamp = mCurrentTime
-                    'Tasks.Task.Run(Sub() evt.Handler.HandleInput(evt))
                     evt.Handler.HandleInput(evt)
                 Next
                 inputBuf.Clear()
@@ -402,9 +401,10 @@ Public Class Scheduler
                     mCPU.PreExecute()
                 Catch ex As Exception
                     X8086.Notify("Shit happens at {0}:{1}: {2}", X8086.NotificationReasons.Fck,
-                                                                 mCPU.Registers.CS.ToString("X4"),
-                                                                 mCPU.Registers.IP.ToString("X4"),
-                                                                 ex.Message)
+                                                                mCPU.Registers.CS.ToString("X4"),
+                                                                mCPU.Registers.IP.ToString("X4"),
+                                                                ex.Message)
+                    mCPU.RaiseException($"Scheduler Main Loop Error: {ex.Message}")
                 End Try
 
                 If mCPU.IsHalted() Then SkipToNextEvent() ' The CPU is halted, skip immediately to the next event

@@ -106,7 +106,7 @@ Public MustInherit Class CGAAdapter
     Protected mCursorEnd As Integer = 1
 
     Protected mVideoEnabled As Boolean = True
-    Protected mVideoMode As UInt32
+    Protected mVideoMode As UInt32 = VideoModes.Undefined
     Protected mBlinkRate As Integer = 16 ' 8 frames on, 8 frames off (http://www.oldskool.org/guides/oldonnew/resources/cgatech.txt)
     Protected mBlinkCharOn As Boolean
     Protected mPixelsPerByte As Integer
@@ -152,7 +152,7 @@ Public MustInherit Class CGAAdapter
         waiter = New AutoResetEvent(False)
         Reset()
 
-        VideoMode = VideoModes.Mode7_Text_BW_80x25
+        'VideoMode = VideoModes.Mode7_Text_BW_80x25
     End Sub
 
     Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
@@ -280,7 +280,7 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides Sub InitiAdapter()
         isInit = mCPU IsNot Nothing
-        If isInit AndAlso useInternalTimer Then Tasks.Task.Run(Sub() MainLoop())
+        If isInit AndAlso useInternalTimer Then Tasks.Task.Run(AddressOf MainLoop)
     End Sub
 
     Private Sub MainLoop()

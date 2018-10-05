@@ -1,4 +1,6 @@
 ﻿' http://www.osdever.net/FreeVGA/vga/vgatext.htm
+' https://pdos.csail.mit.edu/6.828/2007/readings/hardware/vgadoc/VGABIOS.TXT
+' http://stanislavs.org/helppc/ports.html
 
 Public MustInherit Class VGAAdapter
     Inherits CGAAdapter
@@ -330,6 +332,7 @@ Public MustInherit Class VGAAdapter
         'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
         mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
 
+        ValidPortAddress.Clear()
         For i As UInt32 = &H3C0 To &H3CF ' EGA/VGA
             ValidPortAddress.Add(i)
         Next

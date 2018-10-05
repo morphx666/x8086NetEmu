@@ -15,7 +15,7 @@ Public Class CGAConsole
 
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)
-        InitiAdapter()
+        'InitiAdapter()
         AutoSize()
 
         Console.TreatControlCAsInput = True
@@ -144,7 +144,7 @@ Public Class CGAConsole
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
             For x As Integer = 0 To GraphicsResolution.Width - 1
-                address = ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
+                address = mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv)
                 b = CPU.Memory(address)
 
                 If PixelsPerByte = 4 Then

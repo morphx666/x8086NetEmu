@@ -100,7 +100,7 @@
         If (slaveInput And irqbit) <> 0 AndAlso slave(irq) IsNot Nothing Then
             Return slave(irq).GetPendingInterrupt()
         Else
-            Return (baseVector + irq) And &HFF
+            Return (baseVector + irq)
         End If
     End Function
 
