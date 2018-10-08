@@ -137,9 +137,10 @@ Public MustInherit Class CGAAdapter
             ValidPortAddress.Add(i)
         Next
 
-        For i As UInt32 = &H3B0 To &H3BB ' Hercules
-            ValidPortAddress.Add(i)
-        Next
+        ' This breaks ARKANOID ][
+        'For i As UInt32 = &H3B0 To &H3BB ' Hercules
+        '    ValidPortAddress.Add(i)
+        'Next
 
         For i As Integer = 0 To 255
             If i >= 32 AndAlso i < 255 Then

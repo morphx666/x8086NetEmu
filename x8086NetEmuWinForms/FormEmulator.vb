@@ -221,7 +221,7 @@ Public Class FormEmulator
                                     sysMenIntegercut,
                                     cpu.Clock / X8086.MHz,
                                     cpu.SimulationMultiplier * 100,
-                                    $"{cpu.VideoAdapter.Name.Split(" "c)(0)} Mode {cpu.VideoAdapter.VideoMode:X2}{If(cpu.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, "🅣", "🅖")} | Zoom {cpu.VideoAdapter.Zoom * 100}%",
+                                    $"{cpu.VideoAdapter.Name.Split(" "c)(0)} Mode {cpu.VideoAdapter.VideoMode:X2}{If(cpu.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, "T", "G")} | Zoom {cpu.VideoAdapter.Zoom * 100}%",
                                     cpu.MIPs,
                                     If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", If(cpu.IsPaused, "Paused", "Running"))),
                                     If(runningApp <> "", $" | {runningApp}", ""))
@@ -263,6 +263,7 @@ Public Class FormEmulator
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
         cpu.Adapters.Add(New AdlibAdapter(cpu))
+        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 #End If
 
         cpu.VideoAdapter?.AutoSize()
@@ -314,17 +315,18 @@ Public Class FormEmulator
 
                                             Select Case cpu.Registers.AL
                                                 Case 0 : mode = "L&X" ' Load & Execute
-                                                Case 1 : mode = "UND" ' Undocumented
+                                                Case 1 : mode = "LOD" ' Load
                                                 Case 2 : mode = "UNK" ' Unknown
-                                                Case 3 : mode = "LOD" ' Load
-                                                Case 4 : mode = "MSC" ' Whatever this means: Called by MSC spawn() when P_NOWAIT is specified
+                                                Case 3 : mode = "LOO" ' Load Overlay
+                                                Case 4 : mode = "MSC" ' Load & Execute in background
                                             End Select
 
                                             'Const offset As UInt32 = &H12
                                             'Dim cs As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
                                             'Dim ip As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
-                                            X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
-                                            'X8086.Notify($"DOS {mode}: {runningApp} -> {cs:X4}:{ip:X4}", X8086.NotificationReasons.Dbg)
+                                            'X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
+                                            X8086.Notify($"DOS {mode}: {runningApp}", X8086.NotificationReasons.Dbg)
+                                            'X8086.Notify($"   CS:IP {cpu.Registers.CS:X4}:{cpu.Registers.IP + 2:X4}", X8086.NotificationReasons.Dbg)
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.
@@ -745,9 +747,9 @@ Public Class FormEmulator
                 Dim expectedData() As Byte = IO.File.ReadAllBytes(expectedFileName)
                 For i As Integer = 0 To expectedData.Length - 1
                     'If expectedData(i) <> 0 Then
-                    If expectedData(i) <> cpu.RAM8(0, i) Then
+                    If expectedData(i) <> cpu.RAM8(0, i,, True) Then
                         failed = True
-                        MsgBox($"{file.Name} failed at offset {i}{Environment.NewLine}Expected: {expectedData(i):X2}{Environment.NewLine}Found: {cpu.RAM8(0, i):X2}")
+                        MsgBox($"{file.Name} failed at offset {i}{Environment.NewLine}Expected: {expectedData(i):X2}{Environment.NewLine}Found: {cpu.RAM8(0, i,, True):X2}")
                     End If
                     'End If
                 Next

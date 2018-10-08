@@ -305,15 +305,10 @@ Partial Public Class X8086
                 End If
 
                 If mRegisters.DL < &H80 Then
-                    If dskImg IsNot Nothing Then
-                        ret = &H64
-                    Else
-                        ret = &HFF
-                    End If
+                    ret = &H64
                 Else
-                    Dim n As Integer = dskImg.Sectors
-                    mRegisters.CX = n \ 256
-                    mRegisters.DX = n And &HFF
+                    mRegisters.CX = dskImg.Sectors \ 256
+                    mRegisters.DX = dskImg.Sectors And &HFF
                     ret = &H12C
                 End If
                 X8086.Notify("Drive {0} Read DASD Type", NotificationReasons.Info, mRegisters.DL)
@@ -450,7 +445,7 @@ Partial Public Class X8086
         ' Store return status
         If mRegisters.AH <> 0 Then
             RAM8(&H40, &H41) = ret And &HFF
-            mRegisters.AX = ret << 8 Or AL
+            mRegisters.AX = (ret << 8) Or AL
         End If
         mFlags.CF = If(ret <> 0, 1, 0)
 

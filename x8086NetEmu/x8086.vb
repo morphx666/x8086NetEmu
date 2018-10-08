@@ -98,7 +98,7 @@ Public Class X8086
     Public PIT As PIT8254
     Public PPI As PPI8255
     'Public PPI As PPI8255_ALT
-    'Public RTC As RTC
+    Public RTC As RTC
     Public FPU As x8087
 
     Private picIsAvailable As Boolean
@@ -1757,6 +1757,12 @@ Public Class X8086
                 clkCyc += 2
             End If
         End If
+
+        ' QBasic
+        If mRegisters.CS = &H4936 AndAlso mRegisters.IP = &H7F8 Then
+            mDebugMode = True
+            FlushCycles()
+        End If
     End Sub
 
     Private Sub ExecuteGroup1() ' &H80 To &H83
@@ -1990,8 +1996,6 @@ Public Class X8086
             Case Else
                 OpCodeNotImplemented($"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group2)")
         End Select
-
-        mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
 
         If addrMode.IsDirect Then
             mRegisters.Val(addrMode.Register2) = newValue

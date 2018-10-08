@@ -3,28 +3,20 @@
 
     Private irq As InterruptRequest
 
-    Private Delegate Sub ReadFunction()
+    Private Delegate Function ReadFunction() As Integer
     Private Delegate Sub WriteFunction(v As Integer)
 
-    Private Const YEAR = 7
-    Private Const MONTH = 6
-    Private Const DAY = 5
-    Private Const DOW = 4
-    Private Const HOUR = 3
-    Private Const MINUTE = 2
-    Private Const SECOND = 1
-    Private Const CENTURY = 0
+    Private index As Integer
 
-    ' CENTURY
-    Private Const CENTURY_W = &H80
-    Private Const CENTURY_R = &H40
+    Private cmosA As Integer = &H26
+    Private cmosB As Integer = &H2
+    Private cmosC As Integer = 0
+    Private cmosData(128 - 1) As Integer
 
-    ' DOW
-    Private Const DOW_BF = &H80
-    Private Const DOW_FT = &H40
-
-    ' SECONDS
-    Private Const SECOND_NOSC = &H80
+    Private periodicInt As Long
+    Private nextInt As Long
+    Private lastUpdate As Long
+    Private ticks As Long
 
     Private Const baseFrequency As Integer = 32.768 * X8086.KHz
 
@@ -47,24 +39,6 @@
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Private Structure DS1743
-        Public Read As ReadFunction
-        Public Write As WriteFunction
-
-        Public Count As UInt16
-        Public RAM() As Byte
-
-        Public Year As UInt16
-        Public Month As UInt16
-        Public Day As UInt16
-        Public Dow As UInt16
-        Public Hour As UInt16
-        Public Minute As UInt16
-        Public Second As UInt16
-    End Structure
-
-    Private data As DS1743
-
     Public Sub New(cpu As X8086, irq As InterruptRequest)
         Me.irq = irq
 
@@ -72,95 +46,66 @@
             ValidPortAddress.Add(i)
         Next
 
-        ReDim data.RAM(8192 - 1)
-        data.Count = 8
-        data.Year = 2000
+        For i As Integer = &H2C0 To &H2CF
+            ValidPortAddress.Add(i)
+        Next
 
-        data.Read = New ReadFunction(Sub()
-                                         data.Year = Now.Year
-                                         data.Month = Now.Month
-                                         data.Day = Now.Day
+        'cpu.TryAttachHook(&H8, New X8086.IntHandler(Function()
+        '                                                Dim t As Long = Now.Ticks
+        '                                                ticks += 2
+        '                                                lastUpdate = t
 
-                                         data.Hour = Now.Hour
-                                         data.Minute = Now.Minute
-                                         data.Second = Now.Second
+        '                                                If nextInt < t Then
+        '                                                    cmosC = cmosC Or ((1 << 6) Or (1 << 7))
+        '                                                    nextInt += periodicInt * Math.Ceiling((t - nextInt) / periodicInt)
+        '                                                End If
 
-                                         data.Dow = Now.DayOfWeek
-                                     End Sub)
+        '                                                Return False
+        '                                            End Function))
 
-        data.Write = New WriteFunction(Sub()
+        'cpu.TryAttachHook(&H1A, New X8086.IntHandler(Function()
+        '                                                 Select Case cpu.Registers.AH
+        '                                                     Case 0
+        '                                                         cpu.Registers.AL = 0
+        '                                                         cpu.Registers.CX = (ticks >> 16) And &HFFFF
+        '                                                         cpu.Registers.DX = ticks And &HFFFF
+        '                                                         Return True
+        '                                                     Case 2
+        '                                                         cpu.Registers.CH = [In](4)
+        '                                                         cpu.Registers.CL = [In](2)
+        '                                                         cpu.Registers.DH = [In](0)
+        '                                                         cpu.Registers.DL = 0
+        '                                                         cpu.Flags.CF = 0
+        '                                                         Return True
+        '                                                 End Select
 
-                                       End Sub)
-
-        Clock2RAM()
+        '                                                 Return False
+        '                                             End Function))
     End Sub
 
-    Private Sub Clock2RAM()
-        If data.RAM(CENTURY) And CENTURY_R Then Exit Sub
-
-        Dim v As UInt16
-
-        v = ToBCD(data.Year / 100)
-        data.RAM(CENTURY) = data.RAM(CENTURY) And &HC0
-        data.RAM(CENTURY) = data.RAM(CENTURY) Or (v And &H3F)
-
-        v = ToBCD(data.Year Mod 100)
-        data.RAM(YEAR) = v
-
-        v = ToBCD(data.Month + 1)
-        data.RAM(MONTH) = data.RAM(MONTH) And &HE0
-        data.RAM(MONTH) = data.RAM(MONTH) Or (v And &H1F)
-
-        v = ToBCD(data.Dow + 1)
-        data.RAM(DOW) = data.RAM(DOW) And &HC0
-        data.RAM(DOW) = data.RAM(DOW) Or (v And &H3F)
-
-        v = ToBCD(data.Hour)
-        data.RAM(HOUR) = data.RAM(HOUR) And &H80
-        data.RAM(HOUR) = data.RAM(HOUR) Or (v And &H3F)
-
-        v = ToBCD(data.Minute)
-        data.RAM(MINUTE) = data.RAM(MINUTE) And &H80
-        data.RAM(MINUTE) = data.RAM(MINUTE) Or (v And &H7F)
-
-        v = ToBCD(data.Second)
-        data.RAM(SECOND) = data.RAM(SECOND) And &H80
-        data.RAM(SECOND) = data.RAM(SECOND) Or (v And &H7F)
-    End Sub
-
-    Private Sub RAM2Clock()
-        If data.RAM(CENTURY) And CENTURY_W Then Exit Sub
-
-        Dim v As UInt16
-
-        v = FromBCD(data.RAM(CENTURY) And &H3F)
-        data.Year = 10 * (v + 1)
-
-        v = FromBCD(data.RAM(YEAR))
-        data.Year += v
-
-        v = FromBCD(data.RAM(MONTH) And &H1F)
-        data.Month = v - 1
-
-        v = FromBCD(data.RAM(DAY) And &H3F)
-        data.Day = v - 1
-
-        v = FromBCD(data.RAM(DOW) And &H7)
-        data.Dow = v - 1
-
-        v = FromBCD(data.RAM(HOUR) And &H3F)
-        data.Hour = v
-
-        v = FromBCD(data.RAM(MINUTE) And &H7F)
-        data.Minute = v
-
-        v = FromBCD(data.RAM(SECOND) And &H7F)
-        data.Second = v
-    End Sub
+    Private Function EncodeTime(t As UInt16) As UInt16
+        If (cmosB And &H4) <> 0 Then
+            Return t
+        Else
+            Return ToBCD(t)
+        End If
+    End Function
 
     Private Function ToBCD(v As UInt16) As UInt16
-        If v >= 100 Then v = v Mod 100
-        Return (v Mod 10) + 16 * (v / 10)
+        'If v >= 100 Then v = v Mod 100
+        'Return (v Mod 10) + 16 * (v / 10)
+
+        Dim i As Integer = 0
+        Dim r As Integer = 0
+        Dim d As Integer = 0
+
+        While v <> 0
+            d = v Mod 10
+            r = r Or (d << (4 * i))
+            i += 1
+            v = (v - d) \ 10
+        End While
+        Return r
     End Function
 
     Private Function FromBCD(v As UInt16) As UInt16
@@ -170,17 +115,37 @@
     End Function
 
     Public Overrides Function [In](port As UInt32) As UInt16
-        Clock2RAM()
+        Select Case index
+            Case &H0 : Return EncodeTime(Now.ToUniversalTime().Second)
+            Case &H2 : Return EncodeTime(Now.ToUniversalTime().Minute)
+            Case &H4 : Return EncodeTime(Now.ToUniversalTime().Hour)
+            Case &H7 : Return EncodeTime(Now.ToUniversalTime().Day)
+            Case &H8 : Return EncodeTime(Now.ToUniversalTime().Month + 1)
+            Case &H9 : Return EncodeTime(Now.ToUniversalTime().Year Mod 100)
 
-        data.Read()
+            Case &HA : Return cmosA
+            Case &HB : Return cmosB
+            Case &HC : Return cmosC And (Not &HF0)
+            Case &HD : Return &HFF
 
-        Stop
+            Case &H32 : Return EncodeTime(Now.ToUniversalTime().Year \ 100)
+        End Select
 
-        Return 0 ' Just to suppress the warning
+        Return cmosData(index)
     End Function
 
     Public Overrides Sub Out(port As UInt32, value As UInt16)
-        Stop
+        If (port = &H70) OrElse (port = &H2C0) Then
+            index = value And &H7F
+        Else
+            Select Case index
+                Case &HA
+                    cmosA = value And &H7F
+                    periodicInt = 1000 / (32768 >> (cmosA And &HF) - 1)
+                Case &HB : cmosB = value
+                Case Else : cmosData(index) = value
+            End Select
+        End If
     End Sub
 
     Public Overrides ReadOnly Property Name As String

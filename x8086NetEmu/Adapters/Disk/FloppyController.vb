@@ -231,7 +231,7 @@ Public Class FloppyControllerAdapter
                  Commands.SCAN_GE
                 cmdHead = commandbuf(3)
             Case Else
-                cmdHead = CByte((commandbuf(1) >> 2) And 1)
+                cmdHead = (commandbuf(1) >> 2) And 1
         End Select
 
         ' Start execution
@@ -262,7 +262,7 @@ Public Class FloppyControllerAdapter
 
             Case Commands.CALIBRATE ' CALIBRATE: go to EXECUTE state
                 cmdCylinder = 0
-                driveSeeking = driveSeeking Or CByte(1 << cmdDrive)
+                driveSeeking = driveSeeking Or (1 << cmdDrive)
                 state = States.EXECUTE
                 sched.RunTaskAfter(task, COMMANDDELAY)
 
@@ -274,7 +274,7 @@ Public Class FloppyControllerAdapter
                     If (driveSeeking And (1 << i)) <> 0 Then
                         driveSeeking = driveSeeking And CByte((Not 1 << i) And &HFF)
                         pendingReadyChange = pendingReadyChange And CByte((Not 1 << i) And &HFF)
-                        CommandEndSense(CByte(&H20 Or i), curCylinder(i))
+                        CommandEndSense(&H20 Or i, curCylinder(i))
                         Exit Sub
                     End If
                 Next
@@ -283,23 +283,23 @@ Public Class FloppyControllerAdapter
                 For i As Integer = 0 To 4 - 1
                     If (pendingReadyChange And (1 << i)) <> 0 Then
                         pendingReadyChange = pendingReadyChange And CByte((Not 1 << i) And &HFF)
-                        CommandEndSense(CByte(&HC0 Or i), curCylinder(i))
+                        CommandEndSense(&HC0 Or i, curCylinder(i))
                         Exit Sub
                     End If
                 Next
 
                 ' No pending interrupt condition respond with invalid command.
-                CommandEndSense(CByte(&H80))
+                CommandEndSense(&H80)
 
             Case Commands.SPECIFY ' SPECIFY: no response
-                ctlStepRateTime = CByte((commandbuf(1) >> 4) And &HF)
-                ctlHeadUnloadTime = CByte(commandbuf(1) And &HF)
-                ctlHeadLoadTime = CByte((commandbuf(2) >> 1) And &H7F)
+                ctlStepRateTime = (commandbuf(1) >> 4) And &HF
+                ctlHeadUnloadTime = commandbuf(1) And &HF
+                ctlHeadLoadTime = (commandbuf(2) >> 1) And &H7F
                 ctlNonDma = (commandbuf(2) And 1) = 1
                 CommandEndVoid()
 
             Case Commands.SENSE_DRIVE ' SENSE DRIVE: respond immediately
-                Dim st3 As Byte = CByte(commandbuf(1) And &H7)
+                Dim st3 As Byte = commandbuf(1) And &H7
                 If curCylinder(cmdDrive) = 0 Then st3 = st3 Or &H10 ' track 0
                 st3 = st3 Or &H20            ' ready line is tied to true
                 If diskimg(cmdDrive) IsNot Nothing Then
@@ -595,7 +595,7 @@ Public Class FloppyControllerAdapter
         state = States.RESULT
 
         'For i As Integer = 0 To 7 - 1
-        '    cpu.RAM8(&H40, &H42 + i) = resultbuf(i)
+        '    mCPU.Memory(X8086.SegmentOffetToAbsolute(&H40, &H42 + i)) = resultbuf(i)
         'Next
 
         If irq IsNot Nothing Then irq.Raise(True)
@@ -666,7 +666,7 @@ Public Class FloppyControllerAdapter
         End Select
 
         stmain = stmain Or driveSeeking ' bit mask of seeking drives
-        'cpu.RAM8(&H40, &H3E) = stmain
+        'mCPU.Memory(X8086.SegmentOffetToAbsolute(&H40, &H3E)) = stmain
 
         Return stmain
     End Function

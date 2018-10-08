@@ -3,6 +3,13 @@ Imports x8086NetEmu
 Imports System.Text
 
 Public Class FormDebugger
+    Public Enum LastInstructionMode
+        Normal
+        [Call]
+        Interrupt
+        Repe
+    End Enum
+
     Private Structure Breakpoint
         Public Segment As Integer
         Public Offset As Integer
@@ -73,6 +80,11 @@ Public Class FormDebugger
     Private baseCS As Integer
     Private baseIP As Integer
 
+    Private lastInstruction As Queue(Of LastInstructionMode) = New Queue(Of LastInstructionMode)
+    Private isShiftKeyDown As Boolean
+    Private instructionDecoded As Boolean
+    Private abortF8 As Boolean
+
     Private debugMode As DebugModes = DebugModes.Step
 
     Private loopWaiter As AutoResetEvent
@@ -119,8 +131,8 @@ Public Class FormDebugger
 
         Dim uiRefreshThread As New Thread(Sub()
                                               Do
-                                                  UpdateUI()
-                                                  Thread.Sleep(1000)
+                                                  If Not ignoreEvents Then UpdateUI()
+                                                  Thread.Sleep(500)
                                               Loop Until abortThreads
                                           End Sub) With {
                                             .IsBackground = True
@@ -141,6 +153,7 @@ Public Class FormDebugger
             isInit = False
             ignoreEvents = True
             abortThreads = True
+            abortF8 = True
 
             ohpWaiter.Set()
             loopWaiter.Set()
@@ -150,13 +163,20 @@ Public Class FormDebugger
     End Sub
 
     Private Sub FormDebugger_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+        isShiftKeyDown = e.Shift
+
         Select Case e.KeyCode
             Case Keys.F5
                 If debugMode = DebugModes.Step Then StartStopRunMode()
             Case Keys.F8
+                abortF8 = True
                 If debugMode = DebugModes.Run Then debugMode = DebugModes.Step
                 StepInto()
         End Select
+    End Sub
+
+    Private Sub FormDebugger_KeyUp(sender As Object, e As KeyEventArgs) Handles Me.KeyUp
+        isShiftKeyDown = e.Shift
     End Sub
 
     Private Sub ButtonStep_Click(sender As Object, e As EventArgs) Handles ButtonStep.Click
@@ -264,9 +284,12 @@ Public Class FormDebugger
                                                          loopWaiter.Set()
                                                      End Sub
             'AddHandler mEmulator.EmulationTerminated, Sub() If isRunning Then StartStopRunMode()
+            AddHandler mEmulator.InstructionDecoded, Sub() instructionDecoded = True
             isInit = True
 
-            StepInto()
+            'StepInto()
+            mEmulator.DoReschedule = True
+            mEmulator.DebugMode = True
         End Set
     End Property
 
@@ -506,7 +529,7 @@ Public Class FormDebugger
 
             For ptr As Integer = startOffset To endOffset Step -2
                 Dim address As String = X8086.SegmentOffetToAbsolute(.Registers.SS, ptr).ToString("X5")
-                Dim value As Integer = .RAM16(.Registers.SS, ptr)
+                Dim value As Integer = .RAM16(.Registers.SS, ptr,, True)
 
                 Dim item As ListViewItem
                 If index < ListViewStack.Items.Count Then
@@ -664,7 +687,76 @@ Public Class FormDebugger
         '    ' TODO: Implement a better solution to the case when this code is executed and historyPointer is set to -1
         'End Try
 
-        mEmulator.StepInto()
+        If isShiftKeyDown Then
+            Tasks.Task.Run(AddressOf RunShiftF8)
+        Else
+            mEmulator.StepInto()
+        End If
+    End Sub
+
+    Private Sub RunShiftF8()
+        Dim oc As Byte
+
+        Dim processOpCode = Sub(ignoreNormal As Boolean)
+                                oc = mEmulator.RAM8(mEmulator.Registers.CS, mEmulator.Registers.IP,, True)
+
+                                Select Case oc
+                                    Case &H9A, &HE8 : lastInstruction.Enqueue(LastInstructionMode.Call)
+                                    Case &HFF
+                                        Dim am As New X8086.AddressingMode()
+                                        am.Decode(oc, mEmulator.RAM8(mEmulator.Registers.CS, mEmulator.Registers.IP, 1, True))
+                                        If am.Reg = 2 OrElse am.Reg = 3 Then
+                                            lastInstruction.Enqueue(LastInstructionMode.Call)
+                                        Else
+                                            If Not ignoreNormal Then lastInstruction.Enqueue(LastInstructionMode.Normal)
+                                        End If
+                                    Case &HCC To &HCE : lastInstruction.Enqueue(LastInstructionMode.Interrupt)
+                                        ' Not yet supported
+                                        'Case &HF2, &HF3 : lastInstruction.Enqueue(LastInstructionMode.Repe)
+                                    Case Else : If Not ignoreNormal Then lastInstruction.Enqueue(LastInstructionMode.Normal)
+                                End Select
+                            End Sub
+
+        Dim kickEmulation = Sub()
+                                instructionDecoded = False
+                                mEmulator.StepInto()
+                                Tasks.Task.Run(Sub()
+                                                   While Not instructionDecoded
+                                                       Thread.Sleep(1)
+                                                   End While
+                                               End Sub).Wait()
+                            End Sub
+
+        ignoreEvents = True
+        processOpCode(False)
+
+        Do
+            Select Case lastInstruction.Peek()
+                Case LastInstructionMode.Normal
+                    lastInstruction.Dequeue()
+                    mEmulator.StepInto()
+                    Exit Do
+                Case LastInstructionMode.Call
+                    kickEmulation()
+                    oc = mEmulator.RAM8(mEmulator.Registers.CS, mEmulator.Registers.IP,, True)
+                    If oc = &HC2 OrElse oc = &HC3 OrElse oc = &HCA OrElse oc = &HCB Then
+                        kickEmulation()
+                        lastInstruction.Dequeue()
+                        If lastInstruction.Count = 0 Then Exit Do
+                    End If
+                Case LastInstructionMode.Interrupt
+                    kickEmulation()
+                    oc = mEmulator.RAM8(mEmulator.Registers.CS, mEmulator.Registers.IP,, True)
+                    If oc = &HCA OrElse oc = &HCF Then
+                        kickEmulation()
+                        lastInstruction.Dequeue()
+                        If lastInstruction.Count = 0 Then Exit Do
+                    End If
+            End Select
+            processOpCode(True)
+        Loop While Not abortF8 AndAlso lastInstruction.Count > 0
+        lastInstruction.Clear()
+        ignoreEvents = False
     End Sub
 
     Private Sub RunLoop()

@@ -380,21 +380,25 @@
         Return address And &HFFFUI
     End Function
 
-    Public Property RAM(address As UInt32) As Byte
+    Public Property RAM(address As UInt32, Optional ignoreHooks As Boolean = False) As Byte
         Get
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
             'Return FromPreftch(address)
 
-            For i As Integer = 0 To memHooks.Count - 1
-                If memHooks(i).Invoke(address, tmpVal, MemHookMode.Read) Then Return tmpVal
-            Next
+            If Not ignoreHooks Then
+                For i As Integer = 0 To memHooks.Count - 1
+                    If memHooks(i).Invoke(address, tmpVal, MemHookMode.Read) Then Return tmpVal
+                Next
+            End If
 
             Return Memory(address And &HFFFFFUI) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
         End Get
         Set(value As Byte)
-            For i As Integer = 0 To memHooks.Count - 1
-                If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property
-            Next
+            If Not ignoreHooks Then
+                For i As Integer = 0 To memHooks.Count - 1
+                    If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property
+                Next
+            End If
 
             If address < ROMStart Then Memory(address) = value
 
@@ -402,33 +406,33 @@
         End Set
     End Property
 
-    Public Property RAM8(segment As UInt16, offset As UInt16, Optional inc As Byte = 0) As Byte
+    Public Property RAM8(segment As UInt16, offset As UInt16, Optional inc As Byte = 0, Optional ignoreHooks As Boolean = False) As Byte
         Get
-            Return RAM(SegmentOffetToAbsolute(segment, offset + inc))
+            Return RAM(SegmentOffetToAbsolute(segment, offset + inc), ignoreHooks)
         End Get
         Set(value As Byte)
-            RAM(SegmentOffetToAbsolute(segment, offset + inc)) = value
+            RAM(SegmentOffetToAbsolute(segment, offset + inc), ignoreHooks) = value
         End Set
     End Property
 
-    Public Property RAM16(segment As UInt16, offset As UInt16, Optional inc As Byte = 0) As UInt16
+    Public Property RAM16(segment As UInt16, offset As UInt16, Optional inc As Byte = 0, Optional ignoreHooks As Boolean = False) As UInt16
         Get
             address = SegmentOffetToAbsolute(segment, offset + inc)
-            Return (CUInt(RAM(address + 1UI)) << 8UI) Or RAM(address)
+            Return (CUInt(RAM(address + 1UI, ignoreHooks)) << 8UI) Or RAM(address, ignoreHooks)
         End Get
         Set(value As UInt16)
             address = SegmentOffetToAbsolute(segment, offset + inc)
-            RAM(address) = value
-            RAM(address + 1UI) = value >> 8UI
+            RAM(address, ignoreHooks) = value
+            RAM(address + 1UI, ignoreHooks) = value >> 8UI
         End Set
     End Property
 
-    Public Property RAMn() As UInt16
+    Public Property RAMn(Optional ignoreHooks As Boolean = False) As UInt16
         Get
             If addrMode.Size = DataSize.Byte Then
-                Return RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
+                Return RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks)
             Else
-                Return RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr)
+                Return RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks)
             End If
         End Get
         Set(value As UInt16)

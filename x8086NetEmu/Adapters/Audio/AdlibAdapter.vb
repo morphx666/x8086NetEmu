@@ -59,41 +59,39 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Private oplStep() As Byte = {0, 0, 0, 0, 0, 0, 0, 0, 0}
 
-    Private Structure AdlibOpStruct
+    Private Structure OplStruct
         Public wave As Byte
     End Structure
-    Private adlibOp(9 - 1)() As AdlibOpStruct
+    Private Opl(9 - 1)() As OplStruct
 
-    Private Structure AdlibChanStruct
+    Private Structure ChanStruct
         Public Frequency As UInt16
         Public ConvFreq As Double
         Public KeyOn As Boolean
         Public Octave As UInt16
         Public WaveformSelect As Byte
     End Structure
-    Private ReadOnly adlibChan(9 - 1) As AdlibChanStruct
+    Private ReadOnly channel(9 - 1) As ChanStruct
 
     Private ReadOnly attackTable() As Double = {1.0003, 1.00025, 1.0002, 1.00015, 1.0001, 1.00009, 1.00008, 1.00007, 1.00006, 1.00005, 1.00004, 1.00003, 1.00002, 1.00001, 1.000005}
     Private ReadOnly decayTable() As Double = {0.99999, 0.999985, 0.99998, 0.999975, 0.99997, 0.999965, 0.99996, 0.999955, 0.99995, 0.999945, 0.99994, 0.999935, 0.99994, 0.999925, 0.99992, 0.99991}
-    Private ReadOnly opTable() As Byte = {0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1}
+    Private ReadOnly oplTable() As Byte = {0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1, 255, 255, 0, 0, 0, 1, 1, 1}
 
-    Private ReadOnly adlibEnv(9 - 1) As Double
-    Private ReadOnly adlibDecay(9 - 1) As Double
-    Private ReadOnly adlibAttack(9 - 1) As Double
+    Private ReadOnly envelope(9 - 1) As Double
+    Private ReadOnly decay(9 - 1) As Double
+    Private ReadOnly attack(9 - 1) As Double
 
-    Private Const SampleRate As UInt32 = 44100
-
-    Private ReadOnly adlibRegMem(&HFF - 1) As UInt16
-    Private adlibAddr As UInt16 = 0
-    Private adlibPrecussion As Boolean = False
-    Private adlibStatus As Byte = 0
-    Private ReadOnly adlibStep(9 - 1) As Double
+    Private ReadOnly regMem(&HFF - 1) As UInt16
+    Private address As UInt16 = 0
+    Private precussion As Boolean = False
+    Private status As Byte = 0
+    Private ReadOnly oplSstep(9 - 1) As Double
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
 
-        For i As Integer = 0 To adlibOp.Length - 1
-            ReDim adlibOp(i)(2 - 1)
+        For i As Integer = 0 To Opl.Length - 1
+            ReDim Opl(i)(2 - 1)
         Next
 
         ValidPortAddress.Add(&H388)
@@ -101,7 +99,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
         ReDim Preserve attackTable(16 - 1)
         ReDim Preserve decayTable(16 - 1)
-        ReDim Preserve opTable(16 - 1)
+        ReDim Preserve oplTable(16 - 1)
     End Sub
 
     Public Property Volume As Double
@@ -129,82 +127,75 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             .NumberOfBuffers = 4,
             .DesiredLatency = 200
         }
-        audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SampleRate, 8, 1)
+        audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
         waveOut.Init(audioProvider)
         waveOut.Play()
     End Sub
 
-    Public Sub FillAudioBuffer(buffer() As Byte)
-        'Dim t As Long = Now.Ticks
-        'If t >= (lastAdlibTicks + adlibTicks) Then
+    Private Sub FillAudioBuffer(buffer() As Byte)
         For i As Integer = 0 To buffer.Length - 1
-            buffer(i) = AdlibGenerateSample() + 128
+            buffer(i) = GenerateSample() + 128
         Next
-
-        'lastAdlibTicks = t - (t - (lastAdlibTicks + adlibTicks))
-        'End If
-
-        'If (lastAdlibTicks Mod adlibTicks) = 8 Then AdlibTick()
     End Sub
 
     Public Overrides Function [In](port As UInt32) As UInt16
-        If adlibRegMem(4) = 0 Then
-            adlibStatus = 0
+        If regMem(4) = 0 Then
+            status = 0
         Else
-            adlibStatus = &H80
+            status = &H80
         End If
-        adlibStatus += (adlibRegMem(4) And 1) * &H40 + (adlibRegMem(4) And 2) * &H10
-        Return adlibStatus
+        status += (regMem(4) And 1) * &H40 + (regMem(4) And 2) * &H10
+        Return status
     End Function
 
     Public Overrides Sub Out(port As UInt32, value As UInt16)
         If port = &H388 Then
-            adlibAddr = value
+            address = value
             Exit Sub
         End If
 
-        port = adlibAddr
-        adlibRegMem(port) = value
+        port = address
+        regMem(port) = value
 
         Select Case port
             Case 4 ' Timer Control
                 If (value And &H80) <> 0 Then
-                    adlibStatus = 0
-                    adlibRegMem(4) = 0
+                    status = 0
+                    regMem(4) = 0
                 End If
             Case &HBD
-                adlibPrecussion = (value And &H10) <> 0
+                precussion = (value And &H10) <> 0
         End Select
 
         If port >= &H60 AndAlso port <= &H75 Then ' Attack / Decay
             port = (port And 15) Mod 9
-            adlibAttack(port) = attackTable(15 - (value >> 4)) * 1.006
-            adlibDecay(port) = decayTable(value And 15)
+            attack(port) = attackTable(15 - (value >> 4)) * 1.006
+            decay(port) = decayTable(value And 15)
         ElseIf port >= &HA0 AndAlso port <= &HB8 Then ' Octave / Frequency / Key On
             port = port And 15
-            If Not adlibChan(port Mod 9).KeyOn AndAlso ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1 Then
-                adlibAttack(port Mod 9) = 0
-                adlibEnv(port Mod 9) = 0.0025
+            If Not channel(port Mod 9).KeyOn AndAlso ((regMem(&HB0 + port) >> 5) And 1) = 1 Then
+                attack(port Mod 9) = 0
+                envelope(port Mod 9) = 0.0025
             End If
 
-            SyncLock adlibChan
-                adlibChan(port Mod 9).Frequency = adlibRegMem(&HA0 + port) Or ((adlibRegMem(&HB0 + port) And 3) << 8)
-                adlibChan(port Mod 9).ConvFreq = adlibChan(port Mod 9).Frequency * 0.7626459
-                adlibChan(port Mod 9).KeyOn = ((adlibRegMem(&HB0 + port) >> 5) And 1) = 1
-                adlibChan(port Mod 9).Octave = (adlibRegMem(&HB0 + port) >> 2) And 7
+            SyncLock channel
+                channel(port Mod 9).Frequency = regMem(&HA0 + port) Or ((regMem(&HB0 + port) And 3) << 8)
+                channel(port Mod 9).ConvFreq = channel(port Mod 9).Frequency * 0.7626459
+                channel(port Mod 9).KeyOn = ((regMem(&HB0 + port) >> 5) And 1) = 1
+                channel(port Mod 9).Octave = (regMem(&HB0 + port) >> 2) And 7
             End SyncLock
         ElseIf port >= &HE0 And port <= &HF5 Then ' Waveform select
-            adlibChan((port And 15) Mod 9).WaveformSelect = value And 3
+            channel((port And 15) Mod 9).WaveformSelect = value And 3
         End If
     End Sub
 
-    Private Function AdlibFrequency(channel As Byte) As UInt16
+    Private Function Frequency(channel As Byte) As UInt16
         Dim tmpFrequency As UInt16
 
-        If Not adlibChan(channel).KeyOn Then Return 0
-        tmpFrequency = adlibChan(channel).ConvFreq
+        If Not Me.channel(channel).KeyOn Then Return 0
+        tmpFrequency = Me.channel(channel).ConvFreq
 
-        Select Case adlibChan(channel).Octave
+        Select Case Me.channel(channel).Octave
             Case 0 : tmpFrequency = tmpFrequency >> 4
             Case 1 : tmpFrequency = tmpFrequency >> 3
             Case 2 : tmpFrequency = tmpFrequency >> 2
@@ -217,58 +208,45 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Return tmpFrequency
     End Function
 
-    Private Function AdlibSample(channel As Byte) As Int32
-        If adlibPrecussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
+    Private Function Sample(channel As Byte) As Int32
+        If precussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
 
-        Dim fullStep As UInt32 = SampleRate \ AdlibFrequency(channel)
-        Dim idx As Byte = (adlibStep(channel) / (fullStep / 256.0)) Mod 255
-        Dim tmpSample As Int32 = oplWave(adlibChan(channel).WaveformSelect)(idx)
-        Dim tmpStep As Double = adlibEnv(channel)
+        Dim fullStep As UInt32 = SpeakerAdpater.SampleRate \ Frequency(channel)
+        Dim idx As Byte = (oplSstep(channel) / (fullStep / 256.0)) Mod 255
+        Dim tmpSample As Integer = oplWave(Me.channel(channel).WaveformSelect)(idx)
+        Dim tmpStep As Double = envelope(channel)
         If tmpStep > 1.0 Then tmpStep = 1.0
         tmpSample = CDbl(tmpSample) * tmpStep * 3.0
 
-        adlibStep(channel) += 1
-        If adlibStep(channel) > fullStep Then adlibStep(channel) = 0
+        oplSstep(channel) += 1
+        If oplSstep(channel) > fullStep Then oplSstep(channel) = 0
         Return tmpSample
     End Function
 
-    Private Function AdlibGenerateSample() As Int16
-        Dim adlibAccumulator As Int16 = 0
-        SyncLock adlibChan
+    Private Function GenerateSample() As Int16
+        Dim accumulator As Int16 = 0
+        SyncLock channel
             For currentChannel As Byte = 0 To 9 - 1
-                If AdlibFrequency(currentChannel) <> 0 Then adlibAccumulator += AdlibSample(currentChannel)
+                If Frequency(currentChannel) <> 0 Then accumulator += Sample(currentChannel)
             Next
         End SyncLock
-        Return adlibAccumulator
+        Return accumulator
     End Function
-
-    'Private Sub AdlibTick()
-    '    For currentChannel As Byte = 0 To 9 - 1
-    '        If AdlibFrequency(currentChannel) <> 0 Then
-    '            If adlibAttack(currentChannel) <> 0 Then
-    '                adlibEnv(currentChannel) *= adlibDecay(currentChannel)
-    '            Else
-    '                adlibEnv(currentChannel) *= adlibAttack(currentChannel)
-    '                If adlibEnv(currentChannel) >= 1 Then adlibAttack(currentChannel) = 1
-    '            End If
-    '        End If
-    '    Next
-    'End Sub
 
     Public Overrides ReadOnly Property Name As String
         Get
-            Return "Adlib OPL2"
+            Return "Adlib OPL2" ' FM OPerator Type-L
         End Get
     End Property
 
     Public Overrides ReadOnly Property Description As String
         Get
-            Return "Adlib OPL2"
+            Return "Yamaha YM3526"
         End Get
     End Property
 
     Public Overrides Sub Run()
-        X8086.Notify("Adlib Running", X8086.NotificationReasons.Info)
+        X8086.Notify($"{Name} Running", X8086.NotificationReasons.Info)
     End Sub
 
     Public Overrides ReadOnly Property Type As Adapter.AdapterType
@@ -279,7 +257,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Overrides ReadOnly Property Vendor As String
         Get
-            Return "xFX JumpStart"
+            Return "Ad Lib, Inc."
         End Get
     End Property
 
@@ -297,7 +275,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Overrides ReadOnly Property VersionRevision As Integer
         Get
-            Return 1
+            Return 23
         End Get
     End Property
 End Class

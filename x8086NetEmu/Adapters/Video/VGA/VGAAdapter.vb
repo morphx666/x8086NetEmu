@@ -338,6 +338,8 @@ Public MustInherit Class VGAAdapter
         Next
         ValidPortAddress.Add(&H3BA)
         ValidPortAddress.Add(&H3B8)
+        'ValidPortAddress.Add(&H3D4)
+        'ValidPortAddress.Add(&H3D5)
         ValidPortAddress.Add(&H3DA)
 
         For i As Integer = 0 To VGABasePalette.Length - 1

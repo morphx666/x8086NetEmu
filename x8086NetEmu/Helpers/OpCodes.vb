@@ -16,8 +16,8 @@ AddressOf _08_0B,
 AddressOf _0C,  ' or al and imm
 AddressOf _0D,  ' or ax and imm
 AddressOf _0E,  ' push cs
-AddressOf _0F,      ' pop cs
-AddressOf _10_13,       ' adc
+AddressOf _0F,  ' pop cs
+AddressOf _10_13,   ' adc
 AddressOf _10_13,
 AddressOf _10_13,
 AddressOf _10_13,
@@ -118,12 +118,12 @@ AddressOf _71,  ' jno
 AddressOf _72,  ' jb/jnae
 AddressOf _73,  ' jnb/jae
 AddressOf _74,  ' je/jz
-AddressOf _75,  ' jne/jnz
+AddressOf _75,      ' jne/jnz
 AddressOf _76,  ' jbe/jna
 AddressOf _77,  ' jnbe/ja
 AddressOf _78,  ' js
 AddressOf _79,  ' jns
-AddressOf _7A,  ' jp/jpe
+AddressOf _7A,      ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
 AddressOf _7C,  ' jl/jnge
 AddressOf _7D,  ' jnl/jge
@@ -177,7 +177,7 @@ AddressOf _AA_AF,
 AddressOf _AA_AF,
 AddressOf _AA_AF,
 AddressOf _AA_AF,
-AddressOf _B0_BF,   ' mov imm to reg
+AddressOf _B0_BF,       ' mov imm to reg
 AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _B0_BF,
@@ -214,7 +214,7 @@ AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D4,  ' aam
-AddressOf _D5,  ' aad
+AddressOf _D5,      ' aad
 AddressOf _D6,  ' xlat / salc
 AddressOf _D7,  ' xlatb
 AddressOf _D8_DF,   ' Ignore co-processor instructions
@@ -225,7 +225,7 @@ AddressOf _D8_DF,
 AddressOf _D8_DF,
 AddressOf _D8_DF,
 AddressOf _D8_DF,
-AddressOf _E0,  ' loopne/loopnz
+AddressOf _E0,      ' loopne/loopnz
 AddressOf _E1,  ' loope/loopz
 AddressOf _E2,  ' loop
 AddressOf _E3,  ' jcxz
