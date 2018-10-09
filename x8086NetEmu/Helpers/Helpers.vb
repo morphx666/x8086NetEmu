@@ -55,7 +55,7 @@
         Public IndAdr As UInt16    ' Indirect Address
         Public IndMem As UInt16    ' Indirect Memory Contents
 
-        Private regOffset As UInt32
+        Private regOffset As Byte
 
         Public Sub Decode(data As Byte, addressingModeByte As Byte)
             Size = data And 1US                                 ' (0000 0001)
@@ -259,9 +259,9 @@
             'If (mRegisters.IP Mod 2) <> 0 Then clkCyc += 4
 
             If size = DataSize.Byte OrElse (size = DataSize.UseAddressingMode AndAlso addrMode.Size = DataSize.Byte) Then
-                Return RAM8(mRegisters.CS, mRegisters.IP + ipOffset + index)
+                Return RAM8(mRegisters.CS, mRegisters.IP, ipOffset + index, True)
             Else
-                Return RAM16(mRegisters.CS, mRegisters.IP + ipOffset + index * 2)
+                Return RAM16(mRegisters.CS, mRegisters.IP, ipOffset + index * 2, True)
             End If
         End Get
     End Property
@@ -449,7 +449,7 @@
             X8086.Notify("{0}:{1}  {2}{3}", NotificationReasons.Info,
                                     mRegisters.SS.ToString("X4"),
                                     i.ToString("X4"),
-                                    RAM16(mRegisters.SS, i).ToString("X4"),
+                                    RAM16(mRegisters.SS, i,, True).ToString("X4"),
                                     If(i = mRegisters.SP, "<<", ""))
         Next
     End Sub

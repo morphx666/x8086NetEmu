@@ -78,7 +78,7 @@ Public Class X8086
     Public Const KHz As ULong = 1000
     Public Const MHz As ULong = KHz * KHz
     Public Const GHz As ULong = MHz * KHz
-    Private Const BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
+    Public Const BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
     Private mCyclesPerSecond As ULong = BASECLOCK
     Private clkCyc As ULong = 0
 
@@ -140,33 +140,6 @@ Public Class X8086
 
     Private Sub AddInternalHooks()
         If mEmulateINT13 Then TryAttachHook(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
-
-        ' This doesn't work :(
-        'TryAttachHook(&H1A, New IntHandler(Function()
-        '                                       Dim ToBCD = Function(v As UInt32) ((v \ 10) << 4) + (v Mod 10)
-
-        '                                       Select Case mRegisters.AH
-
-        '                                                           Case 2
-        '                                                               mRegisters.CH = ToBCD(Now.Hour)
-        '                                                               mRegisters.CL = ToBCD(Now.Minute)
-        '                                                               mRegisters.DH = ToBCD(Now.Second)
-        '                                                               mRegisters.DL = 0
-        '                                                               mFlags.CF = 0
-
-        '                                                           Case 4
-        '                                                               mRegisters.CH = ToBCD(Now.Year \ 100 + 1)
-        '                                                               mRegisters.CL = ToBCD(Now.Year)
-        '                                                               mRegisters.DH = ToBCD(Now.Month)
-        '                                                               mRegisters.DL = ToBCD(Now.Day)
-        '                                                               mFlags.CF = 0
-
-        '                                                           Case Else
-        '                                                               Return False
-        '                                                       End Select
-
-        '                                                       Return True
-        '                                                   End Function))
     End Sub
 
     Private Sub BuildSZPTables()
@@ -568,15 +541,16 @@ Public Class X8086
     Private Sub SetSynchronization()
         Const syncQuantum As Double = 0.01
         FlushCycles()
+
         Sched.SetSynchronization(True,
                                 Scheduler.BASECLOCK * syncQuantum,
                                 Scheduler.BASECLOCK / 1000,
                                 mSimulationMultiplier)
     End Sub
 
+    Dim tmp As ULong
     Public Sub PreExecute()
         If mIsExecuting OrElse isDecoding OrElse mIsPaused Then Exit Sub
-
         mDoReSchedule = False
 
         Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
@@ -2387,7 +2361,7 @@ Public Class X8086
                 Return False
 
             Case &HA6  ' cmpsb
-                Eval(RAM8(mRegisters.ActiveSegmentValue, mRegisters.SI), RAM8(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Byte)
+                Eval(RAM8(mRegisters.ActiveSegmentValue, mRegisters.SI,, True), RAM8(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Byte)
                 If mFlags.DF = 0 Then
                     mRegisters.SI += 1
                     mRegisters.DI += 1
@@ -2399,7 +2373,7 @@ Public Class X8086
                 Return True
 
             Case &HA7 ' cmpsw
-                Eval(RAM16(mRegisters.ActiveSegmentValue, mRegisters.SI), RAM16(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Word)
+                Eval(RAM16(mRegisters.ActiveSegmentValue, mRegisters.SI,, True), RAM16(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Word)
                 If mFlags.DF = 0 Then
                     mRegisters.SI += 2
                     mRegisters.DI += 2
@@ -2451,7 +2425,7 @@ Public Class X8086
                 Return False
 
             Case &HAE ' scasb
-                Eval(mRegisters.AL, RAM8(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Byte)
+                Eval(mRegisters.AL, RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
                 If mFlags.DF = 0 Then
                     mRegisters.DI += 1
                 Else
@@ -2461,7 +2435,7 @@ Public Class X8086
                 Return True
 
             Case &HAF ' scasw
-                Eval(mRegisters.AX, RAM16(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Word)
+                Eval(mRegisters.AX, RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
                 If mFlags.DF = 0 Then
                     mRegisters.DI += 2
                 Else

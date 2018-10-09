@@ -360,12 +360,12 @@
 
     Private Sub PushIntoStack(value As UInt16)
         mRegisters.SP -= 2
-        RAM16(mRegisters.SS, mRegisters.SP) = value
+        RAM16(mRegisters.SS, mRegisters.SP,, True) = value
     End Sub
 
     Private Function PopFromStack() As UInt16
         mRegisters.SP += 2
-        Return RAM16(mRegisters.SS, mRegisters.SP - 2)
+        Return RAM16(mRegisters.SS, mRegisters.SP - 2,, True)
     End Function
 
     Public Shared Function SegmentOffetToAbsolute(segment As UInt16, offset As UInt16) As UInt32

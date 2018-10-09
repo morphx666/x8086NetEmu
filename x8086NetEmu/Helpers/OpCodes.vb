@@ -21,11 +21,11 @@ AddressOf _10_13,   ' adc
 AddressOf _10_13,
 AddressOf _10_13,
 AddressOf _10_13,
-AddressOf _14,  ' adc al and imm
-AddressOf _15,  ' adc ax and imm
-AddressOf _16,  ' push ss
-AddressOf _17,  ' pop ss
-AddressOf _18_1B,   ' sbb
+AddressOf _14,      ' adc al and imm
+AddressOf _15,      ' adc ax and imm
+AddressOf _16,      ' push ss
+AddressOf _17,      ' pop ss
+AddressOf _18_1B,       ' sbb
 AddressOf _18_1B,
 AddressOf _18_1B,
 AddressOf _18_1B,
@@ -49,12 +49,12 @@ AddressOf _2C,  ' sub al and imm
 AddressOf _2D,  ' sub ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _2F,  ' das
-AddressOf _30_33,   ' xor reg/mem and reg to either
+AddressOf _30_33,       ' xor reg/mem and reg to either
 AddressOf _30_33,
 AddressOf _30_33,
 AddressOf _30_33,
 AddressOf _34,  ' xor al and imm
-AddressOf _35,  ' xor ax and imm
+AddressOf _35,      ' xor ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _37,  ' aaa
 AddressOf _38_3B,   ' cmp reg/mem and reg
@@ -97,7 +97,7 @@ AddressOf _58_5F,
 AddressOf _58_5F,
 AddressOf _58_5F,
 AddressOf _58_5F,
-AddressOf _60,  ' pusha (80186)
+AddressOf _60,      ' pusha (80186)
 AddressOf _61,  ' popa (80186)
 AddressOf _62,  ' bound (80186)
 AddressOf OpCodeNotImplemented,
@@ -107,13 +107,13 @@ AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf _68,  ' push (80186)
 AddressOf _69,  ' imul (80186)
-AddressOf _6A,  ' push (80186)
+AddressOf _6A,      ' push (80186)
 AddressOf _6B,  ' imul (80186)
 AddressOf _6C_6F,   ' Ignore 80186/V20 port operations... for now...
 AddressOf _6C_6F,
 AddressOf _6C_6F,
 AddressOf _6C_6F,
-AddressOf _70,  ' jo
+AddressOf _70,      ' jo
 AddressOf _71,  ' jno
 AddressOf _72,  ' jb/jnae
 AddressOf _73,  ' jnb/jae
@@ -123,7 +123,7 @@ AddressOf _76,  ' jbe/jna
 AddressOf _77,  ' jnbe/ja
 AddressOf _78,  ' js
 AddressOf _79,  ' jns
-AddressOf _7A,      ' jp/jpe
+AddressOf _7A,  ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
 AddressOf _7C,  ' jl/jnge
 AddressOf _7D,  ' jnl/jge
@@ -145,7 +145,7 @@ AddressOf _88_8C,
 AddressOf _8D,  ' lea
 AddressOf _8E,  ' mov reg/mem to seg reg
 AddressOf _8F,  ' pop reg/mem
-AddressOf _90_97,       ' xchg reg with acc
+AddressOf _90_97,   ' xchg reg with acc
 AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _90_97,
@@ -161,7 +161,7 @@ AddressOf _9C,  ' pushf
 AddressOf _9D,  ' popf
 AddressOf _9E,  ' sahf
 AddressOf _9F,  ' lahf
-AddressOf _A0_A3,       ' mov mem to acc | mov acc to mem
+AddressOf _A0_A3,   ' mov mem to acc | mov acc to mem
 AddressOf _A0_A3,
 AddressOf _A0_A3,
 AddressOf _A0_A3,
@@ -177,7 +177,7 @@ AddressOf _AA_AF,
 AddressOf _AA_AF,
 AddressOf _AA_AF,
 AddressOf _AA_AF,
-AddressOf _B0_BF,       ' mov imm to reg
+AddressOf _B0_BF,   ' mov imm to reg
 AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _B0_BF,
@@ -193,7 +193,7 @@ AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _B0_BF,
-AddressOf _C0_C1,       ' GRP2 byte/word imm8/16 ??? (80186)
+AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
 AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
 AddressOf _C2,  ' ret (ret n) within segment adding imm to sp
 AddressOf _C3,  ' ret within segment
@@ -203,7 +203,7 @@ AddressOf _C6_C7,   ' mov imm to reg/mem
 AddressOf _C6_C7,
 AddressOf _C8,  ' enter (80186)
 AddressOf _C9,  ' leave (80186)
-AddressOf _CA,      ' ret intersegment adding imm to sp (ret n /retf)
+AddressOf _CA,  ' ret intersegment adding imm to sp (ret n /retf)
 AddressOf _CB,  ' ret intersegment (retf)
 AddressOf _CC,  ' int with type 3
 AddressOf _CD,  ' int with type specified
@@ -214,7 +214,7 @@ AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D4,  ' aam
-AddressOf _D5,      ' aad
+AddressOf _D5,  ' aad
 AddressOf _D6,  ' xlat / salc
 AddressOf _D7,  ' xlatb
 AddressOf _D8_DF,   ' Ignore co-processor instructions

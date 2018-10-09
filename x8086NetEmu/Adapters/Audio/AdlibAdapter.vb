@@ -216,7 +216,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Dim tmpSample As Integer = oplWave(Me.channel(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = envelope(channel)
         If tmpStep > 1.0 Then tmpStep = 1.0
-        tmpSample = CDbl(tmpSample) * tmpStep * 3.0
+        tmpSample = CDbl(tmpSample) * tmpStep * 8.0
 
         oplSstep(channel) += 1
         If oplSstep(channel) > fullStep Then oplSstep(channel) = 0

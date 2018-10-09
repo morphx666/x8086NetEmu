@@ -9,7 +9,7 @@ Public Class Scheduler
     Private Const STOPPING As Long = Long.MinValue
 
     ' Number of scheduler time units per simulated second (~1.0 GHz)
-    Public Const BASECLOCK = 1.19318 * X8086.GHz
+    Public Const BASECLOCK As ULong = 1.19318 * X8086.GHz
 
     ' Current simulation time in scheduler time units (ns)
     Private mCurrentTime As Long
