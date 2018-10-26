@@ -469,9 +469,9 @@ Public Class FormEmulator
             Me.Location = Point.Empty
             Me.TopMost = True
 
-            'cpu.VideoAdapter.TextResolution.Width * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Width
-            While 80 * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Width
-                SetZoomLevel(cpu.VideoAdapter.Zoom + 0.1)
+            While cpu.VideoAdapter.TextResolution.Width * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Width AndAlso
+                  cpu.VideoAdapter.TextResolution.Height * cpu.VideoAdapter.CellSize.Height * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Height
+                SetZoomLevel(cpu.VideoAdapter.Zoom + 0.01)
             End While
             ZoomFullScreenToolStripMenuItem.Checked = True
 
