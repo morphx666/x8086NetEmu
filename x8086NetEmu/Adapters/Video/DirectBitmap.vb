@@ -18,6 +18,9 @@ Public Class DirectBitmap
     Private w4 As Integer
     Private bufferSize As Integer
 
+    Private Shared imgConverter As New ImageConverter()
+    Private Shared imgFormat As Type = GetType(Byte())
+
     Public Sub New(w As Integer, h As Integer)
         Me.Width = w
         Me.Height = h
@@ -73,6 +76,10 @@ Public Class DirectBitmap
     Public Shared Narrowing Operator CType(dbmp As DirectBitmap) As Bitmap
         If dbmp Is Nothing Then Return Nothing
         Return dbmp.Bitmap
+    End Operator
+
+    Public Shared Narrowing Operator CType(dbmp As DirectBitmap) As Byte()
+        Return imgConverter.ConvertTo(dbmp.Bitmap, imgFormat)
     End Operator
 
     Public Property Pixel(p As Point) As Color

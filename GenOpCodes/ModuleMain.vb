@@ -4,13 +4,26 @@
 
 Module ModuleMain
     Sub Main()
-        Console.WriteLine("Are you sure you want to parse the opcodes' emulation code? [y/N]")
-        If Console.ReadKey(True).Key <> ConsoleKey.Y Then
-            Console.WriteLine("Process aborted...")
-            Console.ReadKey()
-            Exit Sub
+        Dim abortMsg As String = "This tool can only be run in DEBUG mode while inside the IDE"
+#If DEBUG Then
+        If Debugger.IsAttached Then
+            Console.WriteLine("Are you sure you want to parse the opcodes' emulation code? [y/N]")
+            If Console.ReadKey(True).Key = ConsoleKey.Y Then
+                RunParser()
+            Else
+                Console.WriteLine("Process aborted...")
+            End If
+        Else
+            Console.WriteLine(abortMsg)
         End If
+#Else
+        Console.WriteLine(abortMsg)
+#End If
 
+        Console.ReadKey()
+    End Sub
+
+    Private Sub RunParser()
         Dim src As String = IO.File.ReadAllText("..\x8086.vb")
         Dim trg As String = "Partial Public Class X8086
                                 Private Delegate Sub ExecOpcode()

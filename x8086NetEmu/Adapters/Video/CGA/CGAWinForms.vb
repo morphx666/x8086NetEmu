@@ -186,7 +186,9 @@ Public Class CGAWinForms
         OnPreRender(sender, e)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-        g.DrawImageUnscaled(videoBMP, 0, 0)
+        SyncLock chars
+            g.DrawImageUnscaled(videoBMP, 0, 0)
+        End SyncLock
 
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         OnPostRender(sender, e)
@@ -443,13 +445,16 @@ Public Class CGAWinForms
             mCellSize = charSizeCache(65)
         End If
 
-        If videoBMP IsNot Nothing Then videoBMP.Dispose()
-        Select Case MainMode
-            Case MainModes.Text
-                videoBMP = New DirectBitmap(640, 400)
-            Case MainModes.Graphics
-                videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
-        End Select
+        SyncLock chars
+            If videoBMP IsNot Nothing Then videoBMP.Dispose()
+            Select Case MainMode
+                Case MainModes.Text
+                    videoBMP = New DirectBitmap(640, 400)
+                Case MainModes.Graphics
+                    videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+            End Select
+            wui.Bitmap = videoBMP
+        End SyncLock
 
         If fontSourceMode = FontSources.TrueType Then
             If g IsNot Nothing Then g.Dispose()

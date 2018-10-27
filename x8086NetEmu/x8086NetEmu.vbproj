@@ -249,6 +249,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
@@ -286,6 +287,7 @@
     <Compile Include="Adapters\Video\VGA\VGAWinForms.vb" />
     <Compile Include="Adapters\Video\VideoAdapter.vb" />
     <Compile Include="Adapters\Video\VideoChar.vb" />
+    <Compile Include="Adapters\WebUI.vb" />
     <Compile Include="Chipset\RTC.vb" />
     <Compile Include="Chipset\PPI8255_ALT.vb" />
     <Compile Include="Helpers\Binary.vb" />
@@ -395,7 +397,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
