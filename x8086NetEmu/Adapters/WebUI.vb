@@ -145,8 +145,8 @@ Public Class WebUI
 
                             img.onload = function() {{
                                 if((canvas.width != img.width) || (canvas.height = img.height)) {{
-                                    canvas.width = img.width * {cpu.VideoAdapter.Zoom / 2};
-                                    canvas.height = img.height * {cpu.VideoAdapter.Zoom / 2};
+                                    canvas.width = 640 * {cpu.VideoAdapter.Zoom};
+                                    canvas.height = 400 * {cpu.VideoAdapter.Zoom};
                                     lastWidth = img.width;
                                     lastHeight = img.height;
                                 }}
