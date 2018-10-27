@@ -294,8 +294,8 @@ Public MustInherit Class VGAAdapter
     '              http://webpages.charter.net/danrollins/techhelp/0114.HTM
     ' Ports: http://stanislavs.org/helppc/ports.html
 
-    Public Sub New(cpu As X8086)
-        MyBase.New(cpu)
+    Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True, Optional enableWebUI As Boolean = False)
+        MyBase.New(cpu, useInternalTimer, enableWebUI)
         mCPU = cpu
 
         MyBase.vidModeChangeFlag = 0 ' Prevent the CGA adapter from changing video modes

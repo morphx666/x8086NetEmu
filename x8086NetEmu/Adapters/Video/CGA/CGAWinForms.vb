@@ -46,8 +46,8 @@ Public Class CGAWinForms
     End Class
     Private task As Scheduler.Task = New TaskSC(Me)
 
-    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "")
-        MyBase.New(cpu)
+    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
+        MyBase.New(cpu,, enableWebUI)
         fontSourceMode = fontSource
         mCPU = cpu
         Me.RenderControl = renderControl
@@ -453,7 +453,7 @@ Public Class CGAWinForms
                 Case MainModes.Graphics
                     videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
             End Select
-            wui.Bitmap = videoBMP
+            If wui IsNot Nothing Then wui.Bitmap = videoBMP
         End SyncLock
 
         If fontSourceMode = FontSources.TrueType Then

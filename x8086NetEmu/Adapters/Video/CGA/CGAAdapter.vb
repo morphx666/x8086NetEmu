@@ -130,12 +130,12 @@ Public MustInherit Class CGAAdapter
 
     Protected wui As WebUI
 
-    Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True)
+    Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True, Optional enableWebUI As Boolean = False)
         MyBase.New(cpu)
         mCPU = cpu
         Me.useInternalTimer = useInternalTimer
 
-        wui = New WebUI(cpu, videoBMP, chars)
+        If enableWebUI Then wui = New WebUI(cpu, videoBMP, chars)
 
         For i As UInt32 = &H3D0 To &H3DF ' CGA
             ValidPortAddress.Add(i)
@@ -565,7 +565,6 @@ Public MustInherit Class CGAAdapter
     Public Overrides Sub CloseAdapter()
         isInit = False
         cancelAllThreads = True
-
         wui?.Close()
 
         Application.DoEvents()
