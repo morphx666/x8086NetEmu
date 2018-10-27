@@ -110,7 +110,8 @@ Public Class WebUI
     End Sub
 
     Private Function GetUI() As String
-        Return "<!DOCTYPE html>
+        ' FIXME: The zoom compensation is not correctly implemented
+        Return $"<!DOCTYPE html>
                 <html lang=""en"">
                     <head>
                     <title>x8086NetEmu WebUI</title>
@@ -120,37 +121,43 @@ Public Class WebUI
                         var context;
                         var xmlHttp = new XMLHttpRequest();
                         var img = new Image();
+                        var lastWidth = 0;
+                        var lastHeight = 0;
 
-                        function init() {
+                        function init() {{
                             canvas = document.getElementById(""x8086"");
                             context = canvas.getContext(""2d"");
-                            context.imageSmoothingEnabled = false;
                             setInterval(updateFrame, 60);
 
-                            document.onkeydown = function(e) {
+                            document.onkeydown = function(e) {{
                                 e = e || window.event;
                                 xmlHttp.open(""GET"", host + ""/keyDown?key="" + e.keyCode, true);
                                 xmlHttp.send(null);
                                 e.preventDefault();
-                            };
+                            }};
 
-                            document.onkeyup = function(e) {
+                            document.onkeyup = function(e) {{
                                 e = e || window.event;
                                 xmlHttp.open(""GET"", host + ""/keyUp?key="" + e.keyCode, true);
                                 xmlHttp.send(null);
                                 e.preventDefault();
-                            };
+                            }};
 
-                            img.onload = function() {
-                                canvas.width = img.width;
-                                canvas.height = img.height;
-                                context.drawImage(img, 0, 0);
-                            };
-                        }
+                            img.onload = function() {{
+                                if((canvas.width != img.width) || (canvas.height = img.height)) {{
+                                    canvas.width = img.width * {cpu.VideoAdapter.Zoom / 2};
+                                    canvas.height = img.height * {cpu.VideoAdapter.Zoom / 2};
+                                    lastWidth = img.width;
+                                    lastHeight = img.height;
+                                }}
+                                context.imageSmoothingEnabled = false;
+                                context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            }};
+                        }}
 
-                        function updateFrame() {
+                        function updateFrame() {{
                             img.src = host + ""/frame"" + ""?d="" + Date.now();
-                        }
+                        }}
                     </script>
 
                     <title>x8086 WebUI</title>
