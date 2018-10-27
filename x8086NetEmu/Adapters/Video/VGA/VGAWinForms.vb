@@ -195,7 +195,9 @@
         OnPreRender(sender, e)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-        g.DrawImageUnscaled(videoBMP, 0, 0)
+        SyncLock chars
+            g.DrawImageUnscaled(videoBMP, 0, 0)
+        End SyncLock
 
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         OnPostRender(sender, e)
@@ -471,12 +473,16 @@
         MyBase.InitVideoMemory(clearScreen)
 
         If mRenderControl IsNot Nothing Then
-            If videoBMP IsNot Nothing Then videoBMP.Dispose()
-            If GraphicsResolution.Width = 0 Then
-                VideoMode = 3
-                Exit Sub
-            End If
-            videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+            SyncLock chars
+                If videoBMP IsNot Nothing Then videoBMP.Dispose()
+                If GraphicsResolution.Width = 0 Then
+                    VideoMode = 3
+                    Exit Sub
+                End If
+                videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+
+                If wui IsNot Nothing Then wui.Bitmap = videoBMP
+            End SyncLock
 
             If clearScreen OrElse charSizeCache.Count = 0 Then
                 charSizeCache.Clear()

@@ -104,8 +104,7 @@ Public Class WebUI
                     Thread.Sleep(100)
                 End If
             Catch ex As Exception
-                Thread.Sleep(1000)
-                CreateClient()
+                Exit Do
             End Try
         Loop
     End Sub
@@ -125,6 +124,7 @@ Public Class WebUI
                         function init() {
                             canvas = document.getElementById(""x8086"");
                             context = canvas.getContext(""2d"");
+                            context.imageSmoothingEnabled = false;
                             setInterval(updateFrame, 60);
 
                             document.onkeydown = function(e) {
