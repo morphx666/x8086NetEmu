@@ -41,5 +41,9 @@ If the aforementioned bug or bugs can be resolved, I will switch the sound backe
 
 ![Experimental Web UI](https://xfx.net/stackoverflow/x8086netEmu/x8086_WebUI_01.png)
 
-Since [commit 248](https://github.com/morphx666/x8086NetEmu/commit/c08b69b7c6ffbe165a036b811ff8e2b71e529854) the emulator can be viewed and controlled through a browser by initializing one of the WinForms video adapters with the `enableWebUI` parameter set to `true`. This will create a web server at http://localhost:8086 which uses a simple script to render the emulator's display and capture key events, which will be sent back to the emulator for processing.
+Since [commit 248](https://github.com/morphx666/x8086NetEmu/commit/c08b69b7c6ffbe165a036b811ff8e2b71e529854) the emulator can be viewed and controlled through a browser by initializing one of the WinForms video adapters with the `enableWebUI` parameter set to `true`.
+
+`cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, ,, True))`
+
+This will create a web server at http://localhost:8086 which uses a simple script to render the emulator's display and capture key events, which will be sent back to the emulator for processing.
 Mouse support is not currently available.
