@@ -36,3 +36,10 @@ The speaker emulation uses [NAudio](https://github.com/naudio/NAudio), which onl
 So in order to compile a version of x8086 that works under non-Windows platforms, the Win32 custom constant in the project properties of all the projects in the solution must be set to `False`.
 
 If the aforementioned bug or bugs can be resolved, I will switch the sound backend support to the cross-platform library [BASS](http://www.un4seen.com/).
+
+### Experimental Web UI
+
+![Experimental Web UI](https://xfx.net/stackoverflow/x8086netEmu/x8086_WebUI_01.png)
+
+Since [commit 248](https://github.com/morphx666/x8086NetEmu/commit/c08b69b7c6ffbe165a036b811ff8e2b71e529854) the emulator can be viewed and controlled through a browser by initializing one of the WinForms video adapters with the `enableWebUI` parameter set to `true`. This will create a web server at http://localhost:8086 which uses a simple script to render the emulator's display and capture key events, which will be sent back to the emulator for processing.
+Mouse support is not currently available.
