@@ -57,7 +57,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     }
     }
 
-    Private oplStep() As Byte = {0, 0, 0, 0, 0, 0, 0, 0, 0}
+    Private ReadOnly oplStep() As Byte = {0, 0, 0, 0, 0, 0, 0, 0, 0}
 
     Private Structure OplStruct
         Public wave As Byte
@@ -124,8 +124,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Overrides Sub InitiAdapter()
         waveOut = New WaveOut() With {
-            .NumberOfBuffers = 4,
-            .DesiredLatency = 200
+            .NumberOfBuffers = 4
         }
         audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
         waveOut.Init(audioProvider)
@@ -139,11 +138,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     End Sub
 
     Public Overrides Function [In](port As UInt32) As UInt16
-        If regMem(4) = 0 Then
-            status = 0
-        Else
-            status = &H80
-        End If
+        status = If(regMem(4) = 0, 0, &H80)
         status += (regMem(4) And 1) * &H40 + (regMem(4) And 2) * &H10
         Return status
     End Function

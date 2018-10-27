@@ -4,11 +4,10 @@ Imports System.Web
 
 Public Class WebUI
     Private client As Sockets.TcpListener
-    Private listenerThread As Thread
 
     Private mBitmap As DirectBitmap
     Private cpu As X8086
-    Private syncObj As Object
+    Private ReadOnly syncObj As Object
 
     Private lastKeyDown As Keys
     Private lastKeyDownTime As Long
@@ -112,10 +111,12 @@ Public Class WebUI
     End Sub
 
     Private Function GetUI() As String
-        Return "<html>
+        Return "<!DOCTYPE html>
+                <html lang=""en"">
                     <head>
+                    <title>x8086NetEmu WebUI</title>
                     <script type=""text/JavaScript"">
-                        var host = ""http://localhost:8086"";
+                        var host = ""http://""+window.location.hostname+"":8086"";
                         var canvas;
                         var context;
                         var xmlHttp = new XMLHttpRequest();
@@ -139,20 +140,23 @@ Public Class WebUI
                                 xmlHttp.send(null);
                                 e.preventDefault();
                             };
+
+                            img.onload = function() {
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                context.drawImage(img, 0, 0);
+                            };
                         }
 
                         function updateFrame() {
                             img.src = host + ""/frame"" + ""?d="" + Date.now();
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                            context.drawImage(img, 0, 0);
                         }
                     </script>
 
                     <title>x8086 WebUI</title>
                     </head>
                     <body onload=""init()"">
-                        <canvas tabindex=""1"" id=""x8086""/>
+                        <canvas tabindex=""1"" id=""x8086"" width=""640"" height=""480""/>
                     </body>
                 </html>"
     End Function
@@ -199,10 +203,6 @@ Public Class WebUI
     End Function
 
     Private Function GetResource(data As String) As String
-        If data.StartsWith("GET /") Then
-            Return data.Split(" ")(1)
-        Else
-            Return "404"
-        End If
+        Return If(data.StartsWith("GET /"), data.Split(" ")(1), "404")
     End Function
 End Class
