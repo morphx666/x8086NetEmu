@@ -115,6 +115,20 @@ Public Class WebUI
                 <html lang=""en"">
                     <head>
                     <title>x8086NetEmu WebUI</title>
+                    <style>
+                        canvas {{
+                            padding: 0;
+                            margin: auto;
+                            display: block;
+                            width:  {640 * cpu.VideoAdapter.Zoom};
+                            height: {400 * cpu.VideoAdapter.Zoom};
+                            position: absolute;
+                            top: 0;
+                            bottom: 0;
+                            left: 0;
+                            right: 0;
+                        }}
+                    </style>
                     <script type=""text/JavaScript"">
                         var host = ""http://""+window.location.hostname+"":8086"";
                         var canvas;
@@ -145,8 +159,8 @@ Public Class WebUI
 
                             img.onload = function() {{
                                 if((canvas.width != img.width) || (canvas.height = img.height)) {{
-                                    canvas.width = 640 * {cpu.VideoAdapter.Zoom};
-                                    canvas.height = 400 * {cpu.VideoAdapter.Zoom};
+                                    canvas.width =  {640 * cpu.VideoAdapter.Zoom};
+                                    canvas.height = {400 * cpu.VideoAdapter.Zoom};
                                     lastWidth = img.width;
                                     lastHeight = img.height;
                                 }}
@@ -162,7 +176,7 @@ Public Class WebUI
 
                     <title>x8086 WebUI</title>
                     </head>
-                    <body onload=""init()"">
+                    <body onload=""init()"" bgcolor=""#1F1F1F"">
                         <canvas tabindex=""1"" id=""x8086"" width=""640"" height=""480""/>
                     </body>
                 </html>"
@@ -171,6 +185,7 @@ Public Class WebUI
     Private Function GetFrame() As Byte()
         Try
             SyncLock syncObj
+                ' FIXME: When using the VGA adapter and UseVRAM is true we need to send the VGA adapter's RAM instead
                 Return CType(Bitmap, Byte())
             End SyncLock
         Catch
