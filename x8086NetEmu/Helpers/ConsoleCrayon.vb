@@ -46,9 +46,6 @@ Public NotInheritable Class ConsoleCrayon
     Public Const toRadians As Double = Math.PI / 180
     Public Const toDegrees As Double = 180 / Math.PI
 
-    Private Shared mForegroundColor As ConsoleColor
-    Private Shared mBackgroundColor As ConsoleColor
-
     Public Shared SyncObject As New Object()
 
     Public Shared Sub WriteFast(text As String, foreColor As ConsoleColor, backColor As ConsoleColor, col As Integer, row As Integer)
@@ -67,14 +64,8 @@ Public NotInheritable Class ConsoleCrayon
                 If Console.CursorLeft <> col Then Console.CursorLeft = col
                 If Console.CursorTop <> row Then Console.CursorTop = row
 
-                If foreColor <> mForegroundColor Then
-                    Console.ForegroundColor = foreColor
-                    mForegroundColor = foreColor
-                End If
-                If backColor <> mBackgroundColor Then
-                    Console.BackgroundColor = backColor
-                    mBackgroundColor = backColor
-                End If
+                If foreColor <> Console.ForegroundColor Then SetColor(foreColor, True)
+                If backColor <> Console.BackgroundColor Then SetColor(backColor, False)
 
                 If row = Console.WindowHeight - 1 AndAlso col + text.Length >= Console.WindowWidth Then
                     text = text.Substring(0, text.Length * 2 + col - Console.WindowWidth - 1)
@@ -87,25 +78,19 @@ Public NotInheritable Class ConsoleCrayon
 
     Public Shared Property ForegroundColor() As ConsoleColor
         Get
-            Return mForegroundColor
+            Return Console.ForegroundColor
         End Get
         Set(value As ConsoleColor)
-            If mForegroundColor <> value Then
-                mForegroundColor = value
-                SetColor(mForegroundColor, True)
-            End If
+            If Console.ForegroundColor <> value Then SetColor(value, True)
         End Set
     End Property
 
     Public Shared Property BackgroundColor() As ConsoleColor
         Get
-            Return mBackgroundColor
+            Return Console.BackgroundColor
         End Get
         Set(value As ConsoleColor)
-            If mBackgroundColor <> value Then
-                mBackgroundColor = value
-                SetColor(mBackgroundColor, False)
-            End If
+            If Console.BackgroundColor <> value Then SetColor(value, False)
         End Set
     End Property
 
