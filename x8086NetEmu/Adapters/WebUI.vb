@@ -110,11 +110,12 @@ Public Class WebUI
     End Sub
 
     Private Function GetUI() As String
-        ' FIXME: The zoom compensation is not correctly implemented
+        ' FIXME: The zoom compensation is not implemented correctly
         Return $"<!DOCTYPE html>
                 <html lang=""en"">
                     <head>
                     <title>x8086NetEmu WebUI</title>
+                    <meta charset=""utf-8"">
                     <style>
                         canvas {{
                             padding: 0;

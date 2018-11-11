@@ -187,7 +187,7 @@ Public Class CGAConsole
             b0 = CPU.Memory(address)
             b1 = CPU.Memory(address + 1)
 
-            If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
+            If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) <> 0 Then b0 = 0
 
             'If buffer(bufIdx) <> b0 OrElse buffer(bufIdx + 1) <> b1 Then
             If b1c <> b1 Then
