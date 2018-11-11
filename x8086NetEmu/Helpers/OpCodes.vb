@@ -5,31 +5,31 @@ Partial Public Class X8086
 AddressOf _00_03,
 AddressOf _00_03,
 AddressOf _00_03,
-AddressOf _04,  ' add al, imm
-AddressOf _05,  ' add ax, imm
+AddressOf _04,      ' add al, imm
+AddressOf _05,      ' add ax, imm
 AddressOf _06,  ' push es
 AddressOf _07,  ' pop es
-AddressOf _08_0B,   ' or
+AddressOf _08_0B,       ' or
 AddressOf _08_0B,
 AddressOf _08_0B,
 AddressOf _08_0B,
 AddressOf _0C,  ' or al and imm
-AddressOf _0D,  ' or ax and imm
+AddressOf _0D,      ' or ax and imm
 AddressOf _0E,  ' push cs
 AddressOf _0F,  ' pop cs
 AddressOf _10_13,   ' adc
 AddressOf _10_13,
 AddressOf _10_13,
 AddressOf _10_13,
-AddressOf _14,      ' adc al and imm
-AddressOf _15,      ' adc ax and imm
+AddressOf _14,  ' adc al and imm
+AddressOf _15,  ' adc ax and imm
 AddressOf _16,      ' push ss
-AddressOf _17,      ' pop ss
-AddressOf _18_1B,       ' sbb
+AddressOf _17,  ' pop ss
+AddressOf _18_1B,   ' sbb
 AddressOf _18_1B,
 AddressOf _18_1B,
 AddressOf _18_1B,
-AddressOf _1C,  ' sbb al and imm
+AddressOf _1C,      ' sbb al and imm
 AddressOf _1D,  ' sbb ax and imm
 AddressOf _1E,  ' push ds
 AddressOf _1F,  ' pop ds
@@ -39,29 +39,29 @@ AddressOf _20_23,
 AddressOf _20_23,
 AddressOf _24,  ' and al and imm
 AddressOf _25,  ' and ax and imm
-AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
+AddressOf _26_2E_36_3E,     ' ES, CS, SS and DS segment override prefix
 AddressOf _27,  ' daa
 AddressOf _28_2B,   ' sub reg/mem with reg to either
 AddressOf _28_2B,
 AddressOf _28_2B,
 AddressOf _28_2B,
-AddressOf _2C,  ' sub al and imm
+AddressOf _2C,      ' sub al and imm
 AddressOf _2D,  ' sub ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _2F,  ' das
-AddressOf _30_33,       ' xor reg/mem and reg to either
+AddressOf _30_33,   ' xor reg/mem and reg to either
 AddressOf _30_33,
 AddressOf _30_33,
 AddressOf _30_33,
 AddressOf _34,  ' xor al and imm
-AddressOf _35,      ' xor ax and imm
-AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
+AddressOf _35,  ' xor ax and imm
+AddressOf _26_2E_36_3E,     ' ES, CS, SS and DS segment override prefix
 AddressOf _37,  ' aaa
 AddressOf _38_3B,   ' cmp reg/mem and reg
 AddressOf _38_3B,
 AddressOf _38_3B,
 AddressOf _38_3B,
-AddressOf _3C,  ' cmp al and imm
+AddressOf _3C,      ' cmp al and imm
 AddressOf _3D,  ' cmp ax and imm
 AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _3F,  ' aas
@@ -97,7 +97,7 @@ AddressOf _58_5F,
 AddressOf _58_5F,
 AddressOf _58_5F,
 AddressOf _58_5F,
-AddressOf _60,      ' pusha (80186)
+AddressOf _60,  ' pusha (80186)
 AddressOf _61,  ' popa (80186)
 AddressOf _62,  ' bound (80186)
 AddressOf OpCodeNotImplemented,
@@ -107,25 +107,25 @@ AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf _68,  ' push (80186)
 AddressOf _69,  ' imul (80186)
-AddressOf _6A,      ' push (80186)
+AddressOf _6A,  ' push (80186)
 AddressOf _6B,  ' imul (80186)
-AddressOf _6C_6F,   ' Ignore 80186/V20 port operations... for now...
+AddressOf _6C_6F,       ' Ignore 80186/V20 port operations... for now...
 AddressOf _6C_6F,
 AddressOf _6C_6F,
 AddressOf _6C_6F,
-AddressOf _70,      ' jo
-AddressOf _71,  ' jno
+AddressOf _70,  ' jo
+AddressOf _71,      ' jno
 AddressOf _72,  ' jb/jnae
 AddressOf _73,  ' jnb/jae
 AddressOf _74,  ' je/jz
-AddressOf _75,      ' jne/jnz
-AddressOf _76,  ' jbe/jna
+AddressOf _75,  ' jne/jnz
+AddressOf _76,      ' jbe/jna
 AddressOf _77,  ' jnbe/ja
 AddressOf _78,  ' js
 AddressOf _79,  ' jns
 AddressOf _7A,  ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
-AddressOf _7C,  ' jl/jnge
+AddressOf _7C,      ' jl/jnge
 AddressOf _7D,  ' jnl/jge
 AddressOf _7E,  ' jle/jng
 AddressOf _7F,  ' jnle/jg
@@ -155,9 +155,9 @@ AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _98,  ' cbw
 AddressOf _99,  ' cwd
-AddressOf _9A,      ' call direct intersegment
+AddressOf _9A,  ' call direct intersegment
 AddressOf _9B,  ' wait
-AddressOf _9C,  ' pushf
+AddressOf _9C,      ' pushf
 AddressOf _9D,  ' popf
 AddressOf _9E,  ' sahf
 AddressOf _9F,  ' lahf
@@ -194,12 +194,12 @@ AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
-AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
+AddressOf _C0_C1,       ' GRP2 byte/word imm8/16 ??? (80186)
 AddressOf _C2,  ' ret (ret n) within segment adding imm to sp
 AddressOf _C3,  ' ret within segment
 AddressOf _C4_C5,   ' les | lds
 AddressOf _C4_C5,
-AddressOf _C6_C7,   ' mov imm to reg/mem
+AddressOf _C6_C7,       ' mov imm to reg/mem
 AddressOf _C6_C7,
 AddressOf _C8,  ' enter (80186)
 AddressOf _C9,  ' leave (80186)
@@ -215,7 +215,7 @@ AddressOf _D0_D3,
 AddressOf _D0_D3,
 AddressOf _D4,  ' aam
 AddressOf _D5,  ' aad
-AddressOf _D6,  ' xlat / salc
+AddressOf _D6,      ' xlat / salc
 AddressOf _D7,  ' xlatb
 AddressOf _D8_DF,   ' Ignore co-processor instructions
 AddressOf _D8_DF,
@@ -225,35 +225,35 @@ AddressOf _D8_DF,
 AddressOf _D8_DF,
 AddressOf _D8_DF,
 AddressOf _D8_DF,
-AddressOf _E0,      ' loopne/loopnz
-AddressOf _E1,  ' loope/loopz
+AddressOf _E0,  ' loopne/loopnz
+AddressOf _E1,      ' loope/loopz
 AddressOf _E2,  ' loop
 AddressOf _E3,  ' jcxz
 AddressOf _E4,  ' in to al from fixed port
-AddressOf _E5,      ' inw to ax from fixed port
-AddressOf _E6,  ' out to al to fixed port
+AddressOf _E5,  ' inw to ax from fixed port
+AddressOf _E6,      ' out to al to fixed port
 AddressOf _E7,  ' outw to ax to fixed port
 AddressOf _E8,  ' call direct within segment
 AddressOf _E9,  ' jmp direct within segment
-AddressOf _EA,      ' jmp direct intersegment
+AddressOf _EA,  ' jmp direct intersegment
 AddressOf _EB,  ' jmp direct within segment short
-AddressOf _EC,  ' in to al from variable port
+AddressOf _EC,      ' in to al from variable port
 AddressOf _ED,  ' inw to ax from variable port
 AddressOf _EE,  ' out to port dx from al
 AddressOf _EF,  ' out to port dx from ax
-AddressOf _F0,      ' lock
+AddressOf _F0,  ' lock
 AddressOf OpCodeNotImplemented,
 AddressOf _F2,  ' repne/repnz
 AddressOf _F3,  ' repe/repz
 AddressOf _F4,  ' hlt
-AddressOf _F5,      ' cmc
+AddressOf _F5,  ' cmc
 AddressOf _F6_F7,
 AddressOf _F6_F7,
 AddressOf _F8,  ' clc
 AddressOf _F9,  ' stc
-AddressOf _FA,      ' cli
+AddressOf _FA,  ' cli
 AddressOf _FB,  ' sti
-AddressOf _FC,  ' cld
+AddressOf _FC,      ' cld
 AddressOf _FD,  ' std
 AddressOf _FE_FF,
 AddressOf _FE_FF}
@@ -279,12 +279,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _04()   ' add al, imm
-        mRegisters.AL = Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.Add, DataSize.Byte)
+        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Add, DataSize.Byte)
         clkCyc += 4
     End Sub
 
     Private Sub _05()   ' add ax, imm
-        mRegisters.AX = Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.Add, DataSize.Word)
+        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Add, DataSize.Word)
         clkCyc += 4
     End Sub
 
@@ -320,12 +320,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _0C()   ' or al and imm
-        mRegisters.AL = Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.LogicOr, DataSize.Byte)
+        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicOr, DataSize.Byte)
         clkCyc += 4
     End Sub
 
     Private Sub _0D()   ' or ax and imm
-        mRegisters.AX = Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.LogicOr, DataSize.Word)
+        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicOr, DataSize.Word)
         clkCyc += 4
     End Sub
 
@@ -363,12 +363,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _14()   ' adc al and imm
-        mRegisters.AL = Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.AddWithCarry, DataSize.Byte)
+        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.AddWithCarry, DataSize.Byte)
         clkCyc += 3
     End Sub
 
     Private Sub _15()   ' adc ax and imm
-        mRegisters.AX = Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.AddWithCarry, DataSize.Word)
+        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.AddWithCarry, DataSize.Word)
         clkCyc += 3
     End Sub
 
@@ -407,12 +407,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _1C()   ' sbb al and imm
-        mRegisters.AL = Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.SubstractWithCarry, DataSize.Byte)
+        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.SubstractWithCarry, DataSize.Byte)
         clkCyc += 4
     End Sub
 
     Private Sub _1D()   ' sbb ax and imm
-        mRegisters.AX = Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.SubstractWithCarry, DataSize.Word)
+        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.SubstractWithCarry, DataSize.Word)
         clkCyc += 4
     End Sub
 
@@ -448,12 +448,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _24()   ' and al and imm
-        mRegisters.AL = Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.LogicAnd, DataSize.Byte)
+        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicAnd, DataSize.Byte)
         clkCyc += 4
     End Sub
 
     Private Sub _25()   ' and ax and imm
-        mRegisters.AX = Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.LogicAnd, DataSize.Word)
+        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicAnd, DataSize.Word)
         clkCyc += 4
     End Sub
 
@@ -505,12 +505,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _2C()   ' sub al and imm
-        mRegisters.AL = Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.Substract, DataSize.Byte)
+        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Substract, DataSize.Byte)
         clkCyc += 4
     End Sub
 
     Private Sub _2D()   ' sub ax and imm
-        mRegisters.AX = Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.Substract, DataSize.Word)
+        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Substract, DataSize.Word)
         clkCyc += 4
     End Sub
 
@@ -556,12 +556,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _34()   ' xor al and imm
-        mRegisters.AL = Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.LogicXor, DataSize.Byte)
+        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicXor, DataSize.Byte)
         clkCyc += 4
     End Sub
 
     Private Sub _35()   ' xor ax and imm
-        mRegisters.AX = Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.LogicXor, DataSize.Word)
+        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicXor, DataSize.Word)
         clkCyc += 4
     End Sub
 
@@ -600,12 +600,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _3C()   ' cmp al and imm
-        Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.Compare, DataSize.Byte)
+        Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Compare, DataSize.Byte)
         clkCyc += 4
     End Sub
 
     Private Sub _3D()   ' cmp ax and imm
-        Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.Compare, DataSize.Word)
+        Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Compare, DataSize.Word)
         clkCyc += 4
     End Sub
 
@@ -619,8 +619,6 @@ AddressOf _FE_FF}
             mFlags.CF = 0
         End If
         mRegisters.AL = mRegisters.AL.LowNib()
-        'Flags.OF = 0
-        'Flags.SF = 0
         clkCyc += 8
     End Sub
 
@@ -702,7 +700,7 @@ AddressOf _FE_FF}
     Private Sub _68()   ' push (80186)
         ' PRE ALPHA CODE - UNTESTED
         If mVic20 Then
-            PushIntoStack(Param(SelPrmIndex.First, , DataSize.Word))
+            PushIntoStack(Param(ParamIndex.First, , DataSize.Word))
             clkCyc += 3
         End If
     End Sub
@@ -712,7 +710,7 @@ AddressOf _FE_FF}
             ' PRE ALPHA CODE - UNTESTED
             SetAddressing()
             Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
-            Dim tmp2 As UInt32 = Param(SelPrmIndex.First, , DataSize.Word)
+            Dim tmp2 As UInt32 = Param(ParamIndex.First, , DataSize.Word)
             If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
             If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
             Dim tmp3 As UInt32 = tmp1 * tmp2
@@ -731,7 +729,7 @@ AddressOf _FE_FF}
     Private Sub _6A()   ' push (80186)
         If mVic20 Then
             ' PRE ALPHA CODE - UNTESTED
-            PushIntoStack(Param(SelPrmIndex.First, , DataSize.Byte))
+            PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
             clkCyc += 3
         End If
     End Sub
@@ -741,7 +739,7 @@ AddressOf _FE_FF}
             ' PRE ALPHA CODE - UNTESTED
             SetAddressing()
             Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
-            Dim tmp2 As UInt32 = To16bitsWithSign(Param(SelPrmIndex.First, , DataSize.Byte))
+            Dim tmp2 As UInt32 = To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))
             If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
             If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
             Dim tmp3 As UInt32 = tmp1 * tmp2
@@ -996,7 +994,7 @@ AddressOf _FE_FF}
         SetAddressing(DataSize.Word)
         SetRegister2ToSegReg()
         If addrMode.IsDirect Then
-            SetRegister1Alt(ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
+            SetRegister1Alt(ParamNOPS(ParamIndex.First, , DataSize.Byte))
             mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
             clkCyc += 2
         Else
@@ -1046,8 +1044,8 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _9A()   ' call direct intersegment
-        IPAddrOffet = Param(SelPrmIndex.First, , DataSize.Word)
-        tmpVal = Param(SelPrmIndex.Second, , DataSize.Word)
+        IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
+        tmpVal = Param(ParamIndex.Second, , DataSize.Word)
 
         PushIntoStack(mRegisters.CS)
         PushIntoStack(mRegisters.IP + opCodeSize)
@@ -1083,7 +1081,7 @@ AddressOf _FE_FF}
 
     Private Sub _A0_A3()    ' mov mem to acc | mov acc to mem
         addrMode.Decode(opCode, opCode)
-        addrMode.IndAdr = Param(SelPrmIndex.First, , DataSize.Word)
+        addrMode.IndAdr = Param(ParamIndex.First, , DataSize.Word)
         addrMode.Register1 = If(addrMode.Size = DataSize.Byte, GPRegisters.RegistersTypes.AL, GPRegisters.RegistersTypes.AX)
         If addrMode.Direction = 0 Then
             mRegisters.Val(addrMode.Register1) = RAMn
@@ -1104,12 +1102,12 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _A8()   ' test al imm8
-        Eval(mRegisters.AL, Param(SelPrmIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
+        Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
         clkCyc += 4
     End Sub
 
     Private Sub _A9()   ' test ax imm16
-        Eval(mRegisters.AX, Param(SelPrmIndex.First, , DataSize.Word), Operation.Test, DataSize.Word)
+        Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Test, DataSize.Word)
         clkCyc += 4
     End Sub
 
@@ -1122,7 +1120,7 @@ AddressOf _FE_FF}
         Else
             addrMode.Size = DataSize.Byte
         End If
-        mRegisters.Val(addrMode.Register1) = Param(SelPrmIndex.First)
+        mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First)
         clkCyc += 4
     End Sub
 
@@ -1135,7 +1133,7 @@ AddressOf _FE_FF}
 
     Private Sub _C2()   ' ret (ret n) within segment adding imm to sp
         IPAddrOffet = PopFromStack()
-        mRegisters.SP += Param(SelPrmIndex.First, , DataSize.Word)
+        mRegisters.SP += Param(ParamIndex.First, , DataSize.Word)
         clkCyc += 20
     End Sub
 
@@ -1160,10 +1158,10 @@ AddressOf _FE_FF}
     Private Sub _C6_C7()    ' mov imm to reg/mem
         SetAddressing()
         If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Register1) = Param(SelPrmIndex.First, opCodeSize)
+            mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First, opCodeSize)
             clkCyc += 4
         Else
-            RAMn = Param(SelPrmIndex.First, opCodeSize)
+            RAMn = Param(ParamIndex.First, opCodeSize)
             clkCyc += 10
         End If
     End Sub
@@ -1171,8 +1169,8 @@ AddressOf _FE_FF}
     Private Sub _C8()   ' enter (80186)
         If mVic20 Then
             ' PRE ALPHA CODE - UNTESTED
-            Dim stackSize = Param(SelPrmIndex.First, , DataSize.Word)
-            Dim nestLevel = Param(SelPrmIndex.Second, , DataSize.Byte) And &H1F
+            Dim stackSize = Param(ParamIndex.First, , DataSize.Word)
+            Dim nestLevel = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
             PushIntoStack(mRegisters.BP)
             Dim frameTemp = mRegisters.SP
             If nestLevel > 0 Then
@@ -1206,7 +1204,7 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _CA()   ' ret intersegment adding imm to sp (ret n /retf)
-        tmpVal = Param(SelPrmIndex.First, , DataSize.Word)
+        tmpVal = Param(ParamIndex.First, , DataSize.Word)
         IPAddrOffet = PopFromStack()
         mRegisters.CS = PopFromStack()
         mRegisters.SP += tmpVal
@@ -1225,7 +1223,7 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _CD()   ' int with type specified
-        HandleInterrupt(Param(SelPrmIndex.First, , DataSize.Byte), False)
+        HandleInterrupt(Param(ParamIndex.First, , DataSize.Byte), False)
         clkCyc += 51
     End Sub
 
@@ -1250,7 +1248,7 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _D4()   ' aam
-        tmpVal = Param(SelPrmIndex.First, , DataSize.Byte)
+        tmpVal = Param(ParamIndex.First, , DataSize.Byte)
         If tmpVal = 0 Then
             HandleInterrupt(0, True)
             Exit Sub
@@ -1262,7 +1260,7 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _D5()   ' aad
-        mRegisters.AL += mRegisters.AH * Param(SelPrmIndex.First, , DataSize.Byte)
+        mRegisters.AL += mRegisters.AH * Param(ParamIndex.First, , DataSize.Byte)
         mRegisters.AH = 0
         SetSZPFlags(mRegisters.AX, DataSize.Word)
         mFlags.SF = 0
@@ -1341,24 +1339,24 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _E4()   ' in to al from fixed port
-        mRegisters.AL = ReceiveFromPort(Param(SelPrmIndex.First, , DataSize.Byte))
+        mRegisters.AL = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
         clkCyc += 10
     End Sub
 
     Private Sub _E5()   ' inw to ax from fixed port
-        mRegisters.AX = ReceiveFromPort(Param(SelPrmIndex.First, , DataSize.Byte))
+        mRegisters.AX = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
         clkCyc += 10
     End Sub
 
     Private Sub _E6()   ' out to al to fixed port
         FlushCycles()
-        SendToPort(Param(SelPrmIndex.First, , DataSize.Byte), mRegisters.AL)
+        SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AL)
         clkCyc += 10
     End Sub
 
     Private Sub _E7()   ' outw to ax to fixed port
         FlushCycles()
-        SendToPort(Param(SelPrmIndex.First, , DataSize.Byte), mRegisters.AX)
+        SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AX)
         clkCyc += 10
     End Sub
 
@@ -1374,8 +1372,8 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _EA()   ' jmp direct intersegment
-        IPAddrOffet = Param(SelPrmIndex.First, , DataSize.Word)
-        mRegisters.CS = Param(SelPrmIndex.Second, , DataSize.Word)
+        IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
+        mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word)
         clkCyc += 15
     End Sub
 

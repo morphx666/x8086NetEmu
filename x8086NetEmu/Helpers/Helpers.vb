@@ -15,7 +15,7 @@
     Private szpLUT8(256 - 1) As GPFlags.FlagsTypes
     Private szpLUT16(65536 - 1) As GPFlags.FlagsTypes
 
-    Public Enum SelPrmIndex
+    Public Enum ParamIndex
         First = 0
         Second = 1
         Thrid = 2
@@ -57,15 +57,16 @@
 
         Private regOffset As Byte
 
+        ' http://aturing.umcs.maine.edu/~meadow/courses/cos335/8086-instformat.pdf
         Public Sub Decode(data As Byte, addressingModeByte As Byte)
-            Size = data And 1US                                 ' (0000 0001)
-            Direction = (data And 2US) >> 1US                   ' (0000 0010)
+            Size = data And 1                                 ' (0000 0001)
+            Direction = (data And 2) >> 1                     ' (0000 0010)
 
-            Modifier = addressingModeByte >> 6US                ' (1100 0000)
-            Reg = (addressingModeByte >> 3US) And 7US           ' (0011 1000)
-            Rm = addressingModeByte And 7US                     ' (0000 0111)
+            Modifier = addressingModeByte >> 6                ' (1100 0000)
+            Reg = (addressingModeByte >> 3) And 7             ' (0011 1000)
+            Rm = addressingModeByte And 7                     ' (0000 0111)
 
-            regOffset = Size << 3US
+            regOffset = Size << 3
 
             Register1 = Reg Or regOffset
             If Register1 >= GPRegisters.RegistersTypes.ES Then Register1 += GPRegisters.RegistersTypes.ES
@@ -86,7 +87,7 @@
     End Sub
 
     Private Sub SetAddressing(Optional forceSize As DataSize = DataSize.UseAddressingMode)
-        addrMode.Decode(opCode, ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
+        addrMode.Decode(opCode, ParamNOPS(ParamIndex.First, , DataSize.Byte))
 
         If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
 
@@ -114,7 +115,7 @@
                     Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : clkCyc += 7UL                        ' 011 [BP+DI]
                     Case 4 : addrMode.IndAdr = mRegisters.SI : clkCyc += 5UL                                        ' 100 [SI]
                     Case 5 : addrMode.IndAdr = mRegisters.DI : clkCyc += 5UL                                        ' 101 [DI]
-                    Case 6 : addrMode.IndAdr = To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word)) : clkCyc += 9UL  ' 110 Direct Addressing
+                    Case 6 : addrMode.IndAdr = To32bitsWithSign(Param(ParamIndex.First, 2, DataSize.Word)) : clkCyc += 9UL  ' 110 Direct Addressing
                     Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5UL                                        ' 111 [BX]
                 End Select
                 addrMode.IndMem = RAMn
@@ -131,7 +132,7 @@
                     Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5UL                                        ' 110 [BP]
                     Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5UL                                        ' 111 [BX]
                 End Select
-                addrMode.IndAdr += To16bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Byte))
+                addrMode.IndAdr += To16bitsWithSign(Param(ParamIndex.First, 2, DataSize.Byte))
                 addrMode.IndMem = RAMn
 
             Case 2 ' 10 - 16bit
@@ -146,7 +147,7 @@
                     Case 6 : addrMode.IndAdr = mRegisters.BP : clkCyc += 5UL                                        ' 110 [BP]
                     Case 7 : addrMode.IndAdr = mRegisters.BX : clkCyc += 5UL                                        ' 111 [BX]
                 End Select
-                addrMode.IndAdr += To32bitsWithSign(Param(SelPrmIndex.First, 2, DataSize.Word))
+                addrMode.IndAdr += To32bitsWithSign(Param(ParamIndex.First, 2, DataSize.Word))
                 addrMode.IndMem = RAMn
 
             Case 3 ' 11
@@ -244,7 +245,7 @@
         Return &HFF
     End Function
 
-    Private ReadOnly Property Param(index As SelPrmIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
+    Private ReadOnly Property Param(index As ParamIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
         Get
             If size = DataSize.UseAddressingMode Then size = addrMode.Size
             opCodeSize += size + 1
@@ -252,7 +253,7 @@
         End Get
     End Property
 
-    Private ReadOnly Property ParamNOPS(index As SelPrmIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
+    Private ReadOnly Property ParamNOPS(index As ParamIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
         Get
             ' Extra cycles for address misalignment
             ' This is too CPU expensive, with few benefits, if any... not worth it
@@ -272,9 +273,9 @@
 
     Private Function OffsetIP(size As DataSize) As UInt16
         If size = DataSize.Byte Then
-            Return mRegisters.IP + To16bitsWithSign(Param(SelPrmIndex.First, , size)) + opCodeSize
+            Return mRegisters.IP + To16bitsWithSign(Param(ParamIndex.First, , size)) + opCodeSize
         Else
-            Return mRegisters.IP + To32bitsWithSign(Param(SelPrmIndex.First, , size)) + opCodeSize
+            Return mRegisters.IP + To32bitsWithSign(Param(ParamIndex.First, , size)) + opCodeSize
         End If
     End Function
 
