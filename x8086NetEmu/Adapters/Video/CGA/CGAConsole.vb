@@ -174,6 +174,13 @@ Public Class CGAConsole
 
         Dim cv As Boolean = False
 
+        Dim text As String = ""
+        Dim b1c As Byte = CPU.Memory(mStartTextVideoAddress + 1)
+        Dim c As Integer
+        Dim r As Integer
+
+        Console.CursorVisible = False
+
         ' The "-4" is to prevent the code from printing the last character and avoid scrolling.
         ' Unfortunately, this causes the last char to not be printed
         For address As Integer = mStartTextVideoAddress To mEndTextVideoAddress + buffer.Length - 4 Step 2
@@ -182,14 +189,22 @@ Public Class CGAConsole
 
             If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) Then b0 = 0
 
-            If buffer(bufIdx) <> b0 OrElse buffer(bufIdx + 1) <> b1 Then
-                ConsoleCrayon.WriteFast(chars(b0), b1.LowNib(), b1.HighNib(), col, row)
-                buffer(bufIdx) = b0
-                buffer(bufIdx + 1) = b1
+            'If buffer(bufIdx) <> b0 OrElse buffer(bufIdx + 1) <> b1 Then
+            If b1c <> b1 Then
+                ConsoleCrayon.WriteFast(text, b1c.LowNib(), b1c.HighNib(), c, r)
+                text = ""
+                b1c = b1
+                c = col
+                r = row
             End If
+            text += chars(b0)
+            'ConsoleCrayon.WriteFast(chars(b0), b1.LowNib(), b1.HighNib(), col, row)
+            'buffer(bufIdx) = b0
+            'buffer(bufIdx + 1) = b1
+            'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-                If blinkCounter < BlinkRate Then cv = True
+                cv = blinkCounter < BlinkRate
 
                 If blinkCounter >= 2 * BlinkRate Then
                     blinkCounter = 0
@@ -208,11 +223,11 @@ Public Class CGAConsole
             bufIdx += 2
         Next
 
+        If text <> "" Then ConsoleCrayon.WriteFast(text, b1c.LowNib(), b1c.HighNib(), c, r)
+
         If cv Then
             Console.SetCursorPosition(CursorCol, CursorRow)
             Console.CursorVisible = True
-        Else
-            Console.CursorVisible = False
         End If
     End Sub
 

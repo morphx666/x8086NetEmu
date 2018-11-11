@@ -49,8 +49,6 @@ Public NotInheritable Class ConsoleCrayon
     Public Shared SyncObject As New Object()
 
     Public Shared Sub WriteFast(text As String, foreColor As ConsoleColor, backColor As ConsoleColor, col As Integer, row As Integer)
-        'Exit Sub
-
         SyncLock SyncObject
             If col < 0 OrElse col >= Console.WindowWidth OrElse
             row < 0 OrElse row >= Console.WindowHeight Then Exit Sub
@@ -64,11 +62,15 @@ Public NotInheritable Class ConsoleCrayon
                 If Console.CursorLeft <> col Then Console.CursorLeft = col
                 If Console.CursorTop <> row Then Console.CursorTop = row
 
-                If foreColor <> Console.ForegroundColor Then SetColor(foreColor, True)
-                If backColor <> Console.BackgroundColor Then SetColor(backColor, False)
+                If foreColor <> Console.ForegroundColor Then Console.ForegroundColor = foreColor
+                If backColor <> Console.BackgroundColor Then Console.BackgroundColor = backColor
 
-                If row = Console.WindowHeight - 1 AndAlso col + text.Length >= Console.WindowWidth Then
-                    text = text.Substring(0, text.Length * 2 + col - Console.WindowWidth - 1)
+                'If row = Console.WindowHeight - 1 AndAlso col + text.Length >= Console.WindowWidth Then
+                Dim index As Integer = col + row * Console.WindowWidth
+                Dim size As Integer = Console.WindowWidth * Console.WindowHeight
+                If index + text.Length >= size Then
+                    'text = text.Substring(0, text.Length * 2 + col - Console.WindowWidth - 1)
+                    text = text.Substring(0, size - index - 1)
                 End If
 
                 Console.Write(text)
