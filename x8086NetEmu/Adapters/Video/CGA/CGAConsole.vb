@@ -53,11 +53,11 @@ Public Class CGAConsole
     End Function
 
     Public Overrides Sub AutoSize()
-        'Dim length = Console.WindowWidth * Console.WindowHeight * 2
-        Dim length = TextResolution.Width * TextResolution.Height * 2
-        If buffer Is Nothing OrElse buffer.Length <> length Then ReDim buffer(length - 1)
-
-        ResizeRenderControl()
+        Dim length As Integer = TextResolution.Width * TextResolution.Height * 2
+        If buffer Is Nothing OrElse buffer?.Length <> length Then
+            ReDim buffer(length - 1)
+            ResizeRenderControl()
+        End If
     End Sub
 
     Private Overloads Sub ResizeRenderControl()
@@ -73,6 +73,7 @@ Public Class CGAConsole
                 Console.SetWindowSize(i2a.CanvasSize.Width, i2a.CanvasSize.Height)
         End Select
         Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight)
+        Array.Clear(buffer, 0, buffer.Length)
 #End If
     End Sub
 
