@@ -227,11 +227,13 @@ Public Class CGAWinForms
 
         Dim r As New Rectangle(Point.Empty, mCellSize)
 
+        If Not CursorVisible Then blinkCounter = 2 * BlinkRate
+
         For address As Integer = mStartTextVideoAddress To mEndTextVideoAddress - 2 Step 2
             b0 = CPU.Memory(address)
             b1 = CPU.Memory(address + 1)
 
-            If BlinkCharOn AndAlso (b1 And &B1000_0000) Then
+            If BlinkCharOn AndAlso (b1 And &B1000_0000) <> 0 Then
                 If blinkCounter < BlinkRate Then b0 = 0
                 'IsDirty(address) = True
             End If

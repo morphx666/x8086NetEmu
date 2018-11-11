@@ -42,7 +42,7 @@ Public Class WebUI
                 If client?.Pending Then
                     Using tcp As Sockets.TcpClient = client.AcceptTcpClient()
                         Using netStream As Sockets.NetworkStream = tcp.GetStream()
-                            Dim buffer(8192 - 1) As Byte
+                            Dim buffer(1024 * 16 - 1) As Byte
                             Dim data As New List(Of Byte)
 
                             Do
@@ -104,7 +104,8 @@ Public Class WebUI
                     Thread.Sleep(100)
                 End If
             Catch ex As Exception
-                Exit Do
+                X8086.Notify($"WebUI Error: {ex.Message}", X8086.NotificationReasons.Err)
+                'Exit Do
             End Try
         Loop
     End Sub
