@@ -1115,7 +1115,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H72 ' jb/jnae
+            Case &H72 ' jb/jnae/jc (unsigned)
                 If mFlags.CF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1124,7 +1124,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H73 ' jnb/jae
+            Case &H73 ' jnb/jae/jnc (unsigned)
                 If mFlags.CF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1151,7 +1151,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H76 ' jbe/jna
+            Case &H76 ' jbe/jna (unsigned)
                 If mFlags.CF = 1 OrElse mFlags.ZF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1161,7 +1161,7 @@ Public Class X8086
                 End If
 
 
-            Case &H77 ' jnbe/ja
+            Case &H77 ' ja/jnbe (unsigned)
                 If mFlags.CF = 0 AndAlso mFlags.ZF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1206,7 +1206,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7C ' jl/jnge
+            Case &H7C ' jl/jnge (signed)
                 If mFlags.SF <> mFlags.OF Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1215,7 +1215,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7D ' jnl/jge
+            Case &H7D ' jnl/jge (signed)
                 If mFlags.SF = mFlags.OF Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1224,7 +1224,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7E ' jle/jng
+            Case &H7E ' jle/jng (signed)
                 If mFlags.ZF = 1 OrElse (mFlags.SF <> mFlags.OF) Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1233,7 +1233,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7F ' jnle/jg
+            Case &H7F ' jg/jnle (signed)
                 If mFlags.ZF = 0 AndAlso (mFlags.SF = mFlags.OF) Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1596,7 +1596,7 @@ Public Class X8086
                     clkCyc += 5
                 End If
 
-            Case &HE3 ' jcxz
+            Case &HE3 ' jcxz/jecxz
                 If mRegisters.CX = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 18

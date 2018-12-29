@@ -107,7 +107,7 @@ Public Class WebUI
                 X8086.Notify($"WebUI Error: {ex.Message}", X8086.NotificationReasons.Err)
                 'Exit Do
             End Try
-        Loop
+        Loop While client IsNot Nothing
     End Sub
 
     Private Function GetUI() As String
@@ -206,6 +206,7 @@ Public Class WebUI
         If client IsNot Nothing Then
             Try
                 client.Stop()
+                client = Nothing
             Catch ex As Exception
             End Try
         End If
