@@ -60,7 +60,7 @@
         ' http://aturing.umcs.maine.edu/~meadow/courses/cos335/8086-instformat.pdf
         Public Sub Decode(data As Byte, addressingModeByte As Byte)
             Size = data And 1                                 ' (0000 0001)
-            Direction = (data And 2) >> 1                     ' (0000 0010)
+            Direction = (data >> 1) And 1                     ' (0000 0010)
 
             Modifier = addressingModeByte >> 6                ' (1100 0000)
             Reg = (addressingModeByte >> 3) And 7             ' (0011 1000)

@@ -15,21 +15,21 @@ AddressOf _08_0B,
 AddressOf _08_0B,
 AddressOf _0C,  ' or al and imm
 AddressOf _0D,      ' or ax and imm
-AddressOf _0E,      ' push cs
+AddressOf _0E,  ' push cs
 AddressOf _0F,  ' pop cs
 AddressOf _10_13,   ' adc
 AddressOf _10_13,
 AddressOf _10_13,
 AddressOf _10_13,
-AddressOf _14,      ' adc al and imm
+AddressOf _14,  ' adc al and imm
 AddressOf _15,  ' adc ax and imm
-AddressOf _16,      ' push ss
+AddressOf _16,  ' push ss
 AddressOf _17,  ' pop ss
 AddressOf _18_1B,   ' sbb
 AddressOf _18_1B,
 AddressOf _18_1B,
 AddressOf _18_1B,
-AddressOf _1C,      ' sbb al and imm
+AddressOf _1C,  ' sbb al and imm
 AddressOf _1D,  ' sbb ax and imm
 AddressOf _1E,  ' push ds
 AddressOf _1F,  ' pop ds
@@ -39,7 +39,7 @@ AddressOf _20_23,
 AddressOf _20_23,
 AddressOf _24,  ' and al and imm
 AddressOf _25,  ' and ax and imm
-AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
+AddressOf _26_2E_36_3E,     ' ES, CS, SS and DS segment override prefix
 AddressOf _27,  ' daa
 AddressOf _28_2B,   ' sub reg/mem with reg to either
 AddressOf _28_2B,
@@ -55,15 +55,15 @@ AddressOf _30_33,
 AddressOf _30_33,
 AddressOf _34,  ' xor al and imm
 AddressOf _35,  ' xor ax and imm
-AddressOf _26_2E_36_3E,     ' ES, CS, SS and DS segment override prefix
+AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _37,  ' aaa
 AddressOf _38_3B,   ' cmp reg/mem and reg
 AddressOf _38_3B,
 AddressOf _38_3B,
 AddressOf _38_3B,
 AddressOf _3C,      ' cmp al and imm
-AddressOf _3D,      ' cmp ax and imm
-AddressOf _26_2E_36_3E,     ' ES, CS, SS and DS segment override prefix
+AddressOf _3D,  ' cmp ax and imm
+AddressOf _26_2E_36_3E, ' ES, CS, SS and DS segment override prefix
 AddressOf _3F,  ' aas
 AddressOf _40_47,   ' inc reg
 AddressOf _40_47,
@@ -98,7 +98,7 @@ AddressOf _58_5F,
 AddressOf _58_5F,
 AddressOf _58_5F,
 AddressOf _60,  ' pusha (80186)
-AddressOf _61,  ' popa (80186)
+AddressOf _61,      ' popa (80186)
 AddressOf _62,  ' bound (80186)
 AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
@@ -109,7 +109,7 @@ AddressOf _68,  ' push (80186)
 AddressOf _69,  ' imul (80186)
 AddressOf _6A,  ' push (80186)
 AddressOf _6B,  ' imul (80186)
-AddressOf _6C_6F,   ' Ignore 80186/V20 port operations... for now...
+AddressOf _6C_6F,       ' Ignore 80186/V20 port operations... for now...
 AddressOf _6C_6F,
 AddressOf _6C_6F,
 AddressOf _6C_6F,
@@ -119,13 +119,13 @@ AddressOf _72,  ' jb/jnae/jc (unsigned)
 AddressOf _73,  ' jnb/jae/jnc (unsigned)
 AddressOf _74,  ' je/jz
 AddressOf _75,  ' jne/jnz
-AddressOf _76,  ' jbe/jna (unsigned)
+AddressOf _76,      ' jbe/jna (unsigned)
 AddressOf _77,  ' ja/jnbe (unsigned)
 AddressOf _78,  ' js
 AddressOf _79,  ' jns
 AddressOf _7A,  ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
-AddressOf _7C,  ' jl/jnge (signed)
+AddressOf _7C,      ' jl/jnge (signed)
 AddressOf _7D,  ' jnl/jge (signed)
 AddressOf _7E,  ' jle/jng (signed)
 AddressOf _7F,  ' jg/jnle (signed)
@@ -135,7 +135,7 @@ AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _84_85,   ' test reg with reg/mem
 AddressOf _84_85,
-AddressOf _86_87,   ' xchg reg/mem with reg
+AddressOf _86_87,       ' xchg reg/mem with reg
 AddressOf _86_87,
 AddressOf _88_8C,   ' mov ind <-> reg8/reg16
 AddressOf _88_8C,
@@ -143,7 +143,7 @@ AddressOf _88_8C,
 AddressOf _88_8C,
 AddressOf _88_8C,
 AddressOf _8D,  ' lea
-AddressOf _8E,      ' mov reg/mem to seg reg
+AddressOf _8E,  ' mov reg/mem to seg reg
 AddressOf _8F,  ' pop reg/mem
 AddressOf _90_97,   ' xchg reg with acc
 AddressOf _90_97,
@@ -157,9 +157,9 @@ AddressOf _98,  ' cbw
 AddressOf _99,  ' cwd
 AddressOf _9A,  ' call direct intersegment
 AddressOf _9B,  ' wait
-AddressOf _9C,  ' pushf
+AddressOf _9C,      ' pushf
 AddressOf _9D,  ' popf
-AddressOf _9E,      ' sahf
+AddressOf _9E,  ' sahf
 AddressOf _9F,  ' lahf
 AddressOf _A0_A3,   ' mov mem to acc | mov acc to mem
 AddressOf _A0_A3,
@@ -194,20 +194,20 @@ AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _B0_BF,
 AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
-AddressOf _C0_C1,   ' GRP2 byte/word imm8/16 ??? (80186)
+AddressOf _C0_C1,       ' GRP2 byte/word imm8/16 ??? (80186)
 AddressOf _C2,  ' ret (ret n) within segment adding imm to sp
-AddressOf _C3,      ' ret within segment
+AddressOf _C3,  ' ret within segment
 AddressOf _C4_C5,   ' les | lds
 AddressOf _C4_C5,
-AddressOf _C6_C7,   ' mov imm to reg/mem
+AddressOf _C6_C7,       ' mov imm to reg/mem
 AddressOf _C6_C7,
-AddressOf _C8,      ' enter (80186)
+AddressOf _C8,  ' enter (80186)
 AddressOf _C9,  ' leave (80186)
 AddressOf _CA,  ' ret intersegment adding imm to sp (ret n /retf)
 AddressOf _CB,  ' ret intersegment (retf)
-AddressOf _CC,  ' int with type 3
+AddressOf _CC,      ' int with type 3
 AddressOf _CD,  ' int with type specified
-AddressOf _CE,      ' into
+AddressOf _CE,  ' into
 AddressOf _CF,  ' iret
 AddressOf _D0_D3,
 AddressOf _D0_D3,
@@ -228,32 +228,32 @@ AddressOf _D8_DF,
 AddressOf _E0,  ' loopne/loopnz
 AddressOf _E1,  ' loope/loopz
 AddressOf _E2,  ' loop
-AddressOf _E3,      ' jcxz/jecxz
+AddressOf _E3,  ' jcxz/jecxz
 AddressOf _E4,  ' in to al from fixed port
 AddressOf _E5,  ' inw to ax from fixed port
-AddressOf _E6,  ' out to al to fixed port
+AddressOf _E6,      ' out to al to fixed port
 AddressOf _E7,  ' outw to ax to fixed port
-AddressOf _E8,      ' call direct within segment
+AddressOf _E8,  ' call direct within segment
 AddressOf _E9,  ' jmp direct within segment
 AddressOf _EA,  ' jmp direct intersegment
 AddressOf _EB,  ' jmp direct within segment short
-AddressOf _EC,  ' in to al from variable port
+AddressOf _EC,      ' in to al from variable port
 AddressOf _ED,  ' inw to ax from variable port
-AddressOf _EE,      ' out to port dx from al
+AddressOf _EE,  ' out to port dx from al
 AddressOf _EF,  ' out to port dx from ax
 AddressOf _F0,  ' lock
 AddressOf OpCodeNotImplemented,
 AddressOf _F2,  ' repne/repnz
-AddressOf _F3,      ' repe/repz
+AddressOf _F3,  ' repe/repz
 AddressOf _F4,  ' hlt
 AddressOf _F5,  ' cmc
 AddressOf _F6_F7,
 AddressOf _F6_F7,
-AddressOf _F8,      ' clc
+AddressOf _F8,  ' clc
 AddressOf _F9,  ' stc
 AddressOf _FA,  ' cli
 AddressOf _FB,  ' sti
-AddressOf _FC,  ' cld
+AddressOf _FC,      ' cld
 AddressOf _FD,  ' std
 AddressOf _FE_FF,
 AddressOf _FE_FF}
@@ -1080,7 +1080,8 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _A0_A3()    ' mov mem to acc | mov acc to mem
-        addrMode.Decode(opCode, opCode)
+        addrMode.Size = opCode And 1
+        addrMode.Direction = (opCode >> 1) And 1
         addrMode.IndAdr = Param(ParamIndex.First, , DataSize.Word)
         addrMode.Register1 = If(addrMode.Size = DataSize.Byte, GPRegisters.RegistersTypes.AL, GPRegisters.RegistersTypes.AX)
         If addrMode.Direction = 0 Then
@@ -1120,7 +1121,7 @@ AddressOf _FE_FF}
         Else
             addrMode.Size = DataSize.Byte
         End If
-        mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First)
+        mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First,, addrMode.Size)
         clkCyc += 4
     End Sub
 
@@ -1144,12 +1145,8 @@ AddressOf _FE_FF}
 
     Private Sub _C4_C5()    ' les | lds
         SetAddressing(DataSize.Word)
-        If (addrMode.Register1 And shl2) = shl2 Then
-            addrMode.Register1 = (addrMode.Register1 + GPRegisters.RegistersTypes.ES) Or shl3
-        Else
-            addrMode.Register1 = addrMode.Register1 Or shl3
-        End If
-        mRegisters.Val(addrMode.Register1) = addrMode.IndMem
+        If (addrMode.Register1 And shl2) = shl2 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
+        mRegisters.Val(addrMode.Register1 Or shl3) = addrMode.IndMem
         mRegisters.Val(If(opCode = &HC4, GPRegisters.RegistersTypes.ES, GPRegisters.RegistersTypes.DS)) = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
         ignoreINTs = True
         clkCyc += 16

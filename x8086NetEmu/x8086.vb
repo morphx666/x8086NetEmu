@@ -1384,7 +1384,8 @@ Public Class X8086
                 clkCyc += 4
 
             Case &HA0 To &HA3 ' mov mem to acc | mov acc to mem
-                addrMode.Decode(opCode, opCode)
+                addrMode.Size = opCode And 1
+                addrMode.Direction = (opCode >> 1) And 1
                 addrMode.IndAdr = Param(ParamIndex.First, , DataSize.Word)
                 addrMode.Register1 = If(addrMode.Size = DataSize.Byte, GPRegisters.RegistersTypes.AL, GPRegisters.RegistersTypes.AX)
                 If addrMode.Direction = 0 Then
@@ -1415,7 +1416,7 @@ Public Class X8086
                 Else
                     addrMode.Size = DataSize.Byte
                 End If
-                mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First)
+                mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First,, addrMode.Size)
                 clkCyc += 4
 
             Case &HC0, &HC1 ' GRP2 byte/word imm8/16 ??? (80186)
@@ -1435,12 +1436,8 @@ Public Class X8086
 
             Case &HC4 To &HC5 ' les | lds
                 SetAddressing(DataSize.Word)
-                If (addrMode.Register1 And shl2) = shl2 Then
-                    addrMode.Register1 = (addrMode.Register1 + GPRegisters.RegistersTypes.ES) Or shl3
-                Else
-                    addrMode.Register1 = addrMode.Register1 Or shl3
-                End If
-                mRegisters.Val(addrMode.Register1) = addrMode.IndMem
+                If (addrMode.Register1 And shl2) = shl2 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
+                mRegisters.Val(addrMode.Register1 Or shl3) = addrMode.IndMem
                 mRegisters.Val(If(opCode = &HC4, GPRegisters.RegistersTypes.ES, GPRegisters.RegistersTypes.DS)) = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 ignoreINTs = True
                 clkCyc += 16
@@ -1948,7 +1945,7 @@ Public Class X8086
                     newValue = newValue >> 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
-                SetSZPFlags(newValue , addrMode.Size)
+                SetSZPFlags(newValue, addrMode.Size)
 
             Case 7 ' 111    --  sar
                 If count = 1 Then
