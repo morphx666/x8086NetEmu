@@ -276,7 +276,7 @@ Public Class StandardDiskFormat
                 b(bytesRead) = strm.ReadByte()
                 bytesRead += 1
 
-                If (bytesRead Mod bytesInCluster) = 0 Then
+                If bytesRead >= de.FileSize AndAlso (bytesRead Mod bytesInCluster) = 0 Then
                     clusterIndex = mFATDataPointers(partitionNumber)(clusterIndex)
                     Exit Do
                 End If
