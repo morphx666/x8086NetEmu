@@ -183,7 +183,7 @@
     End Function
 
     Private Sub SendToPort(portAddress As UInt32, value As UInt32)
-        FlushCycles()
+        'FlushCycles()
 
         If portsCache.ContainsKey(portAddress) Then
             portsCache(portAddress).Out(portAddress, value)

@@ -80,6 +80,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private ReadOnly envelope(9 - 1) As Double
     Private ReadOnly decay(9 - 1) As Double
     Private ReadOnly attack(9 - 1) As Double
+    Private ReadOnly attack2(9 - 1) As Boolean
 
     Private ReadOnly regMem(&HFF - 1) As UInt16
     Private address As UInt16 = 0
@@ -124,14 +125,34 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Overrides Sub InitiAdapter()
         waveOut = New WaveOut() With {
-            .NumberOfBuffers = 4
+            .NumberOfBuffers = 32,
+            .DesiredLatency = 200
         }
         audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
         waveOut.Init(audioProvider)
         waveOut.Play()
     End Sub
 
+    Private tickCount As Integer
     Private Sub FillAudioBuffer(buffer() As Byte)
+        tickCount += 1
+        If tickCount >= SpeakerAdpater.SampleRate * (X8086.BASECLOCK / mCPU.Clock) Then
+            tickCount = 0
+
+            SyncLock channel
+                For currentChannel As Byte = 0 To 9 - 1
+                    If Frequency(currentChannel) <> 0 Then
+                        If attack2(currentChannel) Then
+                            envelope(currentChannel) *= decay(currentChannel)
+                        Else
+                            envelope(currentChannel) *= attack(currentChannel)
+                            If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
+                        End If
+                    End If
+                Next
+            End SyncLock
+        End If
+
         For i As Integer = 0 To buffer.Length - 1
             buffer(i) = GenerateSample() + 128
         Next
@@ -169,7 +190,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         ElseIf port >= &HA0 AndAlso port <= &HB8 Then ' Octave / Frequency / Key On
             port = port And 15
             If Not channel(port Mod 9).KeyOn AndAlso ((regMem(&HB0 + port) >> 5) And 1) = 1 Then
-                attack(port Mod 9) = 0
+                attack2(port Mod 9) = False
                 envelope(port Mod 9) = 0.0025
             End If
 
@@ -274,4 +295,4 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         End Get
     End Property
 End Class
-#end if
+#End If
