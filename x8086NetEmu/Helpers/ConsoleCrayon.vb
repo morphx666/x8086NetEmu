@@ -65,13 +65,9 @@ Public NotInheritable Class ConsoleCrayon
                 If foreColor <> Console.ForegroundColor Then Console.ForegroundColor = foreColor
                 If backColor <> Console.BackgroundColor Then Console.BackgroundColor = backColor
 
-                'If row = Console.WindowHeight - 1 AndAlso col + text.Length >= Console.WindowWidth Then
                 Dim index As Integer = col + row * Console.WindowWidth
                 Dim size As Integer = Console.WindowWidth * Console.WindowHeight
-                If index + text.Length >= size Then
-                    'text = text.Substring(0, text.Length * 2 + col - Console.WindowWidth - 1)
-                    text = text.Substring(0, size - index - 1)
-                End If
+                If index + text.Length >= size Then text = text.Substring(0, size - index - 1)
 
                 Console.Write(text)
             End If
@@ -194,11 +190,7 @@ Public NotInheritable Class ConsoleCrayon
         Dim a As Double
 
         If dy = 0 Then
-            If dx > 0 Then
-                a = 0
-            Else
-                a = 180
-            End If
+            a = If(dx > 0, 0, 180)
         Else
             a = Math.Atan(dy / dx) * toDegrees
             Select Case a
@@ -295,8 +287,8 @@ Public NotInheritable Class ConsoleCrayon
         End Select
     End Function
 
-    Private Const ESC = Chr(27) + "["
-    Private Const ColorReset = ESC + "0m"
+    Private Const ESC As String = Chr(27) + "["
+    Private Const ColorReset As String = ESC + "0m"
     Private Shared Function GetAnsiColorControlCode(color As ConsoleColor, isForeground As Boolean) As String
         ' lighter fg colours are 90 -> 97 rather than 30 -> 37
         ' lighter bg colours are 100 -> 107 rather than 40 -> 47

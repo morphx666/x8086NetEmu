@@ -17,8 +17,8 @@ Public Class WebUI
 
     Public Sub New(cpu As X8086, dBmp As DirectBitmap, syncObj As Object)
         Me.cpu = cpu
-        Me.mBitmap = dBmp
         Me.syncObj = syncObj
+        mBitmap = dBmp
 
         CreateClient()
 
@@ -188,7 +188,7 @@ Public Class WebUI
         Try
             SyncLock syncObj
                 ' FIXME: When using the VGA adapter and UseVRAM is true we need to send the VGA adapter's RAM instead
-                Return CType(Bitmap, Byte())
+                Return CType(mBitmap, Byte())
             End SyncLock
         Catch
             Return Nothing
