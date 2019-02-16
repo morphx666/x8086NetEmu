@@ -9,7 +9,9 @@ Module ModuleMain
         If Debugger.IsAttached Then
             Console.WriteLine("Are you sure you want to parse the opcodes' emulation code? [y/N]")
             If Console.ReadKey(True).Key = ConsoleKey.Y Then
+                Console.Write("Working... ")
                 RunParser()
+                Console.WriteLine("Done!")
             Else
                 Console.WriteLine("Process aborted...")
             End If
@@ -19,7 +21,8 @@ Module ModuleMain
 #Else
         Console.WriteLine(abortMsg)
 #End If
-
+        Console.WriteLine("")
+        Console.WriteLine("Press any key to exit")
         Console.ReadKey()
     End Sub
 

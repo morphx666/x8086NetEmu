@@ -259,11 +259,9 @@
             ' This is too CPU expensive, with few benefits, if any... not worth it
             'If (mRegisters.IP Mod 2) <> 0 Then clkCyc += 4
 
-            If size = DataSize.Byte OrElse (size = DataSize.UseAddressingMode AndAlso addrMode.Size = DataSize.Byte) Then
-                Return RAM8(mRegisters.CS, mRegisters.IP, ipOffset + index, True)
-            Else
-                Return RAM16(mRegisters.CS, mRegisters.IP, ipOffset + index * 2, True)
-            End If
+            Return If(size = DataSize.Byte OrElse (size = DataSize.UseAddressingMode AndAlso addrMode.Size = DataSize.Byte),
+                        RAM8(mRegisters.CS, mRegisters.IP, ipOffset + index, True),
+                        RAM16(mRegisters.CS, mRegisters.IP, ipOffset + index * 2, True))
         End Get
     End Property
 
@@ -325,7 +323,7 @@
 
         End Select
 
-        Return result
+        Return result 'And If(size = DataSize.Byte, &HFF, &HFFFF)
     End Function
 
     Private Sub SetSZPFlags(result As UInt16, size As DataSize)

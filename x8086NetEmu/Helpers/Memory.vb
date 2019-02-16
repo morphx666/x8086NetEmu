@@ -387,7 +387,7 @@
 
             If Not ignoreHooks Then
                 For i As Integer = 0 To memHooks.Count - 1
-                    If memHooks(i).Invoke(address, tmpVal, MemHookMode.Read) Then Return tmpVal
+                    If memHooks(i).Invoke(address, tmpUVal, MemHookMode.Read) Then Return tmpUVal
                 Next
             End If
 
@@ -400,7 +400,7 @@
                 Next
             End If
 
-            If address < ROMStart Then Memory(address) = value
+            Memory(address) = value
 
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set
@@ -437,9 +437,9 @@
         End Get
         Set(value As UInt16)
             If addrMode.Size = DataSize.Byte Then
-                RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = value
+                RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks) = value
             Else
-                RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr) = value
+                RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks) = value
             End If
         End Set
     End Property

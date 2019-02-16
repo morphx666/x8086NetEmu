@@ -40,7 +40,8 @@ Public Class X8086
     Private opCode As Byte
     Private opCodeSize As Byte
 
-    Private tmpVal As UInt32
+    Private tmpUVal As UInt32
+    Private tmpVal As Int32
 
     Private addrMode As AddressingMode
     Private mIsExecuting As Boolean = False
@@ -111,7 +112,7 @@ Public Class X8086
     Public Event MIPsUpdated()
 
     Public Delegate Sub RestartEmulation()
-    Private reCallback As RestartEmulation
+    Private restartCallback As RestartEmulation
 
     Public Sub New(Optional v20 As Boolean = True,
                    Optional int13 As Boolean = True,
@@ -120,7 +121,7 @@ Public Class X8086
 
         mVic20 = v20
         mEmulateINT13 = int13
-        reCallback = restartEmulationCallback
+        restartCallback = restartEmulationCallback
         mModel = model
 
         debugWaiter = New AutoResetEvent(False)
@@ -442,9 +443,9 @@ Public Class X8086
     End Sub
 
     Public Sub HardReset()
-        If reCallback IsNot Nothing Then
+        If restartCallback IsNot Nothing Then
             Close()
-            reCallback.Invoke()
+            restartCallback.Invoke()
         Else
             Close()
             Init()
@@ -510,7 +511,7 @@ Public Class X8086
             Loop While mIsExecuting
 
 #If Win32 Then
-            PIT.Speaker.Enabled = False
+            If PIT IsNot Nothing AndAlso PIT.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
 #End If
         End If
     End Sub
@@ -579,7 +580,7 @@ Public Class X8086
 #If DEBUG Then
                 Execute_OLD()
 #Else
-                    Execute()
+                Execute()
 #End If
             End While
             mIsExecuting = False
@@ -627,6 +628,9 @@ Public Class X8086
     Public Sub Execute_OLD()
         newPrefix = False
         instrucionsCounter += 1
+
+        Dim cs As Integer = mRegisters.CS
+        Dim ip As Integer = mRegisters.IP
 
         If mFlags.TF = 1 Then
             ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
@@ -828,21 +832,21 @@ Public Class X8086
 
             Case &H27 ' daa
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    tmpVal = CUInt(mRegisters.AL) + 6
+                    tmpUVal = CUInt(mRegisters.AL) + 6
                     mRegisters.AL += 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpUVal And &HFF00) <> 0, 1, 0)
                 Else
                     mFlags.AF = 0
                 End If
                 If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
-                    tmpVal = CUInt(mRegisters.AL) + &H60
+                    tmpUVal = CUInt(mRegisters.AL) + &H60
                     mRegisters.AL += &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                SetSZPFlags(tmpVal, DataSize.Byte)
+                SetSZPFlags(tmpUVal, DataSize.Byte)
                 clkCyc += 4
 
             Case &H28 To &H2B ' sub reg/mem with reg to either
@@ -875,21 +879,21 @@ Public Class X8086
             Case &H2F ' das
                 Dim al As Byte = mRegisters.AL
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    tmpVal = CShort(mRegisters.AL) - 6
+                    tmpUVal = CShort(mRegisters.AL) - 6
                     mRegisters.AL -= 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpVal And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpUVal And &HFF00) <> 0, 1, 0)
                 Else
                     mFlags.AF = 0
                 End If
                 If al > &H99 OrElse mFlags.CF = 1 Then
-                    tmpVal = CShort(mRegisters.AL) - &H60
+                    tmpUVal = CShort(mRegisters.AL) - &H60
                     mRegisters.AL -= &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                SetSZPFlags(tmpVal, DataSize.Byte)
+                SetSZPFlags(tmpUVal, DataSize.Byte)
                 clkCyc += 4
 
             Case &H30 To &H33 ' xor reg/mem and reg to either
@@ -999,12 +1003,12 @@ Public Class X8086
 
             Case &H60 ' pusha (80186)
                 If mVic20 Then
-                    tmpVal = mRegisters.SP
+                    tmpUVal = mRegisters.SP
                     PushIntoStack(mRegisters.AX)
                     PushIntoStack(mRegisters.CX)
                     PushIntoStack(mRegisters.DX)
                     PushIntoStack(mRegisters.BX)
-                    PushIntoStack(tmpVal)
+                    PushIntoStack(tmpUVal)
                     PushIntoStack(mRegisters.BP)
                     PushIntoStack(mRegisters.SI)
                     PushIntoStack(mRegisters.DI)
@@ -1257,9 +1261,9 @@ Public Class X8086
             Case &H86 To &H87 ' xchg reg/mem with reg
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    tmpVal = mRegisters.Val(addrMode.Register1)
+                    tmpUVal = mRegisters.Val(addrMode.Register1)
                     mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
-                    mRegisters.Val(addrMode.Register2) = tmpVal
+                    mRegisters.Val(addrMode.Register2) = tmpUVal
                     clkCyc += 4
                 Else
                     RAMn = mRegisters.Val(addrMode.Register1)
@@ -1340,9 +1344,9 @@ Public Class X8086
 
             Case &H90 To &H97 ' xchg reg with acc
                 SetRegister1Alt(opCode)
-                tmpVal = mRegisters.AX
+                tmpUVal = mRegisters.AX
                 mRegisters.AX = mRegisters.Val(addrMode.Register1)
-                mRegisters.Val(addrMode.Register1) = tmpVal
+                mRegisters.Val(addrMode.Register1) = tmpUVal
                 clkCyc += 3
 
             Case &H98 ' cbw
@@ -1355,12 +1359,12 @@ Public Class X8086
 
             Case &H9A ' call direct intersegment
                 IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
-                tmpVal = Param(ParamIndex.Second, , DataSize.Word)
+                tmpUVal = Param(ParamIndex.Second, , DataSize.Word)
 
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
 
-                mRegisters.CS = tmpVal
+                mRegisters.CS = tmpUVal
 
                 clkCyc += 28
 
@@ -1397,7 +1401,6 @@ Public Class X8086
 
             Case &HA4 To &HA7, &HAA To &HAF
                 HandleREPMode()
-                newPrefix = True
 
             Case &HA8 ' test al imm8
                 Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
@@ -1485,10 +1488,10 @@ Public Class X8086
                 End If
 
             Case &HCA ' ret intersegment adding imm to sp (ret n /retf)
-                tmpVal = Param(ParamIndex.First, , DataSize.Word)
+                tmpUVal = Param(ParamIndex.First, , DataSize.Word)
                 IPAddrOffet = PopFromStack()
                 mRegisters.CS = PopFromStack()
-                mRegisters.SP += tmpVal
+                mRegisters.SP += tmpUVal
                 clkCyc += 17
 
             Case &HCB ' ret intersegment (retf)
@@ -1521,13 +1524,13 @@ Public Class X8086
             Case &HD0 To &HD3 : ExecuteGroup2()
 
             Case &HD4 ' aam
-                tmpVal = Param(ParamIndex.First, , DataSize.Byte)
-                If tmpVal = 0 Then
+                tmpUVal = Param(ParamIndex.First, , DataSize.Byte)
+                If tmpUVal = 0 Then
                     HandleInterrupt(0, True)
                     Exit Select
                 End If
-                mRegisters.AH = mRegisters.AL \ tmpVal
-                mRegisters.AL = mRegisters.AL Mod tmpVal
+                mRegisters.AH = mRegisters.AL \ tmpUVal
+                mRegisters.AL = mRegisters.AL Mod tmpUVal
                 SetSZPFlags(mRegisters.AX, DataSize.Word)
                 clkCyc += 83
 
@@ -1724,12 +1727,6 @@ Public Class X8086
                 mRegisters.ResetActiveSegment()
                 clkCyc += 2
             End If
-        End If
-
-        ' QBasic
-        If mRegisters.CS = &H4936 AndAlso mRegisters.IP = &H7F8 Then
-            mDebugMode = True
-            FlushCycles()
         End If
     End Sub
 
@@ -1951,14 +1948,13 @@ Public Class X8086
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue And mask80_8000)
                     mFlags.CF = oldValue And 1
-                    mFlags.OF = 0
                 Else
-                    oldValue = oldValue Or If((oldValue And mask80_8000) <> 0, maskFF00_FFFF0000, 0)
+                    oldValue = oldValue Or If((oldValue And mask80_8000) = 0, 0, maskFF00_FFFF0000)
                     newValue = oldValue >> If(count >= mask8_16, mask07_15, count - 1)
                     mFlags.CF = newValue And 1
-                    mFlags.OF = 0
                     newValue = (newValue >> 1) And maskFF_FFFF
                 End If
+                mFlags.OF = 0
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case Else
@@ -1997,13 +1993,13 @@ Public Class X8086
             Case 3 ' 011    --  neg
                 If addrMode.IsDirect Then
                     Eval(0, mRegisters.Val(addrMode.Register2), Operation.Substract, addrMode.Size)
-                    tmpVal = (Not mRegisters.Val(addrMode.Register2)) + 1
-                    mRegisters.Val(addrMode.Register2) = tmpVal
+                    tmpUVal = (Not mRegisters.Val(addrMode.Register2)) + 1
+                    mRegisters.Val(addrMode.Register2) = tmpUVal
                     clkCyc += 3
                 Else
                     Eval(0, addrMode.IndMem, Operation.Substract, addrMode.Size)
-                    tmpVal = (Not addrMode.IndMem) + 1
-                    RAMn = tmpVal
+                    tmpUVal = (Not addrMode.IndMem) + 1
+                    RAMn = tmpUVal
                     clkCyc += 16
                 End If
                 'mFlags.CF = If((tmpVal And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)) = 0, 0, 1)
@@ -2014,9 +2010,9 @@ Public Class X8086
                         mRegisters.AX = mRegisters.Val(addrMode.Register2) * mRegisters.AL
                         clkCyc += 70
                     Else
-                        tmpVal = CUInt(mRegisters.Val(addrMode.Register2)) * mRegisters.AX
-                        mRegisters.AX = tmpVal
-                        mRegisters.DX = tmpVal >> 16
+                        tmpUVal = CUInt(mRegisters.Val(addrMode.Register2)) * mRegisters.AX
+                        mRegisters.AX = tmpUVal
+                        mRegisters.DX = tmpUVal >> 16
                         clkCyc += 118
                     End If
                 Else
@@ -2024,15 +2020,15 @@ Public Class X8086
                         mRegisters.AX = addrMode.IndMem * mRegisters.AL
                         clkCyc += 76
                     Else
-                        tmpVal = CUInt(addrMode.IndMem) * mRegisters.AX
-                        mRegisters.AX = tmpVal
-                        mRegisters.DX = tmpVal >> 16
+                        tmpUVal = CUInt(addrMode.IndMem) * mRegisters.AX
+                        mRegisters.AX = tmpUVal
+                        mRegisters.DX = tmpUVal >> 16
                         clkCyc += 134
                     End If
                 End If
 
-                SetSZPFlags(tmpVal, addrMode.Size)
-                If (tmpVal And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
+                SetSZPFlags(tmpUVal, addrMode.Size)
+                If (tmpUVal And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
                 Else
@@ -2050,8 +2046,8 @@ Public Class X8086
                         m1 = If((m1 And &H80) <> 0, m1 Or &HFFFFFF00UI, m1)
                         m2 = If((m2 And &H80) <> 0, m2 Or &HFFFFFF00UI, m2)
 
-                        tmpVal = m1 * m2
-                        mRegisters.AX = tmpVal
+                        tmpUVal = m1 * m2
+                        mRegisters.AX = tmpUVal
                         clkCyc += 70
                     Else
                         Dim m1 As UInt32 = mRegisters.AX
@@ -2060,9 +2056,9 @@ Public Class X8086
                         m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF0000UI, m1)
                         m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
 
-                        tmpVal = m1 * m2
-                        mRegisters.AX = tmpVal
-                        mRegisters.DX = tmpVal >> 16
+                        tmpUVal = m1 * m2
+                        mRegisters.AX = tmpUVal
+                        mRegisters.DX = tmpUVal >> 16
                         clkCyc += 118
                     End If
                 Else
@@ -2073,8 +2069,8 @@ Public Class X8086
                         m1 = If((m1 And &H80) <> 0, m1 Or &HFFFFFF00UI, m1)
                         m2 = If((m2 And &H80) <> 0, m2 Or &HFFFFFF00UI, m2)
 
-                        tmpVal = m1 * m2
-                        mRegisters.AX = tmpVal
+                        tmpUVal = m1 * m2
+                        mRegisters.AX = tmpUVal
                         clkCyc += 76
                     Else
                         Dim m1 As UInt32 = mRegisters.AX
@@ -2083,9 +2079,9 @@ Public Class X8086
                         m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF0000UI, m1)
                         m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
 
-                        tmpVal = m1 * m2
-                        mRegisters.AX = tmpVal
-                        mRegisters.DX = tmpVal >> 16
+                        tmpUVal = m1 * m2
+                        mRegisters.AX = tmpUVal
+                        mRegisters.DX = tmpUVal >> 16
                         clkCyc += 134
                     End If
                 End If
@@ -2302,28 +2298,38 @@ Public Class X8086
     End Sub
 
     Private Sub HandleREPMode()
+        tmpUVal = mRegisters.ActiveSegmentValue
+        tmpVal = If((opCode And 1) = 1, 2, 1) * If(mFlags.DF = 0, 1, -1)
+
         If repeLoopMode = REPLoopModes.None Then
             ExecStringOpCode()
         Else
-            While mRegisters.CX > 0
-                mRegisters.CX -= 1
-                If ExecStringOpCode() Then
-                    If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
-                       (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
-                        Exit While
+            If mDebugMode Then
+                If mRegisters.CX > 0 Then
+                    mRegisters.CX -= 1
+                    If ExecStringOpCode() Then
+                        If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
+                           (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
+                            repeLoopMode = REPLoopModes.None
+                            Exit Sub
+                        End If
                     End If
-                End If
 
-                If mDebugMode Then ' TODO: Need to add a parameter to make this optional
                     IncIP(-opCodeSize)
-                    Exit Sub
                 End If
-            End While
-
-            repeLoopMode = REPLoopModes.None
+            Else
+                While mRegisters.CX > 0
+                    mRegisters.CX -= 1
+                    If ExecStringOpCode() Then
+                        If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
+                           (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
+                            Exit While
+                        End If
+                    End If
+                End While
+                repeLoopMode = REPLoopModes.None
+            End If
         End If
-
-        mRegisters.ResetActiveSegment()
     End Sub
 
     Private Function ExecStringOpCode() As Boolean
@@ -2331,110 +2337,66 @@ Public Class X8086
 
         Select Case opCode
             Case &HA4  ' movsb
-                RAM8(mRegisters.ES, mRegisters.DI) = RAM8(mRegisters.ActiveSegmentValue, mRegisters.SI)
-                If mFlags.DF = 0 Then
-                    mRegisters.SI += 1
-                    mRegisters.DI += 1
-                Else
-                    mRegisters.SI -= 1
-                    mRegisters.DI -= 1
-                End If
+                RAM8(mRegisters.ES, mRegisters.DI,, True) = RAM8(tmpUVal, mRegisters.SI,, True)
+                mRegisters.SI += tmpVal
+                mRegisters.DI += tmpVal
                 clkCyc += 18
                 Return False
 
             Case &HA5 ' movsw
-                RAM16(mRegisters.ES, mRegisters.DI) = RAM16(mRegisters.ActiveSegmentValue, mRegisters.SI)
-                If mFlags.DF = 0 Then
-                    mRegisters.SI += 2
-                    mRegisters.DI += 2
-                Else
-                    mRegisters.SI -= 2
-                    mRegisters.DI -= 2
-                End If
+                RAM16(mRegisters.ES, mRegisters.DI,, True) = RAM16(tmpUVal, mRegisters.SI,, True)
+                mRegisters.SI += tmpVal
+                mRegisters.DI += tmpVal
                 clkCyc += 18
                 Return False
 
             Case &HA6  ' cmpsb
-                Eval(RAM8(mRegisters.ActiveSegmentValue, mRegisters.SI,, True), RAM8(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Byte)
-                If mFlags.DF = 0 Then
-                    mRegisters.SI += 1
-                    mRegisters.DI += 1
-                Else
-                    mRegisters.SI -= 1
-                    mRegisters.DI -= 1
-                End If
+                Eval(RAM8(tmpUVal, mRegisters.SI,, True), RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
+                mRegisters.SI += tmpVal
+                mRegisters.DI += tmpVal
                 clkCyc += 22
                 Return True
 
             Case &HA7 ' cmpsw
-                Eval(RAM16(mRegisters.ActiveSegmentValue, mRegisters.SI,, True), RAM16(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Word)
-                If mFlags.DF = 0 Then
-                    mRegisters.SI += 2
-                    mRegisters.DI += 2
-                Else
-                    mRegisters.SI -= 2
-                    mRegisters.DI -= 2
-                End If
+                Eval(RAM16(tmpUVal, mRegisters.SI,, True), RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
+                mRegisters.SI += tmpVal
+                mRegisters.DI += tmpVal
                 clkCyc += 22
                 Return True
 
             Case &HAA ' stosb
-                RAM8(mRegisters.ES, mRegisters.DI) = mRegisters.AL
-                If mFlags.DF = 0 Then
-                    mRegisters.DI += 1
-                Else
-                    mRegisters.DI -= 1
-                End If
+                RAM8(mRegisters.ES, mRegisters.DI,, True) = mRegisters.AL
+                mRegisters.DI += tmpVal
                 clkCyc += 11
                 Return False
 
             Case &HAB 'stosw
-                RAM16(mRegisters.ES, mRegisters.DI) = mRegisters.AX
-                If mFlags.DF = 0 Then
-                    mRegisters.DI += 2
-                Else
-                    mRegisters.DI -= 2
-                End If
+                RAM16(mRegisters.ES, mRegisters.DI,, True) = mRegisters.AX
+                mRegisters.DI += tmpVal
                 clkCyc += 11
                 Return False
 
             Case &HAC ' lodsb
-                mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.SI)
-                If mFlags.DF = 0 Then
-                    mRegisters.SI += 1
-                Else
-                    mRegisters.SI -= 1
-                End If
+                mRegisters.AL = RAM8(tmpUVal, mRegisters.SI,, True)
+                mRegisters.SI += tmpVal
                 clkCyc += 12
                 Return False
 
             Case &HAD ' lodsw
-                mRegisters.AX = RAM16(mRegisters.ActiveSegmentValue, mRegisters.SI)
-                If mFlags.DF = 0 Then
-                    mRegisters.SI += 2
-                Else
-                    mRegisters.SI -= 2
-                End If
+                mRegisters.AX = RAM16(tmpUVal, mRegisters.SI,, True)
+                mRegisters.SI += tmpVal
                 clkCyc += 16
                 Return False
 
             Case &HAE ' scasb
                 Eval(mRegisters.AL, RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
-                If mFlags.DF = 0 Then
-                    mRegisters.DI += 1
-                Else
-                    mRegisters.DI -= 1
-                End If
+                mRegisters.DI += tmpVal
                 clkCyc += 15
                 Return True
 
             Case &HAF ' scasw
                 Eval(mRegisters.AX, RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
-                If mFlags.DF = 0 Then
-                    mRegisters.DI += 2
-                Else
-                    mRegisters.DI -= 2
-                End If
+                mRegisters.DI += tmpVal
                 clkCyc += 15
                 Return True
 

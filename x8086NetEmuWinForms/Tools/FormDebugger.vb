@@ -234,18 +234,21 @@ Public Class FormDebugger
     End Sub
 
     Private Sub ButtonDecIP_Click(sender As Object, e As EventArgs) Handles ButtonDecIP.Click
-        Dim IP As Integer = Val("&h" + TextBoxIP.Text) And &HFFFF
-        Dim CS As Integer = Val("&h" + TextBoxCS.Text) And &HFFFF
+        'Dim IP As Integer = Val("&h" + TextBoxIP.Text)
+        'Dim CS As Integer = Val("&h" + TextBoxCS.Text)
 
-        For i As Integer = 1 To 7
-            Dim previous = Emulator.Decode(CS, IP - i)
-            If previous.IsValid AndAlso previous.Size = i Then
-                If Emulator.Decode(CS, IP - i + previous.Size) = activeInstruction Then
-                    TextBoxIP.Text = (IP - 1).ToString("X4")
-                    Exit For
-                End If
-            End If
-        Next
+        'For i As Integer = 1 To 14
+        '    Dim previous As X8086.Instruction = Emulator.Decode(CS, IP - i)
+        '    If previous.IsValid AndAlso previous.Size = i Then
+        '        If Emulator.Decode(CS, IP - i + previous.Size) = activeInstruction Then
+        '            mEmulator.Registers.IP = IP - i
+        '            Exit For
+        '        End If
+        '    End If
+        'Next
+
+        mEmulator.Registers.IP -= 1
+        RefreshCodeListing()
     End Sub
 
     Private Sub ButtonBack_MouseDown(sender As Object, e As MouseEventArgs) Handles ButtonBack.MouseDown

@@ -258,17 +258,21 @@ Public Class FormEmulator
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", True))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", True))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
+        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
 
 #If Win32 Then
-        cpu.Adapters.Add(New SpeakerAdpater(cpu))
-        cpu.Adapters.Add(New AdlibAdapter(cpu))
-        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
+        'cpu.Adapters.Add(New SpeakerAdpater(cpu))
+        'cpu.Adapters.Add(New AdlibAdapter(cpu))
+        'cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 #End If
 
         cpu.VideoAdapter?.AutoSize()
 
+#If DEBUG Then
+        X8086.LogToConsole = True
+#Else
         X8086.LogToConsole = False
+#End If
 
         'cpu.LoadBIN("80186_tests\jump2.bin", &HF000, &H0)
         'cpu.Run(True, &HF000, 0)
@@ -281,7 +285,7 @@ Public Class FormEmulator
         LoadSettings(True)
     End Sub
 
-    ' Code demonstration on how to attach hooks to the CPU
+    ' Code demonstration on how to attach custom hooks
     ' http://stanislavs.org/helppc/int_21.html
     Private Sub AddCustomHooks()
         cpu.TryAttachHook(&H19, Function() As Boolean ' Reset running program on bootstrap
@@ -295,38 +299,79 @@ Public Class FormEmulator
                                 End Function)
 
         cpu.TryAttachHook(&H21, Function() As Boolean
+#If DEBUG Then
+                                    'Debug.WriteLine($"{cpu.Registers.AH.ToString("X2")}: {GetInt21FunctionDescription(cpu.Registers.AH)}")
+#End If
+
                                     Select Case cpu.Registers.AH
+#If DEBUG Then
+                                        Case &H3D
+                                            Dim mode As String = ""
+
+                                            Select Case (cpu.Registers.AL And &H3)
+                                                Case 0 : mode = "R/O" ' Read Only
+                                                Case 1 : mode = "W/O" ' Write Only
+                                                Case 2 : mode = "R/W" ' Read/Write
+                                            End Select
+
+                                            mode += "|"
+                                            Select Case ((cpu.Registers.AL >> 4) And &H3)
+                                                Case 0 : mode += "EXM" ' Exclusive Mode
+                                                Case 1 : mode += "!RW" ' Deny Others Read/Write
+                                                Case 2 : mode += "! W" ' Deny Others Write
+                                                Case 3 : mode += "!R " ' Deny Others Read
+                                                Case 4 : mode += "FUL" ' Full Access to All
+                                            End Select
+                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} {mode}: {GetInt21FunctionFileName(False)}", X8086.NotificationReasons.Dbg)
+
+                                        Case &H11
+                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} Search First: {GetInt21FunctionFileName(True)} -> {cpu.Registers.DS:X4}:{cpu.Registers.DX:X4}", X8086.NotificationReasons.Dbg)
+
+                                        Case &H12
+                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} Search Next: {GetInt21FunctionFileName(True)} -> {cpu.Registers.DS:X4}:{cpu.Registers.DX:X4}", X8086.NotificationReasons.Dbg)
+
+                                        Case &H44
+                                            Dim fnc As String = ""
+
+                                            Select Case cpu.Registers.AL
+                                                Case &H0 : fnc = "Get Device Information"
+                                                Case &H1 : fnc = "Set Device Information"
+                                                Case &H2 : fnc = "Read From Character Device"
+                                                Case &H3 : fnc = "Write to Character Device"
+                                                Case &H4 : fnc = "Read From Block Device"
+                                                Case &H5 : fnc = "Write to Block Device"
+                                                Case &H6 : fnc = "Get Input Status"
+                                                Case &H7 : fnc = "Get Output Status"
+                                                Case &H8 : fnc = "Device Removable Query"
+                                                Case &H9 : fnc = "Device Local or Remote Query"
+                                                Case &HA : fnc = "Handle Local or Remote Query"
+                                                Case &HB : fnc = "Set Sharing Retry Count"
+                                                Case &HC : fnc = "Generic I/O for Handles"
+                                                Case &HD : fnc = "Generic I/O for Block Devices (3.2+)"
+                                                Case &HE : fnc = "Get Logical Drive (3.2+)"
+                                                Case &HF : fnc = "Set Logical Drive (3.2+)"
+                                                Case Else : fnc = $"Unknown Function '{cpu.Registers.AL:X2}'"
+                                            End Select
+                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} {fnc}: {cpu.Registers.BL}[{cpu.Registers.CX}] -> {cpu.Registers.DS:X4}:{cpu.Registers.DX:X4}", X8086.NotificationReasons.Dbg)
+#End If
+
                                         Case &H0, &H4C, &H31
                                             runningApp = ""
+
                                         Case &H4B ' http://stanislavs.org/helppc/int_21-4b.html
                                             Dim mode As String = ""
 
-                                            Dim GetFileName = Function() As String
-                                                                  Dim b As New List(Of Byte)
-                                                                  Dim addr As UInt32 = X8086.SegmentOffetToAbsolute(cpu.Registers.DS, cpu.Registers.DX)
-                                                                  While cpu.Memory(addr) <> 0
-                                                                      b.Add(cpu.Memory(addr))
-                                                                      addr += 1
-                                                                  End While
-                                                                  Return System.Text.Encoding.ASCII.GetString(b.ToArray())
-                                                              End Function
-
-                                            runningApp = GetFileName()
+                                            runningApp = GetInt21FunctionFileName(False)
 
                                             Select Case cpu.Registers.AL
                                                 Case 0 : mode = "L&X" ' Load & Execute
                                                 Case 1 : mode = "LOD" ' Load
                                                 Case 2 : mode = "UNK" ' Unknown
                                                 Case 3 : mode = "LOO" ' Load Overlay
-                                                Case 4 : mode = "MSC" ' Load & Execute in background
+                                                Case 4 : mode = "LXB" ' Load & Execute in background
                                             End Select
+                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} {mode}: {runningApp}", X8086.NotificationReasons.Dbg)
 
-                                            'Const offset As UInt32 = &H12
-                                            'Dim cs As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset)
-                                            'Dim ip As UInt32 = cpu.RAM16(cpu.Registers.ES, cpu.Registers.BX, offset + If(cpu.Registers.AL = 1, 4, 2))
-                                            'X8086.Notify($"DOS {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
-                                            X8086.Notify($"DOS {mode}: {runningApp}", X8086.NotificationReasons.Dbg)
-                                            'X8086.Notify($"   CS:IP {cpu.Registers.CS:X4}:{cpu.Registers.IP + 2:X4}", X8086.NotificationReasons.Dbg)
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.
@@ -336,6 +381,139 @@ Public Class FormEmulator
                                     Return False
                                 End Function)
     End Sub
+
+    Private Function GetInt21FunctionFileName(isFCB As Boolean) As String
+        Dim b As New List(Of Byte)
+        Dim addr As UInt32 = X8086.SegmentOffetToAbsolute(cpu.Registers.DS, cpu.Registers.DX)
+        If isFCB Then
+            For i As Integer = 1 To 11
+                b.Add(cpu.Memory(addr + i))
+            Next
+        Else
+            While cpu.Memory(addr) <> 0
+                b.Add(cpu.Memory(addr))
+                addr += 1
+            End While
+        End If
+        Return System.Text.Encoding.ASCII.GetString(b.ToArray())
+    End Function
+
+#If DEBUG Then
+    Private Function GetInt21FunctionDescription(int21Function As Integer) As String
+        Select Case int21Function
+            Case &H0 : Return "Program terminate"
+            Case &H1 : Return "Keyboard input with echo"
+            Case &H2 : Return "Display output"
+            Case &H3 : Return "Wait for auxiliary device input"
+            Case &H4 : Return "Auxiliary output"
+            Case &H5 : Return "Printer output"
+            Case &H6 : Return "Direct console I/O"
+            Case &H7 : Return "Wait for direct console input without echo"
+            Case &H8 : Return "Wait for console input without echo"
+            Case &H9 : Return "Print string"
+            Case &HA : Return "Buffered keyboard input"
+            Case &HB : Return "Check standard input status"
+            Case &HC : Return "Clear keyboard buffer, invoke keyboard function"
+            Case &HD : Return "Disk reset"
+            Case &HE : Return "Select disk"
+            Case &HF : Return "Open file using FCB"
+            Case &H10 : Return "Close file using FCB"
+            Case &H11 : Return "Search for first entry using FCB"
+            Case &H12 : Return "Search for next entry using FCB"
+            Case &H13 : Return "Delete file using FCB"
+            Case &H14 : Return "Sequential read using FCB"
+            Case &H15 : Return "Sequential write using FCB"
+            Case &H16 : Return "Create a file using FCB"
+            Case &H17 : Return "Rename file using FCB"
+            Case &H18 : Return "DOS dummy function (CP/M) (not used/listed)"
+            Case &H19 : Return "Get current default drive"
+            Case &H1A : Return "Set disk transfer address"
+            Case &H1B : Return "Get allocation table information"
+            Case &H1C : Return "Get allocation table info for specific device"
+            Case &H1D : Return "DOS dummy function (CP/M) (not used/listed)"
+            Case &H1E : Return "DOS dummy function (CP/M) (not used/listed)"
+            Case &H1F : Return "Get pointer to default drive parameter table (undocumented)"
+            Case &H20 : Return "DOS dummy function (CP/M) (not used/listed)"
+            Case &H21 : Return "Random read using FCB"
+            Case &H22 : Return "Random write using FCB"
+            Case &H23 : Return "Get file size using FCB"
+            Case &H24 : Return "Set relative record field for FCB"
+            Case &H25 : Return "Set interrupt vector"
+            Case &H26 : Return "Create new program segment"
+            Case &H27 : Return "Random block read using FCB"
+            Case &H28 : Return "Random block write using FCB"
+            Case &H29 : Return "Parse filename for FCB"
+            Case &H2A : Return "Get date"
+            Case &H2B : Return "Set date"
+            Case &H2C : Return "Get time"
+            Case &H2D : Return "Set time"
+            Case &H2E : Return "Set/reset verify switch"
+            Case &H2F : Return "Get disk transfer address"
+            Case &H30 : Return "Get DOS version number"
+            Case &H31 : Return "Terminate process and remain resident"
+            Case &H32 : Return "Get pointer to drive parameter table (undocumented)"
+            Case &H33 : Return "Get/set Ctrl-Break check state & get boot drive"
+            Case &H34 : Return "Get address to DOS critical flag (undocumented)"
+            Case &H35 : Return "Get vector"
+            Case &H36 : Return "Get disk free space"
+            Case &H37 : Return "Get/set switch character (undocumented)"
+            Case &H38 : Return "Get/set country dependent information"
+            Case &H39 : Return "Create subdirectory (mkdir)"
+            Case &H3A : Return "Remove subdirectory (rmdir)"
+            Case &H3B : Return "Change current subdirectory (chdir)"
+            Case &H3C : Return "Create file using handle"
+            Case &H3D : Return "Open file using handle"
+            Case &H3E : Return "Close file using handle"
+            Case &H3F : Return "Read file or device using handle"
+            Case &H40 : Return "Write file or device using handle"
+            Case &H41 : Return "Delete file"
+            Case &H42 : Return "Move file pointer using handle"
+            Case &H43 : Return "Change file mode"
+            Case &H44 : Return "I/O control for devices (IOCTL)"
+            Case &H45 : Return "Duplicate file handle"
+            Case &H46 : Return "Force duplicate file handle"
+            Case &H47 : Return "Get current directory"
+            Case &H48 : Return "Allocate memory blocks"
+            Case &H49 : Return "Free allocated memory blocks"
+            Case &H4A : Return "Modify allocated memory blocks"
+            Case &H4B : Return "EXEC load and execute program (func 1 undocumented)"
+            Case &H4C : Return "Terminate process with return code"
+            Case &H4D : Return "Get return code of a sub-process"
+            Case &H4E : Return "Find first matching file"
+            Case &H4F : Return "Find next matching file"
+            Case &H50 : Return "Set current process id (undocumented)"
+            Case &H51 : Return "Get current process id (undocumented)"
+            Case &H52 : Return "Get pointer to DOS""INVARS"" (undocumented)"
+            Case &H53 : Return "Generate drive parameter table (undocumented)"
+            Case &H54 : Return "Get verify setting"
+            Case &H55 : Return "Create PSP (undocumented)"
+            Case &H56 : Return "Rename file"
+            Case &H57 : Return "Get/set file date and time using handle"
+            Case &H58 : Return "Get/set memory allocation strategy (3.x+, undocumented)"
+            Case &H59 : Return "Get extended error information (3.x+)"
+            Case &H5A : Return "Create temporary file (3.x+)"
+            Case &H5B : Return "Create new file (3.x+)"
+            Case &H5C : Return "Lock/unlock file access (3.x+)"
+            Case &H5D : Return "Critical error information (undocumented 3.x+)"
+            Case &H5E : Return "Network services (3.1+)"
+            Case &H5F : Return "Network redirection (3.1+)"
+            Case &H60 : Return "Get fully qualified file name (undocumented 3.x+)"
+            Case &H62 : Return "Get address of program segment prefix (3.x+)"
+            Case &H63 : Return "Get system lead byte table (MSDOS 2.25 only)"
+            Case &H64 : Return "Set device driver look ahead(undocumented 3.3+)"
+            Case &H65 : Return "Get extended country information (3.3+)"
+            Case &H66 : Return "Get/set global code page (3.3+)"
+            Case &H67 : Return "Set handle count (3.3+)"
+            Case &H68 : Return "Flush buffer (3.3+)"
+            Case &H69 : Return "Get/set disk serial number (undocumented DOS 4.0+)"
+            Case &H6A : Return "DOS reserved (DOS 4.0+)"
+            Case &H6B : Return "DOS reserved"
+            Case &H6C : Return "Extended open/create (4.x+)"
+            Case &HF8 : Return "Set OEM INT 21 handler (functions F9-FF) (undocumented)"
+            Case Else : Return "UNKNOWN"
+        End Select
+    End Function
+#End If
 
     Private Sub SetupVideoPortEventHandlers()
         If Not (TypeOf cpu.VideoAdapter Is CGAWinForms OrElse TypeOf cpu.VideoAdapter Is VGAWinForms) Then Exit Sub
@@ -414,11 +592,13 @@ Public Class FormEmulator
     End Sub
 
     Private Sub CaptureMouse()
-        Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
-        CursorVisible = False
-        If cpu.Mouse IsNot Nothing Then
-            cpu.Mouse.MidPoint = PointToClient(New Point(videoPort.Width / 2, videoPort.Height / 2))
-            cpu.Mouse.IsCaptured = True
+        If cpu.Adapters.Any(Function(a) a.Type = Adapter.AdapterType.SerialMouseCOM1) Then
+            Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
+            CursorVisible = False
+            If cpu.Mouse IsNot Nothing Then
+                cpu.Mouse.MidPoint = PointToClient(New Point(videoPort.Width / 2, videoPort.Height / 2))
+                cpu.Mouse.IsCaptured = True
+            End If
         End If
     End Sub
 

@@ -100,8 +100,8 @@
     End Function
 
     Public Function Decode(segment As Integer, offset As Integer, Optional force As Boolean = False) As Instruction
-        Dim r = mRegisters.Clone()
-        Dim f = mFlags.Clone()
+        Dim r As GPRegisters = mRegisters.Clone()
+        Dim f As GPFlags = mFlags.Clone()
         If (Not force) AndAlso (mIsExecuting OrElse isDecoding) Then
             Return InvalidOpCode()
         Else

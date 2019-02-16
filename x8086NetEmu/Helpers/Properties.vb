@@ -80,6 +80,7 @@
                 debugWaiter.Set()
             Else
                 mDebugMode = value
+                FlushCycles()
             End If
         End Set
     End Property
