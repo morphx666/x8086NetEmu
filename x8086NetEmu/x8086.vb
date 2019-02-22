@@ -601,10 +601,10 @@ Public Class X8086
             HandlePendingInterrupt()
         End If
 
-        'Prefetch()
-        'opCode = Prefetch.Buffer(0)
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
+
+        ' If opCode = &HB9 AndAlso RAM8(mRegisters.CS, mRegisters.IP + 1) = &H7C AndAlso RAM8(mRegisters.CS, mRegisters.IP + 2) = &H40 Then DebugMode = True
 
         opCodes(opCode).Invoke()
 
@@ -636,8 +636,6 @@ Public Class X8086
             HandlePendingInterrupt()
         End If
 
-        'Prefetch()
-        'opCode = Prefetch.Buffer(0)
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
 
@@ -1303,7 +1301,8 @@ Public Class X8086
                 SetAddressing(DataSize.Word)
                 SetRegister2ToSegReg()
                 If addrMode.IsDirect Then
-                    SetRegister1Alt(ParamNOPS(ParamIndex.First, , DataSize.Byte))
+                    'SetRegister1Alt(ParamNOPS(ParamIndex.First, , DataSize.Byte))
+                    SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
                     mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
                     clkCyc += 2
                 Else

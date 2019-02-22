@@ -144,7 +144,7 @@ AddressOf _88_8C,
 AddressOf _88_8C,
 AddressOf _8D,  ' lea
 AddressOf _8E,  ' mov reg/mem to seg reg
-AddressOf _8F,      ' pop reg/mem
+AddressOf _8F,  ' pop reg/mem
 AddressOf _90_97,   ' xchg reg with acc
 AddressOf _90_97,
 AddressOf _90_97,
@@ -154,13 +154,13 @@ AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _98,  ' cbw
-AddressOf _99,      ' cwd
+AddressOf _99,  ' cwd
 AddressOf _9A,  ' call direct intersegment
 AddressOf _9B,  ' wait
 AddressOf _9C,  ' pushf
 AddressOf _9D,  ' popf
 AddressOf _9E,  ' sahf
-AddressOf _9F,      ' lahf
+AddressOf _9F,  ' lahf
 AddressOf _A0_A3,   ' mov mem to acc | mov acc to mem
 AddressOf _A0_A3,
 AddressOf _A0_A3,
@@ -170,7 +170,7 @@ AddressOf _A4_A7,
 AddressOf _A4_A7,
 AddressOf _A4_A7,
 AddressOf _A8,  ' test al imm8
-AddressOf _A9,      ' test ax imm16
+AddressOf _A9,  ' test ax imm16
 AddressOf _AA_AF,
 AddressOf _AA_AF,
 AddressOf _AA_AF,
@@ -989,7 +989,8 @@ AddressOf _FE_FF}
         SetAddressing(DataSize.Word)
         SetRegister2ToSegReg()
         If addrMode.IsDirect Then
-            SetRegister1Alt(ParamNOPS(ParamIndex.First, , DataSize.Byte))
+            'SetRegister1Alt(ParamNOPS(ParamIndex.First, , DataSize.Byte))
+            SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
             mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
             clkCyc += 2
         Else

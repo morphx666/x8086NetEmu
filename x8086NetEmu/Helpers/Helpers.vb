@@ -87,7 +87,8 @@
     End Sub
 
     Private Sub SetAddressing(Optional forceSize As DataSize = DataSize.UseAddressingMode)
-        addrMode.Decode(opCode, ParamNOPS(ParamIndex.First, , DataSize.Byte))
+        'addrMode.Decode(opCode, ParamNOPS(ParamIndex.First, , DataSize.Byte))
+        addrMode.Decode(opCode, RAM8(mRegisters.CS, mRegisters.IP + 1))
 
         If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
 
