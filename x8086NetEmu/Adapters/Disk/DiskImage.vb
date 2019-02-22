@@ -247,7 +247,7 @@ Public Class DiskImage
         Return True
     End Function
 
-    Public Function LBA(cylinder As UInt16, head As UInt16, sector As UInt16) As ULong
+    Public Function LBA(cylinder As UInt32, head As UInt32, sector As UInt32) As UInt32
         If mStatus <> ImageStatus.DiskLoaded Then Return -1
 
         cylinder = cylinder Or ((sector And &HC0) << 2)
@@ -255,7 +255,7 @@ Public Class DiskImage
 
         If cylinder >= mCylinders OrElse sector = 0 OrElse sector > mSectors OrElse head >= mHeads Then Return -1
 
-        Return (((CUInt(cylinder) * mHeads) + head) * mSectors + sector - 1) * mSectorSize
+        Return (((cylinder * mHeads) + head) * mSectors + sector - 1) * mSectorSize
     End Function
 
     Public Sub Close()

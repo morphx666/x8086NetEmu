@@ -11,6 +11,7 @@
     Private cmosA As Integer = &H26
     Private cmosB As Integer = &H2
     Private cmosC As Integer = 0
+    Private cmosD As Integer = 0
     Private cmosData(128 - 1) As Integer
 
     Private periodicInt As Long
@@ -46,7 +47,7 @@
             ValidPortAddress.Add(i)
         Next
 
-        For i As Integer = &H2C0 To &H2CF
+        For i As Integer = &H240 To &H24F
             ValidPortAddress.Add(i)
         Next
 
@@ -126,7 +127,7 @@
             Case &HA : Return cmosA
             Case &HB : Return cmosB
             Case &HC : Return cmosC And (Not &HF0)
-            Case &HD : Return &HFF
+            Case &HD : Return cmosD
 
             Case &H32 : Return EncodeTime(Now.ToUniversalTime().Year \ 100)
         End Select
@@ -135,7 +136,7 @@
     End Function
 
     Public Overrides Sub Out(port As UInt32, value As UInt16)
-        If (port = &H70) OrElse (port = &H2C0) Then
+        If (port And 1) = 0 Then
             index = value And &H7F
         Else
             Select Case index
@@ -143,9 +144,12 @@
                     cmosA = value And &H7F
                     periodicInt = 1000 / (32768 >> (cmosA And &HF) - 1)
                 Case &HB : cmosB = value
+                Case &HC : cmosC = value
+                Case &HD : cmosD = value
                 Case Else : cmosData(index) = value
             End Select
         End If
+        cmosData(index) = value
     End Sub
 
     Public Overrides ReadOnly Property Name As String

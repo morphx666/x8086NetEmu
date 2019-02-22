@@ -31,6 +31,12 @@
         End Set
     End Property
 
+    Public ReadOnly Property REPELoopMode As REPLoopModes
+        Get
+            Return mRepeLoopMode
+        End Get
+    End Property
+
     Public ReadOnly Property Adapters As Adapters
         Get
             Return mAdapters

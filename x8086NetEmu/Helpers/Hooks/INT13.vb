@@ -63,7 +63,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
                 CopyToMemory(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
-                AL = bufSize / dskImg.SectorSize
+                AL = bufSize \ dskImg.SectorSize
 
             Case &H3 ' Write sectors
                 If dskImg Is Nothing Then
@@ -109,7 +109,7 @@ Partial Public Class X8086
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
-                AL = bufSize / dskImg.SectorSize
+                AL = bufSize \ dskImg.SectorSize
 
             Case &H4 ' Verify Sectors
                 If dskImg Is Nothing Then
@@ -137,7 +137,7 @@ Partial Public Class X8086
                                 mRegisters.ES,
                                 mRegisters.BX)
 
-                AL = bufSize / dskImg.SectorSize
+                AL = bufSize \ dskImg.SectorSize
                 ret = 0
 
             Case &H5 ' Format Track
@@ -374,7 +374,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
                 CopyToMemory(buf, X8086.SegmentOffetToAbsolute(seg, off))
-                AL = bufSize / dskImg.SectorSize
+                AL = bufSize \ dskImg.SectorSize
 
             Case &H43 ' Extended Sectors Write
                 If dskImg Is Nothing Then
@@ -417,7 +417,7 @@ Partial Public Class X8086
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
-                AL = bufSize / dskImg.SectorSize
+                AL = bufSize \ dskImg.SectorSize
 
             Case &H48 ' Extended get Drive Parameters
                 If dskImg Is Nothing Then
@@ -442,9 +442,8 @@ Partial Public Class X8086
                 ret = &H1
         End Select
 
-        ' Store return status
         If mRegisters.AH <> 0 Then
-            RAM8(&H40, &H41) = ret And &HFF
+            RAM8(&H40, &H41) = ret
             mRegisters.AX = (ret << 8) Or AL
         End If
         mFlags.CF = If(ret <> 0, 1, 0)

@@ -159,14 +159,12 @@ Public Class CGAWinForms
         Dim ctrlSize As Size
 
         If MainMode = MainModes.Text Then
-            '    'Using g As Graphics = mRenderControl.CreateGraphics()
             ctrlSize = New Size(mCellSize.Width * TextResolution.Width, mCellSize.Height * TextResolution.Height)
-            '    'End Using
         Else
             ctrlSize = New Size(GraphicsResolution.Width, GraphicsResolution.Height)
         End If
 
-        Dim frmSize = New Size(640 * Zoom, 400 * Zoom)
+        Dim frmSize As New Size(640 * Zoom, 400 * Zoom)
         mRenderControl.FindForm.ClientSize = frmSize
         mRenderControl.Size = frmSize
         If mCellSize.Width = 0 OrElse mCellSize.Height = 0 Then Exit Sub
@@ -207,14 +205,12 @@ Public Class CGAWinForms
 
     Protected Overrides Sub Render()
         If VideoEnabled Then
-            Try
-                SyncLock chars
-                    Select Case MainMode
-                        Case MainModes.Text : RenderText()
-                        Case MainModes.Graphics : RenderGraphics()
-                    End Select
-                End SyncLock
-            Catch : End Try
+            SyncLock chars
+                Select Case MainMode
+                    Case MainModes.Text : RenderText()
+                    Case MainModes.Graphics : RenderGraphics()
+                End Select
+            End SyncLock
         End If
     End Sub
 

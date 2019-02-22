@@ -672,7 +672,7 @@ Partial Class FormDebugger
         Me.ButtonStep.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ButtonStep.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.ButtonStep.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ButtonStep.Location = New System.Drawing.Point(942, 604)
+        Me.ButtonStep.Location = New System.Drawing.Point(942, 628)
         Me.ButtonStep.Name = "ButtonStep"
         Me.ButtonStep.Size = New System.Drawing.Size(97, 32)
         Me.ButtonStep.TabIndex = 13
@@ -692,7 +692,7 @@ Partial Class FormDebugger
         Me.ListViewCode.HideSelection = False
         Me.ListViewCode.Location = New System.Drawing.Point(551, 18)
         Me.ListViewCode.Name = "ListViewCode"
-        Me.ListViewCode.Size = New System.Drawing.Size(591, 578)
+        Me.ListViewCode.Size = New System.Drawing.Size(591, 602)
         Me.ListViewCode.TabIndex = 15
         Me.ListViewCode.UseCompatibleStateImageBehavior = False
         Me.ListViewCode.View = System.Windows.Forms.View.Details
@@ -718,7 +718,7 @@ Partial Class FormDebugger
         Me.ButtonRefresh.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ButtonRefresh.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.ButtonRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ButtonRefresh.Location = New System.Drawing.Point(839, 604)
+        Me.ButtonRefresh.Location = New System.Drawing.Point(839, 628)
         Me.ButtonRefresh.Name = "ButtonRefresh"
         Me.ButtonRefresh.Size = New System.Drawing.Size(97, 32)
         Me.ButtonRefresh.TabIndex = 12
@@ -756,7 +756,7 @@ Partial Class FormDebugger
         Me.TextBoxMem.Multiline = True
         Me.TextBoxMem.Name = "TextBoxMem"
         Me.TextBoxMem.ReadOnly = True
-        Me.TextBoxMem.Size = New System.Drawing.Size(533, 237)
+        Me.TextBoxMem.Size = New System.Drawing.Size(533, 249)
         Me.TextBoxMem.TabIndex = 7
         '
         'TextBoxMemSeg
@@ -788,7 +788,7 @@ Partial Class FormDebugger
         Me.ButtonRun.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ButtonRun.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.ButtonRun.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ButtonRun.Location = New System.Drawing.Point(1045, 604)
+        Me.ButtonRun.Location = New System.Drawing.Point(1045, 628)
         Me.ButtonRun.Name = "ButtonRun"
         Me.ButtonRun.Size = New System.Drawing.Size(97, 32)
         Me.ButtonRun.TabIndex = 14
@@ -800,7 +800,7 @@ Partial Class FormDebugger
         Me.ButtonReboot.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.ButtonReboot.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.ButtonReboot.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ButtonReboot.Location = New System.Drawing.Point(551, 604)
+        Me.ButtonReboot.Location = New System.Drawing.Point(551, 628)
         Me.ButtonReboot.Name = "ButtonReboot"
         Me.ButtonReboot.Size = New System.Drawing.Size(97, 32)
         Me.ButtonReboot.TabIndex = 10
@@ -834,7 +834,7 @@ Partial Class FormDebugger
         Me.CheckBoxTextVideoMemory.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.CheckBoxTextVideoMemory.AutoSize = True
         Me.CheckBoxTextVideoMemory.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxTextVideoMemory.Location = New System.Drawing.Point(345, 615)
+        Me.CheckBoxTextVideoMemory.Location = New System.Drawing.Point(345, 639)
         Me.CheckBoxTextVideoMemory.Name = "CheckBoxTextVideoMemory"
         Me.CheckBoxTextVideoMemory.Size = New System.Drawing.Size(12, 11)
         Me.CheckBoxTextVideoMemory.TabIndex = 8
@@ -846,7 +846,7 @@ Partial Class FormDebugger
         Me.CheckBoxBytesOrChars.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.CheckBoxBytesOrChars.AutoSize = True
         Me.CheckBoxBytesOrChars.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.CheckBoxBytesOrChars.Location = New System.Drawing.Point(821, 615)
+        Me.CheckBoxBytesOrChars.Location = New System.Drawing.Point(821, 639)
         Me.CheckBoxBytesOrChars.Name = "CheckBoxBytesOrChars"
         Me.CheckBoxBytesOrChars.Size = New System.Drawing.Size(12, 11)
         Me.CheckBoxBytesOrChars.TabIndex = 11
@@ -859,7 +859,7 @@ Partial Class FormDebugger
         Me.TextBoxSearch.BackColor = System.Drawing.Color.FromArgb(CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer), CType(CType(230, Byte), Integer))
         Me.TextBoxSearch.Font = New System.Drawing.Font("Consolas", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBoxSearch.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.TextBoxSearch.Location = New System.Drawing.Point(12, 607)
+        Me.TextBoxSearch.Location = New System.Drawing.Point(12, 631)
         Me.TextBoxSearch.Name = "TextBoxSearch"
         Me.TextBoxSearch.Size = New System.Drawing.Size(327, 26)
         Me.TextBoxSearch.TabIndex = 7
@@ -869,7 +869,7 @@ Partial Class FormDebugger
         Me.ButtonSearch.Anchor = CType((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.ButtonSearch.FlatAppearance.BorderColor = System.Drawing.Color.DimGray
         Me.ButtonSearch.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-        Me.ButtonSearch.Location = New System.Drawing.Point(366, 604)
+        Me.ButtonSearch.Location = New System.Drawing.Point(366, 628)
         Me.ButtonSearch.Name = "ButtonSearch"
         Me.ButtonSearch.Size = New System.Drawing.Size(97, 32)
         Me.ButtonSearch.TabIndex = 9
@@ -903,7 +903,7 @@ Partial Class FormDebugger
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(1154, 648)
+        Me.ClientSize = New System.Drawing.Size(1154, 672)
         Me.Controls.Add(Me.CheckBoxBytesOrChars)
         Me.Controls.Add(Me.ButtonMemForward)
         Me.Controls.Add(Me.ButtonMemBack)

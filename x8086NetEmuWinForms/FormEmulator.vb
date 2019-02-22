@@ -256,27 +256,27 @@ Public Class FormEmulator
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", True))
-        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", True))
+        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
+        cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
 
 #If Win32 Then
-        'cpu.Adapters.Add(New SpeakerAdpater(cpu))
-        'cpu.Adapters.Add(New AdlibAdapter(cpu))
+        cpu.Adapters.Add(New SpeakerAdpater(cpu))
+        cpu.Adapters.Add(New AdlibAdapter(cpu))
         'cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 #End If
 
         cpu.VideoAdapter?.AutoSize()
 
 #If DEBUG Then
-        X8086.LogToConsole = True
+        X8086.LogToConsole = False
 #Else
         X8086.LogToConsole = False
 #End If
 
         'cpu.LoadBIN("80186_tests\jump2.bin", &HF000, &H0)
         'cpu.Run(True, &HF000, 0)
-        cpu.Run()
+        cpu.Run(False)
         If cpu.DebugMode Then ShowDebugger()
 
         SetupVideoPortEventHandlers()
@@ -370,8 +370,22 @@ Public Class FormEmulator
                                                 Case 3 : mode = "LOO" ' Load Overlay
                                                 Case 4 : mode = "LXB" ' Load & Execute in background
                                             End Select
-                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} {mode}: {runningApp}", X8086.NotificationReasons.Dbg)
+                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
 
+                                            'cpu.DebugMode = True
+                                            'Dim iretCount As Integer
+                                            'Threading.Tasks.Task.Run(Sub()
+                                            '                             While cpu.IsExecuting
+                                            '                                 Threading.Thread.Sleep(100)
+                                            '                             End While
+                                            '                             While iretCount < 2
+                                            '                                 While cpu.RAM8(cpu.Registers.CS, cpu.Registers.IP) <> &HCF
+                                            '                                     cpu.StepInto()
+                                            '                                 End While
+                                            '                                 iretCount += 1
+                                            '                             End While
+                                            '                             Debug.WriteLine($"{iretCount} IRET")
+                                            '                         End Sub)
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.

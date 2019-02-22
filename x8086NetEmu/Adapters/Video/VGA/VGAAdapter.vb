@@ -288,6 +288,8 @@ Public MustInherit Class VGAAdapter
     Private tempRGB As UInt32
     Private tmpVal As Byte
 
+    Private Const useROM As Boolean = False
+
     Private mCPU As X8086
 
     ' Video Modes: http://www.columbia.edu/~em36/wpdos/videomodes.txt
@@ -300,7 +302,30 @@ Public MustInherit Class VGAAdapter
 
         MyBase.vidModeChangeFlag = 0 ' Prevent the CGA adapter from changing video modes
 
+        If useROM Then mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
+        'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
+        'mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
+
+        ValidPortAddress.Clear()
+        For i As UInt32 = &H3C0 To &H3CF ' EGA/VGA
+            ValidPortAddress.Add(i)
+        Next
+        'ValidPortAddress.Add(&H3BA)
+        'ValidPortAddress.Add(&H3B8)
+        ''ValidPortAddress.Add(&H3D4)
+        ''ValidPortAddress.Add(&H3D5)
+        ValidPortAddress.Add(&H3DA)
+
+        For i As Integer = 0 To VGABasePalette.Length - 1
+            vgaPalette(i) = VGABasePalette(i)
+        Next
+
         mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
+                                                    If Not useROM AndAlso address = &H410 Then
+                                                        value = &H41
+                                                        Return True
+                                                    End If
+
                                                     Select Case mMainMode
                                                         Case MainModes.Text
                                                             If address >= mStartTextVideoAddress AndAlso address < mEndTextVideoAddress Then
@@ -328,34 +353,32 @@ Public MustInherit Class VGAAdapter
                                                     Return False
                                                 End Function))
 
-        'mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
-        'mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-        mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
-
-        ValidPortAddress.Clear()
-        For i As UInt32 = &H3C0 To &H3CF ' EGA/VGA
-            ValidPortAddress.Add(i)
-        Next
-        ValidPortAddress.Add(&H3BA)
-        ValidPortAddress.Add(&H3B8)
-        'ValidPortAddress.Add(&H3D4)
-        'ValidPortAddress.Add(&H3D5)
-        ValidPortAddress.Add(&H3DA)
-
-        For i As Integer = 0 To VGABasePalette.Length - 1
-            vgaPalette(i) = VGABasePalette(i)
-        Next
-
         mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
-                                                          If mCPU.Registers.AH = 0 OrElse mCPU.Registers.AH = &H10 Then
-                                                              VideoMode = mCPU.Registers.AX
-                                                              If mCPU.Registers.AH = &H10 Then Return False
-                                                              Return True
-                                                          ElseIf mCPU.Registers.AH = &H1A And mCPU.Registers.AL = 0 Then ' Get display combination code (ps, vga/mcga)
-                                                              mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
-                                                              mCPU.Registers.BL = &H8
-                                                              Return True
-                                                          End If
+                                                          Select Case mCPU.Registers.AH
+                                                              Case &H0
+                                                                  VideoMode = mCPU.Registers.AX
+                                                                  Return useROM ' When using ROM, prevent the bios from handling this function
+                                                              Case &H10
+                                                                  Select Case mCPU.Registers.AL
+                                                                      Case &H10 ' Set individual DAC register
+                                                                          vgaPalette(mCPU.Registers.BX Mod 256) = Color.FromArgb(RGBToUInt(CUInt(mCPU.Registers.DH And &H3F) << 2,
+                                                                                                                                           CUInt(mCPU.Registers.CH And &H3F) << 2,
+                                                                                                                                           CUInt(mCPU.Registers.CL And &H3F) << 2))
+                                                                      Case &H12 ' Set block of DAC registers
+                                                                          Dim addr As Integer = CUInt(mCPU.Registers.ES) * 16UI + mCPU.Registers.DX
+                                                                          For n As Integer = mCPU.Registers.BX To mCPU.Registers.BX + mCPU.Registers.CX - 1
+                                                                              vgaPalette(n) = Color.FromArgb(RGBToUInt(mCPU.Memory(addr + 0) << 2,
+                                                                                                                       mCPU.Memory(addr + 1) << 2,
+                                                                                                                       mCPU.Memory(addr + 2) << 2))
+                                                                              addr += 3
+                                                                          Next
+                                                                  End Select
+                                                              Case &H1A
+                                                                  mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
+                                                                  mCPU.Registers.BL = &H8
+                                                                  Return True
+                                                          End Select
+
                                                           Return False
                                                       End Function))
     End Sub
@@ -368,14 +391,14 @@ Public MustInherit Class VGAAdapter
 
     Public Property VideoRAM(address As UInt16) As Byte
         Get
-            If mUseVRAM Then
+            If mUseVRAM OrElse (VGA_SC(4) And 6) <> 0 Then
                 Return Read(address)
             Else
                 Return mCPU.Memory(address + If(mMainMode = MainModes.Text, mStartTextVideoAddress, mStartGraphicsVideoAddress))
             End If
         End Get
         Set(value As Byte)
-            If mUseVRAM Then
+            If mUseVRAM OrElse (VGA_SC(4) And 6) <> 0 Then
                 Write(address, value)
             Else
                 mCPU.Memory(address + If(mMainMode = MainModes.Text, mStartTextVideoAddress, mStartGraphicsVideoAddress)) = value
@@ -390,11 +413,18 @@ Public MustInherit Class VGAAdapter
         Set(value As UInt32)
             Select Case value >> 8 ' Mode is in AH
                 Case 0 ' Set video mode
-                    value = value And &H7F
-                    mVideoMode = value And &H7F ' http://stanislavs.org/helppc/ports.html
-                    Debug.WriteLine($"VGA Video Mode: {CShort(mVideoMode):X2}")
+                    'Static isSettingVideoMode As Boolean
+                    'If isSettingVideoMode Then Exit Property
+                    'isSettingVideoMode = True
+                    'MyBase.VideoMode = value
+                    'isSettingVideoMode = False
 
+                    value = value And &H7F ' http://stanislavs.org/helppc/ports.html
+                    mVideoMode = value
                     VGA_SC(4) = 0
+
+                    X8086.Notify($"VGA Video Mode: {CShort(mVideoMode):X2}", X8086.NotificationReasons.Info)
+
                     Select Case mVideoMode
                         Case 0 ' 40x25 Mono Text
                             mStartTextVideoAddress = &HB8000
@@ -421,7 +451,7 @@ Public MustInherit Class VGAAdapter
                             mStartTextVideoAddress = &HB8000
                             mStartGraphicsVideoAddress = &HB8000
                             mTextResolution = New Size(80, 25)
-                            mVideoResolution = New Size(720, 400)
+                            mVideoResolution = New Size(640, 400)
                             mCellSize = New Size(9, 16)
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
@@ -448,7 +478,12 @@ Public MustInherit Class VGAAdapter
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
                             mUseVRAM = False
-                            portRAM(&H3D9) = If(value And &HF = 4, 48, 0)
+                            'portRAM(&H3D9) = If(value And &HF = 4, 48, 0)
+                            If mCPU.Registers.AL = 4 Then
+                                portRAM(&H3D9) = 48
+                            Else
+                                portRAM(&H3D9) = 0
+                            End If
 
                         Case 6 ' 640x200 2 Colors
                             mStartTextVideoAddress = &HB8000
@@ -572,22 +607,10 @@ Public MustInherit Class VGAAdapter
                     mCPU.Memory(&H44A) = mTextResolution.Width
                     mCPU.Memory(&H44B) = 0
                     mCPU.Memory(&H484) = mTextResolution.Height - 1
-                    mCPU.Memory(&H463) = &H3D4 ' With and without a BIOS INT 10,8/9/10 fails to work
+                    'mCPU.Memory(&H463) = &H3D4 ' With and without a BIOS INT 10,8/9/10 fails to work
 
                     InitVideoMemory(False)
 
-                Case &H10 ' Set individual DAC register
-                    vgaPalette(mCPU.Registers.BX Mod 256) = Color.FromArgb(RGBToUInt(CUInt(mCPU.Registers.DH And &H3F) << 2,
-                                                                                     CUInt(mCPU.Registers.CH And &H3F) << 2,
-                                                                                     CUInt(mCPU.Registers.CL And &H3F) << 2))
-                Case &H12 ' Set block of DAC registers
-                    Dim addr As Integer = CUInt(mCPU.Registers.ES) * 16UI + mCPU.Registers.DX
-                    For n As Integer = mCPU.Registers.BX To mCPU.Registers.BX + mCPU.Registers.CX - 1
-                        vgaPalette(n) = Color.FromArgb(RGBToUInt(mCPU.Memory(addr + 0) << 2,
-                                                                 mCPU.Memory(addr + 1) << 2,
-                                                                 mCPU.Memory(addr + 2) << 2))
-                        addr += 3
-                    Next
             End Select
         End Set
     End Property
@@ -611,19 +634,19 @@ Public MustInherit Class VGAAdapter
             Case &H3C9
                 Select Case latchReadRGB
                     Case 0 ' B
-                        tmpVal = (vgaPalette(latchReadPal).ToArgb() >> 2)
+                        tempRGB = vgaPalette(latchReadPal).ToArgb() >> 2
                     Case 1 ' G
-                        tmpVal = (vgaPalette(latchReadPal).ToArgb() >> 10)
+                        tempRGB = vgaPalette(latchReadPal).ToArgb() >> 10
                     Case 2 ' R
-                        tmpVal = (vgaPalette(latchReadPal).ToArgb() >> 18)
+                        tempRGB = vgaPalette(latchReadPal).ToArgb() >> 18
                         latchReadPal += 1
                         latchReadRGB = -1
                 End Select
-                latchReadRGB = (latchReadRGB + 1) Mod 3
-                Return tmpVal And &H3F
+                latchReadRGB += 1
+                Return tempRGB And &H3F
 
             Case &H3DA
-                flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
+                'flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
                 Return MyBase.In(port)
 
         End Select
@@ -655,17 +678,18 @@ Public MustInherit Class VGAAdapter
             Case &H3C8 ' Color index register (write operations)
                 latchWritePal = value
                 latchWriteRGB = 0
+                tempRGB = 0
                 stateDAC = 3
 
             Case &H3C9 ' RGB data register
                 value = value And &H3F
                 Select Case latchWriteRGB
                     Case 0 ' R
-                        tempRGB = CUInt(value) << 18
+                        tempRGB = value << 2
                     Case 1 ' G
-                        tempRGB = tempRGB Or (CUInt(value) << 10)
+                        tempRGB = tempRGB Or (value << 10)
                     Case 2 ' B
-                        vgaPalette(latchWritePal) = Color.FromArgb(tempRGB Or (CUInt(value) << 2))
+                        vgaPalette(latchWritePal) = Color.FromArgb(tempRGB Or (value << 18))
                         latchWritePal += 1
                 End Select
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
@@ -675,14 +699,18 @@ Public MustInherit Class VGAAdapter
                 MyBase.Out(port, value)
 
             Case &H3D5 ' 6845 data register
-                VGA_CRTC(portRAM(&H3D4)) = value And &H1F
+                VGA_CRTC(portRAM(&H3D4)) = value
                 MyBase.Out(port, value)
 
-            Case &H3CE ' VGA graphics index
-                portRAM(port) = value Mod &H8 ' FIXME: This is one fugly hack!
+            'Case &H3CE ' VGA graphics index
+            '    portRAM(port) = value Mod &H8 ' FIXME: This is one fugly hack!
 
             Case &H3CF
                 VGA_GC(portRAM(&H3CE)) = value
+
+            Case &H3B8
+                portRAM(port) = value
+                MyBase.Out(port, value)
 
             Case Else
                 portRAM(port) = value

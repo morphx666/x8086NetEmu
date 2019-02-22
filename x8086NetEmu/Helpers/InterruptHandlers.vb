@@ -17,7 +17,7 @@ Partial Public Class X8086
         If mFlags.IF = 1 AndAlso
            mFlags.TF = 0 AndAlso
            Not mRegisters.ActiveSegmentChanged AndAlso
-           repeLoopMode = REPLoopModes.None AndAlso
+           mRepeLoopMode = REPLoopModes.None AndAlso
            picIsAvailable Then
 
             Dim pendingIntNum As Byte = PIC.GetPendingInterrupt()
@@ -34,7 +34,7 @@ Partial Public Class X8086
             PushIntoStack(mRegisters.CS)
 
             If isHard Then
-                PushIntoStack(AdjustIP(mRegisters.IP))
+                PushIntoStack(mRegisters.IP)
             Else
                 PushIntoStack(mRegisters.IP + opCodeSize)
             End If
@@ -51,18 +51,4 @@ Partial Public Class X8086
 
         clkCyc += 51
     End Sub
-
-    Private Function IsPrefix(opCode As Byte) As Boolean
-        Select Case opCode
-            Case &H26, &H2E, &H36, &H3E, &HF2, &HF3 : Return True
-        End Select
-        Return False
-    End Function
-
-    Private Function AdjustIP(v As UShort) As UShort
-        While IsPrefix(RAM8(mRegisters.CS, v - 1))
-            v -= 1
-        End While
-        Return v
-    End Function
 End Class

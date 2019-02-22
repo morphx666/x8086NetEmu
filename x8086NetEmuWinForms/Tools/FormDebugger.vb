@@ -107,7 +107,7 @@ Public Class FormDebugger
 
     Private segmentTextBoxes As New List(Of TextBox)
 
-#Region "Controls Event Handlers"
+#Region "Controls' Event Handlers"
     Private Sub FormDebugger_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         InitListView(ListViewStack)
         AutoSizeLastColumn(ListViewStack)
@@ -134,9 +134,7 @@ Public Class FormDebugger
                                                   If Not ignoreEvents Then UpdateUI()
                                                   Thread.Sleep(500)
                                               Loop Until abortThreads
-                                          End Sub) With {
-                                            .IsBackground = True
-                                          }
+                                          End Sub) With {.IsBackground = True}
         uiRefreshThread.Start()
 
         ' History is disabled until it can be re-written to improve performance and avoid Out Of Memory exceptions
@@ -419,22 +417,18 @@ Public Class FormDebugger
                                 n = s(i) + n
                             Next
                             Dim r As Integer
-                            If Binary.TryParse(n, r) Then
-                                Return {r, i, True}
-                            Else
-                                Return {r, i, False}
-                            End If
+                            Return If(Binary.TryParse(n, r), {r, i, True}, {r, i, False})
                         End Function
 
-        Dim IsSpecialLetter = Function(s As Char)
-                                  If Char.IsLetter(s) AndAlso Char.IsLower(s) Then
-                                      Return s = "h" OrElse s = "b" OrElse s = "d" OrElse s = "o"
-                                  Else
-                                      Return False
-                                  End If
-                              End Function
+        Dim HasBaseSuffix = Function(s As Char)
+                                If Char.IsLetter(s) AndAlso Char.IsLower(s) Then
+                                    Return s = "h" OrElse s = "b" OrElse s = "d" OrElse s = "o"
+                                Else
+                                    Return False
+                                End If
+                            End Function
 
-        Dim properFormat As Boolean = IsSpecialLetter(value.Last())
+        Dim properFormat As Boolean = HasBaseSuffix(value.Last())
         If value.Length = 1 Then
             If Not properFormat Then value += "h"
         ElseIf Not properFormat AndAlso Char.IsLetterOrDigit(value.Last()) Then
@@ -447,7 +441,7 @@ Public Class FormDebugger
             isDone = True
             For i As Integer = 0 To value.Length - 1
                 If Not Char.IsLetterOrDigit(value(i)) AndAlso i > 0 Then
-                    If IsSpecialLetter(value(i - 1)) Then
+                    If HasBaseSuffix(value(i - 1)) Then
                         Dim data = GetNumber(value, i)
                         If data(2) = True Then
                             value = value.Substring(0, data(1) + 1) + data(0).ToString() + value.Substring(i)
@@ -697,7 +691,7 @@ Public Class FormDebugger
         End If
     End Sub
 
-    Private Sub RunShiftF8()
+    Private Sub RunShiftF8() ' Step Over
         Dim oc As Byte
 
         Dim processOpCode = Sub(ignoreNormal As Boolean)
@@ -767,9 +761,19 @@ Public Class FormDebugger
         Dim maxSteps As Integer = 1000 ' Execute 'maxSteps' instructions before updating the UI
         Dim lastAddress As Integer = -1
         'Dim instructions As New List(Of x8086.Instruction)
+        Dim lastREPEMode As X8086.REPLoopModes
 
         Do
-            DoStep()
+            ignoreEvents = True
+            Do
+                lastREPEMode = mEmulator.REPELoopMode
+                DoStep()
+            Loop Until (lastREPEMode = X8086.REPLoopModes.None AndAlso mEmulator.REPELoopMode = X8086.REPLoopModes.None) OrElse
+                            abortThreads OrElse
+                            mEmulator.IsHalted
+
+            ignoreEvents = False
+
             loopWaiter.WaitOne()
             If abortThreads Then Exit Do
 
@@ -846,7 +850,7 @@ Public Class FormDebugger
                 If CheckBoxBytesOrChars.Checked Then
                     r += Chr(b(i)) + " "
                 Else
-                    r += b(i).ToString("X") + " "
+                    r += b(i).ToString("X2") + " "
                 End If
             Next
         End If
@@ -887,15 +891,15 @@ Public Class FormDebugger
     End Sub
 
     Public Sub SetupCheckBoxes()
-        AddHandler CheckBoxCF.CheckedChanged, Sub() mEmulator.Flags.CF = If(CheckBoxCF.Checked, 1, 0)
-        AddHandler CheckBoxZF.CheckedChanged, Sub() mEmulator.Flags.ZF = If(CheckBoxZF.Checked, 1, 0)
-        AddHandler CheckBoxSF.CheckedChanged, Sub() mEmulator.Flags.SF = If(CheckBoxSF.Checked, 1, 0)
-        AddHandler CheckBoxOF.CheckedChanged, Sub() mEmulator.Flags.OF = If(CheckBoxOF.Checked, 1, 0)
-        AddHandler CheckBoxPF.CheckedChanged, Sub() mEmulator.Flags.PF = If(CheckBoxPF.Checked, 1, 0)
-        AddHandler CheckBoxAF.CheckedChanged, Sub() mEmulator.Flags.AF = If(CheckBoxAF.Checked, 1, 0)
-        AddHandler CheckBoxIF.CheckedChanged, Sub() mEmulator.Flags.IF = If(CheckBoxIF.Checked, 1, 0)
-        AddHandler CheckBoxDF.CheckedChanged, Sub() mEmulator.Flags.DF = If(CheckBoxDF.Checked, 1, 0)
-        AddHandler CheckBoxTF.CheckedChanged, Sub() mEmulator.Flags.TF = If(CheckBoxTF.Checked, 1, 0)
+        AddHandler CheckBoxCF.Click, Sub() mEmulator.Flags.CF = If(CheckBoxCF.Checked, 1, 0)
+        AddHandler CheckBoxZF.Click, Sub() mEmulator.Flags.ZF = If(CheckBoxZF.Checked, 1, 0)
+        AddHandler CheckBoxSF.Click, Sub() mEmulator.Flags.SF = If(CheckBoxSF.Checked, 1, 0)
+        AddHandler CheckBoxOF.Click, Sub() mEmulator.Flags.OF = If(CheckBoxOF.Checked, 1, 0)
+        AddHandler CheckBoxPF.Click, Sub() mEmulator.Flags.PF = If(CheckBoxPF.Checked, 1, 0)
+        AddHandler CheckBoxAF.Click, Sub() mEmulator.Flags.AF = If(CheckBoxAF.Checked, 1, 0)
+        AddHandler CheckBoxIF.Click, Sub() mEmulator.Flags.IF = If(CheckBoxIF.Checked, 1, 0)
+        AddHandler CheckBoxDF.Click, Sub() mEmulator.Flags.DF = If(CheckBoxDF.Checked, 1, 0)
+        AddHandler CheckBoxTF.Click, Sub() mEmulator.Flags.TF = If(CheckBoxTF.Checked, 1, 0)
     End Sub
 
     Private Sub CacheSegmentTextBoxes()
@@ -909,9 +913,9 @@ Public Class FormDebugger
         Dim value As Binary = Binary.From(EvaluateExpression(tb.Text).Value) And &HFFFF
 
         Return String.Format("{1:N0}d{0}{2}h{0}{3}b", Environment.NewLine,
-                             value.ToLong(),
-                             value.ToHex(),
-                             value.ToString())
+                                 value.ToLong(),
+                                 value.ToHex(),
+                                 value.ToString())
     End Function
 
     Private Sub SetItemValue(tb As TextBox)
@@ -928,11 +932,7 @@ Public Class FormDebugger
                 mEmulator.Registers.Val(StringToRegister(tb.Name.Substring(7, 2))) = evalRes.Value
         End Select
 
-        If evalRes.IsValid Then
-            tb.BackColor = Color.FromKnownColor(KnownColor.Window)
-        Else
-            tb.BackColor = Color.Red
-        End If
+        tb.BackColor = If(evalRes.IsValid, Color.FromKnownColor(KnownColor.Window), Color.Red)
     End Sub
 
     Private Sub ButtonSearch_Click(sender As Object, e As EventArgs) Handles ButtonSearch.Click
@@ -995,11 +995,7 @@ Public Class FormDebugger
             End If
         Loop
 
-        If found Then
-            TextBoxSearch.BackColor = Color.LightGreen
-        Else
-            TextBoxSearch.BackColor = Color.LightSalmon
-        End If
+        TextBoxSearch.BackColor = If(found, Color.LightGreen, Color.LightSalmon)
 
         UpdateMemory()
 

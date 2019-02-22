@@ -140,6 +140,7 @@ Public MustInherit Class CGAAdapter
         For i As UInt32 = &H3D0 To &H3DF ' CGA
             ValidPortAddress.Add(i)
         Next
+        ValidPortAddress.Add(&H3B8)
 
         ' This breaks ARKANOID ][
         'For i As UInt32 = &H3B0 To &H3BB ' Hercules
@@ -290,8 +291,7 @@ Public MustInherit Class CGAAdapter
 
     Private Sub MainLoop()
         Do
-            waiter.WaitOne(2 * 1000 \ VERTSYNC)
-
+            waiter.WaitOne(4 * 1000 \ VERTSYNC)
             Render()
 
             'RaiseEvent VideoRefreshed(Me)
@@ -342,6 +342,8 @@ Public MustInherit Class CGAAdapter
 
             mStartTextVideoAddress = &HB8000
             mStartGraphicsVideoAddress = &HB8000
+
+            X8086.Notify($"CGA Video Mode: {CShort(mVideoMode):X2}", X8086.NotificationReasons.Info)
 
             Select Case value
                 Case VideoModes.Mode0_Text_BW_40x25
@@ -442,7 +444,10 @@ Public MustInherit Class CGAAdapter
     Public Overrides Sub Out(port As UInt32, value As UInt16)
         Select Case port
             Case &H3B8
-                If (value And 2) = 2 Then VideoMode = VideoModes.Mode7_Text_BW_80x25
+                If (value And 2) = 2 AndAlso mVideoMode <> VideoModes.Mode7_Text_BW_80x25 Then
+                    VideoMode = VideoModes.Mode7_Text_BW_80x25
+
+                End If
 
             Case &H3D0, &H3D2, &H3D4, &H3D6,
                  &H3B0, &H3B2, &H3B4 ' CRT (6845) index register

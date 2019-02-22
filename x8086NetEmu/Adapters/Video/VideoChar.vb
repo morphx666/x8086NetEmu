@@ -4,6 +4,7 @@
     Public ReadOnly Property BackColor As Color
 
     Private mBitmap As DirectBitmap
+    Private w4s As Integer
 
     Public Shared FontBitmaps() As Byte
 
@@ -13,10 +14,7 @@
         BackColor = bb
     End Sub
 
-    Private tmp As New Object()
-
     Public Sub Paint(dbmp As DirectBitmap, p As Point, scale As SizeF)
-        Dim w4s As Integer = mBitmap.Width * 4
         Dim w4d As Integer = dbmp.Width * 4
         p.X *= 4
         For y As Integer = 0 To mBitmap.Height - 1
@@ -29,6 +27,7 @@
             w = 8
             h = 16
             mBitmap = New DirectBitmap(w, h)
+            w4s = w * 4
 
             For y As Integer = 0 To h - 1
                 For x As Integer = 0 To w - 1

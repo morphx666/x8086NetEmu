@@ -248,6 +248,7 @@
                 .DI = DI,
                 .IP = IP
             }
+            If mActiveSegmentChanged Then reg.ActiveSegmentRegister = mActiveSegmentRegister
             Return reg
         End Function
     End Class

@@ -56,12 +56,12 @@ Public Class X8086
 
     Private mEmulateINT13 As Boolean = True
 
-    Private Enum REPLoopModes
+    Public Enum REPLoopModes
         None
         REPE
         REPENE
     End Enum
-    Private repeLoopMode As REPLoopModes
+    Private mRepeLoopMode As REPLoopModes
 
     Private forceNewIPAddress As UInt16
     Private Property IPAddrOffet As UInt16
@@ -269,7 +269,7 @@ Public Class X8086
 
         isDecoding = False
         ignoreINTs = False
-        repeLoopMode = REPLoopModes.None
+        mRepeLoopMode = REPLoopModes.None
         IPAddrOffet = 0
         useIPAddrOffset = False
 
@@ -414,7 +414,7 @@ Public Class X8086
     End Sub
 
     Public Sub Close()
-        repeLoopMode = REPLoopModes.None
+        mRepeLoopMode = REPLoopModes.None
         StopAllThreads()
 
         If DebugMode Then debugWaiter.Set()
@@ -611,26 +611,20 @@ Public Class X8086
         If useIPAddrOffset Then
             mRegisters.IP = IPAddrOffet
         Else
-            IncIP(opCodeSize)
+            mRegisters.IP += opCodeSize
         End If
 
         clkCyc += opCodeSize * 4
 
         If Not newPrefix Then
-            If repeLoopMode <> REPLoopModes.None Then repeLoopMode = REPLoopModes.None
-            If mRegisters.ActiveSegmentChanged AndAlso repeLoopMode = REPLoopModes.None Then
-                mRegisters.ResetActiveSegment()
-                clkCyc += 2
-            End If
+            If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None
+            If mRegisters.ActiveSegmentChanged Then mRegisters.ResetActiveSegment()
         End If
     End Sub
 
     Public Sub Execute_OLD()
         newPrefix = False
         instrucionsCounter += 1
-
-        Dim cs As Integer = mRegisters.CS
-        Dim ip As Integer = mRegisters.IP
 
         If mFlags.TF = 1 Then
             ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
@@ -1273,21 +1267,16 @@ Public Class X8086
 
             Case &H88 To &H8C ' mov ind <-> reg8/reg16
                 SetAddressing()
-
                 If opCode = &H8C Then ' mov r/m16, sreg
-                    'If (addrMode.Register1 And &H4) = &H4 Then
-                    'addrMode.Register1 = addrMode.Register1 And (Not shl2)
-                    'Else
                     addrMode.Register1 += GPRegisters.RegistersTypes.ES
                     If addrMode.Register2 > &H3 Then
                         addrMode.Register2 = (addrMode.Register2 + GPRegisters.RegistersTypes.ES) Or shl3
                     Else
-                        addrMode.Register2 += GPRegisters.RegistersTypes.AX
+                        addrMode.Register2 = addrMode.Register2 Or shl3
                     End If
-                    'End If
+                    addrMode.Size = DataSize.Word
                 End If
 
-                addrMode.Size = If(addrMode.Register1 < GPRegisters.RegistersTypes.AX, DataSize.Byte, DataSize.Word)
                 If addrMode.IsDirect Then
                     If addrMode.Direction = 0 Then
                         mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
@@ -1354,7 +1343,7 @@ Public Class X8086
                 clkCyc += 2
 
             Case &H99 ' cwd
-                mRegisters.DX = If((mRegisters.AH And &H80) = 0, &H0, &HFFFF)
+                mRegisters.DX = If((mRegisters.AH And &H80) <> 0, &HFFFF, &H0)
                 clkCyc += 5
 
             Case &H9A ' call direct intersegment
@@ -1662,19 +1651,19 @@ Public Class X8086
                 clkCyc += 2
 
             Case &HF2 ' repne/repnz
-                repeLoopMode = REPLoopModes.REPENE
+                mRepeLoopMode = REPLoopModes.REPENE
                 newPrefix = True
                 clkCyc += 2
 
             Case &HF3 ' repe/repz
-                repeLoopMode = REPLoopModes.REPE
+                mRepeLoopMode = REPLoopModes.REPE
                 newPrefix = True
                 clkCyc += 2
 
             Case &HF4 ' hlt
                 clkCyc += 2
                 If Not mIsHalted Then SystemHalted()
-                IncIP(-1)
+                mRegisters.IP -= 1
 
             Case &HF5 ' cmc
                 mFlags.CF = If(mFlags.CF = 0, 1, 0)
@@ -1716,17 +1705,14 @@ Public Class X8086
         If useIPAddrOffset Then
             mRegisters.IP = IPAddrOffet
         Else
-            IncIP(opCodeSize)
+            mRegisters.IP += opCodeSize
         End If
 
         clkCyc += opCodeSize * 4
 
         If Not newPrefix Then
-            If repeLoopMode <> REPLoopModes.None Then repeLoopMode = REPLoopModes.None
-            If mRegisters.ActiveSegmentChanged Then
-                mRegisters.ResetActiveSegment()
-                clkCyc += 2
-            End If
+            If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None
+            If mRegisters.ActiveSegmentChanged Then mRegisters.ResetActiveSegment()
         End If
     End Sub
 
@@ -1863,14 +1849,16 @@ Public Class X8086
             Case &HC0, &HC1 : count = Param(ParamIndex.First,  , DataSize.Byte)
         End Select
 
-        If count = 0 Then
-            clkCyc += 8
-            Exit Sub
-        Else
-            ' 80186/V20 class CPUs limit shift count to 31
-            If mVic20 Then count = count And &H1F
-            clkCyc += 4 * count
-        End If
+        'If count = 0 Then
+        '    clkCyc += 8
+        '    Exit Sub
+        'Else
+        ' 80186/V20 class CPUs limit shift count to 31
+        If mVic20 Then count = count And &H1F
+        clkCyc += 4 * count
+        'End If
+
+        If count = 0 Then newValue = oldValue
 
         Select Case addrMode.Reg
             Case 0 ' 000    --  rol
@@ -1878,7 +1866,7 @@ Public Class X8086
                     newValue = (oldValue << 1) Or (oldValue >> mask07_15)
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
+                ElseIf count > 1 Then
                     newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
                     mFlags.CF = newValue And 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
@@ -1889,7 +1877,7 @@ Public Class X8086
                     newValue = (oldValue >> 1) Or (oldValue << mask07_15)
                     mFlags.CF = oldValue And 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
+                ElseIf count > 1 Then
                     newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
                     mFlags.CF = If((newValue And mask80_8000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
@@ -1900,7 +1888,7 @@ Public Class X8086
                     newValue = (oldValue << 1) Or mFlags.CF
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
+                ElseIf count > 1 Then
                     oldValue = oldValue Or (CUInt(mFlags.CF) << mask8_16)
                     newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
@@ -1912,11 +1900,13 @@ Public Class X8086
                     newValue = (oldValue >> 1) Or (CUInt(mFlags.CF) << mask07_15)
                     mFlags.CF = oldValue And 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
+                ElseIf count > 1 Then
                     oldValue = oldValue Or (CUInt(mFlags.CF) << mask8_16)
                     newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                Else
+                    mFlags.OF = 0
                 End If
 
             Case 4, 6 ' 100/110    --  shl/sal
@@ -1924,10 +1914,12 @@ Public Class X8086
                     newValue = oldValue << 1
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
+                ElseIf count > 1 Then
                     newValue = If(count > mask8_16, 0, oldValue << count)
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                Else
+                    mFlags.OF = 0
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
 
@@ -1936,11 +1928,13 @@ Public Class X8086
                     newValue = oldValue >> 1
                     mFlags.CF = oldValue And 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
+                ElseIf count > 1 Then
                     newValue = If(count > mask8_16, 0, oldValue >> (count - 1))
                     mFlags.CF = newValue And 1
                     newValue = newValue >> 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                Else
+                    mFlags.OF = 0
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
 
@@ -1948,8 +1942,8 @@ Public Class X8086
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue And mask80_8000)
                     mFlags.CF = oldValue And 1
-                Else
-                    oldValue = oldValue Or If((oldValue And mask80_8000) = 0, 0, maskFF00_FFFF0000)
+                ElseIf count > 1 Then
+                    oldValue = oldValue Or If((oldValue And mask80_8000) <> 0, maskFF00_FFFF0000, 0)
                     newValue = oldValue >> If(count >= mask8_16, mask07_15, count - 1)
                     mFlags.CF = newValue And 1
                     newValue = (newValue >> 1) And maskFF_FFFF
@@ -2002,7 +1996,7 @@ Public Class X8086
                     RAMn = tmpUVal
                     clkCyc += 16
                 End If
-                'mFlags.CF = If((tmpVal And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)) = 0, 0, 1)
+                'mFlags.CF = If((tmpVal And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)) <> 0, 1, 0)
 
             Case 4 ' 100    --  mul
                 If addrMode.IsDirect Then
@@ -2050,8 +2044,8 @@ Public Class X8086
                         mRegisters.AX = tmpUVal
                         clkCyc += 70
                     Else
-                        Dim m1 As UInt32 = mRegisters.AX
-                        Dim m2 As UInt32 = mRegisters.Val(addrMode.Register2)
+                        Dim m1 As UInt32 = To32bitsWithSign(mRegisters.AX)
+                        Dim m2 As UInt32 = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
 
                         m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF0000UI, m1)
                         m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
@@ -2073,8 +2067,8 @@ Public Class X8086
                         mRegisters.AX = tmpUVal
                         clkCyc += 76
                     Else
-                        Dim m1 As UInt32 = mRegisters.AX
-                        Dim m2 As UInt32 = addrMode.IndMem
+                        Dim m1 As UInt32 = To32bitsWithSign(mRegisters.AX)
+                        Dim m2 As UInt32 = To32bitsWithSign(addrMode.IndMem)
 
                         m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF0000UI, m1)
                         m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF0000UI, m2)
@@ -2301,34 +2295,32 @@ Public Class X8086
         tmpUVal = mRegisters.ActiveSegmentValue
         tmpVal = If((opCode And 1) = 1, 2, 1) * If(mFlags.DF = 0, 1, -1)
 
-        If repeLoopMode = REPLoopModes.None Then
+        If mRepeLoopMode = REPLoopModes.None Then
             ExecStringOpCode()
-        Else
-            If mDebugMode Then
-                If mRegisters.CX > 0 Then
-                    mRegisters.CX -= 1
-                    If ExecStringOpCode() Then
-                        If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
-                           (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
-                            repeLoopMode = REPLoopModes.None
-                            Exit Sub
-                        End If
+        ElseIf mDebugMode Then
+            If mRegisters.CX > 0 Then
+                mRegisters.CX -= 1
+                If ExecStringOpCode() Then
+                    If (mRepeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
+                       (mRepeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
+                        mRepeLoopMode = REPLoopModes.None
+                        Exit Sub
                     End If
-
-                    IncIP(-opCodeSize)
                 End If
-            Else
-                While mRegisters.CX > 0
-                    mRegisters.CX -= 1
-                    If ExecStringOpCode() Then
-                        If (repeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
-                           (repeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
-                            Exit While
-                        End If
-                    End If
-                End While
-                repeLoopMode = REPLoopModes.None
+
+                mRegisters.IP -= (opCodeSize + 1)
             End If
+        Else
+            While mRegisters.CX > 0
+                mRegisters.CX -= 1
+                If ExecStringOpCode() Then
+                    If (mRepeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
+                       (mRepeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
+                        Exit While
+                    End If
+                End If
+            End While
+            mRepeLoopMode = REPLoopModes.None
         End If
     End Sub
 

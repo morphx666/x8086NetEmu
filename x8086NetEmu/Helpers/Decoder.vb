@@ -1,6 +1,6 @@
 ﻿Partial Public Class X8086
     Public Structure Instruction
-        Public decOpCode As Byte
+        Public opCode As Byte
         Public Mnemonic As String
         Public Parameter1 As String
         Public Parameter2 As String
@@ -82,7 +82,6 @@
     Private indASM As String
     Private opCodeASM As String
     Private segOvr As String = ""
-    Private decOpCode As Byte
     Private isDecoding As Boolean
     Private clkCycDecoder As Byte
     Private ipAddrOffDecoder As Integer
@@ -102,22 +101,24 @@
     Public Function Decode(segment As Integer, offset As Integer, Optional force As Boolean = False) As Instruction
         Dim r As GPRegisters = mRegisters.Clone()
         Dim f As GPFlags = mFlags.Clone()
+        Dim rlm As REPLoopModes = mRepeLoopMode
+
+        Dim i As Instruction
         If (Not force) AndAlso (mIsExecuting OrElse isDecoding) Then
-            Return InvalidOpCode()
+            i = InvalidOpCode()
         Else
-            Return DoDecode(segment, offset)
+            i = DoDecode(segment, offset)
         End If
+
         mRegisters = r
         mFlags = f
+        mRepeLoopMode = rlm
+
+        Return i
     End Function
 
     Private Function DoDecode(segment As Integer, offset As Integer) As Instruction
         isDecoding = True
-
-        Dim CS As Integer = mRegisters.CS
-        Dim IP As Integer = mRegisters.IP
-        Dim activeSegment As GPRegisters.RegistersTypes = mRegisters.ActiveSegmentRegister
-        Dim activeSegmentChanged As Boolean = mRegisters.ActiveSegmentChanged
 
         mRegisters.CS = segment
         mRegisters.IP = offset
@@ -126,10 +127,10 @@
         opCodeASM = ""
         clkCycDecoder = 0
 
-        decOpCode = RAM8(mRegisters.CS, mRegisters.IP)
+        opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
 
-        Select Case decOpCode
+        Select Case opCode
             Case &H0 To &H3 ' add
                 SetDecoderAddressing()
                 If addrMode.IsDirect Then
@@ -391,28 +392,28 @@
                 clkCycDecoder += 8
 
             Case &H26, &H2E, &H36, &H3E ' segment override prefix
-                addrMode.Decode(decOpCode, decOpCode)
+                addrMode.Decode(opCode, opCode)
                 addrMode.Register1 = addrMode.Register1 - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
                 opCodeASM = addrMode.Register1.ToString() + ":"
                 segOvr = opCodeASM
                 clkCycDecoder += 2
 
             Case &H40 To &H47 ' inc reg
-                SetRegister1Alt(decOpCode)
+                SetRegister1Alt(opCode)
                 opCodeASM = "INC " + addrMode.Register1.ToString()
 
             Case &H48 To &H4F ' dec reg
-                SetRegister1Alt(decOpCode)
+                SetRegister1Alt(opCode)
                 opCodeASM = "DEC " + addrMode.Register1.ToString()
                 clkCycDecoder += 2
 
             Case &H50 To &H57 ' push reg
-                SetRegister1Alt(decOpCode)
+                SetRegister1Alt(opCode)
                 opCodeASM = "PUSH " + addrMode.Register1.ToString()
                 clkCycDecoder += 11
 
             Case &H58 To &H5F ' pop reg
-                SetRegister1Alt(decOpCode)
+                SetRegister1Alt(opCode)
                 opCodeASM = "POP " + addrMode.Register1.ToString()
                 clkCycDecoder += 8
 
@@ -528,7 +529,7 @@
 
             Case &H88 To &H8C ' mov ind <-> reg8/reg16
                 SetDecoderAddressing()
-                If decOpCode = &H8C Then
+                If opCode = &H8C Then
                     If (addrMode.Register1 And &H4) = &H4 Then
                         addrMode.Register1 = addrMode.Register1 And (Not 1 << 2)
                     Else
@@ -565,7 +566,7 @@
 
             Case &H8E ' mov reg/mem to seg reg
                 SetDecoderAddressing(DataSize.Word)
-                SetRegister2ToSegReg() 'ParamNOPS(SelPrmIndex.First, , DataSize.Byte))
+                SetRegister2ToSegReg()
                 If addrMode.IsDirect Then
                     SetRegister1Alt(ParamNOPS(ParamIndex.First, , DataSize.Byte))
                     opCodeASM = "MOV " + addrMode.Register2.ToString() + ", " + addrMode.Register1.ToString()
@@ -577,7 +578,7 @@
 
             Case &H8F ' pop reg/mem
                 SetDecoderAddressing()
-                addrMode.Decode(decOpCode, decOpCode)
+                addrMode.Decode(opCode, opCode)
                 If addrMode.IsDirect Then
                     opCodeASM = "POP " + addrMode.Register1.ToString()
                 Else
@@ -590,7 +591,7 @@
                 clkCycDecoder += 3
 
             Case &H91 To &H97 ' xchg reg with acc
-                SetRegister1Alt(decOpCode)
+                SetRegister1Alt(opCode)
                 opCodeASM = "XCHG AX, " + addrMode.Register1.ToString()
                 clkCycDecoder += 3
 
@@ -626,7 +627,7 @@
                 clkCycDecoder += 4
 
             Case &HA0 To &HA3 ' mov mem to acc | mov acc to mem
-                addrMode.Decode(decOpCode, decOpCode)
+                addrMode.Decode(opCode, opCode)
                 If addrMode.Direction = 0 Then
                     If addrMode.Size = DataSize.Byte Then
                         opCodeASM = "MOV AL, [" + Param(ParamIndex.First, , DataSize.Word).ToString("X4") + "]"
@@ -659,7 +660,7 @@
                 clkCycDecoder += 22
 
             Case &HA8 To &HA9 ' test
-                If (decOpCode And &H1) = 0 Then
+                If (opCode And &H1) = 0 Then
                     opCodeASM = "TEST AL, " + Param(ParamIndex.First, , DataSize.Byte).ToString("X2")
                 Else
                     opCodeASM = "TEST AX, " + Param(ParamIndex.First, , DataSize.Word).ToString("X4")
@@ -691,10 +692,10 @@
                 clkCycDecoder += 15
 
             Case &HB0 To &HBF ' mov imm to reg
-                addrMode.Register1 = decOpCode And &H7
-                If (decOpCode And &H8) = &H8 Then
+                addrMode.Register1 = opCode And &H7
+                If (opCode And &H8) = &H8 Then
                     addrMode.Register1 += GPRegisters.RegistersTypes.AX
-                    If (decOpCode And &H4) = &H4 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
+                    If (opCode And &H4) = &H4 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
                     addrMode.Size = DataSize.Word
                 Else
                     addrMode.Size = DataSize.Byte
@@ -715,7 +716,7 @@
             Case &HC4 To &HC5 ' les | lds
                 SetDecoderAddressing()
                 Dim targetRegister As GPRegisters.RegistersTypes
-                If decOpCode = &HC4 Then
+                If opCode = &HC4 Then
                     opCodeASM = "LES "
                     targetRegister = GPRegisters.RegistersTypes.ES
                 Else
@@ -744,7 +745,8 @@
             Case &HC6 To &HC7 ' mov imm to reg/mem
                 SetDecoderAddressing()
                 If addrMode.IsDirect Then
-                    mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First, , DataSize.Byte)
+                    'mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First, , DataSize.Byte)
+                    Stop
                     clkCycDecoder += 4
                 Else
                     opCodeASM = "MOV " + indASM + ", " + Param(ParamIndex.First, opCodeSize).ToHex(addrMode.Size)
@@ -776,7 +778,7 @@
 
             Case &HCE ' into
                 opCodeASM = "INTO"
-                clkCycDecoder += IIf(mFlags.OF = 1, 53, 4)
+                clkCycDecoder += If(mFlags.OF = 1, 53, 4)
 
             Case &HCF ' iret
                 opCodeASM = "IRET"
@@ -804,7 +806,7 @@
                 If ParamNOPS(ParamIndex.First, , DataSize.Byte) = &H3C Then
                     opCodeASM = "FNSTSW {NOT IMPLEMENTED}"
                 Else
-                    opCodeASM = decOpCode.ToString("X2") + " {NOT IMPLEMENTED}"
+                    opCodeASM = opCode.ToString("X2") + " {NOT IMPLEMENTED}"
                 End If
                 opCodeSize += 1
 
@@ -812,7 +814,7 @@
                 If ParamNOPS(ParamIndex.First, , DataSize.Byte) = &HE3 Then
                     opCodeASM = "FNINIT {NOT IMPLEMENTED}"
                 Else
-                    opCodeASM = decOpCode.ToString("X2") + " {NOT IMPLEMENTED}"
+                    opCodeASM = opCode.ToString("X2") + " {NOT IMPLEMENTED}"
                 End If
                 opCodeSize += 1
 
@@ -934,16 +936,16 @@
             Case &HFE To &HFF : DecodeGroup4_And_5()
 
             Case Else
-                opCodeASM = decOpCode.ToString("X2") + ": {NOT IMPLEMENTED}"
+                opCodeASM = opCode.ToString("X2") + ": {NOT IMPLEMENTED}"
         End Select
 
         If opCodeSize = 0 Then
-            Throw New Exception("Decoding error for decOpCode " + decOpCode.ToString("X2"))
+            Throw New Exception("Decoding error for opCode " + opCode.ToString("X2"))
         End If
 
         Dim info As Instruction = New Instruction() With {
             .IsValid = True,
-            .decOpCode = decOpCode,
+            .opCode = opCode,
             .CS = mRegisters.CS,
             .IP = mRegisters.IP,
             .Size = opCodeSize,
@@ -957,7 +959,7 @@
         If opCodeASM <> "" Then
             If opCodeSize > 0 Then
                 ReDim info.Bytes(opCodeSize - 1)
-                info.Bytes(0) = decOpCode
+                info.Bytes(0) = opCode
             End If
             For i As Integer = 1 To opCodeSize - 1
                 info.Bytes(i) = ParamNOPS(ParamIndex.First, i, DataSize.Byte)
@@ -983,15 +985,6 @@
         If segOvr <> "" AndAlso info.Mnemonic <> segOvr Then segOvr = ""
         clkCycDecoder += opCodeSize * 4
 
-        mRegisters.CS = CS
-        mRegisters.IP = IP
-
-        If activeSegmentChanged Then
-            mRegisters.ActiveSegmentRegister = activeSegment
-        Else
-            mRegisters.ResetActiveSegment()
-        End If
-
         isDecoding = False
 
         Return info
@@ -999,7 +992,7 @@
 
     Private Sub DecodeGroup1()
         SetDecoderAddressing()
-        Dim paramSize As DataSize = IIf(decOpCode = &H81, DataSize.Word, DataSize.Byte)
+        Dim paramSize As DataSize = If(opCode = &H81, DataSize.Word, DataSize.Byte)
         Select Case addrMode.Reg
             Case 0 ' 000    --   add imm to reg/mem
                 opCodeASM = "ADD"
@@ -1037,7 +1030,7 @@
         SetDecoderAddressing()
 
         If addrMode.IsDirect Then
-            If decOpCode >= &HD2 Then
+            If opCode >= &HD2 Then
                 opCodeASM = addrMode.Register2.ToString() + ", CL"
                 clkCycDecoder += 8 + 4 '* count
             Else
@@ -1045,7 +1038,7 @@
                 clkCycDecoder += 2
             End If
         Else
-            If (decOpCode And &H2) = &H2 Then
+            If (opCode And &H2) = &H2 Then
                 opCodeASM = indASM + ", CL"
                 clkCycDecoder += 20 + 4 '* count
             Else
@@ -1197,7 +1190,7 @@
     End Sub
 
     Private Sub SetDecoderAddressing(Optional forceSize As DataSize = DataSize.UseAddressingMode)
-        addrMode.Decode(decOpCode, ParamNOPS(ParamIndex.First, , DataSize.Byte))
+        addrMode.Decode(opCode, ParamNOPS(ParamIndex.First, , DataSize.Byte))
 
         If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
 

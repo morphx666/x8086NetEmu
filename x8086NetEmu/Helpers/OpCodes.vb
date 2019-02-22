@@ -144,7 +144,7 @@ AddressOf _88_8C,
 AddressOf _88_8C,
 AddressOf _8D,  ' lea
 AddressOf _8E,  ' mov reg/mem to seg reg
-AddressOf _8F,  ' pop reg/mem
+AddressOf _8F,      ' pop reg/mem
 AddressOf _90_97,   ' xchg reg with acc
 AddressOf _90_97,
 AddressOf _90_97,
@@ -154,13 +154,13 @@ AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _98,  ' cbw
-AddressOf _99,  ' cwd
+AddressOf _99,      ' cwd
 AddressOf _9A,  ' call direct intersegment
 AddressOf _9B,  ' wait
 AddressOf _9C,  ' pushf
 AddressOf _9D,  ' popf
 AddressOf _9E,  ' sahf
-AddressOf _9F,  ' lahf
+AddressOf _9F,      ' lahf
 AddressOf _A0_A3,   ' mov mem to acc | mov acc to mem
 AddressOf _A0_A3,
 AddressOf _A0_A3,
@@ -170,7 +170,7 @@ AddressOf _A4_A7,
 AddressOf _A4_A7,
 AddressOf _A4_A7,
 AddressOf _A8,  ' test al imm8
-AddressOf _A9,  ' test ax imm16
+AddressOf _A9,      ' test ax imm16
 AddressOf _AA_AF,
 AddressOf _AA_AF,
 AddressOf _AA_AF,
@@ -229,7 +229,7 @@ AddressOf _E0,  ' loopne/loopnz
 AddressOf _E1,  ' loope/loopz
 AddressOf _E2,  ' loop
 AddressOf _E3,  ' jcxz/jecxz
-AddressOf _E4,  ' in to al from fixed port
+AddressOf _E4,      ' in to al from fixed port
 AddressOf _E5,  ' inw to ax from fixed port
 AddressOf _E6,  ' out to al to fixed port
 AddressOf _E7,  ' outw to ax to fixed port
@@ -951,21 +951,16 @@ AddressOf _FE_FF}
 
     Private Sub _88_8C()    ' mov ind <-> reg8/reg16
         SetAddressing()
-
         If opCode = &H8C Then ' mov r/m16, sreg
-            'If (addrMode.Register1 And &H4) = &H4 Then
-            'addrMode.Register1 = addrMode.Register1 And (Not shl2)
-            'Else
             addrMode.Register1 += GPRegisters.RegistersTypes.ES
             If addrMode.Register2 > &H3 Then
                 addrMode.Register2 = (addrMode.Register2 + GPRegisters.RegistersTypes.ES) Or shl3
             Else
-                addrMode.Register2 += GPRegisters.RegistersTypes.AX
+                addrMode.Register2 = addrMode.Register2 Or shl3
             End If
-            'End If
+            addrMode.Size = DataSize.Word
         End If
 
-        addrMode.Size = If(addrMode.Register1 < GPRegisters.RegistersTypes.AX, DataSize.Byte, DataSize.Word)
         If addrMode.IsDirect Then
             If addrMode.Direction = 0 Then
                 mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
@@ -1039,7 +1034,7 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _99()   ' cwd
-        mRegisters.DX = If((mRegisters.AH And &H80) = 0, &H0, &HFFFF)
+        mRegisters.DX = If((mRegisters.AH And &H80) <> 0, &HFFFF, &H0)
         clkCyc += 5
     End Sub
 
@@ -1094,12 +1089,10 @@ AddressOf _FE_FF}
 
     Private Sub _A4_A7()
         HandleREPMode()
-        'newPrefix = True
     End Sub
 
     Private Sub _AA_AF()
         HandleREPMode()
-        'newPrefix = True
     End Sub
 
     Private Sub _A8()   ' test al imm8
@@ -1405,13 +1398,13 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _F2()   ' repne/repnz
-        repeLoopMode = REPLoopModes.REPENE
+        mRepeLoopMode = REPLoopModes.REPENE
         newPrefix = True
         clkCyc += 2
     End Sub
 
     Private Sub _F3()   ' repe/repz
-        repeLoopMode = REPLoopModes.REPE
+        mRepeLoopMode = REPLoopModes.REPE
         newPrefix = True
         clkCyc += 2
     End Sub
@@ -1419,7 +1412,7 @@ AddressOf _FE_FF}
     Private Sub _F4()   ' hlt
         clkCyc += 2
         If Not mIsHalted Then SystemHalted()
-        IncIP(-1)
+        mRegisters.IP -= 1
     End Sub
 
     Private Sub _F5()   ' cmc
