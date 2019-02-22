@@ -1301,7 +1301,6 @@ Public Class X8086
                 SetAddressing(DataSize.Word)
                 SetRegister2ToSegReg()
                 If addrMode.IsDirect Then
-                    'SetRegister1Alt(ParamNOPS(ParamIndex.First, , DataSize.Byte))
                     SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
                     mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
                     clkCyc += 2

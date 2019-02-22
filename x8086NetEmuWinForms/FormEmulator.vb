@@ -242,7 +242,8 @@ Public Class FormEmulator
         cpu = New X8086(v20Emulation, int13Emulation, Sub()
                                                           SaveSettings()
                                                           StartEmulation()
-                                                      End Sub)
+                                                      End Sub,
+                        X8086.Models.IBMPC_5160)
         cpuState = New EmulatorState(cpu)
 
         If videoPort IsNot Nothing Then
