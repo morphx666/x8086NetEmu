@@ -319,6 +319,7 @@
     <Compile Include="Helpers\Properties.vb" />
     <Compile Include="Helpers\Helpers.vb" />
     <Compile Include="Adapters\Keyboard\Keyboard.vb" />
+    <Compile Include="x8086.vb" />
     <Compile Include="x8087.vb" />
     <Compile Include="Helpers\Extensions.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
@@ -342,7 +343,6 @@
     <Compile Include="Adapters\Video\RenderCtrlGDI.vb">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="x8086.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
@@ -397,7 +397,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

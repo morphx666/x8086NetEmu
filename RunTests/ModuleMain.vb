@@ -25,8 +25,7 @@ Module ModuleMain
             Dim fileName As String = f.Name.Replace(f.Extension, "")
             Dim dataFileName As String = IO.Path.Combine(f.DirectoryName, $"res_{fileName}.bin")
 
-            'If fileName <> "div" Then Continue For
-            'If fileName = "rep" Then Continue For
+            'If fileName <> "segpr" Then Continue For
 
             If Not IO.File.Exists(dataFileName) Then Continue For
             validData = IO.File.ReadAllBytes(dataFileName)

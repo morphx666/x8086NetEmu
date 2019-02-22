@@ -275,7 +275,7 @@ Public Class FormEmulator
         X8086.LogToConsole = False
 #End If
 
-        'cpu.LoadBIN("80186_tests\jump2.bin", &HF000, &H0)
+        'cpu.LoadBIN("80186_tests\segpr.bin", &HF000, &H0)
         'cpu.Run(True, &HF000, 0)
         cpu.Run(False)
         If cpu.DebugMode Then ShowDebugger()
