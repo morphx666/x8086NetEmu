@@ -614,8 +614,6 @@ Public Class X8086
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
 
-        ' If opCode = &HB9 AndAlso RAM8(mRegisters.CS, mRegisters.IP + 1) = &H7C AndAlso RAM8(mRegisters.CS, mRegisters.IP + 2) = &H40 Then DebugMode = True
-
         opCodes(opCode).Invoke()
 
         If useIPAddrOffset Then
@@ -653,18 +651,14 @@ Public Class X8086
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), mRegisters.Val(addrMode.Register1), Operation.Add, addrMode.Size)
-                    Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.Add, addrMode.Size)
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
                     clkCyc += 3
                 Else
                     If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register1), Operation.Add, addrMode.Size)
+                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
                         clkCyc += 16
                     Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), addrMode.IndMem, Operation.Add, addrMode.Size)
+                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Add, addrMode.Size)
                         clkCyc += 9
                     End If
                 End If
@@ -689,18 +683,14 @@ Public Class X8086
             Case &H8 To &HB ' or
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), mRegisters.Val(addrMode.Register1), Operation.LogicOr, addrMode.Size)
-                    Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.LogicOr, addrMode.Size)
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
                     clkCyc += 3
                 Else
                     If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register1), Operation.LogicOr, addrMode.Size)
+                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
                         clkCyc += 16
                     Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), addrMode.IndMem, Operation.LogicOr, addrMode.Size)
+                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicOr, addrMode.Size)
                         clkCyc += 9
                     End If
                 End If
@@ -727,18 +717,14 @@ Public Class X8086
             Case &H10 To &H13 ' adc
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), mRegisters.Val(addrMode.Register1), Operation.AddWithCarry, addrMode.Size)
-                    Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.AddWithCarry, addrMode.Size)
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
                     clkCyc += 3
                 Else
                     If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register1), Operation.AddWithCarry, addrMode.Size)
+                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
                         clkCyc += 16
                     Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), addrMode.IndMem, Operation.AddWithCarry, addrMode.Size)
+                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.AddWithCarry, addrMode.Size)
                         clkCyc += 9
                     End If
                 End If
@@ -766,18 +752,14 @@ Public Class X8086
             Case &H18 To &H1B ' sbb
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), mRegisters.Val(addrMode.Register1), Operation.SubstractWithCarry, addrMode.Size)
-                    Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.SubstractWithCarry, addrMode.Size)
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
                     clkCyc += 3
                 Else
                     If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register1), Operation.SubstractWithCarry, addrMode.Size)
+                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
                         clkCyc += 16
                     Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), addrMode.IndMem, Operation.SubstractWithCarry, addrMode.Size)
+                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.SubstractWithCarry, addrMode.Size)
                         clkCyc += 9
                     End If
                 End If
@@ -802,18 +784,14 @@ Public Class X8086
             Case &H20 To &H23 ' and reg/mem and reg to either
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), mRegisters.Val(addrMode.Register1), Operation.LogicAnd, addrMode.Size)
-                    Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.LogicAnd, addrMode.Size)
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
                     clkCyc += 3
                 Else
                     If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register1), Operation.LogicAnd, addrMode.Size)
+                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
                         clkCyc += 16
                     Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), addrMode.IndMem, Operation.LogicAnd, addrMode.Size)
+                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicAnd, addrMode.Size)
                         clkCyc += 9
                     End If
                 End If
@@ -828,7 +806,7 @@ Public Class X8086
 
             Case &H26, &H2E, &H36, &H3E ' ES, CS, SS and DS segment override prefix
                 addrMode.Decode(opCode, opCode)
-                mRegisters.ActiveSegmentRegister = addrMode.Register1 - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
+                mRegisters.ActiveSegmentRegister = addrMode.Dst - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
                 newPrefix = True
                 clkCyc += 2
 
@@ -854,18 +832,14 @@ Public Class X8086
             Case &H28 To &H2B ' sub reg/mem with reg to either
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), mRegisters.Val(addrMode.Register1), Operation.Substract, addrMode.Size)
-                    Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.Substract, addrMode.Size)
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
                     clkCyc += 3
                 Else
                     If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register1), Operation.Substract, addrMode.Size)
+                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
                         clkCyc += 16
                     Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), addrMode.IndMem, Operation.Substract, addrMode.Size)
+                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Substract, addrMode.Size)
                         clkCyc += 9
                     End If
                 End If
@@ -901,18 +875,14 @@ Public Class X8086
             Case &H30 To &H33 ' xor reg/mem and reg to either
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), mRegisters.Val(addrMode.Register1), Operation.LogicXor, addrMode.Size)
-                    Else
-                        mRegisters.Val(addrMode.Register1) = Eval(Registers.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.LogicXor, addrMode.Size)
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
                     clkCyc += 3
                 Else
                     If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register1), Operation.LogicXor, addrMode.Size)
+                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
                         clkCyc += 16
                     Else
-                        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), addrMode.IndMem, Operation.LogicXor, addrMode.Size)
+                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicXor, addrMode.Size)
                         clkCyc += 9
                     End If
                 End If
@@ -942,17 +912,13 @@ Public Class X8086
             Case &H38 To &H3B ' cmp reg/mem and reg
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        Eval(mRegisters.Val(addrMode.Register2), mRegisters.Val(addrMode.Register1), Operation.Compare, addrMode.Size)
-                    Else
-                        Eval(mRegisters.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.Compare, addrMode.Size)
-                    End If
+                    Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
                     clkCyc += 3
                 Else
                     If addrMode.Direction = 0 Then
-                        Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register1), Operation.Compare, addrMode.Size)
+                        Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
                     Else
-                        Eval(mRegisters.Val(addrMode.Register1), addrMode.IndMem, Operation.Compare, addrMode.Size)
+                        Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Compare, addrMode.Size)
                     End If
                     clkCyc += 9
                 End If
@@ -1253,51 +1219,59 @@ Public Class X8086
             Case &H84 To &H85 ' test reg with reg/mem
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    Eval(mRegisters.Val(addrMode.Register1), mRegisters.Val(addrMode.Register2), Operation.Test, addrMode.Size)
+                    Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Test, addrMode.Size)
                     clkCyc += 3
                 Else
-                    Eval(addrMode.IndMem, mRegisters.Val(addrMode.Register2), Operation.Test, addrMode.Size)
+                    Eval(addrMode.IndMem, mRegisters.Val(addrMode.Dst), Operation.Test, addrMode.Size)
                     clkCyc += 9
                 End If
 
             Case &H86 To &H87 ' xchg reg/mem with reg
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    tmpUVal = mRegisters.Val(addrMode.Register1)
-                    mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
-                    mRegisters.Val(addrMode.Register2) = tmpUVal
+                    tmpUVal = mRegisters.Val(addrMode.Dst)
+                    mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
+                    mRegisters.Val(addrMode.Src) = tmpUVal
                     clkCyc += 4
                 Else
-                    RAMn = mRegisters.Val(addrMode.Register1)
-                    mRegisters.Val(addrMode.Register1) = addrMode.IndMem
+                    RAMn = mRegisters.Val(addrMode.Dst)
+                    mRegisters.Val(addrMode.Dst) = addrMode.IndMem
                     clkCyc += 17
                 End If
 
-            Case &H88 To &H8C ' mov ind <-> reg8/reg16
+            Case &H88 To &H8B ' mov ind <-> reg8/reg16
                 SetAddressing()
-                If opCode = &H8C Then ' mov r/m16, sreg
-                    addrMode.Register1 += GPRegisters.RegistersTypes.ES
-                    If addrMode.Register2 > &H3 Then
-                        addrMode.Register2 = (addrMode.Register2 + GPRegisters.RegistersTypes.ES) Or shl3
-                    Else
-                        addrMode.Register2 = addrMode.Register2 Or shl3
-                    End If
-                    addrMode.Size = DataSize.Word
-                End If
-
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
-                    Else
-                        mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
-                    End If
+                    mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
                     clkCyc += 2
                 Else
                     If addrMode.Direction = 0 Then
-                        RAMn = mRegisters.Val(addrMode.Register1)
+                        RAMn = mRegisters.Val(addrMode.Src)
                         clkCyc += 9
                     Else
-                        mRegisters.Val(addrMode.Register1) = addrMode.IndMem
+                        mRegisters.Val(addrMode.Dst) = addrMode.IndMem
+                        clkCyc += 8
+                    End If
+                End If
+
+            Case &H8C ' mov Ew, Sw
+                SetAddressing(DataSize.Word)
+                addrMode.Src += GPRegisters.RegistersTypes.ES
+                If addrMode.Dst > GPRegisters.RegistersTypes.BL Then
+                    addrMode.Dst = (addrMode.Dst + GPRegisters.RegistersTypes.ES) Or shl3
+                Else
+                    addrMode.Dst = addrMode.Dst Or shl3
+                End If
+
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
+                    clkCyc += 2
+                Else
+                    If addrMode.Direction = 0 Then
+                        RAMn = mRegisters.Val(addrMode.Src)
+                        clkCyc += 9
+                    Else
+                        mRegisters.Val(addrMode.Dst) = addrMode.IndMem
                         clkCyc += 8
                     End If
                 End If
@@ -1307,7 +1281,7 @@ Public Class X8086
                 mRegisters.Val(addrMode.Register1) = addrMode.IndAdr
                 clkCyc += 2
 
-            Case &H8E  ' mov reg/mem to seg reg
+            Case &H8E  ' mov Sw, Ew
                 SetAddressing(DataSize.Word)
                 SetRegister2ToSegReg()
                 If addrMode.IsDirect Then
@@ -1444,13 +1418,8 @@ Public Class X8086
 
             Case &HC6 To &HC7 ' mov imm to reg/mem
                 SetAddressing()
-                If addrMode.IsDirect Then
-                    mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First, opCodeSize)
-                    clkCyc += 4
-                Else
-                    RAMn = Param(ParamIndex.First, opCodeSize)
-                    clkCyc += 10
-                End If
+                RAMn = Param(ParamIndex.First, opCodeSize)
+                clkCyc += 10
 
             Case &HC8 ' enter (80186)
                 If mVic20 Then
@@ -1727,7 +1696,7 @@ Public Class X8086
     Private Sub ExecuteGroup1() ' &H80 To &H83
         SetAddressing()
 
-        Dim arg1 As UInt16 = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)               ' reg
+        Dim arg1 As UInt16 = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)              ' reg
         Dim arg2 As UInt16 = Param(ParamIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
         If opCode = &H83 Then arg2 = To16bitsWithSign(arg2)
 

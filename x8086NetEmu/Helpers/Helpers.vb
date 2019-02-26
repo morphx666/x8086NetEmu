@@ -14,6 +14,7 @@
     }
     Private szpLUT8(256 - 1) As GPFlags.FlagsTypes
     Private szpLUT16(65536 - 1) As GPFlags.FlagsTypes
+    Private decoderCache((255 << 8) Or 255) As AddressingMode
 
     Public Enum ParamIndex
         First = 0
@@ -55,6 +56,9 @@
         Public IndAdr As UInt16    ' Indirect Address
         Public IndMem As UInt16    ' Indirect Memory Contents
 
+        Public Src As GPRegisters.RegistersTypes
+        Public Dst As GPRegisters.RegistersTypes
+
         Private regOffset As Byte
 
         ' http://aturing.umcs.maine.edu/~meadow/courses/cos335/8086-instformat.pdf
@@ -72,6 +76,14 @@
 
             Register2 = Rm Or regOffset
             If Register2 >= GPRegisters.RegistersTypes.ES Then Register2 += GPRegisters.RegistersTypes.ES
+
+            If Direction = 0 Then
+                Src = Register1
+                Dst = Register2
+            Else
+                Src = Register2
+                Dst = Register1
+            End If
         End Sub
     End Structure
 
@@ -83,13 +95,15 @@
 
     Private Sub SetRegister2ToSegReg()
         addrMode.Register2 = addrMode.Reg + GPRegisters.RegistersTypes.ES
+        addrMode.Size = DataSize.Word
     End Sub
 
-    Private decoderCache((255 << 8) Or 255) As AddressingMode
-
     Private Sub SetAddressing(Optional forceSize As DataSize = DataSize.UseAddressingMode)
+#If DEBUG Then
+        addrMode.Decode(opCode, RAM8(mRegisters.CS, mRegisters.IP + 1))
+#Else
         addrMode = decoderCache((CUShort(opCode) << 8) Or RAM8(mRegisters.CS, mRegisters.IP + 1))
-        'addrMode.Decode(opCode, RAM8(mRegisters.CS, mRegisters.IP + 1))
+#End If
 
         If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
 
@@ -184,7 +198,6 @@
                 If p.ValidPortAddress.Contains(portAddress) Then
                     p.Out(portAddress, value)
                     'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
-
                     portsCache.Add(portAddress, p)
                     Exit Sub
                 End If
@@ -194,7 +207,6 @@
                 If a.ValidPortAddress.Contains(portAddress) Then
                     a.Out(portAddress, value)
                     'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
-
                     portsCache.Add(portAddress, a)
                     Exit Sub
                 End If
@@ -214,7 +226,6 @@
             For Each p As IOPortHandler In mPorts
                 If p.ValidPortAddress.Contains(portAddress) Then
                     'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
-
                     portsCache.Add(portAddress, p)
                     Return p.In(portAddress)
                 End If
@@ -223,7 +234,6 @@
             For Each a As Adapter In mAdapters
                 If a.ValidPortAddress.Contains(portAddress) Then
                     'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
-
                     portsCache.Add(portAddress, a)
                     Return a.In(portAddress)
                 End If
@@ -238,7 +248,7 @@
     Private ReadOnly Property Param(index As ParamIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
         Get
             If size = DataSize.UseAddressingMode Then size = addrMode.Size
-            opCodeSize += size + 1
+            opCodeSize += (size + 1)
             Return ParamNOPS(index, ipOffset, size)
         End Get
     End Property
@@ -256,11 +266,9 @@
     End Property
 
     Private Function OffsetIP(size As DataSize) As UInt16
-        If size = DataSize.Byte Then
-            Return mRegisters.IP + To16bitsWithSign(Param(ParamIndex.First, , size)) + opCodeSize
-        Else
-            Return mRegisters.IP + To32bitsWithSign(Param(ParamIndex.First, , size)) + opCodeSize
-        End If
+        Return If(size = DataSize.Byte,
+            mRegisters.IP + To16bitsWithSign(Param(ParamIndex.First, , size)) + opCodeSize,
+            mRegisters.IP + Param(ParamIndex.First, , size) + opCodeSize)
     End Function
 
     Private Function Eval(v1 As UInt32, v2 As UInt32, opMode As Operation, size As DataSize) As UInt16
@@ -312,7 +320,7 @@
         Return result
     End Function
 
-    Private Sub SetSZPFlags(result As UInt16, size As DataSize)
+    Private Sub SetSZPFlags(result As UInt32, size As DataSize)
         Dim ft As GPFlags.FlagsTypes
 
         If size = DataSize.Byte Then
@@ -321,14 +329,14 @@
             ft = szpLUT8(result)
         Else
             mFlags.PF = parityLUT(result And &HFF)
-            ft = szpLUT16(result)
+            ft = szpLUT16(result And &HFFFF)
         End If
 
-        mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) = GPFlags.FlagsTypes.ZF, 1, 0)
-        mFlags.SF = If((ft And GPFlags.FlagsTypes.SF) = GPFlags.FlagsTypes.SF, 1, 0)
+        mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
+        mFlags.SF = If((ft And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
     End Sub
 
-    Private Sub SetLogicFlags(result As UInt16, size As DataSize)
+    Private Sub SetLogicFlags(result As UInt32, size As DataSize)
         SetSZPFlags(result, size)
 
         mFlags.CF = 0

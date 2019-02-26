@@ -291,11 +291,11 @@
     <Compile Include="Chipset\RTC.vb" />
     <Compile Include="Chipset\PPI8255_ALT.vb" />
     <Compile Include="Helpers\Binary.vb" />
+    <Compile Include="Helpers\Exceptions.vb" />
     <Compile Include="Helpers\OpCodes.vb" />
     <Compile Include="Helpers\ConsoleCrayon.vb" />
     <Compile Include="Helpers\Decoder.vb" />
     <Compile Include="Helpers\EmulatorState.vb" />
-    <Compile Include="Helpers\Exceptions.vb" />
     <Compile Include="Adapters\Disk\DiskImage.vb" />
     <Compile Include="Chipset\PPI8255.vb" />
     <Compile Include="Helpers\Hooks\INT13.vb" />
@@ -397,7 +397,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
+      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

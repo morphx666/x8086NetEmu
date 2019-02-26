@@ -527,34 +527,39 @@
                     clkCycDecoder += 17
                 End If
 
-            Case &H88 To &H8C ' mov ind <-> reg8/reg16
+            Case &H88 To &H8B ' mov ind <-> reg8/reg16
                 SetDecoderAddressing()
-                If opCode = &H8C Then
-                    If (addrMode.Register1 And &H4) = &H4 Then
-                        addrMode.Register1 = addrMode.Register1 And (Not 1 << 2)
-                    Else
-                        addrMode.Register1 += GPRegisters.RegistersTypes.ES
-                        If addrMode.Register2 > &H3 Then
-                            addrMode.Register2 = (addrMode.Register2 + GPRegisters.RegistersTypes.ES) Or shl3
-                        Else
-                            addrMode.Register2 += GPRegisters.RegistersTypes.AX
-                        End If
-                    End If
-                End If
-
                 If addrMode.IsDirect Then
-                    If addrMode.Direction = 0 Then
-                        opCodeASM = "MOV " + addrMode.Register2.ToString() + ", " + addrMode.Register1.ToString()
-                    Else
-                        opCodeASM = "MOV " + addrMode.Register1.ToString() + ", " + addrMode.Register2.ToString()
-                    End If
+                    opCodeASM = "MOV " + addrMode.Dst.ToString() + ", " + addrMode.Src.ToString()
                     clkCycDecoder += 2
                 Else
                     If addrMode.Direction = 0 Then
-                        opCodeASM = "MOV " + indASM + ", " + addrMode.Register1.ToString()
+                        opCodeASM = "MOV " + indASM + ", " + addrMode.Src.ToString()
                         clkCycDecoder += 9
                     Else
-                        opCodeASM = "MOV " + addrMode.Register1.ToString() + ", " + indASM
+                        opCodeASM = "MOV " + addrMode.Dst.ToString() + ", " + indASM
+                        clkCycDecoder += 8
+                    End If
+                End If
+
+            Case &H8C ' mov Ew, Sw
+                SetAddressing(DataSize.Word)
+                addrMode.Src += GPRegisters.RegistersTypes.ES
+                If addrMode.Dst > GPRegisters.RegistersTypes.BL Then
+                    addrMode.Dst = (addrMode.Dst + GPRegisters.RegistersTypes.ES) Or shl3
+                Else
+                    addrMode.Dst = addrMode.Dst Or shl3
+                End If
+
+                If addrMode.IsDirect Then
+                    opCodeASM = "MOV " + addrMode.Dst.ToString() + ", " + addrMode.Src.ToString()
+                    clkCycDecoder += 2
+                Else
+                    If addrMode.Direction = 0 Then
+                        opCodeASM = "MOV " + indASM + ", " + addrMode.Src.ToString()
+                        clkCycDecoder += 9
+                    Else
+                        opCodeASM = "MOV " + addrMode.Dst.ToString() + ", " + indASM
                         clkCycDecoder += 8
                     End If
                 End If
@@ -564,11 +569,11 @@
                 opCodeASM = "LEA " + addrMode.Register1.ToString() + ", " + indASM
                 clkCycDecoder += 2
 
-            Case &H8E ' mov reg/mem to seg reg
+            Case &H8E ' mov Sw, Ew
                 SetDecoderAddressing(DataSize.Word)
                 SetRegister2ToSegReg()
                 If addrMode.IsDirect Then
-                    SetRegister1Alt(ParamNOPS(ParamIndex.First, , DataSize.Byte))
+                    SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
                     opCodeASM = "MOV " + addrMode.Register2.ToString() + ", " + addrMode.Register1.ToString()
                     clkCycDecoder += 2
                 Else
@@ -1190,7 +1195,11 @@
     End Sub
 
     Private Sub SetDecoderAddressing(Optional forceSize As DataSize = DataSize.UseAddressingMode)
-        addrMode.Decode(opCode, ParamNOPS(ParamIndex.First, , DataSize.Byte))
+#If DEBUG Then
+        addrMode.Decode(opCode, RAM8(mRegisters.CS, mRegisters.IP + 1))
+#Else
+        addrMode = decoderCache((CUShort(opCode) << 8) Or RAM8(mRegisters.CS, mRegisters.IP + 1))
+#End If
 
         If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
 
