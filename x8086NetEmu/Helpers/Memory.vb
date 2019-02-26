@@ -233,7 +233,7 @@
         End Property
 
         Public Function Clone() As Object Implements ICloneable.Clone
-            Dim reg = New GPRegisters With {
+            Dim reg As New GPRegisters With {
                 .AX = AX,
                 .BX = BX,
                 .CX = CX,
@@ -430,11 +430,9 @@
 
     Public Property RAMn(Optional ignoreHooks As Boolean = False) As UInt16
         Get
-            If addrMode.Size = DataSize.Byte Then
-                Return RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks)
-            Else
-                Return RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks)
-            End If
+            Return If(addrMode.Size = DataSize.Byte,
+                RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks),
+                RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks))
         End Get
         Set(value As UInt16)
             If addrMode.Size = DataSize.Byte Then

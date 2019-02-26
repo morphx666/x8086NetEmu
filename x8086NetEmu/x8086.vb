@@ -130,6 +130,7 @@ Public Class X8086
         'Scheduler.BASECLOCK = GetCpuSpeed() * X8086.MHz
 
         BuildSZPTables()
+        BuildDecoderCache()
         Init()
     End Sub
 
@@ -141,6 +142,15 @@ Public Class X8086
 
     Private Sub AddInternalHooks()
         If mEmulateINT13 Then TryAttachHook(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
+    End Sub
+
+    Private Sub BuildDecoderCache()
+        For i As Integer = 0 To 255
+            For j As Integer = 0 To 255
+                addrMode.Decode(i, j)
+                decoderCache((i << 8) Or j) = addrMode
+            Next
+        Next
     End Sub
 
     Private Sub BuildSZPTables()
@@ -1406,7 +1416,7 @@ Public Class X8086
                 Else
                     addrMode.Size = DataSize.Byte
                 End If
-                mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First,, addrMode.Size)
+                mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First)
                 clkCyc += 4
 
             Case &HC0, &HC1 ' GRP2 byte/word imm8/16 ??? (80186)

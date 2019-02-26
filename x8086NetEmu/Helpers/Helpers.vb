@@ -61,7 +61,6 @@
         Public Sub Decode(data As Byte, addressingModeByte As Byte)
             Size = data And 1                                 ' (0000 0001)
             Direction = (data >> 1) And 1                     ' (0000 0010)
-
             Modifier = addressingModeByte >> 6                ' (1100 0000)
             Reg = (addressingModeByte >> 3) And 7             ' (0011 1000)
             Rm = addressingModeByte And 7                     ' (0000 0111)
@@ -86,9 +85,11 @@
         addrMode.Register2 = addrMode.Reg + GPRegisters.RegistersTypes.ES
     End Sub
 
+    Private decoderCache((255 << 8) Or 255) As AddressingMode
+
     Private Sub SetAddressing(Optional forceSize As DataSize = DataSize.UseAddressingMode)
-        'addrMode.Decode(opCode, ParamNOPS(ParamIndex.First, , DataSize.Byte))
-        addrMode.Decode(opCode, RAM8(mRegisters.CS, mRegisters.IP + 1))
+        addrMode = decoderCache((CUShort(opCode) << 8) Or RAM8(mRegisters.CS, mRegisters.IP + 1))
+        'addrMode.Decode(opCode, RAM8(mRegisters.CS, mRegisters.IP + 1))
 
         If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
 
@@ -160,27 +161,15 @@
     End Sub
 
     Private Function To16bitsWithSign(v As UShort) As UInt16
-        If (v And &H80) <> 0 Then
-            Return &HFF00 Or v
-        Else
-            Return v
-        End If
+        Return If((v And &H80) <> 0, &HFF00US Or v, v)
     End Function
 
     Private Function To32bitsWithSign(v As UInt16) As UInt32
-        If (v And &H8000UI) <> 0 Then
-            Return &HFFFF0000UI Or v
-        Else
-            Return v
-        End If
+        Return If((v And &H8000UI) <> 0, &HFFFF0000UI Or v, v)
     End Function
 
     Private Function ToXbitsWithSign(v As UInt32) As UInt32
-        If addrMode.Size = DataSize.Byte Then
-            Return To16bitsWithSign(v)
-        Else
-            Return To32bitsWithSign(v)
-        End If
+        Return If(addrMode.Size = DataSize.Byte, To16bitsWithSign(v), To32bitsWithSign(v))
     End Function
 
     Private Sub SendToPort(portAddress As UInt32, value As UInt32)
