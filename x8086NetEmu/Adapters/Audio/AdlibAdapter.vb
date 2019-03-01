@@ -5,6 +5,7 @@ Imports NAudio.Wave
 Public Class AdlibAdapter ' Based on fake86's implementation
     Inherits Adapter
 
+    Private tickCount As Integer
     Private waveOut As WaveOut
     Private audioProvider As SpeakerAdpater.CustomBufferProvider
     Private ReadOnly mAudioBuffer() As Byte
@@ -133,7 +134,6 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         waveOut.Play()
     End Sub
 
-    Private tickCount As Integer
     Private Sub FillAudioBuffer(buffer() As Byte)
         tickCount += 1
         If tickCount >= SpeakerAdpater.SampleRate * (X8086.BASECLOCK / mCPU.Clock) / mCPU.SimulationMultiplier Then

@@ -4,10 +4,6 @@
 Public Class CGAWinForms
     Inherits CGAAdapter
 
-    Private charsCache As New List(Of VideoChar)
-    Private charSizeCache As New Dictionary(Of Integer, Size)
-    Private ReadOnly memCache(&HFFFFF) As VideoChar
-
     Private blinkCounter As Integer
     Private frameRate As Integer = 30
     Private cursorAddress As New List(Of Integer)
@@ -289,7 +285,7 @@ Public Class CGAWinForms
         Next
     End Sub
 
-    Private Function RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point, Optional force As Boolean = False) As Boolean
+    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point, Optional force As Boolean = False)
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
                 g.FillRectangle(bbb, New Rectangle(p, mCellSize))
@@ -303,7 +299,7 @@ Public Class CGAWinForms
 
             If Not force Then
                 idx = (p.Y << 8) + p.X
-                If memCache(idx) IsNot Nothing AndAlso memCache(idx) = ccc Then Return False
+                If memCache(idx) IsNot Nothing AndAlso memCache(idx) = ccc Then Exit Sub
                 memCache(idx) = ccc
             End If
 
@@ -315,9 +311,7 @@ Public Class CGAWinForms
             End If
             charsCache(idx).Paint(dbmp, p, scale)
         End If
-
-        Return True
-    End Function
+    End Sub
 
     Private Sub RenderWaveform(g As Graphics)
 #If Win32 Then

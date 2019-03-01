@@ -1,9 +1,6 @@
 ﻿Public Class VGAWinForms
     Inherits VGAAdapter
 
-    Private charsCache As New List(Of VideoChar)
-    Private charSizeCache As New Dictionary(Of Integer, Size)
-
     Private blinkCounter As Integer
     Private cursorSize As Size
     Private frameRate As Integer = 30
@@ -364,10 +361,8 @@
                 End If
             End If
 
-            'If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
-            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
+            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location, cursorAddress.Contains(address))
             cursorAddress.Remove(address)
-            'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If blinkCounter < BlinkRate Then
@@ -397,19 +392,27 @@
         Next
     End Sub
 
-    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
+    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point, Optional force As Boolean = False)
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
-                g.FillRectangle(bbb, New Rectangle(p, CellSize))
+                g.FillRectangle(bbb, New Rectangle(p, mCellSize))
                 Using bfb As New SolidBrush(fb)
-                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - CellSize.Width / 2 + 2, p.Y)
+                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - mCellSize.Width / 2 + 2, p.Y)
                 End Using
             End Using
         Else
             Dim ccc As New VideoChar(c, fb, bb)
-            Dim idx As Integer = charsCache.IndexOf(ccc)
+            Dim idx As Integer
+
+            If Not force Then
+                idx = (p.Y << 8) + p.X
+                If memCache(idx) IsNot Nothing AndAlso memCache(idx) = ccc Then Exit Sub
+                memCache(idx) = ccc
+            End If
+
+            idx = charsCache.IndexOf(ccc)
             If idx = -1 Then
-                ccc.Render(CellSize.Width, CellSize.Height)
+                ccc.Render(mCellSize.Width, mCellSize.Height)
                 charsCache.Add(ccc)
                 idx = charsCache.Count - 1
             End If

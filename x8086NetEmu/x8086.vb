@@ -328,7 +328,7 @@ Public Class X8086
         '                                        │ │ └──────────────────── unused, internal modem (PS/2)
         '                                        └─┴───────────────────── number of printer ports
 
-        PPI.SwitchData = equipmentByte
+        If PPI IsNot Nothing Then PPI.SwitchData = equipmentByte
 
         'RTC.CmosWrite(RTC.CMOS_BIOS_BOOTFLAG1, 1 Or (2 Or &H213) >> 4 And &HF0)
         'RTC.CmosWrite(RTC.CMOS_BIOS_BOOTFLAG2, (2 Or &H213) >> 4 And &HFF)

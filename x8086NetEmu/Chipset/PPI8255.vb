@@ -194,7 +194,7 @@
     ' bit 6: I/O channel parity error occurred (we always set it to 0)
     ' bit 7: RAM parity error occurred (we always set it to 0)
     Private Function GetStatusByte() As Byte
-        Dim timerout As Boolean = timer?.GetOutput(2)
+        Dim timerout As Boolean = If(timer Is Nothing, 0, timer.GetOutput(2))
         Dim speakerout As Boolean = timerout AndAlso ((ppiB And 2) <> 0)
         Dim vh As Integer = If(speakerout, 0, &H10) Or If(timerout, &H20, 0)
         Dim vl As Integer = If((ppiB And &H8) = 0, SwitchData, SwitchData >> 4)

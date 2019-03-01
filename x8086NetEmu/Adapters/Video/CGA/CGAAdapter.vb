@@ -9,6 +9,10 @@ Public MustInherit Class CGAAdapter
     Protected Const ht As Long = Scheduler.BASECLOCK \ HORIZSYNC
     Protected Const vt As Long = (Scheduler.BASECLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
 
+    Protected charsCache As New List(Of VideoChar)
+    Protected charSizeCache As New Dictionary(Of Integer, Size)
+    Protected ReadOnly memCache(&HFFFFF) As VideoChar
+
     Public Enum VideoModes
         Mode0_Text_BW_40x25 = &H4
         Mode1_Text_Color_40x25 = &H0

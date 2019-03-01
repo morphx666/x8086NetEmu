@@ -165,6 +165,7 @@ Global
 		UpdateAssemblyVersion.Debug (Non Win)|Any CPU = True
 		UpdateAssemblyFileVersion.Debug (Non Win)|Any CPU = True
 		UpdateAssemblyInfoVersion.Debug (Non Win)|Any CPU = True
+		ShouldCreateLogs.Debug (Non Win)|Any CPU = True
 		AssemblyVersionSettings.Debug (Non Win)|Any CPU = None.None.None.None
 		AssemblyFileVersionSettings.Debug (Non Win)|Any CPU = None.None.None.None
 		AssemblyInfoVersionSettings.Debug (Non Win)|Any CPU = None.None.None.None
@@ -174,6 +175,7 @@ Global
 		UpdateAssemblyVersion.Debug (Non Win)|x64 = True
 		UpdateAssemblyFileVersion.Debug (Non Win)|x64 = True
 		UpdateAssemblyInfoVersion.Debug (Non Win)|x64 = True
+		ShouldCreateLogs.Debug (Non Win)|x64 = True
 		AssemblyVersionSettings.Debug (Non Win)|x64 = None.None.None.None
 		AssemblyFileVersionSettings.Debug (Non Win)|x64 = None.None.None.None
 		AssemblyInfoVersionSettings.Debug (Non Win)|x64 = None.None.None.None
@@ -183,6 +185,7 @@ Global
 		UpdateAssemblyVersion.Debug (Non Win)|x86 = True
 		UpdateAssemblyFileVersion.Debug (Non Win)|x86 = True
 		UpdateAssemblyInfoVersion.Debug (Non Win)|x86 = True
+		ShouldCreateLogs.Debug (Non Win)|x86 = True
 		AssemblyVersionSettings.Debug (Non Win)|x86 = None.None.None.None
 		AssemblyFileVersionSettings.Debug (Non Win)|x86 = None.None.None.None
 		AssemblyInfoVersionSettings.Debug (Non Win)|x86 = None.None.None.None
@@ -192,6 +195,7 @@ Global
 		UpdateAssemblyVersion.Debug|Any CPU = True
 		UpdateAssemblyFileVersion.Debug|Any CPU = True
 		UpdateAssemblyInfoVersion.Debug|Any CPU = True
+		ShouldCreateLogs.Debug|Any CPU = True
 		AssemblyVersionSettings.Debug|Any CPU = None.None.None.None
 		AssemblyFileVersionSettings.Debug|Any CPU = None.None.None.None
 		AssemblyInfoVersionSettings.Debug|Any CPU = None.None.None.None
@@ -201,6 +205,7 @@ Global
 		UpdateAssemblyVersion.Debug|x64 = True
 		UpdateAssemblyFileVersion.Debug|x64 = True
 		UpdateAssemblyInfoVersion.Debug|x64 = True
+		ShouldCreateLogs.Debug|x64 = True
 		AssemblyVersionSettings.Debug|x64 = None.None.None.None
 		AssemblyFileVersionSettings.Debug|x64 = None.None.None.None
 		AssemblyInfoVersionSettings.Debug|x64 = None.None.None.None
@@ -210,6 +215,7 @@ Global
 		UpdateAssemblyVersion.Debug|x86 = True
 		UpdateAssemblyFileVersion.Debug|x86 = True
 		UpdateAssemblyInfoVersion.Debug|x86 = True
+		ShouldCreateLogs.Debug|x86 = True
 		AssemblyVersionSettings.Debug|x86 = None.None.None.None
 		AssemblyFileVersionSettings.Debug|x86 = None.None.None.None
 		AssemblyInfoVersionSettings.Debug|x86 = None.None.None.None
