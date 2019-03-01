@@ -117,32 +117,34 @@ Public Class FormEmulator
 
     Private Sub SetupCpuEventHandlers()
 #If Win32 Then
-        AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
-                                                 If (e1.KeyData And Keys.Control) = Keys.Control AndAlso Convert.ToBoolean(GetAsyncKeyState(Keys.RControlKey)) Then
-                                                     Cursor.Clip = Rectangle.Empty
-                                                     CursorVisible = True
-                                                     If cpu.Mouse IsNot Nothing Then cpu.Mouse.IsCaptured = False
+        If cpu.VideoAdapter IsNot Nothing Then
+            AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
+                                                     If (e1.KeyData And Keys.Control) = Keys.Control AndAlso Convert.ToBoolean(GetAsyncKeyState(Keys.RControlKey)) Then
+                                                         Cursor.Clip = Rectangle.Empty
+                                                         CursorVisible = True
+                                                         If cpu.Mouse IsNot Nothing Then cpu.Mouse.IsCaptured = False
 
-                                                     Select Case e1.KeyCode
-                                                         Case Keys.Home
-                                                             ContextMenuStripMain.Show(Cursor.Position)
-                                                         Case Keys.Add
-                                                             Dim zoom = cpu.VideoAdapter.Zoom
-                                                             If zoom < 4 Then SetZoomLevel(zoom + 0.25)
-                                                         Case Keys.Subtract
-                                                             Dim zoom = cpu.VideoAdapter.Zoom
-                                                             If zoom > 0.25 Then SetZoomLevel(zoom - 0.25)
-                                                         Case Keys.NumPad0
-                                                             SetZoomLevel(1)
-                                                         Case Keys.C
-                                                             CopyTextFromEmulator()
-                                                         Case Keys.V
-                                                             PasteTextFromClipboard()
-                                                     End Select
+                                                         Select Case e1.KeyCode
+                                                             Case Keys.Home
+                                                                 ContextMenuStripMain.Show(Cursor.Position)
+                                                             Case Keys.Add
+                                                                 Dim zoom = cpu.VideoAdapter.Zoom
+                                                                 If zoom < 4 Then SetZoomLevel(zoom + 0.25)
+                                                             Case Keys.Subtract
+                                                                 Dim zoom = cpu.VideoAdapter.Zoom
+                                                                 If zoom > 0.25 Then SetZoomLevel(zoom - 0.25)
+                                                             Case Keys.NumPad0
+                                                                 SetZoomLevel(1)
+                                                             Case Keys.C
+                                                                 CopyTextFromEmulator()
+                                                             Case Keys.V
+                                                                 PasteTextFromClipboard()
+                                                         End Select
 
-                                                     e1.Handled = True
-                                                 End If
-                                             End Sub
+                                                         e1.Handled = True
+                                                     End If
+                                                 End Sub
+        End If
 #Else
         AddHandler videoPort.MouseDown, Sub(s1 As Object, e1 As MouseEventArgs)
                                             If e1.Button = Windows.Forms.MouseButtons.Middle Then ContextMenuStripMain.Show(Cursor.Position)
@@ -221,7 +223,7 @@ Public Class FormEmulator
                                     sysMenIntegercut,
                                     cpu.Clock / X8086.MHz,
                                     cpu.SimulationMultiplier * 100,
-                                    $"{cpu.VideoAdapter.Name.Split(" "c)(0)} Mode {cpu.VideoAdapter.VideoMode:X2}{If(cpu.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, "T", "G")} | Zoom {cpu.VideoAdapter.Zoom * 100}%",
+                                    $"{cpu.VideoAdapter?.Name.Split(" "c)(0)} Mode {cpu.VideoAdapter?.VideoMode:X2}{If(cpu.VideoAdapter?.MainMode = VideoAdapter.MainModes.Text, "T", "G")} | Zoom {cpu.VideoAdapter?.Zoom * 100}%",
                                     cpu.MIPs,
                                     If(cpu.IsHalted, "Halted", If(cpu.DebugMode, "Debugging", If(cpu.IsPaused, "Paused", "Running"))),
                                     If(runningApp <> "", $" | {runningApp}", ""))
@@ -256,8 +258,8 @@ Public Class FormEmulator
         videoPort.Focus()
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", True))
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
+        cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", True))
+        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         'cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
 
@@ -815,6 +817,7 @@ Public Class FormEmulator
     End Sub
 
     Private Sub SetZoomLevel(value As Double)
+        If cpu.VideoAdapter Is Nothing Then Exit Sub
         cpu.VideoAdapter.Zoom = value
         Dim zoomText As String = (value * 100).ToString() + "%"
         For Each ddi As ToolStripItem In ZoomToolStripMenuItem.DropDownItems

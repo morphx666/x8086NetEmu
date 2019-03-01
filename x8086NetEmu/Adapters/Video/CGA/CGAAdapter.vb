@@ -376,7 +376,12 @@ Public MustInherit Class CGAAdapter
                     mVideoResolution = New Size(320, 200)
                     mMainMode = MainModes.Graphics
 
-                Case VideoModes.Mode6_Graphic_Color_640x200, VideoModes.Mode6_Graphic_Color_640x200_Alt
+                Case VideoModes.Mode6_Graphic_Color_640x200
+                    mTextResolution = New Size(80, 25)
+                    mVideoResolution = New Size(640, 200)
+                    mMainMode = MainModes.Graphics
+
+                Case VideoModes.Mode6_Graphic_Color_640x200_Alt
                     mTextResolution = New Size(80, 25)
                     mVideoResolution = New Size(640, 200)
                     mMainMode = MainModes.Graphics
@@ -403,7 +408,11 @@ Public MustInherit Class CGAAdapter
         mEndTextVideoAddress = mStartTextVideoAddress + &H4000
         mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + &H4000
 
-        mPixelsPerByte = If(VideoMode = VideoModes.Mode6_Graphic_Color_640x200, 8, 4)
+        Select Case VideoMode
+            Case VideoModes.Mode6_Graphic_Color_640x200 : mPixelsPerByte = 8
+            Case VideoModes.Mode6_Graphic_Color_640x200_Alt : mPixelsPerByte = 1
+            Case Else : mPixelsPerByte = 4
+        End Select
 
         X8086.Notify("Set Video Mode: {0}", X8086.NotificationReasons.Info, mVideoMode)
 

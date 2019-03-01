@@ -1706,13 +1706,6 @@ Public Class X8086
             If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None
             If mRegisters.ActiveSegmentChanged Then mRegisters.ResetActiveSegment()
         End If
-
-        'If mRegisters.CS = &H1290 AndAlso mRegisters.IP = &HF85A Then
-        'TryAttachHook(&H21, New IntHandler(Function()
-        '                                       If mRegisters.AH = &H3D Then Stop
-        '                                       Return False
-        '                                   End Function))
-        'End If
     End Sub
 
     Private Sub ExecuteGroup1() ' &H80 To &H83
