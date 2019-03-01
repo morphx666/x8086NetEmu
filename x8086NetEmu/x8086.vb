@@ -557,6 +557,8 @@ Public Class X8086
                                 Scheduler.BASECLOCK * syncQuantum,
                                 Scheduler.BASECLOCK / 1000,
                                 mSimulationMultiplier)
+
+        PIT?.UpdateClock()
     End Sub
 
     Public Sub PreExecute()

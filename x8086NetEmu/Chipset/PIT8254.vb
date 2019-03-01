@@ -519,7 +519,7 @@
     Private Const OverclockMultiplier As Double = 1.0 ' This will affect the speed of the internal clock!
 
     ' Global counter clock rate (1.19318 MHz) 
-    Private Shared ReadOnly COUNTRATE As Long = Scheduler.BASECLOCK / X8086.KHz * OverclockMultiplier
+    Private Shared COUNTRATE As Long
 
     ' Three counters in the I8254 chip 
     Private ReadOnly mChannels(3 - 1) As Counter
@@ -574,7 +574,12 @@
             ValidPortAddress.Add(i)
         Next
 
-        speakerBaseFrequency = CDbl(COUNTRATE) * 760.0 * 1.335 / OverclockMultiplier
+        UpdateClock()
+    End Sub
+
+    Public Sub UpdateClock()
+        COUNTRATE = Scheduler.BASECLOCK / X8086.KHz * OverclockMultiplier * cpu.SimulationMultiplier
+        speakerBaseFrequency = CDbl(Scheduler.BASECLOCK / X8086.KHz) * 760.0 * 1.335 / cpu.SimulationMultiplier
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean

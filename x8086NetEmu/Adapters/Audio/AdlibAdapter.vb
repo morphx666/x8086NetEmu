@@ -136,7 +136,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private tickCount As Integer
     Private Sub FillAudioBuffer(buffer() As Byte)
         tickCount += 1
-        If tickCount >= SpeakerAdpater.SampleRate * (X8086.BASECLOCK / mCPU.Clock) Then
+        If tickCount >= SpeakerAdpater.SampleRate * (X8086.BASECLOCK / mCPU.Clock) / mCPU.SimulationMultiplier Then
             tickCount = 0
 
             SyncLock channel
