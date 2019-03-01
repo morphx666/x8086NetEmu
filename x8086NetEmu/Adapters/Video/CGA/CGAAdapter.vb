@@ -291,7 +291,7 @@ Public MustInherit Class CGAAdapter
 
     Private Sub MainLoop()
         Do
-            waiter.WaitOne(4 * 1000 \ VERTSYNC)
+            waiter.WaitOne(2 * 1000 \ VERTSYNC)
             Render()
 
             'RaiseEvent VideoRefreshed(Me)

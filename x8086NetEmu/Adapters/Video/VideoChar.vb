@@ -43,12 +43,12 @@
 
     Public Shared Operator =(c1 As VideoChar, c2 As VideoChar) As Boolean
         Return c1.CGAChar = c2.CGAChar AndAlso
-                c1.ForeColor = c2.ForeColor AndAlso
-                c1.BackColor = c2.BackColor
+               c1.ForeColor = c2.ForeColor AndAlso
+               c1.BackColor = c2.BackColor
     End Operator
 
     Public Shared Operator <>(c1 As VideoChar, c2 As VideoChar) As Boolean
-        Return Not c1 = c2
+        Return Not (c1 = c2)
     End Operator
 
     Public Overrides Function Equals(obj As Object) As Boolean

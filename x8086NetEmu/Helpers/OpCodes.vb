@@ -632,6 +632,8 @@ Private Sub _60	' pusha (80186)
                     PushIntoStack(mRegisters.SI)
                     PushIntoStack(mRegisters.DI)
                     clkCyc += 19
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -646,6 +648,8 @@ Private Sub _61	' popa (80186)
                     mRegisters.CX = PopFromStack()
                     mRegisters.AX = PopFromStack()
                     clkCyc += 19
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -662,6 +666,8 @@ Private Sub _62	' bound (80186)
                         End If
                     End If
                     clkCyc += 34
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -670,6 +676,8 @@ Private Sub _68	' push (80186)
                 If mVic20 Then
                     PushIntoStack(Param(ParamIndex.First, , DataSize.Word))
                     clkCyc += 3
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -691,6 +699,8 @@ Private Sub _69	' imul (80186)
                         mFlags.OF = 0
                     End If
                     clkCyc += 27
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -699,6 +709,8 @@ Private Sub _6A	' push (80186)
                     ' PRE ALPHA CODE - UNTESTED
                     PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
                     clkCyc += 3
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -720,6 +732,8 @@ Private Sub _6B	' imul (80186)
                         mFlags.OF = 0
                     End If
                     clkCyc += 27
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -1099,6 +1113,8 @@ Private Sub _C0_C1	' GRP2 byte/word imm8/16 ??? (80186)
                                     If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     ExecuteGroup2()
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -1131,8 +1147,8 @@ Private Sub _C6_C7	' mov imm to reg/mem
 Private Sub _C8	' enter (80186)
                                     If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
-                    Dim stackSize = Param(ParamIndex.First, , DataSize.Word)
-                    Dim nestLevel = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
+                    Dim stackSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)
+                    Dim nestLevel As UInt16 = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
                     PushIntoStack(mRegisters.BP)
                     Dim frameTemp = mRegisters.SP
                     If nestLevel > 0 Then
@@ -1154,6 +1170,8 @@ clkCyc += 25
                         Case Else' 
 clkCyc += 22 + 16 * (nestLevel - 1)
                     End Select
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -1162,6 +1180,8 @@ Private Sub _C9	' leave (80186)
                     mRegisters.SP = mRegisters.BP
                     mRegisters.BP = PopFromStack()
                     clkCyc += 8
+                Else
+                    OpCodeNotImplemented()
                 End If
                                  End Sub
 
@@ -1181,12 +1201,12 @@ Private Sub _CB	' ret intersegment (retf)
 
 Private Sub _CC	' int with type 3
                                     HandleInterrupt(3, False)
-                clkCyc += 52
+                clkCyc += 1
                                  End Sub
 
 Private Sub _CD	' int with type specified
                                     HandleInterrupt(Param(ParamIndex.First, , DataSize.Byte), False)
-                clkCyc += 51
+                clkCyc += 0
                                  End Sub
 
 Private Sub _CE	' into

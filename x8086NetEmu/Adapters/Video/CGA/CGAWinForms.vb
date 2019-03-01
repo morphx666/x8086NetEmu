@@ -6,13 +6,14 @@ Public Class CGAWinForms
 
     Private charsCache As New List(Of VideoChar)
     Private charSizeCache As New Dictionary(Of Integer, Size)
+    Private ReadOnly memCache(&HFFFFF) As VideoChar
 
     Private blinkCounter As Integer
     Private frameRate As Integer = 30
     Private cursorAddress As New List(Of Integer)
 
-    Private brushCache(CGAPalette.Length - 1) As Color
-    Private cursorBrush As Color = Color.FromArgb(128, Color.White)
+    Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
+    Private ReadOnly cursorBrush As Color = Color.FromArgb(128, Color.White)
 
     Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
@@ -231,13 +232,10 @@ Public Class CGAWinForms
 
             If BlinkCharOn AndAlso (b1 And &B1000_0000) <> 0 Then
                 If blinkCounter < BlinkRate Then b0 = 0
-                'IsDirty(address) = True
             End If
 
-            'If IsDirty(address) OrElse IsDirty(address + 1) OrElse cursorAddress.Contains(address) Then
-            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
+            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location, cursorAddress.Contains(address))
             cursorAddress.Remove(address)
-            'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If blinkCounter < BlinkRate Then
@@ -291,7 +289,7 @@ Public Class CGAWinForms
         Next
     End Sub
 
-    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
+    Private Function RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point, Optional force As Boolean = False) As Boolean
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
                 g.FillRectangle(bbb, New Rectangle(p, mCellSize))
@@ -301,7 +299,15 @@ Public Class CGAWinForms
             End Using
         Else
             Dim ccc As New VideoChar(c, fb, bb)
-            Dim idx As Integer = charsCache.IndexOf(ccc)
+            Dim idx As Integer
+
+            If Not force Then
+                idx = (p.Y << 8) + p.X
+                If memCache(idx) IsNot Nothing AndAlso memCache(idx) = ccc Then Return False
+                memCache(idx) = ccc
+            End If
+
+            idx = charsCache.IndexOf(ccc)
             If idx = -1 Then
                 ccc.Render(mCellSize.Width, mCellSize.Height)
                 charsCache.Add(ccc)
@@ -309,7 +315,9 @@ Public Class CGAWinForms
             End If
             charsCache(idx).Paint(dbmp, p, scale)
         End If
-    End Sub
+
+        Return True
+    End Function
 
     Private Sub RenderWaveform(g As Graphics)
 #If Win32 Then

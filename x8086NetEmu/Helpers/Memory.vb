@@ -1,4 +1,6 @@
-﻿Partial Public Class X8086
+﻿Imports System.Runtime.InteropServices
+
+Partial Public Class X8086
     Public Const MemSize As UInt32 = &H100000UI  ' 1MB
     Public Const ROMStart As UInt32 = &HC0000UI
 
@@ -27,6 +29,7 @@
 
     Public Event MemoryAccess(sender As Object, e As MemoryAccessEventArgs)
 
+    <StructLayout(LayoutKind.Explicit)>
     Public Class GPRegisters
         Implements ICloneable
 
@@ -61,8 +64,38 @@
             IP = SP + 4
         End Enum
 
-        Private mActiveSegmentRegister As RegistersTypes = RegistersTypes.DS
-        Private mActiveSegmentChanged As Boolean = False
+        <FieldOffset(0)> Public AX As UInt16
+        <FieldOffset(0)> Public AL As Byte
+        <FieldOffset(1)> Public AH As Byte
+
+        <FieldOffset(2)> Public BX As UInt16
+        <FieldOffset(2)> Public BL As Byte
+        <FieldOffset(3)> Public BH As Byte
+
+        <FieldOffset(4)> Public CX As UInt16
+        <FieldOffset(4)> Public CL As Byte
+        <FieldOffset(5)> Public CH As Byte
+
+        <FieldOffset(6)> Public DX As UInt16
+        <FieldOffset(6)> Public DL As Byte
+        <FieldOffset(7)> Public DH As Byte
+
+        <FieldOffset(8)> Public CS As UInt16
+        <FieldOffset(10)> Public IP As UInt16
+
+        <FieldOffset(12)> Public SS As UInt16
+        <FieldOffset(14)> Public SP As UInt16
+
+        <FieldOffset(16)> Public DS As UInt16
+        <FieldOffset(18)> Public SI As UInt16
+
+        <FieldOffset(20)> Public ES As UInt16
+        <FieldOffset(22)> Public DI As UInt16
+
+        <FieldOffset(24)> Public BP As UInt16
+
+        <FieldOffset(100)> Private mActiveSegmentRegister As RegistersTypes
+        <FieldOffset(200)> Private mActiveSegmentChanged As Boolean
 
         Public Property Val(reg As RegistersTypes) As UInt16
             Get
@@ -136,68 +169,6 @@
                 End Select
             End Set
         End Property
-
-        Public Property AX As UInt16
-            Get
-                Return (CShort(AH) << 8) Or AL
-            End Get
-            Set(value As UInt16)
-                AH = value >> 8
-                AL = value
-            End Set
-        End Property
-        Public Property AL As Byte
-        Public Property AH As Byte
-
-        Public Property BX As UInt16
-            Get
-                Return (CShort(BH) << 8) Or BL
-            End Get
-            Set(value As UInt16)
-                BH = value >> 8
-                BL = value
-            End Set
-        End Property
-        Public Property BL As Byte
-        Public Property BH As Byte
-
-        Public Property CX As UInt16
-            Get
-                Return (CShort(CH) << 8) Or CL
-            End Get
-            Set(value As UInt16)
-                CH = value >> 8
-                CL = value
-            End Set
-        End Property
-        Public Property CL As Byte
-        Public Property CH As Byte
-
-        Public Property DX As UInt16
-            Get
-                Return (CShort(DH) << 8) Or DL
-            End Get
-            Set(value As UInt16)
-                DH = value >> 8
-                DL = value
-            End Set
-        End Property
-        Public Property DL As Byte
-        Public Property DH As Byte
-
-        Public Property CS As UInt16
-        Public Property IP As UInt16
-
-        Public Property SS As UInt16
-        Public Property SP As UInt16
-
-        Public Property DS As UInt16
-        Public Property SI As UInt16
-
-        Public Property ES As UInt16
-        Public Property DI As UInt16
-
-        Public Property BP As UInt16
 
         Public Sub ResetActiveSegment()
             mActiveSegmentChanged = False

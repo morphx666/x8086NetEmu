@@ -569,7 +569,7 @@ Public Class X8086
         Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.BASECLOCK - 1) / Scheduler.BASECLOCK
 
         If mDebugMode Then
-            While clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode
+            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)
                 debugWaiter.WaitOne()
 
                 If Not isDecoding Then
@@ -905,8 +905,6 @@ Public Class X8086
                     mFlags.CF = 0
                 End If
                 mRegisters.AL = mRegisters.AL.LowNib()
-                'mFlags.OF = 0
-                'mFlags.SF = 0
                 clkCyc += 8
 
             Case &H38 To &H3B ' cmp reg/mem and reg
@@ -981,6 +979,8 @@ Public Class X8086
                     PushIntoStack(mRegisters.SI)
                     PushIntoStack(mRegisters.DI)
                     clkCyc += 19
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &H61 ' popa (80186)
@@ -994,6 +994,8 @@ Public Class X8086
                     mRegisters.CX = PopFromStack()
                     mRegisters.AX = PopFromStack()
                     clkCyc += 19
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &H62 ' bound (80186)
@@ -1009,6 +1011,8 @@ Public Class X8086
                         End If
                     End If
                     clkCyc += 34
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &H68 ' push (80186)
@@ -1016,6 +1020,8 @@ Public Class X8086
                 If mVic20 Then
                     PushIntoStack(Param(ParamIndex.First, , DataSize.Word))
                     clkCyc += 3
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &H69 ' imul (80186)
@@ -1036,6 +1042,8 @@ Public Class X8086
                         mFlags.OF = 0
                     End If
                     clkCyc += 27
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &H6A ' push (80186)
@@ -1043,6 +1051,8 @@ Public Class X8086
                     ' PRE ALPHA CODE - UNTESTED
                     PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
                     clkCyc += 3
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &H6B ' imul (80186)
@@ -1063,6 +1073,8 @@ Public Class X8086
                         mFlags.OF = 0
                     End If
                     clkCyc += 27
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &H6C To &H6F ' Ignore 80186/V20 port operations... for now...
@@ -1297,7 +1309,6 @@ Public Class X8086
                         (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
-
                 If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then FlushCycles()
 
             Case &H8F ' pop reg/mem
@@ -1397,6 +1408,8 @@ Public Class X8086
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     ExecuteGroup2()
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &HC2 ' ret (ret n) within segment adding imm to sp
@@ -1424,8 +1437,8 @@ Public Class X8086
             Case &HC8 ' enter (80186)
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
-                    Dim stackSize = Param(ParamIndex.First, , DataSize.Word)
-                    Dim nestLevel = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
+                    Dim stackSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)
+                    Dim nestLevel As UInt16 = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
                     PushIntoStack(mRegisters.BP)
                     Dim frameTemp = mRegisters.SP
                     If nestLevel > 0 Then
@@ -1444,6 +1457,8 @@ Public Class X8086
                         Case 1 : clkCyc += 25
                         Case Else : clkCyc += 22 + 16 * (nestLevel - 1)
                     End Select
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &HC9 ' leave (80186)
@@ -1451,6 +1466,8 @@ Public Class X8086
                     mRegisters.SP = mRegisters.BP
                     mRegisters.BP = PopFromStack()
                     clkCyc += 8
+                Else
+                    OpCodeNotImplemented()
                 End If
 
             Case &HCA ' ret intersegment adding imm to sp (ret n /retf)
@@ -1467,11 +1484,11 @@ Public Class X8086
 
             Case &HCC ' int with type 3
                 HandleInterrupt(3, False)
-                clkCyc += 52
+                clkCyc += 1
 
             Case &HCD ' int with type specified
                 HandleInterrupt(Param(ParamIndex.First, , DataSize.Byte), False)
-                clkCyc += 51
+                clkCyc += 0
 
             Case &HCE ' into
                 If mFlags.OF = 1 Then
@@ -1521,15 +1538,13 @@ Public Class X8086
 
             Case &HD8 To &HDF ' Ignore co-processor instructions
                 SetAddressing()
-
                 'FPU.Execute(opCode, addrMode)
 
                 ' Lesson 2
                 ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
                 'HandleInterrupt(7, False)
-
-                'OpCodeNotImplemented(opCode, "FPU Not Available")
+                OpCodeNotImplemented("FPU Not Available")
                 clkCyc += 2
 
             Case &HE0 ' loopne/loopnz
@@ -1691,6 +1706,13 @@ Public Class X8086
             If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None
             If mRegisters.ActiveSegmentChanged Then mRegisters.ResetActiveSegment()
         End If
+
+        'If mRegisters.CS = &H1290 AndAlso mRegisters.IP = &HF85A Then
+        'TryAttachHook(&H21, New IntHandler(Function()
+        '                                       If mRegisters.AH = &H3D Then Stop
+        '                                       Return False
+        '                                   End Function))
+        'End If
     End Sub
 
     Private Sub ExecuteGroup1() ' &H80 To &H83
@@ -2224,11 +2246,9 @@ Public Class X8086
 
             Case 2 ' 010 call indirect within segment
                 PushIntoStack(mRegisters.IP + opCodeSize)
-                If addrMode.IsDirect Then
-                    IPAddrOffet = mRegisters.Val(addrMode.Register2)
-                Else
-                    IPAddrOffet = addrMode.IndMem
-                End If
+                IPAddrOffet = If(addrMode.IsDirect,
+                                    mRegisters.Val(addrMode.Register2),
+                                    addrMode.IndMem)
                 clkCyc += 11
 
             Case 3 ' 011 call indirect inter-segment
@@ -2239,11 +2259,9 @@ Public Class X8086
                 clkCyc += 37
 
             Case 4 ' 100 jmp indirect within segment
-                If addrMode.IsDirect Then
-                    IPAddrOffet = mRegisters.Val(addrMode.Register2)
-                Else
-                    IPAddrOffet = addrMode.IndMem
-                End If
+                IPAddrOffet = If(addrMode.IsDirect,
+                                    mRegisters.Val(addrMode.Register2),
+                                    addrMode.IndMem)
                 clkCyc += 15
 
             Case 5 ' 101 jmp indirect inter-segment
@@ -2274,19 +2292,16 @@ Public Class X8086
 
         If mRepeLoopMode = REPLoopModes.None Then
             ExecStringOpCode()
-        ElseIf mDebugMode Then
-            If mRegisters.CX > 0 Then
-                mRegisters.CX -= 1
-                If ExecStringOpCode() Then
-                    If (mRepeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
-                       (mRepeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
-                        mRepeLoopMode = REPLoopModes.None
-                        Exit Sub
-                    End If
+        ElseIf mDebugMode AndAlso mRegisters.CX > 0 Then
+            mRegisters.CX -= 1
+            If ExecStringOpCode() Then
+                If (mRepeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse
+                   (mRepeLoopMode = REPLoopModes.REPENE AndAlso mFlags.ZF = 1) Then
+                    Exit Sub
                 End If
-
-                mRegisters.IP -= (opCodeSize + 1)
             End If
+
+            mRegisters.IP -= (opCodeSize + 1)
         Else
             While mRegisters.CX > 0
                 mRegisters.CX -= 1
@@ -2297,7 +2312,6 @@ Public Class X8086
                     End If
                 End If
             End While
-            mRepeLoopMode = REPLoopModes.None
         End If
     End Sub
 
