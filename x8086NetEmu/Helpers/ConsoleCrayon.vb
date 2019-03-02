@@ -51,7 +51,7 @@ Public NotInheritable Class ConsoleCrayon
     Public Shared Sub WriteFast(text As String, foreColor As ConsoleColor, backColor As ConsoleColor, col As Integer, row As Integer)
         SyncLock SyncObject
             If col < 0 OrElse col >= Console.WindowWidth OrElse
-            row < 0 OrElse row >= Console.WindowHeight Then Exit Sub
+               row < 0 OrElse row >= Console.WindowHeight Then Exit Sub
 
             If ConsoleCrayon.XtermColors Then
                 Console.Write(ESC + (row + 1).ToString() + ";" + (col + 1).ToString() + "H" +
@@ -109,7 +109,7 @@ Public NotInheritable Class ConsoleCrayon
     End Sub
 
     Private Shared Sub SetColor(color As ConsoleColor, isForeground As Boolean)
-        If color < ConsoleColor.Black OrElse color > ConsoleColor.White Then
+        If color <ConsoleColor.Black OrElse color > ConsoleColor.White Then
             Throw New ArgumentOutOfRangeException("color", "Not a ConsoleColor value")
         End If
 
@@ -137,7 +137,7 @@ Public NotInheritable Class ConsoleCrayon
 
         For i As Integer = 0 To text.Length - 1
             If i + 4 <= text.Length Then
-                tmpText = text.Substring(i, 4)
+                tmpText= text.Substring(i, 4)
             Else
                 tmpText = text(i)
             End If
@@ -301,7 +301,7 @@ Public NotInheritable Class ConsoleCrayon
 #End Region
 
 #Region "xterm Detection"
-    Private Shared xterm_colors As System.Nullable(Of Boolean) = Nothing
+    Private Shared xterm_colors As Boolean? = Nothing
 
     Public Shared ReadOnly Property XtermColors() As Boolean
         Get
@@ -310,13 +310,13 @@ Public NotInheritable Class ConsoleCrayon
         End Get
     End Property
 
-    <System.Runtime.InteropServices.DllImport("libc", EntryPoint:="isatty")>
-    Private Shared Function _isatty(fd As Integer) As Integer
+    <Runtime.InteropServices.DllImport("libc", EntryPoint:="isatty")>
+    Private Shared Function _isTty(fd As Integer) As Integer
     End Function
 
-    Private Shared Function isatty(fd As Integer) As Boolean
+    Private Shared Function IsTty(fd As Integer) As Boolean
         Try
-            Return _isatty(fd) = 1
+            Return _isTty(fd) = 1
         Catch
             Return False
         End Try
@@ -340,7 +340,7 @@ Public NotInheritable Class ConsoleCrayon
                 _xterm_colors = True
         End Select
 
-        xterm_colors = _xterm_colors AndAlso isatty(1) AndAlso isatty(2)
+        xterm_colors = _xterm_colors AndAlso IsTty(1) AndAlso IsTty(2)
     End Sub
 
 #End Region

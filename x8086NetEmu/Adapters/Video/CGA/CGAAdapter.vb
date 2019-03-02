@@ -294,8 +294,9 @@ Public MustInherit Class CGAAdapter
     End Sub
 
     Private Sub MainLoop()
+        Dim multiplier As Integer = If(TypeOf mCPU.VideoAdapter Is CGAConsole, 2, 2)
         Do
-            waiter.WaitOne(2 * 1000 \ VERTSYNC)
+            waiter.WaitOne(multiplier * 1000 \ VERTSYNC)
             Render()
 
             'RaiseEvent VideoRefreshed(Me)

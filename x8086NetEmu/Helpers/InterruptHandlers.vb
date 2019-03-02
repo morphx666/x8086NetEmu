@@ -34,8 +34,7 @@ Partial Public Class X8086
             PushIntoStack(mRegisters.CS)
 
             If isHard Then
-                'PushIntoStack(mRegisters.IP)
-                PushIntoStack(AdjustIP(mRegisters.IP))
+                PushIntoStack(mRegisters.IP - newPrefixLast)
             Else
                 PushIntoStack(mRegisters.IP + opCodeSize)
             End If
@@ -44,7 +43,7 @@ Partial Public Class X8086
             IPAddrOffet = RAM16(0, tmpUVal,, True)
             mRegisters.CS = RAM16(0, tmpUVal, 2, True)
 
-            If intNum = 0 Then DivisionByZero()
+            If intNum = 0 Then ThrowException("Division By Zero")
         End If
 
         mFlags.IF = 0
@@ -52,18 +51,4 @@ Partial Public Class X8086
 
         clkCyc += 51
     End Sub
-
-    Private Function IsPrefix(opCode As Byte) As Boolean
-        Select Case opCode
-            Case &H26, &H2E, &H36, &H3E, &HF2, &HF3 : Return True
-        End Select
-        Return False
-    End Function
-
-    Private Function AdjustIP(v As UShort) As UShort
-        While IsPrefix(RAM8(mRegisters.CS, v - 1))
-            v -= 1
-        End While
-        Return v
-    End Function
 End Class

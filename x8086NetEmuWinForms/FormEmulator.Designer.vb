@@ -44,9 +44,6 @@ Partial Class FormEmulator
         Me.ToolStripMenuItemSpeed100 = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripMenuItemSpeed150 = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripMenuItemSpeed200 = New System.Windows.Forms.ToolStripMenuItem()
-        Me.ToolStripMenuItemSpeed400 = New System.Windows.Forms.ToolStripMenuItem()
-        Me.ToolStripMenuItemSpeed800 = New System.Windows.Forms.ToolStripMenuItem()
-        Me.ToolStripMenuItemSpeed1000 = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripMenuItem5 = New System.Windows.Forms.ToolStripSeparator()
         Me.INT13EmulationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.VIC20EmulationToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
@@ -76,7 +73,7 @@ Partial Class FormEmulator
         Me.ViewToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.DebuggerToolStripMenuItem, Me.ConsoleToolStripMenuItem, Me.ToolStripMenuItem4, Me.CopyTextToolStripMenuItem, Me.PasteTextToolStripMenuItem})
         Me.ViewToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.tools_icon
         Me.ViewToolStripMenuItem.Name = "ViewToolStripMenuItem"
-        Me.ViewToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.ViewToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
         Me.ViewToolStripMenuItem.Text = "Tools"
         '
         'DebuggerToolStripMenuItem
@@ -112,14 +109,14 @@ Partial Class FormEmulator
         '
         Me.ContextMenuStripMain.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.EmulatorToolStripMenuItem, Me.MediaToolStripMenuItem, Me.ZoomToolStripMenuItem, Me.ViewToolStripMenuItem})
         Me.ContextMenuStripMain.Name = "ContextMenuStripMain"
-        Me.ContextMenuStripMain.Size = New System.Drawing.Size(181, 114)
+        Me.ContextMenuStripMain.Size = New System.Drawing.Size(123, 92)
         '
         'EmulatorToolStripMenuItem
         '
         Me.EmulatorToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.CPUClockToolStripMenuItem, Me.EmulationSpeedToolStripMenuItem, Me.ToolStripMenuItem5, Me.INT13EmulationToolStripMenuItem, Me.VIC20EmulationToolStripMenuItem, Me.ToolStripMenuItem1, Me.SoftResetToolStripMenuItem, Me.HardResetToolStripMenuItem, Me.ToolStripMenuItem2, Me.LoadStateToolStripMenuItem, Me.SaveStateToolStripMenuItem, Me.ToolStripMenuItem3, Me.ExitToolStripMenuItem})
         Me.EmulatorToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.icon
         Me.EmulatorToolStripMenuItem.Name = "EmulatorToolStripMenuItem"
-        Me.EmulatorToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.EmulatorToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
         Me.EmulatorToolStripMenuItem.Text = "Emulator"
         '
         'CPUClockToolStripMenuItem
@@ -161,7 +158,7 @@ Partial Class FormEmulator
         '
         'EmulationSpeedToolStripMenuItem
         '
-        Me.EmulationSpeedToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripMenuItemSpeed25, Me.ToolStripMenuItemSpeed50, Me.ToolStripMenuItemSpeed100, Me.ToolStripMenuItemSpeed150, Me.ToolStripMenuItemSpeed200, Me.ToolStripMenuItemSpeed400, Me.ToolStripMenuItemSpeed800, Me.ToolStripMenuItemSpeed1000})
+        Me.EmulationSpeedToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.ToolStripMenuItemSpeed25, Me.ToolStripMenuItemSpeed50, Me.ToolStripMenuItemSpeed100, Me.ToolStripMenuItemSpeed150, Me.ToolStripMenuItemSpeed200})
         Me.EmulationSpeedToolStripMenuItem.Name = "EmulationSpeedToolStripMenuItem"
         Me.EmulationSpeedToolStripMenuItem.Size = New System.Drawing.Size(226, 22)
         Me.EmulationSpeedToolStripMenuItem.Text = "Emulation Speed"
@@ -169,13 +166,13 @@ Partial Class FormEmulator
         'ToolStripMenuItemSpeed25
         '
         Me.ToolStripMenuItemSpeed25.Name = "ToolStripMenuItemSpeed25"
-        Me.ToolStripMenuItemSpeed25.Size = New System.Drawing.Size(108, 22)
+        Me.ToolStripMenuItemSpeed25.Size = New System.Drawing.Size(180, 22)
         Me.ToolStripMenuItemSpeed25.Text = "25%"
         '
         'ToolStripMenuItemSpeed50
         '
         Me.ToolStripMenuItemSpeed50.Name = "ToolStripMenuItemSpeed50"
-        Me.ToolStripMenuItemSpeed50.Size = New System.Drawing.Size(108, 22)
+        Me.ToolStripMenuItemSpeed50.Size = New System.Drawing.Size(180, 22)
         Me.ToolStripMenuItemSpeed50.Text = "50%"
         '
         'ToolStripMenuItemSpeed100
@@ -183,38 +180,20 @@ Partial Class FormEmulator
         Me.ToolStripMenuItemSpeed100.Checked = True
         Me.ToolStripMenuItemSpeed100.CheckState = System.Windows.Forms.CheckState.Checked
         Me.ToolStripMenuItemSpeed100.Name = "ToolStripMenuItemSpeed100"
-        Me.ToolStripMenuItemSpeed100.Size = New System.Drawing.Size(108, 22)
+        Me.ToolStripMenuItemSpeed100.Size = New System.Drawing.Size(180, 22)
         Me.ToolStripMenuItemSpeed100.Text = "100%"
         '
         'ToolStripMenuItemSpeed150
         '
         Me.ToolStripMenuItemSpeed150.Name = "ToolStripMenuItemSpeed150"
-        Me.ToolStripMenuItemSpeed150.Size = New System.Drawing.Size(108, 22)
+        Me.ToolStripMenuItemSpeed150.Size = New System.Drawing.Size(180, 22)
         Me.ToolStripMenuItemSpeed150.Text = "150%"
         '
         'ToolStripMenuItemSpeed200
         '
         Me.ToolStripMenuItemSpeed200.Name = "ToolStripMenuItemSpeed200"
-        Me.ToolStripMenuItemSpeed200.Size = New System.Drawing.Size(108, 22)
+        Me.ToolStripMenuItemSpeed200.Size = New System.Drawing.Size(180, 22)
         Me.ToolStripMenuItemSpeed200.Text = "200%"
-        '
-        'ToolStripMenuItemSpeed400
-        '
-        Me.ToolStripMenuItemSpeed400.Name = "ToolStripMenuItemSpeed400"
-        Me.ToolStripMenuItemSpeed400.Size = New System.Drawing.Size(108, 22)
-        Me.ToolStripMenuItemSpeed400.Text = "400%"
-        '
-        'ToolStripMenuItemSpeed800
-        '
-        Me.ToolStripMenuItemSpeed800.Name = "ToolStripMenuItemSpeed800"
-        Me.ToolStripMenuItemSpeed800.Size = New System.Drawing.Size(108, 22)
-        Me.ToolStripMenuItemSpeed800.Text = "800%"
-        '
-        'ToolStripMenuItemSpeed1000
-        '
-        Me.ToolStripMenuItemSpeed1000.Name = "ToolStripMenuItemSpeed1000"
-        Me.ToolStripMenuItemSpeed1000.Size = New System.Drawing.Size(108, 22)
-        Me.ToolStripMenuItemSpeed1000.Text = "1000%"
         '
         'ToolStripMenuItem5
         '
@@ -284,7 +263,7 @@ Partial Class FormEmulator
         '
         Me.MediaToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.media_icon
         Me.MediaToolStripMenuItem.Name = "MediaToolStripMenuItem"
-        Me.MediaToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.MediaToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
         Me.MediaToolStripMenuItem.Text = "Media..."
         '
         'ZoomToolStripMenuItem
@@ -293,19 +272,19 @@ Partial Class FormEmulator
         Me.ZoomToolStripMenuItem.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.Zoom25ToolStripMenuItem, Me.Zoom50ToolStripMenuItem, Me.Zoom100ToolStripMenuItem, Me.Zoom150ToolStripMenuItem, Me.Zoom200ToolStripMenuItem, Me.Zoom400ToolStripMenuItem, Me.ToolStripMenuItem6, Me.ZoomFullScreenToolStripMenuItem})
         Me.ZoomToolStripMenuItem.Image = Global.x8086NetEmuWinForms.My.Resources.Resources.zoom_icon
         Me.ZoomToolStripMenuItem.Name = "ZoomToolStripMenuItem"
-        Me.ZoomToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.ZoomToolStripMenuItem.Size = New System.Drawing.Size(122, 22)
         Me.ZoomToolStripMenuItem.Text = "Zoom"
         '
         'Zoom25ToolStripMenuItem
         '
         Me.Zoom25ToolStripMenuItem.Name = "Zoom25ToolStripMenuItem"
-        Me.Zoom25ToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.Zoom25ToolStripMenuItem.Size = New System.Drawing.Size(131, 22)
         Me.Zoom25ToolStripMenuItem.Text = "25%"
         '
         'Zoom50ToolStripMenuItem
         '
         Me.Zoom50ToolStripMenuItem.Name = "Zoom50ToolStripMenuItem"
-        Me.Zoom50ToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.Zoom50ToolStripMenuItem.Size = New System.Drawing.Size(131, 22)
         Me.Zoom50ToolStripMenuItem.Text = "50%"
         '
         'Zoom100ToolStripMenuItem
@@ -313,36 +292,36 @@ Partial Class FormEmulator
         Me.Zoom100ToolStripMenuItem.Checked = True
         Me.Zoom100ToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked
         Me.Zoom100ToolStripMenuItem.Name = "Zoom100ToolStripMenuItem"
-        Me.Zoom100ToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.Zoom100ToolStripMenuItem.Size = New System.Drawing.Size(131, 22)
         Me.Zoom100ToolStripMenuItem.Text = "100%"
         '
         'Zoom150ToolStripMenuItem
         '
         Me.Zoom150ToolStripMenuItem.Name = "Zoom150ToolStripMenuItem"
-        Me.Zoom150ToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.Zoom150ToolStripMenuItem.Size = New System.Drawing.Size(131, 22)
         Me.Zoom150ToolStripMenuItem.Text = "150%"
         '
         'Zoom200ToolStripMenuItem
         '
         Me.Zoom200ToolStripMenuItem.Name = "Zoom200ToolStripMenuItem"
-        Me.Zoom200ToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.Zoom200ToolStripMenuItem.Size = New System.Drawing.Size(131, 22)
         Me.Zoom200ToolStripMenuItem.Text = "200%"
         '
         'Zoom400ToolStripMenuItem
         '
         Me.Zoom400ToolStripMenuItem.Name = "Zoom400ToolStripMenuItem"
-        Me.Zoom400ToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.Zoom400ToolStripMenuItem.Size = New System.Drawing.Size(131, 22)
         Me.Zoom400ToolStripMenuItem.Text = "400%"
         '
         'ToolStripMenuItem6
         '
         Me.ToolStripMenuItem6.Name = "ToolStripMenuItem6"
-        Me.ToolStripMenuItem6.Size = New System.Drawing.Size(177, 6)
+        Me.ToolStripMenuItem6.Size = New System.Drawing.Size(128, 6)
         '
         'ZoomFullScreenToolStripMenuItem
         '
         Me.ZoomFullScreenToolStripMenuItem.Name = "ZoomFullScreenToolStripMenuItem"
-        Me.ZoomFullScreenToolStripMenuItem.Size = New System.Drawing.Size(180, 22)
+        Me.ZoomFullScreenToolStripMenuItem.Size = New System.Drawing.Size(131, 22)
         Me.ZoomFullScreenToolStripMenuItem.Text = "Full Screen"
         '
         'FormEmulator
@@ -379,11 +358,8 @@ Partial Class FormEmulator
     Friend WithEvents ToolStripMenuItemSpeed100 As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripMenuItemSpeed150 As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripMenuItemSpeed200 As System.Windows.Forms.ToolStripMenuItem
-    Friend WithEvents ToolStripMenuItemSpeed400 As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripMenuItem1 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents HardResetToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
-    Friend WithEvents ToolStripMenuItemSpeed800 As System.Windows.Forms.ToolStripMenuItem
-    Friend WithEvents ToolStripMenuItemSpeed1000 As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripMenuItem2 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents LoadStateToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents SaveStateToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem

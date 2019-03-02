@@ -139,6 +139,12 @@ Public Class FormEmulator
                                                                  CopyTextFromEmulator()
                                                              Case Keys.V
                                                                  PasteTextFromClipboard()
+                                                             Case Keys.P
+                                                                 If cpu.IsPaused Then
+                                                                     cpu.Resume()
+                                                                 Else
+                                                                     cpu.Pause()
+                                                                 End If
                                                          End Select
 
                                                          e1.Handled = True
@@ -261,7 +267,7 @@ Public Class FormEmulator
         cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", True))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        'cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
+        cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX won't start, PC Tools' PCShell doesn't respond)
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
@@ -686,8 +692,7 @@ Public Class FormEmulator
 
     Private Sub SetSimulationMultiplierFromMenu(sender As Object, e As EventArgs) Handles ToolStripMenuItemSpeed25.Click, ToolStripMenuItemSpeed50.Click,
                                                                                         ToolStripMenuItemSpeed100.Click, ToolStripMenuItemSpeed150.Click,
-                                                                                        ToolStripMenuItemSpeed200.Click, ToolStripMenuItemSpeed400.Click,
-                                                                                        ToolStripMenuItemSpeed800.Click, ToolStripMenuItemSpeed1000.Click
+                                                                                        ToolStripMenuItemSpeed200.Click
         Dim speedText As String = CType(sender, ToolStripMenuItem).Text
         Dim speedPercentage As Integer = Integer.Parse(speedText.Replace("%", ""))
 

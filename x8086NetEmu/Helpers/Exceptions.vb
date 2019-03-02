@@ -24,35 +24,6 @@
         If mVic20 Then HandleInterrupt(6, False)
     End Sub
 
-    Private Sub InterruptNotImplemented(intNum As Integer)
-        ThrowException("Interrupt 0x" + intNum.ToString("X2") + " not implemented")
-    End Sub
-
-    Private Sub InterruptModeNotImplemented(intNum As Integer, mode As Integer)
-        ThrowException("Interrupt 0x" + intNum.ToString("X2") + " mode 0x" + mode.ToString("X2") + " not implemented")
-    End Sub
-
-    Private Sub InterruptSubModeNotImplemented(intNum As Integer, mode As Integer, subMode As Integer)
-        ThrowException("Interrupt 0x" + intNum.ToString("X2") + " mode 0x" + mode.ToString("X2") + "/0x" + subMode.ToString("X2") + " not implemented")
-    End Sub
-
-    Private Sub KeyboardAdapterNotFound()
-        ThrowException("Keyboard Adapter Not Found")
-    End Sub
-
-    Private Sub DiskAdapterNotFound()
-        ThrowException("Disk Adapter Not Found")
-    End Sub
-
-    Private Sub SystemReboot()
-        ThrowException("System Reboot")
-    End Sub
-
-    Private Sub DivisionByZero()
-        ThrowException("Division By Zero")
-    End Sub
-
-
     Private Sub SystemHalted()
         mIsHalted = True
         ThrowException("System Halted")

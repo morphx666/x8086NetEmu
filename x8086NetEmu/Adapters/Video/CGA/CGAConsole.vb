@@ -23,7 +23,7 @@ Public Class CGAConsole
         Console.Clear()
 
         i2a = New Image2Ascii() With {
-            .Charset = Image2Ascii.Charsets.Advanced,
+            .Charset = Image2Ascii.Charsets.Standard,
             .ColorMode = Image2Ascii.ColorModes.Color,
             .GrayScaleMode = Image2Ascii.GrayscaleModes.Average,
             .ScanMode = Image2Ascii.ScanModes.Fast
@@ -39,7 +39,10 @@ Public Class CGAConsole
 
                                        For y As Integer = 0 To Console.WindowHeight - 1
                                            For x As Integer = 0 To Console.WindowWidth - 1
-                                               ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character, Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color), ConsoleColor.Black, x, y)
+                                               ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character,
+                                                                        Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color),
+                                                                        ConsoleColor.Black,
+                                                                        x, y)
                                            Next
                                        Next
                                    End If
@@ -80,9 +83,34 @@ Public Class CGAConsole
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
         MyBase.InitVideoMemory(clearScreen)
 
-        Console.Title = "x8086 Emu - " + VideoMode.ToString()
+        Console.Title = "x8086NetEmuConsole - " + VideoMode.ToString()
 
         If MainMode = MainModes.Graphics Then ResetI2A()
+
+        Select Case Environment.OSVersion.Platform
+            Case PlatformID.Win32NT, PlatformID.Win32S, PlatformID.Win32Windows, PlatformID.WinCE
+            Case Else
+                If mVideoMode <> &HFF AndAlso (Console.WindowWidth <> mTextResolution.Width OrElse Console.WindowHeight <> mTextResolution.Height) Then
+                    ConsoleCrayon.ResetColor()
+                    Console.Clear()
+                    ConsoleCrayon.WriteFast("Unsupported Console Window Size", ConsoleColor.White, ConsoleColor.Red, 0, 0)
+                    ConsoleCrayon.ResetColor()
+                    Console.WriteLine()
+                    Console.WriteLine("The window console cannot be resized on this platform, which will case the text to be rendered incorrectly")
+                    Console.WriteLine()
+                    Console.WriteLine($"Expected Resolution for Video Mode {mVideoMode:X2}: {mTextResolution.Width}x{mTextResolution.Height}")
+                    Console.WriteLine($"Current console window resolution:     {Console.WindowWidth}x{Console.WindowHeight}")
+                    Console.WriteLine()
+                    Console.WriteLine("Manually resize the window to the appropriate resolution or press any key to continue")
+                    Do
+                        ConsoleCrayon.WriteFast($"New resolution: {Console.WindowWidth}x{Console.WindowHeight}", ConsoleColor.White, ConsoleColor.DarkRed, 0, 10)
+                        Thread.Sleep(200)
+                        If Console.WindowWidth = mTextResolution.Width AndAlso Console.WindowHeight = mTextResolution.Height Then Exit Do
+                    Loop Until Console.KeyAvailable
+                    ConsoleCrayon.ResetColor()
+                    Console.Clear()
+                End If
+        End Select
     End Sub
 
     Private Sub ResetI2A()
@@ -189,7 +217,6 @@ Public Class CGAConsole
 
             If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) <> 0 Then b0 = 0
 
-            'If buffer(bufIdx) <> b0 OrElse buffer(bufIdx + 1) <> b1 Then
             If b1c <> b1 Then
                 ConsoleCrayon.WriteFast(text, b1c.LowNib(), b1c.HighNib(), c, r)
                 text = ""
@@ -198,10 +225,6 @@ Public Class CGAConsole
                 r = row
             End If
             text += chars(b0)
-            'ConsoleCrayon.WriteFast(chars(b0), b1.LowNib(), b1.HighNib(), col, row)
-            'buffer(bufIdx) = b0
-            'buffer(bufIdx + 1) = b1
-            'End If
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 cv = blinkCounter < BlinkRate

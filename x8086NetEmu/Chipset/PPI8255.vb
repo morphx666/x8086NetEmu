@@ -113,6 +113,7 @@
                     If timer.Speaker IsNot Nothing Then timer.Speaker.Enabled = (value And 1) = 1
 #End If
                 End If
+
         End Select
     End Sub
 

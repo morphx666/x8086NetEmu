@@ -873,7 +873,7 @@
 
             Case &HEB ' jmp direct within segment short
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
-                opCodeASM = "JMP " + ipAddrOffDecoder.ToString("X2")
+                opCodeASM = "JMP " + ipAddrOffDecoder.ToString("X4")
                 clkCycDecoder += 15
 
             Case &HEC  ' in to al from variable port

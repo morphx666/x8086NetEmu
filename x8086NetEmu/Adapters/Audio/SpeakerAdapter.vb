@@ -125,7 +125,7 @@ Public Class SpeakerAdpater
     End Sub
 
     Public Overrides Sub CloseAdapter()
-        waveOut.Stop()
+        If waveOut.PlaybackState = PlaybackState.Playing Then waveOut.Stop()
         waveOut.Dispose()
     End Sub
 

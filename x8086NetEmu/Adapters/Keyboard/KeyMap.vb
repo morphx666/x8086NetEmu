@@ -104,7 +104,7 @@
         keytbl(Keys.Oemcomma) = 51
         keytbl(Keys.OemPeriod) = 52
         keytbl(Keys.OemQuestion) = 53
-        keytbl(Keys.Divide) = 53 Or KEY_EXTEND Or KEY_NOSHIFT
+        keytbl(Keys.Divide) = 53 Or KEY_EXTEND
         keytbl(Keys.Multiply) = 55
         keytbl(18) = 56 ' ALT
         keytbl(Keys.Space) = 57
@@ -122,7 +122,7 @@
         keytbl(Keys.NumLock) = 69
         keytbl(Keys.Scroll) = 70
         keytbl(Keys.NumPad7) = 71
-        keytbl(Keys.Home) = 71 Or KEY_EDIT
+        keytbl(Keys.Home) = 71 Or KEY_EDIT Or KEY_NOSHIFT
         keytbl(Keys.NumPad8) = 72
         keytbl(Keys.Up) = 72 Or KEY_EXTEND Or KEY_NONUM
         keytbl(Keys.NumPad9) = 73

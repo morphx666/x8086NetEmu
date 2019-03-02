@@ -3,7 +3,7 @@
 Partial Public Class X8086
     Private Function HandleINT13() As Boolean
         If mFloppyController Is Nothing Then
-            DiskAdapterNotFound()
+            ThrowException("Disk Adapter Not Found")
             Return True
         End If
 

@@ -1,4 +1,5 @@
-﻿Imports NAudio.Wave
+﻿#If Win32 Then
+Imports NAudio.Wave
 
 Public Class SoundBlaster ' Based on fake86's implementation
     Inherits Adapter
@@ -337,3 +338,4 @@ Public Class SoundBlaster ' Based on fake86's implementation
         End Get
     End Property
 End Class
+#End If

@@ -51,6 +51,7 @@ Public Class X8086
     Private mMPIs As Double
     Private instrucionsCounter As UInt32
     Private newPrefix As Boolean = False
+    Private newPrefixLast As Integer = 0
 
     Public Shared Property LogToConsole As Boolean
 
@@ -232,11 +233,9 @@ Public Class X8086
 #If Win32 Then
         Return fileName
 #Else
-        If Environment.OSVersion.Platform = PlatformID.Unix Then
-            Return fileName.Replace("\", IO.Path.DirectorySeparatorChar)
-        Else
-            Return fileName
-        End If
+        Return If(Environment.OSVersion.Platform = PlatformID.Unix,
+                    fileName.Replace("\", IO.Path.DirectorySeparatorChar),
+                    fileName)
 #End If
     End Function
 
@@ -577,7 +576,7 @@ Public Class X8086
                 If Not isDecoding Then
                     mIsExecuting = True
 #If DEBUG Then
-                    Execute_OLD()
+                    Execute_DEBUG()
 #Else
                     Execute()
 #End If
@@ -590,7 +589,7 @@ Public Class X8086
             mIsExecuting = True
             While clkCyc < maxRunCycl AndAlso Not mDoReSchedule
 #If DEBUG Then
-                Execute_OLD()
+                Execute_DEBUG()
 #Else
                 Execute()
 #End If
@@ -617,22 +616,10 @@ Public Class X8086
         opCodeSize = 1
 
         opCodes(opCode).Invoke()
-
-        If useIPAddrOffset Then
-            mRegisters.IP = IPAddrOffet
-        Else
-            mRegisters.IP += opCodeSize
-        End If
-
-        clkCyc += opCodeSize * 4
-
-        If Not newPrefix Then
-            If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None
-            If mRegisters.ActiveSegmentChanged Then mRegisters.ResetActiveSegment()
-        End If
+        RunPost()
     End Sub
 
-    Public Sub Execute_OLD()
+    Public Sub Execute_DEBUG()
         newPrefix = False
         instrucionsCounter += 1
 
@@ -1344,12 +1331,9 @@ Public Class X8086
             Case &H9A ' call direct intersegment
                 IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
                 tmpUVal = Param(ParamIndex.Second, , DataSize.Word)
-
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
-
                 mRegisters.CS = tmpUVal
-
                 clkCyc += 28
 
             Case &H9B ' wait
@@ -1546,7 +1530,7 @@ Public Class X8086
                 ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
                 'HandleInterrupt(7, False)
-                OpCodeNotImplemented("FPU Not Available")
+                'OpCodeNotImplemented("FPU Not Available") ' Enabling this breaks SYSCHK 2.43
                 clkCyc += 2
 
             Case &HE0 ' loopne/loopnz
@@ -1696,6 +1680,10 @@ Public Class X8086
                 OpCodeNotImplemented()
         End Select
 
+        RunPost()
+    End Sub
+
+    Private Sub RunPost()
         If useIPAddrOffset Then
             mRegisters.IP = IPAddrOffet
         Else
@@ -1707,6 +1695,9 @@ Public Class X8086
         If Not newPrefix Then
             If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None
             If mRegisters.ActiveSegmentChanged Then mRegisters.ResetActiveSegment()
+            newPrefixLast = 0
+        Else
+            newPrefixLast += 1
         End If
     End Sub
 

@@ -39,7 +39,6 @@ Module MainModule
     Private Sub LoadSettings()
         If IO.File.Exists("settings.dat") Then
             Dim xml = XDocument.Load("settings.dat")
-
             ParseSettings(xml.<settings>(0))
         End If
     End Sub

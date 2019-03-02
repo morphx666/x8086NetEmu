@@ -547,8 +547,6 @@ Private Sub _37	' aaa
                     mFlags.CF = 0
                 End If
                 mRegisters.AL = mRegisters.AL.LowNib()
-                'mFlags.OF = 0
-                'mFlags.SF = 0
                 clkCyc += 8
                                  End Sub
 
@@ -992,7 +990,6 @@ Private Sub _8E	' mov Sw, Ew
                         (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
-
                 If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then FlushCycles()
                                  End Sub
 
@@ -1265,15 +1262,13 @@ Private Sub _D7	' xlatb
 
 Private Sub _D8_DF	' Ignore co-processor instructions
                                     SetAddressing()
-
                 'FPU.Execute(opCode, addrMode)
 
                 ' Lesson 2
                 ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
                 'HandleInterrupt(7, False)
-
-                'OpCodeNotImplemented(opCode, "FPU Not Available")
+                'OpCodeNotImplemented("FPU Not Available") ' Enabling this breaks SYSCHK 2.43
                 clkCyc += 2
                                  End Sub
 
