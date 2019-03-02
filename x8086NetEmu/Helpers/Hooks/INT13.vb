@@ -16,11 +16,11 @@ Partial Public Class X8086
 
         Select Case mRegisters.AH
             Case &H0 ' Reset drive
-                X8086.Notify("Drive {0} Reset", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Reset", NotificationReasons.Info, mRegisters.DL)
                 ret = If(dskImg Is Nothing, &HAA, 0)
 
             Case &H1 ' Get last operation status
-                X8086.Notify("Drive {0} Get Last Operation Status", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Get Last Operation Status", NotificationReasons.Info, mRegisters.DL)
                 mRegisters.AH = lastAH(mRegisters.DL)
                 mFlags.CF = lastCF(mRegisters.DL)
                 ret = 0
@@ -41,13 +41,13 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Read  H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} -> {6:X4}:{7:X4}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Read  H{1:00} T{2:000} S{3:000} x {4:000} {5:X6} -> {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToString("X5"),
+                                offset,
                                 mRegisters.ES,
                                 mRegisters.BX)
 
@@ -87,13 +87,13 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Write H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} <- {6:X4}:{7:X4}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Write H{1:00} T{2:000} S{3:000} x {4:000} {5:X6} <- {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToString("X5"),
+                                offset,
                                 mRegisters.ES,
                                 mRegisters.BX)
 
@@ -127,13 +127,13 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Verify Sectors H{1:00} T{2:000} S{3:000} ? {4:000} {5:000000} ? {6:X4}:{7:X4}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Verify Sectors H{1:00} T{2:000} S{3:000} ? {4:000} {5:X6} ? {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToString("X5"),
+                                offset,
                                 mRegisters.ES,
                                 mRegisters.BX)
 
@@ -156,13 +156,13 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Format Track H{1:00} T{2:000} S{3:000} ? {4:000} {5:000000} = {6:X4}:{7:X4}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Format Track H{1:00} T{2:000} S{3:000} ? {4:000} {5:X6} = {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToString("X5"),
+                                offset,
                                 mRegisters.ES,
                                 mRegisters.BX)
                 ret = 0
@@ -174,7 +174,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Format Track (SBSF) H{1:00} T{2:000} S{3:000} ? {4:000}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Format Track (SBSF) H{1:00} T{2:000} S{3:000} ? {4:000}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
@@ -189,7 +189,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Format Drive H{1:00} T{2:000} S{3:000}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Format Drive H{1:00} T{2:000} S{3:000}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
@@ -220,7 +220,7 @@ Partial Public Class X8086
                         mRegisters.DL = DiskImage.HardDiskCount
                     End If
 
-                    X8086.Notify("Drive {0} Get Parameters", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Drive {0:000} Get Parameters", NotificationReasons.Info, mRegisters.DL)
                     ret = 0
                 End If
 
@@ -230,7 +230,7 @@ Partial Public Class X8086
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
-                X8086.Notify("Drive {0} Init Drive Pair Characteristic", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Init Drive Pair Characteristic", NotificationReasons.Info, mRegisters.DL)
                 ret = 0
 
             ' The following are meant to keep diagnostic tools happy ;)
@@ -251,13 +251,13 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Read Long H{1:00} T{2:000} S{3:000} x {4:000} {5:000000} -> {6:X4}:{7:X4}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Read Long H{1:00} T{2:000} S{3:000} x {4:000} {5:X6} -> {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
                                 mRegisters.AL,
-                                offset.ToString("X5"),
+                                offset,
                                 mRegisters.ES,
                                 mRegisters.BX)
 
@@ -282,19 +282,19 @@ Partial Public Class X8086
                 AL = bufSize \ dskImg.SectorSize
 
             Case &HC ' Seek to Cylinder
-                X8086.Notify("Drive {0} Seek to Cylinder ", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Seek to Cylinder ", NotificationReasons.Info, mRegisters.DL)
                 ret = 0
 
             Case &HD ' Alternate Disk Reset
-                X8086.Notify("Drive {0} Alternate Disk Reset", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Alternate Disk Reset", NotificationReasons.Info, mRegisters.DL)
                 ret = 0
 
             Case &H14 ' Controller Internal Diagnostic
-                X8086.Notify("Drive {0} Controller Internal Diagnostic", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Controller Internal Diagnostic", NotificationReasons.Info, mRegisters.DL)
                 ret = 0
 
             Case &H11 ' Recalibrate
-                X8086.Notify("Drive {0} Recalibrate", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Recalibrate", NotificationReasons.Info, mRegisters.DL)
                 ret = 0
 
             Case &H15 ' Read DASD Type
@@ -311,18 +311,18 @@ Partial Public Class X8086
                     mRegisters.DX = dskImg.Sectors And &HFF
                     ret = &H12C
                 End If
-                X8086.Notify("Drive {0} Read DASD Type", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Read DASD Type", NotificationReasons.Info, mRegisters.DL)
 
             Case &H12 ' Controller RAM Diagnostic
-                X8086.Notify("Drive {0} Controller RAM Diagnostic", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Controller RAM Diagnostic", NotificationReasons.Info, mRegisters.DL)
                 ret = 0
 
             Case &H13 ' Drive Diagnostic
-                X8086.Notify("Drive {0} Drive Diagnostic", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Drive Diagnostic", NotificationReasons.Info, mRegisters.DL)
                 ret = 0
 
             Case &H41 ' Check Extensions Support
-                X8086.Notify("Drive {0} Extensions Check", NotificationReasons.Info, mRegisters.DL)
+                X8086.Notify("Drive {0:000} Extensions Check", NotificationReasons.Info, mRegisters.DL)
                 If mRegisters.BX = &H55AA Then
                     mFlags.CF = 0
                     mRegisters.AH = &H1
@@ -355,10 +355,10 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Read {4:000} {5:000000} -> {6:X4}:{7:X4}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Read {4:000} {5:X6} -> {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 bufSize,
-                                offset.ToString("X5"),
+                                offset,
                                 seg,
                                 off)
 
@@ -398,10 +398,10 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                X8086.Notify("Drive {0} Write {4:000} {5:000000} <- {6:X4}:{7:X4}", NotificationReasons.Info,
+                X8086.Notify("Drive {0:000} Write {4:000} {5:X6} <- {6:X4}:{7:X4}", NotificationReasons.Info,
                                 mRegisters.DL,
                                 bufSize,
-                                offset.ToString("X5"),
+                                offset,
                                 seg,
                                 off)
 
@@ -431,12 +431,12 @@ Partial Public Class X8086
                     ret = &HAA
                 Else
                     Throw New NotImplementedException("Extended get Drive Parameters is not Implemented")
-                    X8086.Notify("Drive {0} Get Parameters", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Drive {0:000} Get Parameters", NotificationReasons.Info, mRegisters.DL)
                     ret = 0
                 End If
 
             Case Else
-                X8086.Notify("Drive {0} Unknown Request {1}", NotificationReasons.Err,
+                X8086.Notify("Drive {0:000} Unknown Request {1}", NotificationReasons.Err,
                                                             mRegisters.DL,
                                                             ((mRegisters.AX And &HFF00) >> 8).ToString("X2"))
                 ret = &H1

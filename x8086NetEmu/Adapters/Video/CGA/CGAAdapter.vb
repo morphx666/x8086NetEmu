@@ -419,8 +419,6 @@ Public MustInherit Class CGAAdapter
             Case Else : mPixelsPerByte = 4
         End Select
 
-        X8086.Notify("Set Video Mode: {0}", X8086.NotificationReasons.Info, mVideoMode)
-
         OnPaletteRegisterChanged()
 
         AutoSize()

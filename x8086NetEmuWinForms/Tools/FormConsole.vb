@@ -2,18 +2,24 @@
 Imports System.Threading
 
 Public Class FormConsole
+#If Win32 Then
+    <Runtime.InteropServices.DllImport("user32.dll")>
+    Public Shared Function LockWindowUpdate(hWndLock As IntPtr) As Boolean
+    End Function
+#End If
+
     Private mEmulator As X8086
 
     Private rtfTextStd As String = "{\rtf1\ansi {\colortbl;" +
-                            "\red000\green192\blue000;" +
-                            "\red192\green192\blue000;" +
-                            "\red192\green000\blue192;" +
-                            "\red255\green000\blue000;" +
-                            "\red255\green000\blue000;" +
-                            "\red080\green020\blue240;" +
-                            "}%\par}"
+                                    "\red000\green192\blue000;" +
+                                    "\red192\green192\blue000;" +
+                                    "\red192\green000\blue192;" +
+                                    "\red255\green000\blue000;" +
+                                    "\red255\green000\blue000;" +
+                                    "\red080\green080\blue255;" +
+                                    "}%\par}"
     Private rtfText As String = ""
-
+    Private updateIsScheduled As Boolean
     Private refreshTimer As New Timer(New TimerCallback(AddressOf UpdateRtf), Nothing, Timeout.Infinite, Timeout.Infinite)
 
     Private Sub FormConsole_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -54,19 +60,30 @@ Public Class FormConsole
         rtfText += String.Format(message.Replace("{", "\b {").Replace("}", "}\b0 ") + " \par ", arg)
 
         Try
-            refreshTimer.Change(30, Timeout.Infinite)
+            If Not updateIsScheduled Then
+                refreshTimer.Change(250, Timeout.Infinite)
+                updateIsScheduled = True
+            End If
         Catch
         End Try
     End Sub
 
     Private Sub UpdateRtf()
-        Me.Invoke(Sub()
-                      SyncLock Me
-                          RichTextBoxConsole.Rtf = rtfTextStd.Replace("%", rtfText)
-                          RichTextBoxConsole.SelectionStart = RichTextBoxConsole.TextLength
-                          RichTextBoxConsole.ScrollToCaret()
-                      End SyncLock
-                  End Sub)
+        Me.BeginInvoke(Sub()
+                           SyncLock Me
+#If Win32 Then
+                               LockWindowUpdate(RichTextBoxConsole.Handle)
+#End If
+                               RichTextBoxConsole.Rtf = rtfTextStd.Replace("%", rtfText)
+                               RichTextBoxConsole.SelectionStart = RichTextBoxConsole.TextLength
+                               RichTextBoxConsole.ScrollToCaret()
+#If Win32 Then
+                               LockWindowUpdate(0)
+#End If
+
+                               updateIsScheduled = False
+                           End SyncLock
+                       End Sub)
     End Sub
 
     Private ReadOnly Property MillTime As String
