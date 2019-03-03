@@ -1,6 +1,6 @@
 ﻿Partial Public Class X8086
     Public Structure Instruction
-        Public opCode As Byte
+        Public OpCode As Byte
         Public Mnemonic As String
         Public Parameter1 As String
         Public Parameter2 As String
@@ -103,12 +103,9 @@
         Dim f As GPFlags = mFlags.Clone()
         Dim rlm As REPLoopModes = mRepeLoopMode
 
-        Dim i As Instruction
-        If (Not force) AndAlso (mIsExecuting OrElse isDecoding) Then
-            i = InvalidOpCode()
-        Else
-            i = DoDecode(segment, offset)
-        End If
+        Dim i As Instruction = If((Not force) AndAlso (mIsExecuting OrElse isDecoding),
+                                    InvalidOpCode(),
+                                    DoDecode(segment, offset))
 
         mRegisters = r
         mFlags = f
@@ -419,11 +416,11 @@
 
             Case &H60 ' pusha
                 opCodeASM = "PUSHA"
-                clkCycDecoder += 0 ' TODO: Need to investigate this...
+                clkCycDecoder += 19
 
             Case &H61 ' popa
                 opCodeASM = "POPA"
-                clkCycDecoder += 0 ' TODO: Need to investigate this...
+                clkCycDecoder += 19
 
             Case &H70 ' jo
                 ipAddrOffDecoder = OffsetIP(DataSize.Byte)
@@ -543,7 +540,7 @@
                 End If
 
             Case &H8C ' mov Ew, Sw
-                SetAddressing(DataSize.Word)
+                SetDecoderAddressing(DataSize.Word)
                 addrMode.Src += GPRegisters.RegistersTypes.ES
                 If addrMode.Dst > GPRegisters.RegistersTypes.BL Then
                     addrMode.Dst = (addrMode.Dst + GPRegisters.RegistersTypes.ES) Or shl3
@@ -749,14 +746,8 @@
 
             Case &HC6 To &HC7 ' mov imm to reg/mem
                 SetDecoderAddressing()
-                If addrMode.IsDirect Then
-                    'mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First, , DataSize.Byte)
-                    Stop
-                    clkCycDecoder += 4
-                Else
-                    opCodeASM = "MOV " + indASM + ", " + Param(ParamIndex.First, opCodeSize).ToHex(addrMode.Size)
-                    clkCycDecoder += 10
-                End If
+                opCodeASM = "MOV " + indASM + ", " + Param(ParamIndex.First, opCodeSize).ToHex(addrMode.Size)
+                clkCycDecoder += 10
 
             Case &HC8 ' enter
                 opCodeASM = "ENTER"
@@ -950,7 +941,7 @@
 
         Dim info As Instruction = New Instruction() With {
             .IsValid = True,
-            .opCode = opCode,
+            .OpCode = opCode,
             .CS = mRegisters.CS,
             .IP = mRegisters.IP,
             .Size = opCodeSize,
@@ -1206,14 +1197,12 @@
         ' AS = SS when Rm = 2 or 3
         ' If Rm = 6, AS will be set to SS, except for Modifier = 0
         ' http://www.ic.unicamp.br/~celio/mc404s2-03/addr_modes/intel_addr.html
-        If (Not mRegisters.ActiveSegmentChanged) AndAlso (addrMode.Modifier <> 3) AndAlso
-                (
-                    addrMode.Rm = 2 OrElse
-                    addrMode.Rm = 3 OrElse
-                    (addrMode.Rm = 6 AndAlso addrMode.Modifier <> 0)
-                ) Then
-            mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
-            clkCyc += 2
+
+        If Not mRegisters.ActiveSegmentChanged Then
+            Select Case addrMode.Rm
+                Case 2, 3 : mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
+                Case 6 : If addrMode.Modifier <> 0 Then mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
+            End Select
         End If
 
         ' http://umcs.maine.edu/~cmeadow/courses/cos335/Asm07-MachineLanguage.pdf
@@ -1222,32 +1211,32 @@
             Case 0 ' 00
                 addrMode.IsDirect = False
                 Select Case addrMode.Rm
-                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : indASM = "[BX + SI]" : clkCyc += 7 ' 000 [BX+SI]
-                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : indASM = "[BX + DI]" : clkCyc += 8 ' 001 [BX+DI]
-                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : indASM = "[BP + SI]" : clkCyc += 8 ' 010 [BP+SI]
-                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : indASM = "[BP + DI]" : clkCyc += 7 ' 011 [BP+DI]
-                    Case 4 : addrMode.IndAdr = mRegisters.SI : indASM = "[SI]" : clkCyc += 5                                               ' 100 [SI]
-                    Case 5 : addrMode.IndAdr = mRegisters.DI : indASM = "[DI]" : clkCyc += 5                                               ' 101 [DI]
-                    Case 6                                                                                                                 ' 110 Direct Addressing
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : indASM = "[BX + SI]" : clkCycDecoder += 7 ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : indASM = "[BX + DI]" : clkCycDecoder += 8 ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : indASM = "[BP + SI]" : clkCycDecoder += 8 ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : indASM = "[BP + DI]" : clkCycDecoder += 7 ' 011 [BP+DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : indASM = "[SI]" : clkCycDecoder += 5                      ' 100 [SI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : indASM = "[DI]" : clkCycDecoder += 5                      ' 101 [DI]
+                    Case 6                                                                                               ' 110 Direct Addressing
                         addrMode.IndAdr = ParamNOPS(ParamIndex.First, 2, DataSize.Word)
                         indASM = "[" + ParamNOPS(ParamIndex.First, 2, DataSize.Word).ToString("X4") + "]"
                         opCodeSize += 2
-                        clkCyc += 9
-                    Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCyc += 5                                               ' 111 [BX]
+                        clkCycDecoder += 9
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCycDecoder += 5                      ' 111 [BX]
                 End Select
                 addrMode.IndMem = RAMn
 
             Case 1 ' 01 - 8bit
                 addrMode.IsDirect = False
                 Select Case addrMode.Rm
-                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : indASM = "[BX + SI]" : clkCyc += 7 ' 000 [BX+SI]
-                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : indASM = "[BX + DI]" : clkCyc += 8 ' 001 [BX+DI]
-                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : indASM = "[BP + SI]" : clkCyc += 8 ' 010 [BP+SI]
-                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : indASM = "[BP + DI]" : clkCyc += 7 ' 011 [BP+DI]
-                    Case 4 : addrMode.IndAdr = mRegisters.SI : indASM = "[SI]" : clkCyc += 5                                               ' 100 [SI]
-                    Case 5 : addrMode.IndAdr = mRegisters.DI : indASM = "[DI]" : clkCyc += 5                                               ' 101 [DI]
-                    Case 6 : addrMode.IndAdr = mRegisters.BP : indASM = "[BP]" : clkCyc += 5                                               ' 110 [BP]
-                    Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCyc += 5                                               ' 111 [BX]
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : indASM = "[BX + SI]" : clkCycDecoder += 7 ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : indASM = "[BX + DI]" : clkCycDecoder += 8 ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : indASM = "[BP + SI]" : clkCycDecoder += 8 ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : indASM = "[BP + DI]" : clkCycDecoder += 7 ' 011 [BP+DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : indASM = "[SI]" : clkCycDecoder += 5                      ' 100 [SI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : indASM = "[DI]" : clkCycDecoder += 5                      ' 101 [DI]
+                    Case 6 : addrMode.IndAdr = mRegisters.BP : indASM = "[BP]" : clkCycDecoder += 5                      ' 110 [BP]
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCycDecoder += 5                      ' 111 [BX]
                 End Select
 
                 Dim p As Byte = ParamNOPS(ParamIndex.First, 2, DataSize.Byte)
@@ -1266,14 +1255,14 @@
             Case 2 ' 10 - 16bit
                 addrMode.IsDirect = False
                 Select Case addrMode.Rm
-                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : indASM = "[BX + SI]" : clkCyc += 7 ' 000 [BX+SI]
-                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : indASM = "[BX + DI]" : clkCyc += 8 ' 001 [BX+DI]
-                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : indASM = "[BP + SI]" : clkCyc += 8 ' 010 [BP+SI]
-                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : indASM = "[BP + DI]" : clkCyc += 7 ' 011 [BP+DI]
-                    Case 4 : addrMode.IndAdr = mRegisters.SI : indASM = "[SI]" : clkCyc += 5                                               ' 100 [SI]
-                    Case 5 : addrMode.IndAdr = mRegisters.DI : indASM = "[DI]" : clkCyc += 5                                               ' 101 [DI]
-                    Case 6 : addrMode.IndAdr = mRegisters.BP : indASM = "[BP]" : clkCyc += 5                                               ' 110 [BP]
-                    Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCyc += 5                                               ' 111 [BX]
+                    Case 0 : addrMode.IndAdr = mRegisters.BX + mRegisters.SI : indASM = "[BX + SI]" : clkCycDecoder += 7 ' 000 [BX+SI]
+                    Case 1 : addrMode.IndAdr = mRegisters.BX + mRegisters.DI : indASM = "[BX + DI]" : clkCycDecoder += 8 ' 001 [BX+DI]
+                    Case 2 : addrMode.IndAdr = mRegisters.BP + mRegisters.SI : indASM = "[BP + SI]" : clkCycDecoder += 8 ' 010 [BP+SI]
+                    Case 3 : addrMode.IndAdr = mRegisters.BP + mRegisters.DI : indASM = "[BP + DI]" : clkCycDecoder += 7 ' 011 [BP+DI]
+                    Case 4 : addrMode.IndAdr = mRegisters.SI : indASM = "[SI]" : clkCycDecoder += 5                      ' 100 [SI]
+                    Case 5 : addrMode.IndAdr = mRegisters.DI : indASM = "[DI]" : clkCycDecoder += 5                      ' 101 [DI]
+                    Case 6 : addrMode.IndAdr = mRegisters.BP : indASM = "[BP]" : clkCycDecoder += 5                      ' 110 [BP]
+                    Case 7 : addrMode.IndAdr = mRegisters.BX : indASM = "[BX]" : clkCycDecoder += 5                      ' 111 [BX]
                 End Select
 
                 indASM = indASM.Replace("]", " + " + ParamNOPS(ParamIndex.First, 2, DataSize.Word).ToString("X4") + "]")

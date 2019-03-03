@@ -35,16 +35,12 @@ Public Class FormDiskExplorer
                                                                 DecodeBootStrapCode()
 
                                                                 Dim rootNode As TreeNode
-                                                                Dim volLabels As IEnumerable(Of String) = (From de In sdf.RootDirectoryEntries(selectedParitionIndex)
+                                                                Dim volLabels As IEnumerable(Of String) = (From de As Object In sdf.RootDirectoryEntries(selectedParitionIndex)
                                                                                                            Where (de.Attribute And FAT12.EntryAttributes.VolumeName) = FAT12.EntryAttributes.VolumeName
-                                                                                                           Select (de.FileName))
+                                                                                                           Select (de.FileName.ToString()))
 
                                                                 TreeViewDirs.Nodes.Clear()
-                                                                If volLabels.Count > 0 Then
-                                                                    rootNode = New TreeNode(volLabels.First(), -1, -1)
-                                                                Else
-                                                                    rootNode = New TreeNode("[No Label]", -1, -1)
-                                                                End If
+                                                                rootNode = If(volLabels.Count > 0, New TreeNode(volLabels.First(), -1, -1), New TreeNode("[No Label]", -1, -1))
                                                                 TreeViewDirs.Nodes.Add(rootNode)
 
                                                                 DisplayFileSystem(rootNode, sdf.RootDirectoryEntries(selectedParitionIndex))
@@ -61,7 +57,7 @@ Public Class FormDiskExplorer
         If ComboBoxPartitions.Items.Count > 0 Then ComboBoxPartitions.SelectedIndex = 0
     End Sub
 
-    Private Sub DisplayFileSystem(parentNode As TreeNode, entries() As FAT12.DirectoryEntry)
+    Private Sub DisplayFileSystem(parentNode As TreeNode, entries() As Object)
         If entries Is Nothing Then entries = sdf.RootDirectoryEntries(selectedParitionIndex)
 
         Dim directories = From de In entries
@@ -81,14 +77,14 @@ Public Class FormDiskExplorer
         '                                           Select de.FileName)
 
         Dim node As TreeNode = Nothing
+        parentNode.Nodes.Clear()
         ListViewFileSystem.Items.Clear()
         For Each d In directories
             If d.FileName <> "." AndAlso d.FileName <> ".." Then
                 node = FindNode(d, parentNode)
 
                 If node Is Nothing Then
-                    node = New TreeNode(d.FileName, 0, 0)
-                    node.Tag = d
+                    node = New TreeNode(d.FileName, 0, 0) With {.Tag = d}
                     parentNode.Nodes.Add(node)
                 End If
 
@@ -106,7 +102,7 @@ Public Class FormDiskExplorer
         For Each f In files
             With ListViewFileSystem.Items.Add(f.FileName, GetExtensionIconIndex(f.FileExtension))
                 With .SubItems
-                    .Add(Math.Ceiling((f.FileSize / 1024)).ToString("N0") + " KB")
+                    .Add(CDbl(Math.Ceiling((f.FileSize / 1024))).ToString("N0") + " KB")
                     .Add(GetTypeDescription($".{f.FileExtension}"))
                     .Add($"{f.WriteDateTime.ToShortDateString()} {f.WriteDateTime.ToLongTimeString()}")
                 End With
@@ -149,13 +145,13 @@ Public Class FormDiskExplorer
         Return index
     End Function
 
-    Private Function FindNode(d As FAT12.DirectoryEntry, parentNode As TreeNode) As TreeNode
+    Private Function FindNode(d As Object, parentNode As TreeNode) As TreeNode
         For Each n As TreeNode In parentNode.Nodes
-            If n.Tag IsNot Nothing AndAlso CType(n.Tag, FAT12.DirectoryEntry) = d Then
+            If n.Tag IsNot Nothing AndAlso n.Tag.Equals(d) Then
                 Return n
             ElseIf n.Nodes.Count > 0 Then
                 n = FindNode(d, n)
-                If n?.Tag IsNot Nothing AndAlso CType(n.Tag, FAT12.DirectoryEntry) = d Then Return n
+                If n?.Tag IsNot Nothing AndAlso n.Tag.Equals(  d) Then Return n
             End If
         Next
         Return Nothing
@@ -178,8 +174,8 @@ Public Class FormDiskExplorer
         Dim node As TreeNode = e.Node
         If node Is Nothing Then Exit Sub
 
-        Dim entry As FAT12.DirectoryEntry = CType(node.Tag, FAT12.DirectoryEntry)
-        DisplayFileSystem(node, sdf.GetDirectoryEntries(0, If(entry.StartingCluster = 0, -1, entry.StartingCluster)))
+        Dim entry As Object = node.Tag
+        DisplayFileSystem(node, sdf.GetDirectoryEntries(0, If(entry?.StartingClusterValue = 0, -1, entry.StartingClusterValue)))
     End Sub
 
     Private Sub DecodeBootStrapCode()
@@ -265,9 +261,9 @@ Public Class FormDiskExplorer
         If slvi.Tag IsNot Nothing Then ' It's a folder or a file
             Dim objs() As Object = CType(slvi.Tag, Object())
             Dim node As TreeNode = CType(objs(0), TreeNode)
-            Dim entry As FAT12.DirectoryEntry = CType(objs(1), FAT12.DirectoryEntry)
+            Dim entry As Object = objs(1)
             If (entry.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory Then ' It's a directory
-                DisplayFileSystem(node, sdf.GetDirectoryEntries(0, entry.StartingCluster))
+                DisplayFileSystem(node, sdf.GetDirectoryEntries(0, If(entry?.StartingClusterValue = 0, -1, entry.StartingClusterValue)))
             Else ' It's a file
                 Dim b() As Byte = sdf.ReadFile(selectedParitionIndex, entry)
                 Dim targetFileName As String = IO.Path.Combine(IO.Path.GetTempPath(), entry.FullFileName)
@@ -282,8 +278,8 @@ Public Class FormDiskExplorer
         End If
     End Sub
 
-    Private Sub SaveDirectory(tmpDirectory As String, entry As FAT12.DirectoryEntry)
-        For Each subEntry As FAT12.DirectoryEntry In sdf.GetDirectoryEntries(0, entry.StartingCluster)
+    Private Sub SaveDirectory(tmpDirectory As String, entry As Object)
+        For Each subEntry As Object In sdf.GetDirectoryEntries(0, entry.StartingClusterValue)
             If subEntry.FileName.StartsWith(".") Then Continue For
             If (subEntry.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory Then ' It's a directory
                 SaveDirectory(tmpDirectory, subEntry)
@@ -293,7 +289,7 @@ Public Class FormDiskExplorer
         Next
     End Sub
 
-    Private Function SaveFile(tmpDirectory As String, entry As FAT12.DirectoryEntry) As String
+    Private Function SaveFile(tmpDirectory As String, entry As Object) As String
         Dim targetFileName As String = IO.Path.Combine(tmpDirectory, entry.FullFileName)
         If IO.File.Exists(targetFileName) Then IO.File.Delete(targetFileName)
         IO.File.WriteAllBytes(targetFileName, sdf.ReadFile(selectedParitionIndex, entry))
@@ -308,7 +304,7 @@ Public Class FormDiskExplorer
 
         For Each slvi As ListViewItem In ListViewFileSystem.SelectedItems
             If slvi.Tag IsNot Nothing Then ' It's a folder or a file
-                Dim entry As FAT12.DirectoryEntry = CType(CType(slvi.Tag, Object())(1), FAT12.DirectoryEntry)
+                Dim entry As Object = CType(slvi.Tag, Object())(1)
                 If (entry.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory Then ' It's a directory
                     Dim subDirectory As String = IO.Path.Combine(tmpDirectory, entry.FileName)
                     If Not IO.Directory.Exists(subDirectory) Then IO.Directory.CreateDirectory(subDirectory)

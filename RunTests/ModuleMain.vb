@@ -65,10 +65,9 @@ Module ModuleMain
         For i As Integer = 0 To dataLen - 1 Step 2
             v1 = cpu.RAM16(0, i).ToString("X4")
             v2 = BitConverter.ToInt16(validData, i).ToString("X4")
-            If v1 <> v2 Then
-                invalidData.Add($"0000:{i:X4} {v1} <> {v2}")
-            End If
+            If v1 <> v2 Then invalidData.Add($"0000:{i:X4} {v1} <> {v2}")
         Next
+
         If invalidData.Any() Then
             txt = $" > FAILED [{invalidData.Count}/{dataLen}]"
             Console.WriteLine(txt.PadLeft(p - prefix.Length + txt.Length))
