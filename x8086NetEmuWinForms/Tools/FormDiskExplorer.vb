@@ -27,20 +27,20 @@ Public Class FormDiskExplorer
         AddHandler ComboBoxPartitions.SelectedIndexChanged, Sub()
                                                                 selectedParitionIndex = ComboBoxPartitions.SelectedIndex
 
-                                                                LabelVolumeLabel.Text = sdf.BootSector(selectedParitionIndex).ExtendedBIOSParameterBlock.VolumeLabel
-                                                                LabelFileSystem.Text = sdf.BootSector(selectedParitionIndex).ExtendedBIOSParameterBlock.FileSystemType
+                                                                Dim volName As String = sdf.BootSector(selectedParitionIndex).ExtendedBIOSParameterBlock.VolumeLabel
+                                                                volName = If(volName = "", "unlabeled", volName)
+
+                                                                LabelVolumeLabel.Text = volName
+                                                                LabelFileSystem.Text = sdf.MasterBootRecord.Partitions(selectedParitionIndex).SystemId.ToString()
                                                                 LabelOemId.Text = sdf.BootSector(selectedParitionIndex).OemId
                                                                 LabelSerialNumber.Text = sdf.BootSector(selectedParitionIndex).ExtendedBIOSParameterBlock.SerialNumber
 
                                                                 DecodeBootStrapCode()
 
                                                                 Dim rootNode As TreeNode
-                                                                Dim volLabels As IEnumerable(Of String) = (From de As Object In sdf.RootDirectoryEntries(selectedParitionIndex)
-                                                                                                           Where (de.Attribute And FAT12.EntryAttributes.VolumeName) = FAT12.EntryAttributes.VolumeName
-                                                                                                           Select (de.FileName.ToString()))
 
                                                                 TreeViewDirs.Nodes.Clear()
-                                                                rootNode = If(volLabels.Count > 0, New TreeNode(volLabels.First(), -1, -1), New TreeNode("[No Label]", -1, -1))
+                                                                rootNode = New TreeNode(volName, -1, -1)
                                                                 TreeViewDirs.Nodes.Add(rootNode)
 
                                                                 DisplayFileSystem(rootNode, sdf.RootDirectoryEntries(selectedParitionIndex))
@@ -69,12 +69,6 @@ Public Class FormDiskExplorer
                           (de.Attribute And FAT12.EntryAttributes.VolumeName) <> FAT12.EntryAttributes.VolumeName AndAlso
                           Convert.ToByte(de.FileNameChars(0)) < &H5E
                     Order By GetTypeDescription(de.FileExtension)
-
-        'Dim driveNumber As Integer = sdf.BootSector(0).DriveNumber
-        'Dim rootNode As TreeNode = TreeViewDirs.Nodes.Add(Chr(If(driveNumber >= 128, Asc("C") + driveNumber - 128, Asc("A") + driveNumber)) + ":")
-        'Dim volLabels As IEnumerable(Of String) = (From de In entries
-        '                                           Where (de.Attribute And FAT12_16.EntryAttributes.VolumeName) = FAT12_16.EntryAttributes.VolumeName
-        '                                           Select de.FileName)
 
         Dim node As TreeNode = Nothing
         parentNode.Nodes.Clear()

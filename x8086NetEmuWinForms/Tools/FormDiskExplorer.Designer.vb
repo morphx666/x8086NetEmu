@@ -112,13 +112,11 @@ Partial Class FormDiskExplorer
         '
         'LabelImageFile
         '
-        Me.LabelImageFile.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
-            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.LabelImageFile.AutoEllipsis = True
         Me.LabelImageFile.ForeColor = System.Drawing.Color.White
-        Me.LabelImageFile.Location = New System.Drawing.Point(124, 9)
+        Me.LabelImageFile.Location = New System.Drawing.Point(121, 9)
         Me.LabelImageFile.Name = "LabelImageFile"
-        Me.LabelImageFile.Size = New System.Drawing.Size(286, 23)
+        Me.LabelImageFile.Size = New System.Drawing.Size(155, 23)
         Me.LabelImageFile.TabIndex = 3
         Me.LabelImageFile.Text = "Image File:"
         Me.LabelImageFile.TextAlign = System.Drawing.ContentAlignment.MiddleLeft

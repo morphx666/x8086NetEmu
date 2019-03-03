@@ -37,7 +37,7 @@ Public Class FAT12
 
         Public ReadOnly Property VolumeLabel As String
             Get
-                Return Text.Encoding.ASCII.GetString(VolumeLabelChars).TrimEnd()
+                Return Text.Encoding.ASCII.GetString(VolumeLabelChars).Replace(vbNullChar, "").TrimEnd()
             End Get
         End Property
 
@@ -167,106 +167,6 @@ End Class
 
 Public Class FAT16
     Inherits FAT12
-
-    <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)>
-    Public Shadows Structure DirectoryEntry
-        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=8)> Public FileNameChars() As Byte
-        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=3)> Private ReadOnly FileExtensionChars() As Byte
-        Public Attribute As EntryAttributes
-        Public ReservedNT As Byte
-        Public Creation As Byte
-        Public CreationTime As UInt16
-        Public CreationDate As UInt16
-        Public LastAccessDate As UInt16
-        Public ReservedFAT32 As UInt16
-        Public LastWriteTime As UInt16
-        Public LastWriteDate As UInt16
-        Public StartingCluster As UInt16
-        Public FileSize As UInt32
-
-        Public ReadOnly Property StartingClusterValue As Integer
-            Get
-                Return StartingCluster
-            End Get
-        End Property
-
-        Public ReadOnly Property FileName As String
-            Get
-                Return Text.Encoding.ASCII.GetString(FileNameChars).TrimEnd()
-            End Get
-        End Property
-
-        Public ReadOnly Property FileExtension As String
-            Get
-                Return Text.Encoding.ASCII.GetString(FileExtensionChars).TrimEnd()
-            End Get
-        End Property
-
-        Public ReadOnly Property FullFileName As String
-            Get
-                Dim fn As String = FileName.TrimEnd()
-                Dim fe As String = FileExtension.TrimEnd()
-                If fe <> "" Then fe = "." + fe
-
-                Return fn + fe
-            End Get
-        End Property
-
-        Public ReadOnly Property CreationDateTime As DateTime
-            Get
-                Dim t() As Integer = FSTimeToNative(CreationTime)
-                Dim d() As Integer = FSDateToNative(CreationTime)
-                Return New DateTime(d(2), d(1), d(0), t(2), t(1), t(0))
-            End Get
-        End Property
-
-        Public ReadOnly Property WriteDateTime As DateTime
-            Get
-                Dim t() As Integer = FSTimeToNative(LastWriteTime)
-                Dim d() As Integer = FSDateToNative(LastWriteDate)
-                Try
-                    Return New DateTime(d(0), d(1), d(2), t(0), t(1), t(2))
-                Catch
-                    Return New DateTime(1980, 1, 1, 0, 0, 0)
-                End Try
-            End Get
-        End Property
-
-        Private Function FSTimeToNative(v As UInt16) As Integer()
-            Dim s As Integer = (v And &H1F) * 2
-            Dim m As Integer = (v And &H3E0) >> 5
-            Dim h As Integer = (v And &HF800) >> 11
-            Return {h, m, s}
-        End Function
-
-        Private Function FSDateToNative(v As UInt16) As Integer()
-            Dim d As Integer = v And &H1F
-            Dim m As Integer = (v And &H1E0) >> 5
-            Dim y As Integer = ((v And &HFE00) >> 9) + 1980
-            Return {y, m, d}
-        End Function
-
-        Public Shadows Function ToString() As String
-            Dim attrs() As String = [Enum].GetNames(GetType(EntryAttributes))
-            Dim attr As String = ""
-            For i As Integer = 0 To attrs.Length - 1
-                If ((2 ^ i) And Attribute) <> 0 Then
-                    attr += attrs(i) + " "
-                End If
-            Next
-            attr = attr.TrimEnd()
-
-            Return $"{FullFileName} [{attr}]"
-        End Function
-
-        Public Shared Operator =(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
-            Return d1.Attribute = d2.Attribute AndAlso d1.StartingClusterValue = d2.StartingClusterValue
-        End Operator
-
-        Public Shared Operator <>(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
-            Return Not d1 = d2
-        End Operator
-    End Structure
 End Class
 
 Public Class FAT32
