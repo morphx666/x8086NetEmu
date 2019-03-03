@@ -2,16 +2,6 @@
     Private isVideoAdapterAvailable As Boolean
     Private tmpCF As Byte
     Private portsCache As New Dictionary(Of UInt32, IOPortHandler)
-    Private parityLUT() As Byte = {
-        1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-        0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
-        0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
-        1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-        0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
-        1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-        1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
-        0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1
-    }
     Private szpLUT8(256 - 1) As GPFlags.FlagsTypes
     Private szpLUT16(65536 - 1) As GPFlags.FlagsTypes
     Private decoderCache((255 << 8) Or 255) As AddressingMode
@@ -324,14 +314,12 @@
         Dim ft As GPFlags.FlagsTypes
 
         If size = DataSize.Byte Then
-            result = result And &HFF
-            mFlags.PF = parityLUT(result)
-            ft = szpLUT8(result)
+            ft = szpLUT8(result And &HFF)
         Else
-            mFlags.PF = parityLUT(result And &HFF)
             ft = szpLUT16(result And &HFFFF)
         End If
 
+        mFlags.PF = If((ft And GPFlags.FlagsTypes.PF) <> 0, 1, 0)
         mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
         mFlags.SF = If((ft And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
     End Sub
