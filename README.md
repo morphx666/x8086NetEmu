@@ -1,7 +1,7 @@
 # x8086NetEmu 
 A VB.NET implementation of an almost working 8086 emulator.
 
-![](https://xfx.visualstudio.com/_apis/public/build/definitions/3a4ec550-3405-491d-94e2-ed35e63736b2/5/badge)
+[![Build status](https://xfx.visualstudio.com/x8086NetEmu/_apis/build/status/x8086NetEmuWinForm)](https://xfx.visualstudio.com/x8086NetEmu/_build/latest?definitionId=7)
 
 ![x8086NetEmu Showcase](https://xfx.net/stackoverflow/x8086netEmu/x8086NetEmu_01.gif)
 
