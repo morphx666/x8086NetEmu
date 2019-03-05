@@ -90,8 +90,8 @@
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 
         Dim p As New Point(m.X - MidPoint.X, m.Y - MidPoint.Y)
-        If p.X >= 3 Then p.X *= 0.28
-        If p.Y >= 3 Then p.Y *= If(mCPU.VideoAdapter.MainMode = VideoAdapter.MainModes.Text, 0.2, 0.28)
+        If p.X >= 3 Then p.X *= 0.15 
+        If p.Y >= 3 Then p.Y *= 0.15 
 
         Dim highbits As Byte = 0
         If p.X < 0 Then highbits = 3

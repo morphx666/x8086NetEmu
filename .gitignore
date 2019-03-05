@@ -243,14 +243,14 @@ ModelManifest.xml
 .paket/paket.exe
 
 # FAKE - F# Make
-.fake/
+.fake
 
-# ROMS
-!*/**/bin/
-*/**/bin/disks
-*/**/bin/*.dll
-*/**/bin/*.xml
-*/**/bin/*.exe
-*/**/bin/*.config
-*/**/bin/settings.dat
-*/**/bin/*.manifest
+# ROMS, disks & compiled resources
+!**/bin/
+**/bin/disks
+**/bin/*.dll
+**/bin/*.xml
+**/bin/*.exe
+**/bin/*.config
+**/settings.dat
+**/bin/*.manifest
