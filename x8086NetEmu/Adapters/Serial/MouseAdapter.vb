@@ -86,8 +86,11 @@
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 
         Dim p As New Point(m.X - MidPoint.X, m.Y - MidPoint.Y)
-        p.X *= 0.88 / mCPU.VideoAdapter.Zoom
-        p.Y *= 0.88 / mCPU.VideoAdapter.Zoom
+        'If p.X <> 0 Then If p.X > 0 Then p.X = 1 Else p.X = -1
+        'If p.Y <> 0 Then If p.Y > 0 Then p.Y = 1 Else p.Y = -1
+
+        p.X = Math.Ceiling(Math.Abs(p.X) / 5) * Math.Sign(p.X)
+        p.Y = Math.Ceiling(Math.Abs(p.Y) / 5) * Math.Sign(p.Y)
 
         Dim highbits As Byte = 0
         If p.X < 0 Then highbits = 3
