@@ -51,37 +51,40 @@
             ValidPortAddress.Add(i)
         Next
 
-        'cpu.TryAttachHook(&H8, New X8086.IntHandler(Function()
-        '                                                Dim t As Long = Now.Ticks
-        '                                                ticks += 2
-        '                                                lastUpdate = t
+        cpu.TryAttachHook(&H8, New X8086.IntHandler(Function()
+                                                        Dim ticks As UInteger = (Now - New Date(Now.Year, Now.Month, Now.Day, 0, 0, 0)).Ticks / 10000000 * 18.206
+                                                        cpu.RAM16(&H40, &H6E) = (ticks >> 16) And &HFFFF
+                                                        cpu.RAM16(&H40, &H6C) = ticks And &HFFFF
+                                                        cpu.RAM8(&H40, &H70) = 0
 
-        '                                                If nextInt < t Then
-        '                                                    cmosC = cmosC Or ((1 << 6) Or (1 << 7))
-        '                                                    nextInt += periodicInt * Math.Ceiling((t - nextInt) / periodicInt)
-        '                                                End If
+                                                        cpu.TryDetachHook(&H8)
 
-        '                                                Return False
-        '                                            End Function))
+                                                        Return False
+                                                    End Function))
 
-        'cpu.TryAttachHook(&H1A, New X8086.IntHandler(Function()
-        '                                                 Select Case cpu.Registers.AH
-        '                                                     Case 0
-        '                                                         cpu.Registers.AL = 0
-        '                                                         cpu.Registers.CX = (ticks >> 16) And &HFFFF
-        '                                                         cpu.Registers.DX = ticks And &HFFFF
-        '                                                         Return True
-        '                                                     Case 2
-        '                                                         cpu.Registers.CH = [In](4)
-        '                                                         cpu.Registers.CL = [In](2)
-        '                                                         cpu.Registers.DH = [In](0)
-        '                                                         cpu.Registers.DL = 0
-        '                                                         cpu.Flags.CF = 0
-        '                                                         Return True
-        '                                                 End Select
+        cpu.TryAttachHook(&H1A, New X8086.IntHandler(Function()
+                                                         Select Case cpu.Registers.AH
+                                                             Case &H2 ' Read real time clock time
+                                                                 cpu.Registers.CH = ToBCD(Now.Hour)
+                                                                 cpu.Registers.CL = ToBCD(Now.Minute)
+                                                                 cpu.Registers.DH = ToBCD(Now.Second)
+                                                                 cpu.Registers.DL = 0
+                                                                 cpu.Flags.CF = 0
+                                                                 Return True
 
-        '                                                 Return False
-        '                                             End Function))
+                                                             Case &H4 ' Read real time clock date
+                                                                 cpu.Registers.CH = ToBCD(Now.Year \ 100)
+                                                                 cpu.Registers.CL = ToBCD(Now.Year)
+                                                                 cpu.Registers.DH = ToBCD(Now.Month)
+                                                                 cpu.Registers.DL = ToBCD(Now.Day)
+                                                                 cpu.Flags.CF = 0
+                                                                 Return True
+
+                                                             Case Else
+                                                                 Return False
+
+                                                         End Select
+                                                     End Function))
     End Sub
 
     Private Function EncodeTime(t As UInt16) As UInt16

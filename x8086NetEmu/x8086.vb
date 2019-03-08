@@ -143,62 +143,6 @@ Public Class X8086
 
     Private Sub AddInternalHooks()
         If mEmulateINT13 Then TryAttachHook(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
-
-        Dim ToBCD = Function(v As UInt16) As UInt16
-                        'If v >= 100 Then v = v Mod 100
-                        'Return (v Mod 10) + 16 * (v / 10)
-
-                        Dim i As Integer = 0
-                        Dim r As Integer = 0
-                        Dim d As Integer = 0
-
-                        While v <> 0
-                            d = v Mod 10
-                            r = r Or (d << (4 * i))
-                            i += 1
-                            v = (v - d) \ 10
-                        End While
-                        Return r
-                    End Function
-
-        Dim isFirstTime As Boolean = True
-        TryAttachHook(&H8, Function()
-                               If isFirstTime Then
-                                   Dim ticks As UInteger = (Now - New Date(Now.Year, Now.Month, Now.Day, 0, 0, 0)).Ticks / 10000000 * 18.206
-                                   RAM16(&H40, &H6E) = (ticks >> 16) And &HFFFF
-                                   RAM16(&H40, &H6C) = ticks And &HFFFF
-                                   RAM8(&H40, &H70) = 0
-
-                                   isFirstTime = False
-                               End If
-
-                               Return False
-                           End Function)
-
-        ' This will ONLY work under MS-DOS or compatible
-        TryAttachHook(&H1A, Function()
-                                Select Case mRegisters.AH
-                                    Case &H2 ' Read real time clock time
-                                        mRegisters.CH = ToBCD(Now.Hour)
-                                        mRegisters.CL = ToBCD(Now.Minute)
-                                        mRegisters.DH = ToBCD(Now.Second)
-                                        mRegisters.DL = 0
-                                        mFlags.CF = 0
-                                        Return True
-
-                                    Case &H4 ' Read real time clock date
-                                        mRegisters.CH = ToBCD(Now.Year \ 100)
-                                        mRegisters.CL = ToBCD(Now.Year)
-                                        mRegisters.DH = ToBCD(Now.Month)
-                                        mRegisters.DL = ToBCD(Now.Day)
-                                        mFlags.CF = 0
-                                        Return True
-
-                                    Case Else
-                                        Return False
-
-                                End Select
-                            End Function)
     End Sub
 
     Private Sub BuildDecoderCache()
@@ -296,13 +240,13 @@ Public Class X8086
         PIT = New PIT8254(Me, PIC.GetIrqLine(0))
         PPI = New PPI8255(Me, PIC.GetIrqLine(1))
         'PPI = New PPI8255_ALT(Me, PIC.GetIrqLine(1))
-        'RTC = New RTC(Me, PIC.GetIrqLine(8))
+        RTC = New RTC(Me, PIC.GetIrqLine(8))
 
         mPorts.Add(PIC)
         mPorts.Add(DMA)
         mPorts.Add(PIT)
         mPorts.Add(PPI)
-        'mPorts.Add(RTC)
+        mPorts.Add(RTC)
 
         SetupSystem()
 
