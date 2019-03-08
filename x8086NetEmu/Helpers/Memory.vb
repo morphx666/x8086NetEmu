@@ -287,7 +287,7 @@ Partial Public Class X8086
     End Class
 
     Public Sub LoadBIN(fileName As String, segment As UInt16, offset As UInt16)
-        'Console.WriteLine($"Loading: {fileName} @ {segment:X4}:{offset:X4}")
+        X8086.Notify($"Loading: {fileName} @ {segment:X4}:{offset:X4}", NotificationReasons.Info)
         fileName = X8086.FixPath(fileName)
 
         If IO.File.Exists(fileName) Then

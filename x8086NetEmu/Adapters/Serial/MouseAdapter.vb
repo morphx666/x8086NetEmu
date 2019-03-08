@@ -44,11 +44,7 @@
 
                 Return tmp
             Case &H3FD ' Line Status Register - LSR
-                If sm.bufPtr > 0 Then
-                    tmp = 1
-                Else
-                    tmp = 0
-                End If
+                tmp = If(sm.bufPtr > 0, 1, 0)
 
                 Return tmp
                 'Return &H60 Or tmp
@@ -90,8 +86,8 @@
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
 
         Dim p As New Point(m.X - MidPoint.X, m.Y - MidPoint.Y)
-        If p.X >= 3 Then p.X *= 0.15 
-        If p.Y >= 3 Then p.Y *= 0.15 
+        p.X *= 0.88 / mCPU.VideoAdapter.Zoom
+        p.Y *= 0.88 / mCPU.VideoAdapter.Zoom
 
         Dim highbits As Byte = 0
         If p.X < 0 Then highbits = 3

@@ -168,11 +168,7 @@ Public Class X8086
             If (c And 64) <> 0 Then d += 1
             If (c And 128) <> 0 Then d += 1
 
-            If (d And 1) <> 0 Then
-                szpLUT8(c) = 0
-            Else
-                szpLUT8(c) = GPFlags.FlagsTypes.PF
-            End If
+            szpLUT8(c) = If((d And 1) <> 0, 0, GPFlags.FlagsTypes.PF)
             If c = 0 Then szpLUT8(c) = szpLUT8(c) Or GPFlags.FlagsTypes.ZF
             If (c And &H80) <> 0 Then szpLUT8(c) = szpLUT8(c) Or GPFlags.FlagsTypes.SF
         Next
@@ -188,11 +184,7 @@ Public Class X8086
             If (c And 64) <> 0 Then d += 1
             If (c And 128) <> 0 Then d += 1
 
-            If (d And 1) <> 0 Then
-                szpLUT16(c) = 0
-            Else
-                szpLUT16(c) = GPFlags.FlagsTypes.PF
-            End If
+            szpLUT16(c) = If((d And 1) <> 0, 0, GPFlags.FlagsTypes.PF)
             If c = 0 Then szpLUT16(c) = szpLUT16(c) Or GPFlags.FlagsTypes.ZF
             If (c And &H8000) <> 0 Then szpLUT16(c) = szpLUT16(c) Or GPFlags.FlagsTypes.SF
         Next
@@ -201,7 +193,7 @@ Public Class X8086
     ' If necessary, in future versions we could implement support for
     '   multiple hooks attached to the same interrupt and execute them based on some priority condition
     Public Function TryAttachHook(intNum As Byte, handler As IntHandler) As Boolean
-        If intHooks.ContainsKey(intNum) Then Return False
+        If intHooks.ContainsKey(intNum) Then intHooks.Remove(intNum)
         intHooks.Add(intNum, handler)
         Return True
     End Function
