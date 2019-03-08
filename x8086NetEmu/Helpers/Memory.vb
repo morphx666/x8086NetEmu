@@ -372,7 +372,7 @@ Partial Public Class X8086
                 Next
             End If
 
-            Memory(address) = value
+            Memory(address And &HFFFFFUI) = value
 
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set

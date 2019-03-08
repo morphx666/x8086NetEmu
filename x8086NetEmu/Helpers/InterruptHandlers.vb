@@ -1,4 +1,4 @@
-﻿'The MAIN Guide: http://docs.huihoo.com/help-pc/index.html
+﻿'The MAIN Guide: http://docs.huihoo.com/help-pc/index.html or http://stanislavs.org/helppc/ (mirror)
 ' http://www.delorie.com/djgpp/doc/rbinter/ix/
 
 Partial Public Class X8086
