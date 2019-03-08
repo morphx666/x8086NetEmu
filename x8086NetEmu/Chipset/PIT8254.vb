@@ -231,7 +231,7 @@
             If clocks = 0 Then
                 Return 0
             Else
-                Return ClocksToTime(TimeToClocks(owner.currentTime) + clocks)
+                Return owner.ClocksToTime(owner.TimeToClocks(owner.currentTime) + clocks)
             End If
         End Function
 
@@ -240,14 +240,14 @@
         Public Function GetSquareWavePeriod() As Long
             If (countMode <> 3) OrElse (Not active) OrElse (Not mGgate) Then Return 0
             Update()
-            Return ClocksToTime(FromCounter(countRegister))
+            Return owner.ClocksToTime(FromCounter(countRegister))
         End Function
 
         ' Returns the full period, or 0 if not enabled.
         Public Function GetPeriod() As Long
             If (Not active) OrElse (Not mGgate) Then Return 0
             Update()
-            Return ClocksToTime(FromCounter(countRegister))
+            Return owner.ClocksToTime(FromCounter(countRegister))
         End Function
 
         ' Converts an internal counter value to a number,
@@ -307,7 +307,7 @@
         ' current time from the last computed state.
         Private Sub Update()
             ' compute elapsed clock pulses since last update
-            Dim clocks As Long = TimeToClocks(owner.currentTime) - TimeToClocks(timeStamp)
+            Dim clocks As Long = owner.TimeToClocks(owner.currentTime) - owner.TimeToClocks(timeStamp)
 
             ' call mode-dependent update function
             Select Case countMode
@@ -519,7 +519,7 @@
     Private Const OverclockMultiplier As Double = 1.0 ' This will affect the speed of the internal clock!
 
     ' Global counter clock rate (1.19318 MHz) 
-    Private Shared COUNTRATE As Long
+    Private COUNTRATE As Long
 
     ' Three counters in the I8254 chip 
     Private ReadOnly mChannels(3 - 1) As Counter
@@ -691,12 +691,12 @@
 #End If
     End Sub
 
-    Public Shared Function TimeToClocks(t As Long) As Long
+    Public Function TimeToClocks(t As Long) As Long
         Return (t \ Scheduler.BASECLOCK) * COUNTRATE +
                ((t Mod Scheduler.BASECLOCK) * COUNTRATE) \ Scheduler.BASECLOCK
     End Function
 
-    Public Shared Function ClocksToTime(c As Long) As Long
+    Public Function ClocksToTime(c As Long) As Long
         Return (c \ COUNTRATE) * Scheduler.BASECLOCK +
                ((c Mod COUNTRATE) * Scheduler.BASECLOCK + COUNTRATE - 1) \ COUNTRATE
     End Function

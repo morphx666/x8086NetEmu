@@ -135,9 +135,11 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     End Sub
 
     Private Sub FillAudioBuffer(buffer() As Byte)
-        tickCount += 1
-        If tickCount >= SpeakerAdpater.SampleRate * (X8086.BASECLOCK / mCPU.Clock) / mCPU.SimulationMultiplier Then
-            tickCount = 0
+        Dim triggerTick As Integer = (X8086.GHz / SpeakerAdpater.SampleRate) * (mCPU.Clock / X8086.BASECLOCK) * mCPU.SimulationMultiplier
+
+        tickCount += waveOut.NumberOfBuffers * waveOut.DesiredLatency
+        If tickCount >= triggerTick Then
+            tickCount = tickCount - triggerTick
 
             SyncLock channel
                 For currentChannel As Byte = 0 To 9 - 1
@@ -227,12 +229,14 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private Function Sample(channel As Byte) As Int32
         If precussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
 
+        'Dim sr As Integer = SpeakerAdpater.SampleRate * (X8086.BASECLOCK / mCPU.Clock) '/ mCPU.SimulationMultiplier Then
+
         Dim fullStep As UInt32 = SpeakerAdpater.SampleRate \ Frequency(channel)
         Dim idx As Byte = (oplSstep(channel) / (fullStep / 256.0)) Mod 255
         Dim tmpSample As Integer = oplWave(Me.channel(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = envelope(channel)
         If tmpStep > 1.0 Then tmpStep = 1.0
-        tmpSample = CDbl(tmpSample) * tmpStep * 8.0
+        tmpSample = tmpSample * tmpStep * 8.0
 
         oplSstep(channel) += 1
         If oplSstep(channel) > fullStep Then oplSstep(channel) = 0

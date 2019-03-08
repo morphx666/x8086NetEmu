@@ -64,7 +64,7 @@ Partial Class FormDiskExplorer
         Me.ListViewFileSystem.HideSelection = False
         Me.ListViewFileSystem.Location = New System.Drawing.Point(282, 178)
         Me.ListViewFileSystem.Name = "ListViewFileSystem"
-        Me.ListViewFileSystem.Size = New System.Drawing.Size(572, 351)
+        Me.ListViewFileSystem.Size = New System.Drawing.Size(501, 351)
         Me.ListViewFileSystem.SmallImageList = Me.ImageListIcons
         Me.ListViewFileSystem.TabIndex = 1
         Me.ListViewFileSystem.UseCompatibleStateImageBehavior = False
@@ -130,7 +130,7 @@ Partial Class FormDiskExplorer
         Me.ComboBoxPartitions.FormattingEnabled = True
         Me.ComboBoxPartitions.Location = New System.Drawing.Point(340, 9)
         Me.ComboBoxPartitions.Name = "ComboBoxPartitions"
-        Me.ComboBoxPartitions.Size = New System.Drawing.Size(514, 23)
+        Me.ComboBoxPartitions.Size = New System.Drawing.Size(443, 23)
         Me.ComboBoxPartitions.TabIndex = 4
         '
         'Label1
@@ -239,7 +239,7 @@ Partial Class FormDiskExplorer
         Me.ListViewCode.HideSelection = False
         Me.ListViewCode.Location = New System.Drawing.Point(282, 38)
         Me.ListViewCode.Name = "ListViewCode"
-        Me.ListViewCode.Size = New System.Drawing.Size(572, 134)
+        Me.ListViewCode.Size = New System.Drawing.Size(501, 134)
         Me.ListViewCode.TabIndex = 7
         Me.ListViewCode.UseCompatibleStateImageBehavior = False
         Me.ListViewCode.View = System.Windows.Forms.View.Details
@@ -264,7 +264,7 @@ Partial Class FormDiskExplorer
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer), CType(CType(33, Byte), Integer))
-        Me.ClientSize = New System.Drawing.Size(868, 543)
+        Me.ClientSize = New System.Drawing.Size(797, 543)
         Me.Controls.Add(Me.ListViewCode)
         Me.Controls.Add(Me.LabelVolumeLabel)
         Me.Controls.Add(Me.Label6)

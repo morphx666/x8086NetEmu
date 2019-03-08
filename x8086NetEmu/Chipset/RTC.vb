@@ -1,7 +1,7 @@
 ﻿Public Class RTC
     Inherits IOPortHandler
 
-    Private irq As InterruptRequest
+    Private ReadOnly irq As InterruptRequest
 
     Private Delegate Function ReadFunction() As Integer
     Private Delegate Sub WriteFunction(v As Integer)
@@ -51,14 +51,17 @@
             ValidPortAddress.Add(i)
         Next
 
+        ' FIXME: Although this works, when pausing the emulation causes the internal timers to get out of sync:
+        ' The contents at 46C no longer reflect what's returned by INT 1A, 02
+        ' So the x8086.Resume method should perform a re-sync setting the new tick values into 46C.
+        ' It also appears that the x8086.Resume method should also advance the time...
+
         cpu.TryAttachHook(&H8, New X8086.IntHandler(Function()
                                                         Dim ticks As UInteger = (Now - New Date(Now.Year, Now.Month, Now.Day, 0, 0, 0)).Ticks / 10000000 * 18.206
                                                         cpu.RAM16(&H40, &H6E) = (ticks >> 16) And &HFFFF
                                                         cpu.RAM16(&H40, &H6C) = ticks And &HFFFF
                                                         cpu.RAM8(&H40, &H70) = 0
-
                                                         cpu.TryDetachHook(&H8)
-
                                                         Return False
                                                     End Function))
 

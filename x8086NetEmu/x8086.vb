@@ -512,7 +512,7 @@ Public Class X8086
             Loop While mIsExecuting
 
 #If Win32 Then
-            If PIT IsNot Nothing AndAlso PIT.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
+            If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
 #End If
         End If
     End Sub
@@ -1320,7 +1320,7 @@ Public Class X8086
                 mRegisters.DX = If((mRegisters.AH And &H80) <> 0, &HFFFF, &H0)
                 clkCyc += 5
 
-            Case &H9A ' call direct intersegment
+            Case &H9A ' call direct inter-segment
                 IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
                 tmpUVal = Param(ParamIndex.Second, , DataSize.Word)
                 PushIntoStack(mRegisters.CS)

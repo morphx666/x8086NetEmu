@@ -15,8 +15,7 @@ Public Class FormDiskExplorer
         LabelImageFile.Text = fileName
         ImageListIcons.Images.Add(Win32FileIcon.GetIconFromFile("."))
 
-        InitLVCode()
-        AutoSizeLastColumn(ListViewCode)
+        InitListView(ListViewCode)
         ListViewCode.BackColor = Color.FromArgb(34, 40, 42)
         ListViewCode.ForeColor = Color.FromArgb(102, 80, 15)
 
@@ -208,6 +207,8 @@ Public Class FormDiskExplorer
                 .SubItems(3).ForeColor = Color.FromArgb(35 + 20, 87 + 20, 140 + 20)
             End With
         Next
+
+        AutoSizeLastColumn(ListViewCode)
     End Sub
 
     Private Function GetBytesString(b() As Byte) As String
@@ -220,24 +221,26 @@ Public Class FormDiskExplorer
         Return r.Trim()
     End Function
 
-    Private Sub InitLVCode()
-        ListViewHelper.EnableDoubleBuffer(ListViewCode)
+    Private Sub InitListView(lv As ListView)
+        ListViewHelper.EnableDoubleBuffer(lv)
 
-        With ListViewCode.Items.Add("FFFF:FFFF".Replace("F", " "))
+        Dim item As ListViewItem = Nothing
+        item = lv.Items.Add("FFFF:FFFF".Replace("F", " "))
+        With item
             .SubItems.Add("FF FF FF FF FF FF".Replace("F", " "))
             .SubItems.Add("FFFFFF".Replace("F", " "))
             .SubItems.Add("FFFFFFFFFFFFFFFFFFFF".Replace("F", " "))
         End With
 
-        ListViewCode.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent)
-        ListViewCode.Items(0).Remove()
+        lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent)
+        item.Remove()
     End Sub
 
     Private Sub AutoSizeLastColumn(lv As ListView)
         Dim w As Integer = lv.ClientSize.Width
         Select Case lv.BorderStyle
             Case BorderStyle.Fixed3D : w -= 4
-            Case BorderStyle.FixedSingle : w -= 2
+            Case BorderStyle.FixedSingle : w -= (2 + 16)
         End Select
         For i As Integer = 0 To lv.Columns.Count - 1
             w -= lv.Columns(i).Width

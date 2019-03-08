@@ -21,10 +21,10 @@ Public Class Scheduler
     Private syncScheduler As Boolean = True
 
     ' Determines how often the time synchronization is checked
-    Private Shared syncQuantum As Long
+    Private syncQuantum As Long
 
     ' Determines speed of the simulation
-    Private Shared syncSimTimePerWallMs As Long
+    Private syncSimTimePerWallMs As Long
 
     ' Gain on wall time since last synchronization, plus one syncQuantum
     Private syncTimeSaldo As Long
