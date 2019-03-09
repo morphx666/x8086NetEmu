@@ -673,18 +673,13 @@ Public Class FormEmulator
 #If Not DEBUG Then
             Me.TopMost = True
 #End If
-
-            'Dim w As Double = Screen.FromControl(Me).Bounds.Size.Width / (cpu.VideoAdapter.TextResolution.Width * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom / cpu.VideoAdapter.Zoom)
-            'Dim h As Double = Screen.FromControl(Me).Bounds.Size.Height / (cpu.VideoAdapter.TextResolution.Height * cpu.VideoAdapter.CellSize.Height * cpu.VideoAdapter.Zoom / cpu.VideoAdapter.Zoom)
-            'SetZoomLevel(Math.Max(w, h))
-
-            While cpu.VideoAdapter.TextResolution.Width * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom > Screen.FromControl(Me).Bounds.Size.Width AndAlso
-                  cpu.VideoAdapter.TextResolution.Height * cpu.VideoAdapter.CellSize.Height * cpu.VideoAdapter.Zoom > Screen.FromControl(Me).Bounds.Size.Height
-                SetZoomLevel(cpu.VideoAdapter.Zoom + 0.005)
-            End While
             While cpu.VideoAdapter.TextResolution.Width * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Width AndAlso
                   cpu.VideoAdapter.TextResolution.Height * cpu.VideoAdapter.CellSize.Height * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Height
-                SetZoomLevel(cpu.VideoAdapter.Zoom + 0.005)
+                SetZoomLevel(cpu.VideoAdapter.Zoom + 0.015)
+            End While
+            While cpu.VideoAdapter.TextResolution.Width * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom > Screen.FromControl(Me).Bounds.Size.Width AndAlso
+                  cpu.VideoAdapter.TextResolution.Height * cpu.VideoAdapter.CellSize.Height * cpu.VideoAdapter.Zoom > Screen.FromControl(Me).Bounds.Size.Height
+                SetZoomLevel(cpu.VideoAdapter.Zoom - 0.001)
             End While
             ZoomFullScreenToolStripMenuItem.Checked = True
 
