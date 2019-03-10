@@ -232,19 +232,6 @@ Public Class FormDebugger
     End Sub
 
     Private Sub ButtonDecIP_Click(sender As Object, e As EventArgs) Handles ButtonDecIP.Click
-        'Dim IP As Integer = Val("&h" + TextBoxIP.Text)
-        'Dim CS As Integer = Val("&h" + TextBoxCS.Text)
-
-        'For i As Integer = 1 To 14
-        '    Dim previous As X8086.Instruction = Emulator.Decode(CS, IP - i)
-        '    If previous.IsValid AndAlso previous.Size = i Then
-        '        If Emulator.Decode(CS, IP - i + previous.Size) = activeInstruction Then
-        '            mEmulator.Registers.IP = IP - i
-        '            Exit For
-        '        End If
-        '    End If
-        'Next
-
         mEmulator.Registers.IP -= 1
         RefreshCodeListing()
     End Sub
@@ -558,8 +545,8 @@ Public Class FormDebugger
         ' TODO: This code listview should probably be implemented as a virtual listview
 
         Dim item As ListViewItem
-        Dim CS As Integer = mEmulator.Registers.CS
-        Dim IP As Integer = mEmulator.Registers.IP
+        Dim CS As UInt16 = mEmulator.Registers.CS
+        Dim IP As UInt16 = mEmulator.Registers.IP
         Dim insIndex As Integer
         Dim insertedCount As Integer
         Dim newCount As Integer
@@ -612,7 +599,7 @@ Public Class FormDebugger
             If Not info.IsValid Then Exit Do
 
             Dim curIP As String = IP.ToString("X4")
-            If CInt(IP) + info.Size > &HFFFF Then Exit Do
+            If IP + info.Size > &HFFFF Then Exit Do
             IP = (IP + info.Size) Mod &HFFFF
 
             If item.Text = "" Then

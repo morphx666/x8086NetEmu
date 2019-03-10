@@ -268,7 +268,6 @@ Public Class X8086
         mIsPaused = False
         mDoReSchedule = False
 
-        isDecoding = False
         ignoreINTs = False
         mRepeLoopMode = REPLoopModes.None
         IPAddrOffet = 0
@@ -553,7 +552,7 @@ Public Class X8086
     End Sub
 
     Public Sub PreExecute()
-        If mIsExecuting OrElse isDecoding OrElse mIsPaused Then Exit Sub
+        If mIsExecuting OrElse mIsPaused Then Exit Sub
         mDoReSchedule = False
 
         Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
@@ -565,7 +564,7 @@ Public Class X8086
             While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)
                 debugWaiter.WaitOne()
 
-                If Not isDecoding Then
+                SyncLock decoderSyncObj
                     mIsExecuting = True
 #If DEBUG Then
                     Execute_DEBUG()
@@ -573,7 +572,7 @@ Public Class X8086
                     Execute()
 #End If
                     mIsExecuting = False
-                End If
+                End SyncLock
 
                 RaiseEvent InstructionDecoded()
             End While
@@ -593,9 +592,6 @@ Public Class X8086
     End Sub
 
     Public Sub Execute()
-        newPrefix = False
-        instrucionsCounter += 1
-
         If mFlags.TF = 1 Then
             If ignoreINTs Then HandleInterrupt(1, False)
         ElseIf ignoreINTs Then
@@ -604,17 +600,17 @@ Public Class X8086
             HandlePendingInterrupt()
         End If
 
-        opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
+        newPrefix = False
+        instrucionsCounter += 1
+
+        opCode = RAM8(mRegisters.CS, mRegisters.IP)
 
         opCodes(opCode).Invoke()
         RunPost()
     End Sub
 
     Public Sub Execute_DEBUG()
-        newPrefix = False
-        instrucionsCounter += 1
-
         If mFlags.TF = 1 Then
             ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
             ' but it even allows it to pass it successfully!!!
@@ -625,8 +621,11 @@ Public Class X8086
             HandlePendingInterrupt()
         End If
 
-        opCode = RAM8(mRegisters.CS, mRegisters.IP)
         opCodeSize = 1
+        newPrefix = False
+        instrucionsCounter += 1
+
+        opCode = RAM8(mRegisters.CS, mRegisters.IP)
 
         Select Case opCode
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
