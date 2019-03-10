@@ -657,7 +657,7 @@ Public Class FormEmulator
                                                                         Zoom150ToolStripMenuItem.Click, Zoom200ToolStripMenuItem.Click, Zoom400ToolStripMenuItem.Click,
                                                                         ZoomFullScreenToolStripMenuItem.Click
 
-        If Me.TopMost Then
+        If Me.FormBorderStyle = FormBorderStyle.None Then
             Me.FormBorderStyle = FormBorderStyle.FixedSingle
             Me.Location = lastLocation
             Me.TopMost = False
@@ -669,7 +669,7 @@ Public Class FormEmulator
             lastLocation = Me.Location
 
             Me.FormBorderStyle = FormBorderStyle.None
-            Me.Location = Point.Empty
+            Me.Location = Screen.FromControl(Me).Bounds.Location
 #If Not DEBUG Then
             Me.TopMost = True
 #End If
