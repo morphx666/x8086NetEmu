@@ -15,7 +15,7 @@ Public Class CGAConsole
 
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)
-        'InitiAdapter()
+        InitiAdapter()
         AutoSize()
 
         Console.TreatControlCAsInput = True
