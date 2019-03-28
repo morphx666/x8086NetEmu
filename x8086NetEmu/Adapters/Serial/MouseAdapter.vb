@@ -8,7 +8,6 @@
         Public bufPtr As UInt32
     End Class
 
-    Private mCPU As X8086
     Private sm As New SerialMouse()
     Private irq As PIC8259.IRQLine
 
@@ -18,8 +17,8 @@
     Private Const M As Integer = Asc("M")
 
     Public Sub New(cpu As X8086)
-        mCPU = cpu
-        If mCPU.PIC IsNot Nothing Then irq = mCPU.PIC.GetIrqLine(4)
+        MyBase.New(cpu)
+        If MyBase.CPU.PIC IsNot Nothing Then irq = MyBase.CPU.PIC.GetIrqLine(4)
 
         For i As UInt32 = &H3F8 To &H3F8 + 7
             ValidPortAddress.Add(i)
@@ -68,7 +67,7 @@
                     BufSerMouseData(M) '                  actually a mouse connected to the port.
                     BufSerMouseData(M)
                 End If
-                mCPU.Flags.OF = 1
+                MyBase.CPU.Flags.OF = 1
         End Select
     End Sub
 

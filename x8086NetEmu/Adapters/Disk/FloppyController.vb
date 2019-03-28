@@ -94,8 +94,6 @@ Public Class FloppyControllerAdapter
         SEEK = &HF
     End Enum
 
-    Private mCPU As X8086
-
     Private Class TaskSC
         Inherits Scheduler.Task
 
@@ -116,7 +114,7 @@ Public Class FloppyControllerAdapter
     Private task As Scheduler.Task = New TaskSC(Me)
 
     Public Sub New(cpu As X8086)
-        mCPU = cpu
+        MyBase.New(cpu)
 
         Me.sched = cpu.Sched
         If cpu.PIC IsNot Nothing Then Me.irq = cpu.PIC.GetIrqLine(6)

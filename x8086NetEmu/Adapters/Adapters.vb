@@ -9,53 +9,53 @@
         list = New List(Of Adapter)
     End Sub
 
-    Public Sub Add(adapter As Adapter) Implements System.Collections.Generic.ICollection(Of Adapter).Add
+    Public Sub Add(adapter As Adapter) Implements ICollection(Of Adapter).Add
         emulator.SetUpAdapter(adapter)
         list.Add(adapter)
     End Sub
 
-    Public Sub Clear() Implements System.Collections.Generic.ICollection(Of Adapter).Clear
+    Public Sub Clear() Implements ICollection(Of Adapter).Clear
         list.Clear()
     End Sub
 
-    Public Function Contains(adapter As Adapter) As Boolean Implements System.Collections.Generic.ICollection(Of Adapter).Contains
+    Public Function Contains(adapter As Adapter) As Boolean Implements ICollection(Of Adapter).Contains
         Return list.Contains(adapter)
     End Function
 
-    Public Sub CopyTo(array() As Adapter, arrayIndex As Integer) Implements System.Collections.Generic.ICollection(Of Adapter).CopyTo
+    Public Sub CopyTo(array() As Adapter, arrayIndex As Integer) Implements ICollection(Of Adapter).CopyTo
 
     End Sub
 
-    Public ReadOnly Property Count As Integer Implements System.Collections.Generic.ICollection(Of Adapter).Count
+    Public ReadOnly Property Count As Integer Implements ICollection(Of Adapter).Count
         Get
             Return list.Count
         End Get
     End Property
 
-    Public ReadOnly Property IsReadOnly As Boolean Implements System.Collections.Generic.ICollection(Of Adapter).IsReadOnly
+    Public ReadOnly Property IsReadOnly As Boolean Implements ICollection(Of Adapter).IsReadOnly
         Get
             Return False
         End Get
     End Property
 
-    Public Function Remove(adapter As Adapter) As Boolean Implements System.Collections.Generic.ICollection(Of Adapter).Remove
+    Public Function Remove(adapter As Adapter) As Boolean Implements ICollection(Of Adapter).Remove
         If adapter IsNot Nothing Then adapter.CloseAdapter()
         Return list.Remove(adapter)
     End Function
 
-    Public Function GetEnumerator() As System.Collections.Generic.IEnumerator(Of Adapter) Implements System.Collections.Generic.IEnumerable(Of Adapter).GetEnumerator
+    Public Function GetEnumerator() As IEnumerator(Of Adapter) Implements IEnumerable(Of Adapter).GetEnumerator
         Return list.GetEnumerator()
     End Function
 
-    Public Function IndexOf(adapter As Adapter) As Integer Implements System.Collections.Generic.IList(Of Adapter).IndexOf
+    Public Function IndexOf(adapter As Adapter) As Integer Implements IList(Of Adapter).IndexOf
         Return list.IndexOf(adapter)
     End Function
 
-    Public Sub Insert(index As Integer, adapter As Adapter) Implements System.Collections.Generic.IList(Of Adapter).Insert
+    Public Sub Insert(index As Integer, adapter As Adapter) Implements IList(Of Adapter).Insert
         list.Insert(index, adapter)
     End Sub
 
-    Default Public Property Item(index As Integer) As Adapter Implements System.Collections.Generic.IList(Of Adapter).Item
+    Default Public Property Item(index As Integer) As Adapter Implements IList(Of Adapter).Item
         Get
             Return list.Item(index)
         End Get
@@ -64,11 +64,11 @@
         End Set
     End Property
 
-    Public Sub RemoveAt(index As Integer) Implements System.Collections.Generic.IList(Of Adapter).RemoveAt
+    Public Sub RemoveAt(index As Integer) Implements IList(Of Adapter).RemoveAt
         list.RemoveAt(index)
     End Sub
 
-    Public Function GetEnumerator1() As System.Collections.IEnumerator Implements System.Collections.IEnumerable.GetEnumerator
+    Public Function GetEnumerator1() As IEnumerator Implements IEnumerable.GetEnumerator
         Return list.GetEnumerator()
     End Function
 End Class

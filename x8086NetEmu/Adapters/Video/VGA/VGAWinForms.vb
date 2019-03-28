@@ -131,8 +131,6 @@
 
     Public Overrides Sub CloseAdapter()
         MyBase.CloseAdapter()
-
-        DisposeColorCaches()
         DetachRenderControl()
     End Sub
 
@@ -420,9 +418,6 @@
         End If
     End Sub
 
-    Private Sub DisposeColorCaches()
-    End Sub
-
     Public Overrides ReadOnly Property Description As String
         Get
             Return "VGA WinForms Adapter"
@@ -438,10 +433,11 @@
     Protected Overrides Sub OnPaletteRegisterChanged()
         MyBase.OnPaletteRegisterChanged()
 
-        DisposeColorCaches()
-        For i As Integer = 0 To CGAPalette.Length - 1
-            brushCache(i) = CGAPalette(i)
-        Next
+        If brushCache IsNot Nothing Then
+            For i As Integer = 0 To CGAPalette.Length - 1
+                brushCache(i) = CGAPalette(i)
+            Next
+        End If
     End Sub
 
     Private Function MeasureChar(graphics As Graphics, code As Integer, text As Char, font As Font) As Size

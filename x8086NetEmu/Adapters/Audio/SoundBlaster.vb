@@ -8,8 +8,6 @@ Public Class SoundBlaster ' Based on fake86's implementation
     Private waveOut As WaveOut
     Private audioProvider As SpeakerAdpater.CustomBufferProvider
 
-    Private ReadOnly mCPU As X8086
-
     Private Structure BlasterData
         Public Mem() As Byte
         Public MemPtr As UInt16
@@ -49,13 +47,13 @@ Public Class SoundBlaster ' Based on fake86's implementation
     Private adLib As AdlibAdapter
 
     Public Sub New(cpu As X8086, adlib As AdlibAdapter, Optional port As UInt16 = &H220, Optional irq As Byte = 5, Optional dmaChannel As Byte = 1)
-        mCPU = cpu
+        MyBase.New(cpu)
         Me.adLib = adlib
 
         ReDim blaster.Mem(1024 - 1)
         ReDim blaster.MixerData.Reg(256 - 1)
 
-        blaster.Irq = mCPU.PIC.GetIrqLine(irq)
+        blaster.Irq = MyBase.CPU.PIC?.GetIrqLine(irq)
         blaster.Dma = dmaChannel
 
         For i As UInt32 = port To port + &HE
@@ -67,7 +65,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            blaster.SampleTicks = mCPU.Clock / blaster.SampleRate
+            blaster.SampleTicks = MyBase.CPU.Clock / blaster.SampleRate
         End If
     End Sub
 
@@ -92,7 +90,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
                         blaster.SpeakerEnabled = True
                     End If
                 Case &H40 ' set time constant
-                    blaster.SampleRate = (mCPU.Clock / (256 - value))
+                    blaster.SampleRate = (MyBase.CPU.Clock / (256 - value))
                     SetSampleTicks()
                 Case &H48 ' set DSP block transfer size
                     If blaster.WaitForArg = 2 Then
@@ -161,8 +159,8 @@ Public Class SoundBlaster ' Based on fake86's implementation
         blaster.DspMin = 0
         MixerReset()
 
-        dma = mCPU.DMA.GetChannel(blaster.Dma)
-        mCPU.DMA.BindChannel(blaster.Dma, Me)
+        dma = MyBase.CPU.DMA.GetChannel(blaster.Dma)
+        MyBase.CPU.DMA.BindChannel(blaster.Dma, Me)
 
         waveOut = New WaveOut() With {
             .NumberOfBuffers = 4,
@@ -277,9 +275,9 @@ Public Class SoundBlaster ' Based on fake86's implementation
         If dma.CurrentCount > dma.BaseCount Then blaster.Sample = 128
 
         If dma.Direction = 0 Then
-            blaster.Sample = mCPU.Memory((dma.Page << 16) + dma.CurrentAddress + dma.CurrentCount)
+            blaster.Sample = MyBase.CPU.Memory((dma.Page << 16) + dma.CurrentAddress + dma.CurrentCount)
         Else
-            blaster.Sample = mCPU.Memory((dma.Page << 16) + dma.CurrentAddress - dma.CurrentCount)
+            blaster.Sample = MyBase.CPU.Memory((dma.Page << 16) + dma.CurrentAddress - dma.CurrentCount)
         End If
         dma.CurrentCount += 1
     End Sub

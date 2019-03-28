@@ -2,10 +2,8 @@
     Inherits Adapter
     Implements IExternalInputHandler
 
-    Private mCPU As X8086
-
     Public Sub New(cpu As X8086)
-        mCPU = cpu
+        MyBase.New(cpu)
     End Sub
 
     Public Overrides ReadOnly Property Description As String
@@ -213,6 +211,6 @@
         Dim keyEvent As KeyEventArgs = CType(e.TheEvent, KeyEventArgs)
         Dim isUp As Boolean = CType(e.Extra, Boolean)
 
-        If mCPU.PPI IsNot Nothing Then mCPU.PPI.PutKeyData(keyEvent.KeyValue And &HFF, isUp)
+        If MyBase.CPU.PPI IsNot Nothing Then MyBase.CPU.PPI.PutKeyData(keyEvent.KeyValue And &HFF, isUp)
     End Sub
 End Class

@@ -1,5 +1,4 @@
 ﻿Partial Public Class X8086
-    Private isVideoAdapterAvailable As Boolean
     Private tmpCF As Byte
     Private portsCache As New Dictionary(Of UInt32, IOPortHandler)
     Private szpLUT8(256 - 1) As GPFlags.FlagsTypes
@@ -331,14 +330,14 @@
         SetSZPFlags(result, size)
 
         If size = DataSize.Byte Then
-            mFlags.CF = If((result And &HFF00UI) <> 0, 1, 0)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80UI) <> 0, 1, 0)
+            mFlags.CF = If((result And &HFF00US) <> 0, 1, 0)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80US) <> 0, 1, 0)
         Else
-            mFlags.CF = If((result And &HFFFF0000UI) <> 0, 1, 0)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000UI) <> 0, 1, 0)
+            mFlags.CF = If((result And &HFFFF0000UL) <> 0, 1, 0)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000UL) <> 0, 1, 0)
         End If
 
-        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10UI) <> 0, 1, 0)
+        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)
     End Sub
 
     Public Shared Function BitsArrayToWord(b() As Boolean) As UInt16
@@ -356,7 +355,6 @@
     End Sub
 
     Protected Friend Sub SetUpAdapter(adptr As Adapter)
-        adptr.CPU = Me
         Select Case adptr.Type
             Case Adapter.AdapterType.Keyboard
                 mKeyboard = adptr
@@ -364,11 +362,14 @@
                 mMouse = adptr
             Case Adapter.AdapterType.Video
                 mVideoAdapter = adptr
-                isVideoAdapterAvailable = adptr IsNot Nothing
             Case Adapter.AdapterType.Floppy
                 mFloppyController = adptr
         End Select
     End Sub
+
+    Public Function GetAdaptersByType(adapterType As Adapter.AdapterType) As List(Of Adapter)
+        Return (From adptr In mAdapters Where adptr.Type = adapterType Select adptr).ToList()
+    End Function
 
     Private Sub PrintOpCodes(n As UInt16)
         For i As Integer = mRegisters.IP To mRegisters.IP + n - 1

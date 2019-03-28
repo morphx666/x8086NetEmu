@@ -37,7 +37,6 @@ Public Class SpeakerAdpater
 
     Public Const SampleRate As Integer = 44100
 
-    Private mCPU As X8086
     Private mEnabled As Boolean
 
     Private mFrequency As Double
@@ -49,8 +48,8 @@ Public Class SpeakerAdpater
     Public ReadOnly Property AudioBuffer As Byte()
 
     Public Sub New(cpu As X8086)
-        mCPU = cpu
-        If mCPU.PIT IsNot Nothing Then mCPU.PIT.Speaker = Me
+        MyBase.New(cpu)
+        If MyBase.CPU.PIT IsNot Nothing Then MyBase.CPU.PIT.Speaker = Me
         Volume = 0.05
     End Sub
 

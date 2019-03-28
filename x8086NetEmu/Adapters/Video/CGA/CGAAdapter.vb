@@ -126,7 +126,6 @@ Public MustInherit Class CGAAdapter
 
     Protected chars(256 - 1) As Char
 
-    Private mCPU As X8086
     Protected vidModeChangeFlag As Integer = &B1000
 
     Public MustOverride Overrides Sub AutoSize()
@@ -136,7 +135,6 @@ Public MustInherit Class CGAAdapter
 
     Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True, Optional enableWebUI As Boolean = False)
         MyBase.New(cpu)
-        mCPU = cpu
         Me.useInternalTimer = useInternalTimer
 
         If enableWebUI Then wui = New WebUI(cpu, videoBMP, chars)
@@ -170,7 +168,7 @@ Public MustInherit Class CGAAdapter
             MyBase.OnKeyDown(Me, e)
             If e.Handled Then Exit Sub
             'Debug.WriteLine($"KEY DOWN: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
-            If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, False))
+            If MyBase.CPU.Keyboard IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Keyboard, e, False))
         End If
         e.Handled = True
         e.SuppressKeyPress = True
@@ -181,21 +179,21 @@ Public MustInherit Class CGAAdapter
             MyBase.OnKeyUp(Me, e)
             If e.Handled Then Exit Sub
             'Debug.WriteLine($"KEY UP: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
-            If mCPU.Keyboard IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Keyboard, e, True))
+            If MyBase.CPU.Keyboard IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Keyboard, e, True))
         End If
         e.Handled = True
     End Sub
 
     Public Sub OnMouseDown(sender As Object, e As MouseEventArgs)
-        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, True))
+        If MyBase.CPU.Mouse IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Mouse, e, True))
     End Sub
 
     Public Sub OnMouseMove(sender As Object, e As MouseEventArgs)
-        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, Nothing))
+        If MyBase.CPU.Mouse IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Mouse, e, Nothing))
     End Sub
 
     Public Sub OnMouseUp(sender As Object, e As MouseEventArgs)
-        If mCPU.Mouse IsNot Nothing Then mCPU.Sched.HandleInput(New ExternalInputEvent(mCPU.Mouse, e, False))
+        If MyBase.CPU.Mouse IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Mouse, e, False))
     End Sub
 
     Public ReadOnly Property BlinkRate As Integer
@@ -289,12 +287,12 @@ Public MustInherit Class CGAAdapter
     End Property
 
     Public Overrides Sub InitiAdapter()
-        isInit = mCPU IsNot Nothing
+        isInit = MyBase.CPU IsNot Nothing
         If isInit AndAlso useInternalTimer Then Tasks.Task.Run(AddressOf MainLoop)
     End Sub
 
     Private Sub MainLoop()
-        Dim multiplier As Integer = If(TypeOf mCPU.VideoAdapter Is CGAConsole, 2, 2)
+        Dim multiplier As Integer = If(TypeOf MyBase.CPU.VideoAdapter Is CGAConsole, 2, 2)
         Do
             waiter.WaitOne(multiplier * 1000 \ VERTSYNC)
             Render()
@@ -399,7 +397,7 @@ Public MustInherit Class CGAAdapter
                     mMainMode = MainModes.Text
 
                 Case Else
-                    mCPU.RaiseException("CGA: Unknown Video Mode " + value.ToString("X2"))
+                    MyBase.CPU.RaiseException("CGA: Unknown Video Mode " + value.ToString("X2"))
                     mVideoMode = VideoModes.Undefined
             End Select
 
@@ -447,7 +445,7 @@ Public MustInherit Class CGAAdapter
                 'stop
 #End If
             Case Else
-                mCPU.RaiseException("CGA: Unknown In Port: " + port.ToString("X4"))
+                MyBase.CPU.RaiseException("CGA: Unknown In Port: " + port.ToString("X4"))
         End Select
 
         Return &HFF
@@ -488,7 +486,7 @@ Public MustInherit Class CGAAdapter
                 'Stop
 
             Case Else
-                mCPU.RaiseException("CGA: Unknown Out Port: " + port.ToString("X4"))
+                MyBase.CPU.RaiseException("CGA: Unknown Out Port: " + port.ToString("X4"))
         End Select
     End Sub
 
@@ -561,7 +559,7 @@ Public MustInherit Class CGAAdapter
 
     Private Sub UpdateStatusRegister()
         ' Determine current retrace state
-        Dim t As Long = mCPU.Sched.CurrentTime
+        Dim t As Long = MyBase.CPU.Sched.CurrentTime
         Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
         Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
 

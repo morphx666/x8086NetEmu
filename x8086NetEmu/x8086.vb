@@ -395,6 +395,7 @@ Public Class X8086
         'LoadBIN("..\..\Other Emulators & Resources\xtbios2\EPROMS\2764\XTBIOS.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios25\EPROMS\2764\PCXTBIOS.ROM", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\pcxtbios.ROM", &HFE00, &H0)
+        'LoadBIN("..\..\Other Emulators & Resources\xtbios31\pcxtbios.bin", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\genxt\pcxt.rom", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\pcxtbios.bin", &HFE00, &H0)
         'LoadBIN("..\..\Other Emulators & Resources\award-2.05.rom", &HFE00, &H0)
@@ -605,7 +606,7 @@ Public Class X8086
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
 
         opCodes(opCode).Invoke()
-        RunPost()
+        PostExecute()
     End Sub
 
     Public Sub Execute_DEBUG()
@@ -1268,7 +1269,7 @@ Public Class X8086
 
             Case &H8D ' lea
                 SetAddressing()
-                mRegisters.Val(addrMode.Register1) = addrMode.IndAdr
+                mRegisters.Val(addrMode.Src) = addrMode.IndAdr
                 clkCyc += 2
 
             Case &H8E  ' mov Sw, Ew
@@ -1291,8 +1292,8 @@ Public Class X8086
 
             Case &H8F ' pop reg/mem
                 SetAddressing()
-                addrMode.Decode(opCode, opCode)
                 If addrMode.IsDirect Then
+                    addrMode.Decode(opCode, opCode)
                     mRegisters.Val(addrMode.Register1) = PopFromStack()
                 Else
                     RAMn = PopFromStack()
@@ -1356,8 +1357,7 @@ Public Class X8086
                 End If
                 clkCyc += 10
 
-            Case &HA4 To &HA7, &HAA To &HAF
-                HandleREPMode()
+            Case &HA4 To &HA7, &HAA To &HAF : HandleREPMode()
 
             Case &HA8 ' test al imm8
                 Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
@@ -1597,11 +1597,11 @@ Public Class X8086
                 IPAddrOffet = OffsetIP(DataSize.Byte)
                 clkCyc += 15
 
-            Case &HEC  ' in to al from variable port
+            Case &HEC  ' in to al from variable port in dx
                 mRegisters.AL = ReceiveFromPort(mRegisters.DX)
                 clkCyc += 8
 
-            Case &HED ' inw to ax from variable port
+            Case &HED ' inw to ax from variable port in dx
                 mRegisters.AX = ReceiveFromPort(mRegisters.DX)
                 clkCyc += 8
 
@@ -1669,10 +1669,10 @@ Public Class X8086
                 OpCodeNotImplemented()
         End Select
 
-        RunPost()
+        PostExecute()
     End Sub
 
-    Private Sub RunPost()
+    Private Sub PostExecute()
         If useIPAddrOffset Then
             mRegisters.IP = IPAddrOffet
         Else
@@ -1763,7 +1763,7 @@ Public Class X8086
 
             Case 7 ' 111    --  cmp imm with reg/mem
                 Eval(arg1, arg2, Operation.Compare, addrMode.Size)
-                clkCyc += If(addrMode.IsDirect, 4, 20)
+                clkCyc += If(addrMode.IsDirect, 4, 10)
 
         End Select
     End Sub

@@ -9,8 +9,6 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private audioProvider As SpeakerAdpater.CustomBufferProvider
     Private ReadOnly mAudioBuffer() As Byte
 
-    Private ReadOnly mCPU As X8086
-
     Private ReadOnly waveForm()() As Byte = {
         New Byte() {1, 8, 13, 20, 25, 32, 36, 42, 46, 50, 54, 57, 60, 61, 62, 64, 63, 65, 61, 61, 58, 55, 51, 49, 44, 38, 34, 28, 23, 16, 11, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         New Byte() {1, 8, 13, 21, 25, 31, 36, 43, 45, 50, 54, 57, 59, 62, 63, 63, 63, 64, 63, 59, 59, 55, 52, 48, 44, 38, 34, 28, 23, 16, 10, 4, 2, 7, 14, 20, 26, 31, 36, 42, 45, 51, 54, 56, 60, 62, 62, 63, 65, 63, 62, 60, 58, 55, 52, 48, 44, 38, 34, 28, 23, 17, 10, 3},
@@ -89,7 +87,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private ReadOnly oplSstep(9 - 1) As Double
 
     Public Sub New(cpu As X8086)
-        mCPU = cpu
+        MyBase.New(cpu)
 
         For i As Integer = 0 To Opl.Length - 1
             ReDim Opl(i)(2 - 1)
@@ -138,7 +136,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
                            Dim curTick As Long
                            Dim lastTick As Long
                            Do
-                               curTick = mCPU.Sched.CurrentTimeMillis
+                               curTick = MyBase.CPU.Sched.CurrentTimeMillis
 
                                If curTick >= (lastTick + maxTicks) Then
                                    lastTick = curTick - (curTick - (lastTick + maxTicks))

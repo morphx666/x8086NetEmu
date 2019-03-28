@@ -20,7 +20,6 @@ Public Class CGAWinForms
 
     Private scale As New SizeF(1, 1)
 
-    Private mCPU As X8086
     Private mRenderControl As Control
     Private mHideHostCursor As Boolean = True
 
@@ -46,7 +45,7 @@ Public Class CGAWinForms
     Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu,, enableWebUI)
         fontSourceMode = fontSource
-        mCPU = cpu
+
         Me.RenderControl = renderControl
 
         AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs) HandleKeyDown(Me, e)
@@ -54,9 +53,9 @@ Public Class CGAWinForms
 
         AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, e)
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
-                                                 If mCPU.Mouse?.IsCaptured Then
+                                                 If MyBase.CPU.Mouse?.IsCaptured Then
                                                      OnMouseMove(Me, e)
-                                                     Cursor.Position = mRenderControl.PointToScreen(mCPU.Mouse.MidPoint)
+                                                     Cursor.Position = mRenderControl.PointToScreen(MyBase.CPU.Mouse.MidPoint)
                                                  End If
                                              End Sub
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, e)
@@ -79,7 +78,7 @@ Public Class CGAWinForms
                     fontSourceMode = FontSources.TrueType
                 End If
             Case FontSources.ROM
-                VideoChar.BuildFontBitmapsFromROM(8, 8, 4, &HFE000 + &H1A6E, mCPU.Memory)
+                VideoChar.BuildFontBitmapsFromROM(8, 8, 4, &HFE000 + &H1A6E, MyBase.CPU.Memory)
                 mCellSize = New Size(8, 8)
         End Select
 
@@ -135,10 +134,9 @@ Public Class CGAWinForms
     Protected Sub DetachRenderControl()
         If mRenderControl IsNot Nothing Then RemoveHandler mRenderControl.Paint, AddressOf Paint
     End Sub
+
     Public Overrides Sub CloseAdapter()
         MyBase.CloseAdapter()
-
-        DisposeColorCaches()
         DetachRenderControl()
     End Sub
 
@@ -163,6 +161,7 @@ Public Class CGAWinForms
 
         Dim frmSize As New Size(640 * Zoom, 400 * Zoom)
         mRenderControl.FindForm.ClientSize = frmSize
+        mRenderControl.Location = Point.Empty
         mRenderControl.Size = frmSize
         If mCellSize.Width = 0 OrElse mCellSize.Height = 0 Then Exit Sub
 
@@ -194,10 +193,11 @@ Public Class CGAWinForms
     Protected Overrides Sub OnPaletteRegisterChanged()
         MyBase.OnPaletteRegisterChanged()
 
-        DisposeColorCaches()
-        For i As Integer = 0 To CGAPalette.Length - 1
-            brushCache(i) = CGAPalette(i)
-        Next
+        If brushCache IsNot Nothing Then
+            For i As Integer = 0 To CGAPalette.Length - 1
+                brushCache(i) = CGAPalette(i)
+            Next
+        End If
     End Sub
 
     Protected Overrides Sub Render()
@@ -315,19 +315,19 @@ Public Class CGAWinForms
 
     Private Sub RenderWaveform(g As Graphics)
 #If Win32 Then
-        If mCPU.PIT.Speaker IsNot Nothing Then
+        If MyBase.CPU.PIT?.Speaker IsNot Nothing Then
             g.ResetTransform()
 
             Dim h As Integer = mRenderControl.Height * 0.6
             Dim h2 As Integer = h / 2
-            Dim p1 As Point = New Point(0, mCPU.PIT.Speaker.AudioBuffer(0) / Byte.MaxValue * h + h * 0.4)
+            Dim p1 As Point = New Point(0, MyBase.CPU.PIT.Speaker.AudioBuffer(0) / Byte.MaxValue * h + h * 0.4)
             Dim p2 As Point
-            Dim len As Integer = mCPU.PIT.Speaker.AudioBuffer.Length
+            Dim len As Integer = MyBase.CPU.PIT.Speaker.AudioBuffer.Length
 
             Using p As New Pen(Brushes.Red, 3)
                 For i As Integer = 1 To len - 1
                     Try
-                        p2 = New Point(i / len * mRenderControl.Width, mCPU.PIT.Speaker.AudioBuffer(i) / Byte.MaxValue * h + h * 0.4)
+                        p2 = New Point(i / len * mRenderControl.Width, MyBase.CPU.PIT.Speaker.AudioBuffer(i) / Byte.MaxValue * h + h * 0.4)
                         g.DrawLine(p, p1, p2)
                         p1 = p2
                     Catch
@@ -366,9 +366,6 @@ Public Class CGAWinForms
 
         Return size
     End Function
-
-    Private Sub DisposeColorCaches()
-    End Sub
 
     Public Overrides ReadOnly Property Description As String
         Get

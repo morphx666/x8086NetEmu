@@ -17,14 +17,15 @@
     Public Sub New()
     End Sub
 
-    Public Property CPU As X8086
+    Public Sub New(cpu As X8086)
+        mCPU = cpu
+        Threading.Tasks.Task.Run(AddressOf InitiAdapter)
+    End Sub
+
+    Public ReadOnly Property CPU As X8086
         Get
             Return mCPU
         End Get
-        Set(value As X8086)
-            mCPU = value
-            Threading.Tasks.Task.Run(AddressOf InitiAdapter)
-        End Set
     End Property
 
     Public MustOverride Sub InitiAdapter()
