@@ -1406,7 +1406,11 @@ Public Class X8086
 
             Case &HC6 To &HC7 ' mov imm to reg/mem
                 SetAddressing()
-                RAMn = Param(ParamIndex.First, opCodeSize)
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Src) = Param(ParamIndex.First, opCodeSize)
+                Else
+                    RAMn = Param(ParamIndex.First, opCodeSize)
+                End If
                 clkCyc += 10
 
             Case &HC8 ' enter (80186)

@@ -122,18 +122,18 @@ AddressOf _75,  ' jne/jnz
 AddressOf _76,  ' jbe/jna (unsigned)
 AddressOf _77,  ' ja/jnbe (unsigned)
 AddressOf _78,  ' js
-AddressOf _79,      ' jns
+AddressOf _79,  ' jns
 AddressOf _7A,  ' jp/jpe
 AddressOf _7B,  ' jnp/jpo
 AddressOf _7C,  ' jl/jnge (signed)
 AddressOf _7D,  ' jnl/jge (signed)
 AddressOf _7E,  ' jle/jng (signed)
-AddressOf _7F,      ' jg/jnle (signed)
+AddressOf _7F,  ' jg/jnle (signed)
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
 AddressOf _80_83,
-AddressOf _84_85,       ' test reg with reg/mem
+AddressOf _84_85,   ' test reg with reg/mem
 AddressOf _84_85,
 AddressOf _86_87,   ' xchg reg/mem with reg
 AddressOf _86_87,
@@ -144,7 +144,7 @@ AddressOf _88_8B,
 AddressOf _8C,  ' mov Ew, Sw
 AddressOf _8D,  ' lea
 AddressOf _8E,  ' mov Sw, Ew
-AddressOf _8F,      ' pop reg/mem
+AddressOf _8F,  ' pop reg/mem
 AddressOf _90_97,   ' xchg reg with acc
 AddressOf _90_97,
 AddressOf _90_97,
@@ -154,13 +154,13 @@ AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _90_97,
 AddressOf _98,  ' cbw
-AddressOf _99,      ' cwd
+AddressOf _99,  ' cwd
 AddressOf _9A,  ' call direct inter-segment
 AddressOf _9B,  ' wait
 AddressOf _9C,  ' pushf
 AddressOf _9D,  ' popf
 AddressOf _9E,  ' sahf
-AddressOf _9F,      ' lahf
+AddressOf _9F,  ' lahf
 AddressOf _A0_A3,   ' mov mem to acc | mov acc to mem
 AddressOf _A0_A3,
 AddressOf _A0_A3,
@@ -170,7 +170,7 @@ AddressOf _A4_A7,
 AddressOf _A4_A7,
 AddressOf _A4_A7,
 AddressOf _A8,  ' test al imm8
-AddressOf _A9,      ' test ax imm16
+AddressOf _A9,  ' test ax imm16
 AddressOf _AA_AF,
 AddressOf _AA_AF,
 AddressOf _AA_AF,
@@ -1134,7 +1134,11 @@ AddressOf _FE_FF}
 
     Private Sub _C6_C7()    ' mov imm to reg/mem
         SetAddressing()
-        RAMn = Param(ParamIndex.First, opCodeSize)
+        If addrMode.IsDirect Then
+            mRegisters.Val(addrMode.Src) = Param(ParamIndex.First, opCodeSize)
+        Else
+            RAMn = Param(ParamIndex.First, opCodeSize)
+        End If
         clkCyc += 10
     End Sub
 
