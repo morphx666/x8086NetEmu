@@ -540,13 +540,11 @@ Public Class X8086
     End Property
 
     Private Sub SetSynchronization()
-        Const syncQuantum As Double = 0.01
         FlushCycles()
 
         Sched.SetSynchronization(True,
-                                Scheduler.BASECLOCK * syncQuantum,
-                                Scheduler.BASECLOCK / 1000,
-                                mSimulationMultiplier)
+                                Scheduler.BASECLOCK \ 100,
+                                Scheduler.BASECLOCK \ 1000)
 
         PIT?.UpdateClock()
     End Sub
@@ -558,7 +556,7 @@ Public Class X8086
         Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
         If maxRunTime <= 0 Then Exit Sub
         If maxRunTime > Scheduler.BASECLOCK Then maxRunTime = Scheduler.BASECLOCK
-        Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.BASECLOCK - 1) / Scheduler.BASECLOCK
+        Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.BASECLOCK - 1) \ Scheduler.BASECLOCK
 
         If mDebugMode Then
             While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)

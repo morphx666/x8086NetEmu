@@ -516,10 +516,8 @@
         End Sub
     End Class
 
-    Private Const OverclockMultiplier As Double = 1.0 ' This will affect the speed of the internal clock!
-
     ' Global counter clock rate (1.19318 MHz) 
-    Private COUNTRATE As Long
+    Private countRate As Long
 
     ' Three counters in the I8254 chip 
     Private ReadOnly mChannels(3 - 1) As Counter
@@ -578,8 +576,10 @@
     End Sub
 
     Public Sub UpdateClock()
-        COUNTRATE = Scheduler.BASECLOCK / X8086.KHz * OverclockMultiplier / cpu.SimulationMultiplier
-        speakerBaseFrequency = CDbl(Scheduler.BASECLOCK / X8086.KHz) * 760.0 * 1.335 * cpu.SimulationMultiplier
+        'Dim factor As Double = Math.Max(1, (cpu.Clock / X8086.BASECLOCK) / 8) * cpu.SimulationMultiplier
+        Dim factor As Double = cpu.SimulationMultiplier
+        countRate = Scheduler.BASECLOCK / X8086.KHz * factor
+        speakerBaseFrequency = CDbl(Scheduler.BASECLOCK / X8086.KHz) * 760.0 * 1.55 / factor
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean
@@ -685,20 +685,20 @@
             If period = 0 Then
                 mSpeaker.Frequency = 0
             Else
-                mSpeaker.Frequency = speakerBaseFrequency / period
+                mSpeaker.Frequency = speakerBaseFrequency \ period
             End If
         End If
 #End If
     End Sub
 
     Public Function TimeToClocks(t As Long) As Long
-        Return (t \ Scheduler.BASECLOCK) * COUNTRATE +
-               ((t Mod Scheduler.BASECLOCK) * COUNTRATE) \ Scheduler.BASECLOCK
+        Return (t \ Scheduler.BASECLOCK) * countRate +
+               ((t Mod Scheduler.BASECLOCK) * countRate) \ Scheduler.BASECLOCK
     End Function
 
     Public Function ClocksToTime(c As Long) As Long
-        Return (c \ COUNTRATE) * Scheduler.BASECLOCK +
-               ((c Mod COUNTRATE) * Scheduler.BASECLOCK + COUNTRATE - 1) \ COUNTRATE
+        Return (c \ countRate) * Scheduler.BASECLOCK +
+               ((c Mod countRate) * Scheduler.BASECLOCK + countRate - 1) \ countRate
     End Function
 
     Public Property Speaker As SpeakerAdpater
@@ -737,6 +737,6 @@
         Dim t As Long = mChannels(0).NextOutputChangeTime()
         If t > 0 Then cpu.Sched.RunTaskAt(task, t)
 
-        'cpu.RTC.Run()
+        'cpu.RTC?.Run()
     End Sub
 End Class

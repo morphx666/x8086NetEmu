@@ -7,6 +7,7 @@ Module ModuleMain
     Private testsTotal As Integer = 0
     Private failedTotal As Integer = 0
     Private prefix As String
+    Private inst As New List(Of String)
 
     Sub Main()
         Dim waiter As New AutoResetEvent(False)
@@ -37,6 +38,11 @@ Module ModuleMain
             cpu.LoadBIN(f.FullName, &HF000, &H0)
             cpu.Run(, &HF000, &H0)
 
+            'While Not cpu.IsHalted
+            '    DisplayInstructions()
+            '    cpu.StepInto()
+            'End While
+
             waiter.WaitOne()
         Next
         cpu.Close()
@@ -49,6 +55,21 @@ Module ModuleMain
 
         Console.WriteLine("Press any key to exit")
         Console.ReadKey()
+    End Sub
+
+    Private Sub DisplayInstructions()
+        If inst.Count > 10 Then inst.RemoveAt(0)
+        inst.Add(cpu.Decode().ToString())
+
+        Dim c As Integer = Console.CursorLeft
+        Dim r As Integer = Console.CursorTop
+
+        For i As Integer = 0 To inst.Count - 1
+            Console.SetCursorPosition(Console.WindowWidth / 2, i)
+            Console.Write(inst(i))
+        Next
+
+        Console.SetCursorPosition(c, r)
     End Sub
 
     Private Sub Compare()

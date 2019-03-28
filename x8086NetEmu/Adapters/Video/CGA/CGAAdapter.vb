@@ -399,7 +399,7 @@ Public MustInherit Class CGAAdapter
                     mMainMode = MainModes.Text
 
                 Case Else
-                    mCPU.RaiseException("CGA: Unknown Video Mode " + CInt(value).ToString("X2"))
+                    mCPU.RaiseException("CGA: Unknown Video Mode " + value.ToString("X2"))
                     mVideoMode = VideoModes.Undefined
             End Select
 

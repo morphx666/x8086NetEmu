@@ -9,7 +9,7 @@ Public Class Scheduler
     Private Const STOPPING As Long = Long.MinValue
 
     ' Number of scheduler time units per simulated second (~1.0 GHz)
-    Public Const BASECLOCK As ULong = 1.19318 * X8086.GHz
+    Public Const BASECLOCK As ULong = X8086.GHz ' 1.19318 * X8086.GHz
 
     ' Current simulation time in scheduler time units (ns)
     Private mCurrentTime As Long
@@ -40,8 +40,6 @@ Public Class Scheduler
 
     ' The CPU component controlled by this Scheduler
     Private mCPU As X8086
-
-    Private mSimulationMultiplier As Double
 
     Private loopThread As Thread
 
@@ -79,15 +77,6 @@ Public Class Scheduler
 
         Public Function Cancel() As Boolean
             If NextTime = NOSCHED Then Return False
-
-            'If mThread IsNot Nothing Then
-            '    Try
-            '        mThread.Abort()
-            '        mThread = Nothing
-            '    Catch
-            '    End Try
-            'End If
-
             NextTime = NOSCHED
             Interval = 0
             Return True
@@ -121,32 +110,21 @@ Public Class Scheduler
 
     Public ReadOnly Property CurrentTimeMillis As Long
         Get
-            Return Now.Ticks / 10000 * mSimulationMultiplier
+            Return Stopwatch.GetTimestamp / 10000
         End Get
     End Property
 
-    Public Sub SetSynchronization(enabled As Boolean, quantum As Long, simTimePerWallMs As Long, simulationMultiplier As Double)
+    Public Sub SetSynchronization(enabled As Boolean, quantum As Long, simTimePerWallMs As Long)
 #If DEBUG Then
         If enabled And quantum < 1 Then Throw New ArgumentException("Invalid value for quantum")
         If enabled And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid value for simTimePerWallMs")
 #End If
+
         syncScheduler = enabled
-        syncQuantum = quantum * simulationMultiplier
-        syncSimTimePerWallMs = simTimePerWallMs * simulationMultiplier
+        syncQuantum = quantum
+        syncSimTimePerWallMs = simTimePerWallMs
         syncTimeSaldo = 0
-        syncWallTimeMillis = CurrentTimeMillis()
-
-        ' Handle changes in time in order to avoid getting stuck in the Wait function
-        ' TODO: Need to synclock access to mSimulationMultiplier
-        '       Or, better yet, re-write this whole mess...
-        Dim ct1 As Long
-        Dim ct2 As Long
-
-        ct1 = CurrentTimeMillis
-        mSimulationMultiplier = simulationMultiplier
-        ct2 = CurrentTimeMillis
-
-        AdvanceTime(ct2 - ct1)
+        syncWallTimeMillis = CurrentTimeMillis
     End Sub
 
     Public Sub RunTaskAt(tsk As Task, t As Long)
@@ -223,42 +201,26 @@ Public Class Scheduler
                 Dim wallTime As Long = CurrentTimeMillis
                 Dim wallDelta As Long = wallTime - syncWallTimeMillis
                 syncWallTimeMillis = wallTime
-                If wallDelta < 0 Then wallDelta = 0 ' some clown has set the system clock back
+                If wallDelta < 0 Then wallDelta = 0 ' Some clown has set the system clock back
                 syncTimeSaldo -= wallDelta * syncSimTimePerWallMs
                 If syncTimeSaldo < 0 Then syncTimeSaldo = 0
                 If syncTimeSaldo > 2 * syncQuantum Then
                     ' The simulation has gained more than one time quantum
-                    Dim sleepTime As Integer = CInt((syncTimeSaldo - syncQuantum) / syncSimTimePerWallMs)
-                    Try
-                        If syncTimeSaldo > 4 * syncQuantum Then
-                            ' Force a hard sleep
-                            Dim s As Integer = CInt(syncQuantum / syncSimTimePerWallMs)
-                            Thread.Sleep(s)
-                            sleepTime -= s
-                        End If
+                    Dim sleepTime As Integer = (syncTimeSaldo - syncQuantum) \ syncSimTimePerWallMs
+                    If syncTimeSaldo > 4 * syncQuantum Then
+                        ' Force a hard sleep
+                        Dim s As Integer = syncQuantum / syncSimTimePerWallMs
+                        Thread.Sleep(s)
+                        sleepTime -= s
+                    End If
 
-                        SyncLock Me
-                            ' Sleep, but wake up on asynchronous events
-                            If pendingInput.Count = 0 Then Wait(sleepTime)
-                        End SyncLock
-                    Catch e As Exception
-                        ' should not happen
-                    End Try
+                    SyncLock Me
+                        ' Sleep, but wake up on asynchronous events
+                        If pendingInput.Count = 0 Then Wait(sleepTime)
+                    End SyncLock
                 End If
             End If
         End If
-    End Sub
-
-    Private Sub Wait(delay As Integer)
-        Monitor.Enter(Me)
-        Monitor.Wait(Me, delay)
-        Monitor.Exit(Me)
-    End Sub
-
-    Private Sub Notify()
-        Monitor.Enter(Me)
-        Monitor.PulseAll(Me)
-        Monitor.Exit(Me)
     End Sub
 
     Public Sub SkipToNextEvent()
@@ -279,20 +241,15 @@ Public Class Scheduler
                 If syncTimeSaldo < 0 Then syncTimeSaldo = 0
                 If syncTimeSaldo > 2 * syncQuantum Then
                     ' Skipping would give a gain of more than one time quantum
-                    Dim sleepTime As Integer = CInt((syncTimeSaldo - syncQuantum) / syncSimTimePerWallMs)
-                    Try
-                        ' Sleep, but wake up on asynchronous events
-                        Wait(sleepTime)
-                    Catch e As Exception
-                        ' should not happen
-                    End Try
+                    Dim sleepTime As Integer = (syncTimeSaldo - syncQuantum) \ syncSimTimePerWallMs
+                    Wait(sleepTime)
                     If pendingInput.Count > 0 Then
                         ' We woke up from our sleep; find out how long
-                        ' we slept and how much simulated time has passed
+                        '   we slept and how much simulated time has passed
                         wallTime = CurrentTimeMillis()
                         wallDelta = wallTime - syncWallTimeMillis
                         syncWallTimeMillis = wallTime
-                        If wallDelta < 0 Then wallDelta = 0 ' same clown again
+                        If wallDelta < 0 Then wallDelta = 0 ' Same clown again
                         syncTimeSaldo -= wallDelta * syncSimTimePerWallMs
                         If syncTimeSaldo > syncQuantum + nextTime - mCurrentTime Then
                             ' No simulated time passed at all
@@ -412,6 +369,18 @@ Public Class Scheduler
         End While
     End Sub
 
+    Private Sub Wait(delay As Integer)
+        Monitor.Enter(Me)
+        Monitor.Wait(Me, delay)
+        Monitor.Exit(Me)
+    End Sub
+
+    Private Sub Notify()
+        Monitor.Enter(Me)
+        Monitor.PulseAll(Me)
+        Monitor.Exit(Me)
+    End Sub
+
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         If e.Handler Is Nothing Then Exit Sub
 
@@ -491,4 +460,3 @@ Public MustInherit Class Runnable
     Public MustOverride ReadOnly Property Name As String
     Public MustOverride Sub Run()
 End Class
-

@@ -5,7 +5,6 @@ Imports NAudio.Wave
 Public Class AdlibAdapter ' Based on fake86's implementation
     Inherits Adapter
 
-    Private tickCount As Integer
     Private waveOut As WaveOut
     Private audioProvider As SpeakerAdpater.CustomBufferProvider
     Private ReadOnly mAudioBuffer() As Byte
@@ -129,32 +128,41 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             .NumberOfBuffers = 32,
             .DesiredLatency = 200
         }
+
         audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
         waveOut.Init(audioProvider)
         waveOut.Play()
+
+        Tasks.Task.Run(Sub()
+                           Dim maxTicks As Long = Scheduler.BASECLOCK \ SpeakerAdpater.SampleRate
+                           Dim curTick As Long
+                           Dim lastTick As Long
+                           Do
+                               curTick = mCPU.Sched.CurrentTimeMillis
+
+                               If curTick >= (lastTick + maxTicks) Then
+                                   lastTick = curTick - (curTick - (lastTick + maxTicks))
+
+                                   SyncLock channel
+                                       For currentChannel As Byte = 0 To 9 - 1
+                                           If Frequency(currentChannel) <> 0 Then
+                                               If attack2(currentChannel) Then
+                                                   envelope(currentChannel) *= decay(currentChannel)
+                                               Else
+                                                   envelope(currentChannel) *= attack(currentChannel)
+                                                   If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
+                                               End If
+                                           End If
+                                       Next
+                                   End SyncLock
+                               End If
+
+                               Thread.Sleep(50)
+                           Loop While waveOut.PlaybackState = PlaybackState.Playing
+                       End Sub)
     End Sub
 
     Private Sub FillAudioBuffer(buffer() As Byte)
-        Dim triggerTick As Integer = (X8086.GHz / SpeakerAdpater.SampleRate) * (mCPU.Clock / X8086.BASECLOCK) * mCPU.SimulationMultiplier
-
-        tickCount += waveOut.NumberOfBuffers * waveOut.DesiredLatency
-        If tickCount >= triggerTick Then
-            tickCount = tickCount - triggerTick
-
-            SyncLock channel
-                For currentChannel As Byte = 0 To 9 - 1
-                    If Frequency(currentChannel) <> 0 Then
-                        If attack2(currentChannel) Then
-                            envelope(currentChannel) *= decay(currentChannel)
-                        Else
-                            envelope(currentChannel) *= attack(currentChannel)
-                            If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
-                        End If
-                    End If
-                Next
-            End SyncLock
-        End If
-
         For i As Integer = 0 To buffer.Length - 1
             buffer(i) = GenerateSample() + 128
         Next
@@ -229,14 +237,12 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     Private Function Sample(channel As Byte) As Int32
         If precussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
 
-        'Dim sr As Integer = SpeakerAdpater.SampleRate * (X8086.BASECLOCK / mCPU.Clock) '/ mCPU.SimulationMultiplier Then
-
         Dim fullStep As UInt32 = SpeakerAdpater.SampleRate \ Frequency(channel)
         Dim idx As Byte = (oplSstep(channel) / (fullStep / 256.0)) Mod 255
         Dim tmpSample As Integer = oplWave(Me.channel(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = envelope(channel)
         If tmpStep > 1.0 Then tmpStep = 1.0
-        tmpSample = tmpSample * tmpStep * 8.0
+        tmpSample = tmpSample * tmpStep * 12.0
 
         oplSstep(channel) += 1
         If oplSstep(channel) > fullStep Then oplSstep(channel) = 0

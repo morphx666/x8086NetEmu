@@ -311,13 +311,9 @@
     End Function
 
     Private Sub SetSZPFlags(result As UInt32, size As DataSize)
-        Dim ft As GPFlags.FlagsTypes
-
-        If size = DataSize.Byte Then
-            ft = szpLUT8(result And &HFF)
-        Else
-            ft = szpLUT16(result And &HFFFF)
-        End If
+        Dim ft As GPFlags.FlagsTypes = If(size = DataSize.Byte,
+                                            szpLUT8(result And &HFF),
+                                            szpLUT16(result And &HFFFF))
 
         mFlags.PF = If((ft And GPFlags.FlagsTypes.PF) <> 0, 1, 0)
         mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)

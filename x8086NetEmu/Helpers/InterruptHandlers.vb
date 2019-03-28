@@ -17,7 +17,7 @@ Partial Public Class X8086
         If mFlags.IF = 1 AndAlso
            mFlags.TF = 0 AndAlso
            Not mRegisters.ActiveSegmentChanged AndAlso
-           mRepeLoopMode = REPLoopModes.None AndAlso
+           Not newPrefix AndAlso
            picIsAvailable Then
 
             Dim pendingIntNum As Byte = PIC.GetPendingInterrupt()
