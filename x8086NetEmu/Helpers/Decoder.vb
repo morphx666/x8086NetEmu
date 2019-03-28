@@ -398,21 +398,21 @@
                 decoderClkCyc += 2
 
             Case &H40 To &H47 ' inc reg
-                SetRegister1Alt(opCode)
+                DecoderSetRegister1Alt(opCode)
                 opCodeASM = "INC " + decoderAddrMode.Register1.ToString()
 
             Case &H48 To &H4F ' dec reg
-                SetRegister1Alt(opCode)
+                DecoderSetRegister1Alt(opCode)
                 opCodeASM = "DEC " + decoderAddrMode.Register1.ToString()
                 decoderClkCyc += 2
 
             Case &H50 To &H57 ' push reg
-                SetRegister1Alt(opCode)
+                DecoderSetRegister1Alt(opCode)
                 opCodeASM = "PUSH " + decoderAddrMode.Register1.ToString()
                 decoderClkCyc += 11
 
             Case &H58 To &H5F ' pop reg
-                SetRegister1Alt(opCode)
+                DecoderSetRegister1Alt(opCode)
                 opCodeASM = "POP " + decoderAddrMode.Register1.ToString()
                 decoderClkCyc += 8
 
@@ -570,9 +570,9 @@
 
             Case &H8E ' mov Sw, Ew
                 SetDecoderAddressing(DataSize.Word)
-                SetRegister2ToSegReg()
+                DecoderSetRegister2ToSegReg()
                 If decoderAddrMode.IsDirect Then
-                    SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
+                    DecoderSetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
                     opCodeASM = "MOV " + decoderAddrMode.Register2.ToString() + ", " + decoderAddrMode.Register1.ToString()
                     decoderClkCyc += 2
                 Else
@@ -595,7 +595,7 @@
                 decoderClkCyc += 3
 
             Case &H91 To &H97 ' xchg reg with acc
-                SetRegister1Alt(opCode)
+                DecoderSetRegister1Alt(opCode)
                 opCodeASM = "XCHG AX, " + decoderAddrMode.Register1.ToString()
                 decoderClkCyc += 3
 
@@ -1277,6 +1277,17 @@
 
         End Select
         opCodeSize += 1
+    End Sub
+
+    Private Sub DecoderSetRegister1Alt(data As Byte)
+        decoderAddrMode.Register1 = (data And &H7) Or shl3
+        If decoderAddrMode.Register1 >= GPRegisters.RegistersTypes.ES Then decoderAddrMode.Register1 += GPRegisters.RegistersTypes.ES
+        decoderAddrMode.Size = DataSize.Word
+    End Sub
+
+    Private Sub DecoderSetRegister2ToSegReg()
+        decoderAddrMode.Register2 = decoderAddrMode.Reg + GPRegisters.RegistersTypes.ES
+        decoderAddrMode.Size = DataSize.Word
     End Sub
 
     Private ReadOnly Property DecoderParam(index As ParamIndex, Optional ipOffset As UInt16 = 1, Optional size As DataSize = DataSize.UseAddressingMode) As UInt16
