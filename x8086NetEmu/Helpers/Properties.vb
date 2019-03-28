@@ -86,7 +86,7 @@
                 debugWaiter.Set()
             Else
                 mDebugMode = value
-                FlushCycles()
+                mDoReSchedule = True
             End If
         End Set
     End Property

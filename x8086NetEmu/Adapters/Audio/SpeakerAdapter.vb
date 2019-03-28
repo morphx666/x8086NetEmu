@@ -50,7 +50,7 @@ Public Class SpeakerAdpater
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)
         If MyBase.CPU.PIT IsNot Nothing Then MyBase.CPU.PIT.Speaker = Me
-        Volume = 0.05
+        Volume = 0.08
     End Sub
 
     Public Property Frequency As Double

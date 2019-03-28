@@ -136,7 +136,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
                            Dim curTick As Long
                            Dim lastTick As Long
                            Do
-                               curTick = MyBase.CPU.Sched.CurrentTimeMillis
+                               curTick = MyBase.CPU.Sched.CurrentTime
 
                                If curTick >= (lastTick + maxTicks) Then
                                    lastTick = curTick - (curTick - (lastTick + maxTicks))
@@ -155,7 +155,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
                                    End SyncLock
                                End If
 
-                               Thread.Sleep(50)
+                               Thread.Sleep(100)
                            Loop While waveOut.PlaybackState = PlaybackState.Playing
                        End Sub)
     End Sub

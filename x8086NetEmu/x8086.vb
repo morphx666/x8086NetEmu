@@ -542,13 +542,13 @@ Public Class X8086
     End Property
 
     Private Sub SetSynchronization()
-        FlushCycles()
+        mDoReSchedule = True
 
         clockFactor = mCyclesPerSecond / BASECLOCK
 
         Sched.SetSynchronization(True,
                                 Scheduler.BASECLOCK \ 100,
-                                (Scheduler.BASECLOCK \ 1000))
+                                Scheduler.BASECLOCK \ 1000)
 
         PIT?.UpdateClock()
     End Sub
@@ -1291,7 +1291,7 @@ Public Class X8086
                         (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
                         (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
-                If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then FlushCycles()
+                If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then mDoReSchedule = True
 
             Case &H8F ' pop reg/mem
                 SetAddressing()
@@ -1577,12 +1577,10 @@ Public Class X8086
                 clkCyc += 10
 
             Case &HE6  ' out to al to fixed port
-                FlushCycles()
                 SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AL)
                 clkCyc += 10
 
             Case &HE7  ' outw to ax to fixed port
-                FlushCycles()
                 SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AX)
                 clkCyc += 10
 
@@ -1686,7 +1684,8 @@ Public Class X8086
             mRegisters.IP += opCodeSize
         End If
 
-        clkCyc += CUInt(Fix(opCodeSize * 4 * clockFactor))
+        'clkCyc += CUInt(Fix(opCodeSize * 4 * clockFactor))
+        clkCyc += opCodeSize * 4
 
         If Not newPrefix Then
             If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None

@@ -576,9 +576,8 @@
     End Sub
 
     Public Sub UpdateClock()
-        Dim factor As Double = cpu.SimulationMultiplier '* cpu.Clock / X8086.BASECLOCK
-        countRate = Scheduler.BASECLOCK / X8086.KHz * factor
-        speakerBaseFrequency = CDbl(Scheduler.BASECLOCK / X8086.KHz) * 760.0 * 1.55 / factor
+        countRate = Scheduler.BASECLOCK / X8086.KHz * cpu.SimulationMultiplier
+        speakerBaseFrequency = CDbl(Scheduler.BASECLOCK / X8086.KHz) * 1000.0 / cpu.SimulationMultiplier
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean

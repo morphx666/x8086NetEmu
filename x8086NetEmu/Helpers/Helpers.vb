@@ -176,7 +176,7 @@
     End Function
 
     Private Sub SendToPort(portAddress As UInt32, value As UInt32)
-        'FlushCycles()
+        mDoReSchedule = True
 
         If portsCache.ContainsKey(portAddress) Then
             portsCache(portAddress).Out(portAddress, value)
@@ -206,7 +206,7 @@
     End Sub
 
     Private Function ReceiveFromPort(portAddress As UInt32) As UInt32
-        FlushCycles()
+        mDoReSchedule = True
 
         If portsCache.ContainsKey(portAddress) Then
             'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), portsCache(portAddress).Name), NotificationReasons.Info)
