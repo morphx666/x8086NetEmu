@@ -82,6 +82,7 @@ Public Class X8086
     Public Const GHz As ULong = MHz * KHz
     Public Const BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
     Private mCyclesPerSecond As ULong = BASECLOCK
+    Private clockFactor As Double = 1.0
     Private clkCyc As ULong = 0
 
     Private mDoReSchedule As Boolean
@@ -543,9 +544,11 @@ Public Class X8086
     Private Sub SetSynchronization()
         FlushCycles()
 
+        clockFactor = mCyclesPerSecond / BASECLOCK
+
         Sched.SetSynchronization(True,
                                 Scheduler.BASECLOCK \ 100,
-                                Scheduler.BASECLOCK \ 1000)
+                                (Scheduler.BASECLOCK \ 1000))
 
         PIT?.UpdateClock()
     End Sub
@@ -1632,9 +1635,9 @@ Public Class X8086
                 clkCyc += 2
 
             Case &HF4 ' hlt
-                clkCyc += 2
                 If Not mIsHalted Then SystemHalted()
                 mRegisters.IP -= 1
+                clkCyc += 2
 
             Case &HF5 ' cmc
                 mFlags.CF = If(mFlags.CF = 0, 1, 0)
@@ -1683,7 +1686,7 @@ Public Class X8086
             mRegisters.IP += opCodeSize
         End If
 
-        clkCyc += opCodeSize * 4
+        clkCyc += CUInt(Fix(opCodeSize * 4 * clockFactor))
 
         If Not newPrefix Then
             If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None

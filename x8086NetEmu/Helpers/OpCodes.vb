@@ -1398,9 +1398,9 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _F4()   ' hlt
-        clkCyc += 2
         If Not mIsHalted Then SystemHalted()
         mRegisters.IP -= 1
+        clkCyc += 2
     End Sub
 
     Private Sub _F5()   ' cmc

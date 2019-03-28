@@ -6,8 +6,8 @@ Public MustInherit Class CGAAdapter
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
-    Protected Const ht As Long = Scheduler.BASECLOCK \ HORIZSYNC
-    Protected Const vt As Long = (Scheduler.BASECLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
+    Protected Const ht As ULong = Scheduler.BASECLOCK \ HORIZSYNC
+    Protected Const vt As ULong = (Scheduler.BASECLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
 
     Protected charsCache As New List(Of VideoChar)
     Protected charSizeCache As New Dictionary(Of Integer, Size)
@@ -560,8 +560,8 @@ Public MustInherit Class CGAAdapter
     Private Sub UpdateStatusRegister()
         ' Determine current retrace state
         Dim t As Long = MyBase.CPU.Sched.CurrentTime
-        Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
         Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
+        Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
 
         CGAStatusRegister(CGAStatusRegisters.display_enable) = hRetrace
         CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = vRetrace

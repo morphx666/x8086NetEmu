@@ -576,8 +576,7 @@
     End Sub
 
     Public Sub UpdateClock()
-        'Dim factor As Double = Math.Max(1, (cpu.Clock / X8086.BASECLOCK) / 8) * cpu.SimulationMultiplier
-        Dim factor As Double = cpu.SimulationMultiplier
+        Dim factor As Double = cpu.SimulationMultiplier '* cpu.Clock / X8086.BASECLOCK
         countRate = Scheduler.BASECLOCK / X8086.KHz * factor
         speakerBaseFrequency = CDbl(Scheduler.BASECLOCK / X8086.KHz) * 760.0 * 1.55 / factor
     End Sub
