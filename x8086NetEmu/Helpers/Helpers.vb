@@ -176,7 +176,7 @@
     End Function
 
     Private Sub SendToPort(portAddress As UInt32, value As UInt32)
-        mDoReSchedule = True
+        'mDoReSchedule = True
 
         If portsCache.ContainsKey(portAddress) Then
             portsCache(portAddress).Out(portAddress, value)

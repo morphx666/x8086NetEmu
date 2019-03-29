@@ -355,7 +355,7 @@ Public Class Scheduler
             Else
                 ' Run the CPU simulation for a bit (maxRunCycl)
                 Try
-                    mCPU.PreExecute()
+                    mCPU.RunEmulation()
                 Catch ex As Exception
                     X8086.Notify("Shit happens at {0}:{1}: {2}", X8086.NotificationReasons.Fck,
                                                                 mCPU.Registers.CS.ToString("X4"),

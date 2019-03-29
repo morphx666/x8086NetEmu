@@ -529,7 +529,7 @@ Public Class X8086
         leftCycleFrags = t Mod mCyclesPerSecond
         clkCyc = 0
 
-        mDoReSchedule = True
+        mDoReSchedule = False
     End Sub
 
     Public Property DoReschedule As Boolean
@@ -553,9 +553,8 @@ Public Class X8086
         PIT?.UpdateClock()
     End Sub
 
-    Public Sub PreExecute()
+    Public Sub RunEmulation()
         If mIsExecuting OrElse mIsPaused Then Exit Sub
-        mDoReSchedule = False
 
         Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
         If maxRunTime <= 0 Then Exit Sub
@@ -568,11 +567,13 @@ Public Class X8086
 
                 SyncLock decoderSyncObj
                     mIsExecuting = True
+                    PreExecute()
 #If DEBUG Then
                     Execute_DEBUG()
 #Else
-                    Execute()
+                    opCodes(opCode).Invoke()
 #End If
+                    PostExecute()
                     mIsExecuting = False
                 End SyncLock
 
@@ -581,11 +582,13 @@ Public Class X8086
         Else
             mIsExecuting = True
             While clkCyc < maxRunCycl AndAlso Not mDoReSchedule
+                PreExecute()
 #If DEBUG Then
                 Execute_DEBUG()
 #Else
-                Execute()
+                opCodes(opCode).Invoke()
 #End If
+                PostExecute()
             End While
             mIsExecuting = False
         End If
@@ -593,26 +596,7 @@ Public Class X8086
         FlushCycles()
     End Sub
 
-    Public Sub Execute()
-        If mFlags.TF = 1 Then
-            If ignoreINTs Then HandleInterrupt(1, False)
-        ElseIf ignoreINTs Then
-            ignoreINTs = False
-        Else
-            HandlePendingInterrupt()
-        End If
-
-        opCodeSize = 1
-        newPrefix = False
-        instrucionsCounter += 1
-
-        opCode = RAM8(mRegisters.CS, mRegisters.IP)
-
-        opCodes(opCode).Invoke()
-        PostExecute()
-    End Sub
-
-    Public Sub Execute_DEBUG()
+    Private Sub PreExecute()
         If mFlags.TF = 1 Then
             ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
             ' but it even allows it to pass it successfully!!!
@@ -628,7 +612,9 @@ Public Class X8086
         instrucionsCounter += 1
 
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
+    End Sub
 
+    Private Sub Execute_DEBUG()
         Select Case opCode
             Case &H0 To &H3 ' add reg<->reg / reg<->mem
                 SetAddressing()
@@ -1673,8 +1659,6 @@ Public Class X8086
             Case Else
                 OpCodeNotImplemented()
         End Select
-
-        PostExecute()
     End Sub
 
     Private Sub PostExecute()
