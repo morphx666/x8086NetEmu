@@ -27,7 +27,7 @@ Partial Public Class X8086
 
             Case &H2  ' Read sectors
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -36,7 +36,7 @@ Partial Public Class X8086
                 bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
-                    X8086.Notify("Read Sectors: Drive {0} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors: Drive {0:000} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H40 ' seek failed
                     Exit Select
                 End If
@@ -54,11 +54,11 @@ Partial Public Class X8086
                 Dim buf(bufSize - 1) As Byte
                 ret = dskImg.Read(offset, buf)
                 If ret = DiskImage.EIO Then
-                    X8086.Notify("Read Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors: Drive {0:000} CRC Error", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H10 ' CRC error
                     Exit Select
                 ElseIf ret = DiskImage.EOF Then
-                    X8086.Notify("Read Sectors: Drive {0} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors: Drive {0:000} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
@@ -67,13 +67,13 @@ Partial Public Class X8086
 
             Case &H3 ' Write sectors
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
 
                 If dskImg.IsReadOnly Then
-                    X8086.Notify("Write Sectors: Drive {0} Failed / Read Only", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Write Sectors: Drive {0:000} Failed / Read Only", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H3 ' write protected
                     Exit Select
                 End If
@@ -82,7 +82,7 @@ Partial Public Class X8086
                 bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
-                    X8086.Notify("Write Sectors: Drive {0} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Write Sectors: Drive {0:000} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H40 ' seek failed
                     Exit Select
                 End If
@@ -101,11 +101,11 @@ Partial Public Class X8086
                 CopyFromMemory(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
                 ret = dskImg.Write(offset, buf)
                 If ret = DiskImage.EIO Then
-                    X8086.Notify("Write Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Write Sectors: Drive {0:000} CRC Error", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H10 ' CRC error
                     Exit Select
                 ElseIf ret = DiskImage.EOF Then
-                    X8086.Notify("Write Sectors: Drive {0} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Write Sectors: Drive {0:000} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
@@ -113,7 +113,7 @@ Partial Public Class X8086
 
             Case &H4 ' Verify Sectors
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -142,7 +142,7 @@ Partial Public Class X8086
 
             Case &H5 ' Format Track
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -151,7 +151,7 @@ Partial Public Class X8086
                 bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
-                    X8086.Notify("Format Track: Drive {0} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Format Track: Drive {0:000} Seek Failed", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H40 ' seek failed
                     Exit Select
                 End If
@@ -184,7 +184,7 @@ Partial Public Class X8086
 
             Case &H7 ' Format Drive Starting at Track
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -199,13 +199,13 @@ Partial Public Class X8086
 
             Case &H8 ' Get Drive Parameters
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
 
                 If dskImg.Tracks <= 0 Then
-                    X8086.Notify("Get Drive Parameters: Drive {0} Unknown Geometry", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Get Drive Parameters: Drive {0:000} Unknown Geometry", NotificationReasons.Warn, mRegisters.DL)
                     ret = &HAA
                 Else
                     mRegisters.CH = (dskImg.Cylinders - 1) And &HFF
@@ -226,7 +226,7 @@ Partial Public Class X8086
 
             Case &H9 ' Initialize Drive Pair Characteristic
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -237,7 +237,7 @@ Partial Public Class X8086
 
             Case &HA ' Read Long Sectors
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -246,7 +246,7 @@ Partial Public Class X8086
                 bufSize = mRegisters.AL * dskImg.SectorSize
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
-                    X8086.Notify("Read Sectors Long: Drive {0} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors Long: Drive {0:000} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H40 ' seek failed
                     Exit Select
                 End If
@@ -264,11 +264,11 @@ Partial Public Class X8086
                 Dim buf(bufSize - 1) As Byte
                 ret = dskImg.Read(offset, buf)
                 If ret = DiskImage.EIO Then
-                    X8086.Notify("Read Sectors Long: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors Long: Drive {0:000} CRC Error", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H10 ' CRC error
                     Exit Select
                 ElseIf ret = DiskImage.EOF Then
-                    X8086.Notify("Read Sectors Long: Drive {0} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors Long: Drive {0:000} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
@@ -299,7 +299,7 @@ Partial Public Class X8086
 
             Case &H15 ' Read DASD Type
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -335,7 +335,7 @@ Partial Public Class X8086
 
             Case &H42 ' Extended Sectors Read
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -350,7 +350,7 @@ Partial Public Class X8086
                                      RAM(dap + &H9) << 8 Or RAM(dap + &H8)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
-                    X8086.Notify("Read Sectors: Drive {0} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors: Drive {0:000} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H40 ' seek failed
                     Exit Select
                 End If
@@ -365,11 +365,11 @@ Partial Public Class X8086
                 Dim buf(bufSize - 1) As Byte
                 ret = dskImg.Read(offset, buf)
                 If ret = DiskImage.EIO Then
-                    X8086.Notify("Read Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors: Drive {0:000} CRC Error", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H10 ' CRC error
                     Exit Select
                 ElseIf ret = DiskImage.EOF Then
-                    X8086.Notify("Read Sectors: Drive {0} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Read Sectors: Drive {0:000} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
@@ -378,7 +378,7 @@ Partial Public Class X8086
 
             Case &H43 ' Extended Sectors Write
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
@@ -393,7 +393,7 @@ Partial Public Class X8086
                                      RAM(dap + &H9) << 8 Or RAM(dap + &H8)
 
                 If offset < 0 OrElse offset + bufSize > dskImg.FileLength Then
-                    X8086.Notify("Write Sectors: Drive {0} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Write Sectors: Drive {0:000} Seek Fail", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H40 ' seek failed
                     Exit Select
                 End If
@@ -409,11 +409,11 @@ Partial Public Class X8086
                 CopyFromMemory(buf, X8086.SegmentOffetToAbsolute(seg, off))
                 ret = dskImg.Write(offset, buf)
                 If ret = DiskImage.EIO Then
-                    X8086.Notify("Write Sectors: Drive {0} CRC Error", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Write Sectors: Drive {0:000} CRC Error", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H10 ' CRC error
                     Exit Select
                 ElseIf ret = DiskImage.EOF Then
-                    X8086.Notify("Write Sectors: Drive {0} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Write Sectors: Drive {0:000} Sector Not Found", NotificationReasons.Warn, mRegisters.DL)
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
@@ -421,13 +421,13 @@ Partial Public Class X8086
 
             Case &H48 ' Extended get Drive Parameters
                 If dskImg Is Nothing Then
-                    X8086.Notify("Invalid Drive Number: Drive {0} Not Ready", NotificationReasons.Info, mRegisters.DL)
+                    X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready
                     Exit Select
                 End If
 
                 If dskImg.Tracks <= 0 Then
-                    X8086.Notify("Get Drive Parameters: Drive {0} Unknown Geometry", NotificationReasons.Warn, mRegisters.DL)
+                    X8086.Notify("Get Drive Parameters: Drive {0:000} Unknown Geometry", NotificationReasons.Warn, mRegisters.DL)
                     ret = &HAA
                 Else
                     Throw New NotImplementedException("Extended get Drive Parameters is not Implemented")

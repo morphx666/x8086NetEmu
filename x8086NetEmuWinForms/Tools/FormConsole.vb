@@ -10,19 +10,19 @@ Public Class FormConsole
 
     Private mEmulator As X8086
 
-    Private rtfTextStd As String = "{\rtf1\ansi {\colortbl;" +
-                                    "\red000\green192\blue000;" +
-                                    "\red192\green192\blue000;" +
-                                    "\red192\green000\blue192;" +
-                                    "\red255\green000\blue000;" +
-                                    "\red255\green000\blue000;" +
-                                    "\red080\green080\blue255;" +
-                                    "}%\par}"
+    Private Const rtfTextStd As String = "{\rtf1\ansi {\colortbl;" +
+                                          "\red000\green192\blue000;" +
+                                          "\red192\green192\blue000;" +
+                                          "\red192\green000\blue192;" +
+                                          "\red255\green000\blue000;" +
+                                          "\red255\green000\blue000;" +
+                                          "\red080\green080\blue255;" +
+                                          "}%\par}"
     Private rtfText As String = ""
     Private lastMesssage As String = ""
     Private repeatCount As Integer = 0
-    Private lastArg() As String = {""}
-    Private refreshTimer As New Timer(New TimerCallback(AddressOf UpdateRtf), Nothing, Timeout.Infinite, Timeout.Infinite)
+    Private lastArg() As Object = {""}
+    Private ReadOnly refreshTimer As New Timer(New TimerCallback(AddressOf UpdateRtf), Nothing, Timeout.Infinite, Timeout.Infinite)
 
     Private Sub FormConsole_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         SyncLock Me
@@ -42,12 +42,11 @@ Public Class FormConsole
         End Get
         Set(value As X8086)
             mEmulator = value
-
-            AddHandler X8086.Output, AddressOf PreOutput
+            AddHandler X8086.Output, AddressOf Output
         End Set
     End Property
 
-    Private Sub PreOutput(message As String, reason As X8086.NotificationReasons, arg() As String)
+    Private Sub Output(message As String, reason As X8086.NotificationReasons, arg() As Object)
         If lastMesssage = message AndAlso HasSameArguments(arg) Then
             repeatCount += 1
             Exit Sub
@@ -56,13 +55,13 @@ Public Class FormConsole
         lastArg = arg
 
         If repeatCount > 0 Then
-            Output($"^^^ Last message repeated {repeatCount} time{If(repeatCount > 1, "s", "")}", X8086.NotificationReasons.Dbg, arg)
+            SendOutput($"^^^ Last message repeated {repeatCount} time{If(repeatCount > 1, "s", "")}", X8086.NotificationReasons.Dbg, arg)
             repeatCount = 0
         End If
-        Output(message, reason, arg)
+        SendOutput(message, reason, arg)
     End Sub
 
-    Private Function HasSameArguments(arg() As String) As Boolean
+    Private Function HasSameArguments(arg() As Object) As Boolean
         If arg.Length <> lastArg.Length Then Return False
         If arg.Length = 0 Then Return True
 
@@ -72,7 +71,7 @@ Public Class FormConsole
         Return True
     End Function
 
-    Private Sub Output(message As String, reason As X8086.NotificationReasons, arg() As String)
+    Private Sub SendOutput(message As String, reason As X8086.NotificationReasons, arg() As Object)
         message = message.Replace("\", "\\")
         rtfText += "\cf1 " + MillTime + ": "
 
@@ -112,14 +111,11 @@ Public Class FormConsole
     End Property
 
     Private Sub CopyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles CopyToolStripMenuItem.Click
-        Dim text As String = ""
         If RichTextBoxConsole.SelectedText = "" Then
-            text = RichTextBoxConsole.Text
+            Clipboard.SetText(RichTextBoxConsole.Text)
         Else
-            text = RichTextBoxConsole.SelectedText
+            Clipboard.SetText(RichTextBoxConsole.SelectedText)
         End If
-
-        Clipboard.SetText(text)
     End Sub
 
     Private Sub ClearToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ClearToolStripMenuItem.Click

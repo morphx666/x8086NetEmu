@@ -2,17 +2,11 @@
     Public Class EmulatorErrorEventArgs
         Inherits EventArgs
 
-        Private mMessage As String
+        Public ReadOnly Property Message As String
 
         Public Sub New(msg As String)
-            mMessage = msg
+            Message = msg
         End Sub
-
-        Public ReadOnly Property Message As String
-            Get
-                Return mMessage
-            End Get
-        End Property
     End Class
 
     Private Sub OpCodeNotImplemented(Optional comment As String = "")
@@ -63,7 +57,7 @@
         Dbg
     End Enum
 
-    Public Shared Sub Notify(message As String, reason As NotificationReasons, ParamArray arg() As String)
+    Public Shared Sub Notify(message As String, reason As NotificationReasons, ParamArray arg() As Object)
         Dim formattedMessage = reason.ToString().PadRight(4) + " " + String.Format(message, arg)
 
         If LogToConsole Then

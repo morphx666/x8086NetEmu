@@ -110,7 +110,7 @@ Public Class X8086
     Public Event EmulationHalted()
     Public Event InstructionDecoded()
     Public Shared Event [Error](sender As Object, e As EmulatorErrorEventArgs)
-    Public Shared Event Output(message As String, reason As NotificationReasons, arg() As String)
+    Public Shared Event Output(message As String, reason As NotificationReasons, arg() As Object)
     Public Event MIPsUpdated()
 
     Public Delegate Sub RestartEmulation()
