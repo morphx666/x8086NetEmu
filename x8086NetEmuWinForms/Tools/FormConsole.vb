@@ -19,7 +19,9 @@ Public Class FormConsole
                                     "\red080\green080\blue255;" +
                                     "}%\par}"
     Private rtfText As String = ""
-    Private updateIsScheduled As Boolean
+    Private lastMesssage As String = ""
+    Private repeatCount As Integer = 0
+    Private lastArg() As String = {""}
     Private refreshTimer As New Timer(New TimerCallback(AddressOf UpdateRtf), Nothing, Timeout.Infinite, Timeout.Infinite)
 
     Private Sub FormConsole_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
@@ -41,11 +43,36 @@ Public Class FormConsole
         Set(value As X8086)
             mEmulator = value
 
-            AddHandler X8086.Output, AddressOf Output
+            AddHandler X8086.Output, AddressOf PreOutput
         End Set
     End Property
 
-    Private Sub Output(message As String, reason As X8086.NotificationReasons, arg() As Object)
+    Private Sub PreOutput(message As String, reason As X8086.NotificationReasons, arg() As String)
+        If lastMesssage = message AndAlso HasSameArguments(arg) Then
+            repeatCount += 1
+            Exit Sub
+        End If
+        lastMesssage = message
+        lastArg = arg
+
+        If repeatCount > 0 Then
+            Output($"^^^ Last message repeated {repeatCount} time{If(repeatCount > 1, "s", "")}", X8086.NotificationReasons.Dbg, arg)
+            repeatCount = 0
+        End If
+        Output(message, reason, arg)
+    End Sub
+
+    Private Function HasSameArguments(arg() As String) As Boolean
+        If arg.Length <> lastArg.Length Then Return False
+        If arg.Length = 0 Then Return True
+
+        For i As Integer = 0 To arg.Length - 1
+            If arg(i) <> lastArg(i) Then Return False
+        Next
+        Return True
+    End Function
+
+    Private Sub Output(message As String, reason As X8086.NotificationReasons, arg() As String)
         message = message.Replace("\", "\\")
         rtfText += "\cf1 " + MillTime + ": "
 
@@ -59,13 +86,7 @@ Public Class FormConsole
 
         rtfText += String.Format(message.Replace("{", "\b {").Replace("}", "}\b0 ") + " \par ", arg)
 
-        Try
-            If Not updateIsScheduled Then
-                refreshTimer.Change(250, Timeout.Infinite)
-                updateIsScheduled = True
-            End If
-        Catch
-        End Try
+        refreshTimer.Change(250, Timeout.Infinite)
     End Sub
 
     Private Sub UpdateRtf()
@@ -80,8 +101,6 @@ Public Class FormConsole
 #If Win32 Then
                                LockWindowUpdate(0)
 #End If
-
-                               updateIsScheduled = False
                            End SyncLock
                        End Sub)
     End Sub

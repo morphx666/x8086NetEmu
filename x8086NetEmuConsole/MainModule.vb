@@ -7,6 +7,7 @@ Module MainModule
         X8086.LogToConsole = False
 
         AddHandler X8086.Error, Sub(s As Object, e As X8086.EmulatorErrorEventArgs)
+                                    If e.Message.ToLower().StartsWith("opcode") Then Exit Sub
                                     cpu?.Pause()
                                     Console.WriteLine(e.Message)
                                     cpu?.Close()

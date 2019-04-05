@@ -63,7 +63,7 @@
         Dbg
     End Enum
 
-    Public Shared Sub Notify(message As String, reason As NotificationReasons, ParamArray arg() As Object)
+    Public Shared Sub Notify(message As String, reason As NotificationReasons, ParamArray arg() As String)
         Dim formattedMessage = reason.ToString().PadRight(4) + " " + String.Format(message, arg)
 
         If LogToConsole Then

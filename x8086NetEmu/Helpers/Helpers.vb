@@ -1,5 +1,5 @@
 ﻿Partial Public Class X8086
-    Private tmpCF As Byte
+    Private tmpF As Byte
     Private portsCache As New Dictionary(Of UInt32, IOPortHandler)
     Private szpLUT8(256 - 1) As GPFlags.FlagsTypes
     Private szpLUT16(65536 - 1) As GPFlags.FlagsTypes
@@ -176,7 +176,7 @@
     End Function
 
     Private Sub SendToPort(portAddress As UInt32, value As UInt32)
-        'mDoReSchedule = True
+        mDoReSchedule = True
 
         If portsCache.ContainsKey(portAddress) Then
             portsCache(portAddress).Out(portAddress, value)
@@ -294,15 +294,15 @@
 
             Case Operation.Increment
                 result = v1 + v2
-                tmpCF = mFlags.CF
+                tmpF = mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, False)
-                mFlags.CF = tmpCF
+                mFlags.CF = tmpF
 
             Case Operation.Decrement
                 result = v1 - v2
-                tmpCF = mFlags.CF
+                tmpF = mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, True)
-                mFlags.CF = tmpCF
+                mFlags.CF = tmpF
 
         End Select
 

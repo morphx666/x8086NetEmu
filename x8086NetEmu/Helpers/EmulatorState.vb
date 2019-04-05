@@ -32,7 +32,7 @@
         Return <settings>
                    <simulationMultiplier><%= mCPU.SimulationMultiplier %></simulationMultiplier>
                    <clockSpeed><%= mCPU.Clock %></clockSpeed>
-                   <videoZoom><%= mCPU.VideoAdapter.Zoom %></videoZoom>
+                   <videoZoom><%= If(mCPU.VideoAdapter?.Zoom, 1) %></videoZoom>
                    <%= GetFloppyImages() %>
                    <%= GetDiskImages() %>
                </settings>

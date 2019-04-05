@@ -22,7 +22,11 @@ Partial Public Class X8086
 
             Dim pendingIntNum As Byte = PIC.GetPendingInterrupt()
             If pendingIntNum <> &HFF Then
-                mIsHalted = False
+                If mIsHalted Then
+                    mIsHalted = False
+                    ' https://docs.oracle.com/cd/E19455-01/806-3773/instructionset-130/index.html
+                    mRegisters.IP += 1 ' Is this right???
+                End If
                 HandleHardwareInterrupt(pendingIntNum)
             End If
         End If

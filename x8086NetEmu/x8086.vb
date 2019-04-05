@@ -80,7 +80,7 @@ Public Class X8086
     Public Const KHz As ULong = 1000
     Public Const MHz As ULong = KHz * KHz
     Public Const GHz As ULong = MHz * KHz
-    Public Const BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
+    Public Shared BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
     Private mCyclesPerSecond As ULong = BASECLOCK
     Private clockFactor As Double = 1.0
     Private clkCyc As ULong = 0
@@ -110,7 +110,7 @@ Public Class X8086
     Public Event EmulationHalted()
     Public Event InstructionDecoded()
     Public Shared Event [Error](sender As Object, e As EmulatorErrorEventArgs)
-    Public Shared Event Output(message As String, reason As NotificationReasons, arg() As Object)
+    Public Shared Event Output(message As String, reason As NotificationReasons, arg() As String)
     Public Event MIPsUpdated()
 
     Public Delegate Sub RestartEmulation()
@@ -129,7 +129,7 @@ Public Class X8086
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
 
-        'Scheduler.BASECLOCK = GetCpuSpeed() * X8086.MHz
+        BASECLOCK = GetCpuSpeed() * X8086.MHz
 
         BuildSZPTables()
         BuildDecoderCache()
@@ -1512,7 +1512,7 @@ Public Class X8086
                 ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
                 'HandleInterrupt(7, False)
-                'OpCodeNotImplemented("FPU Not Available") ' Enabling this breaks SYSCHK 2.43
+                OpCodeNotImplemented("FPU Not Available")
                 clkCyc += 2
 
             Case &HE0 ' loopne/loopnz
@@ -1581,7 +1581,7 @@ Public Class X8086
 
             Case &HEA ' jmp direct intersegment
                 IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
-                mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word)
+                mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word) 
                 clkCyc += 15
 
             Case &HEB ' jmp direct within segment short
@@ -1813,14 +1813,9 @@ Public Class X8086
             Case &HC0, &HC1 : count = Param(ParamIndex.First,  , DataSize.Byte)
         End Select
 
-        'If count = 0 Then
-        '    clkCyc += 8
-        '    Exit Sub
-        'Else
         ' 80186/V20 class CPUs limit shift count to 31
         If mVic20 Then count = count And &H1F
         clkCyc += 4 * count
-        'End If
 
         If count = 0 Then newValue = oldValue
 
@@ -1960,30 +1955,28 @@ Public Class X8086
                     RAMn = tmpUVal
                     clkCyc += 16
                 End If
-                'mFlags.CF = If((tmpVal And If(addrMode.Size = DataSize.Byte, &HFF, &HFFFF)) <> 0, 1, 0)
 
             Case 4 ' 100    --  mul
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
-                        mRegisters.AX = mRegisters.Val(addrMode.Register2) * mRegisters.AL
+                        tmpUVal = mRegisters.Val(addrMode.Register2) * mRegisters.AL
                         clkCyc += 70
                     Else
                         tmpUVal = CUInt(mRegisters.Val(addrMode.Register2)) * mRegisters.AX
-                        mRegisters.AX = tmpUVal
                         mRegisters.DX = tmpUVal >> 16
                         clkCyc += 118
                     End If
                 Else
                     If addrMode.Size = DataSize.Byte Then
-                        mRegisters.AX = addrMode.IndMem * mRegisters.AL
+                        tmpUVal = addrMode.IndMem * mRegisters.AL
                         clkCyc += 76
                     Else
                         tmpUVal = CUInt(addrMode.IndMem) * mRegisters.AX
-                        mRegisters.AX = tmpUVal
                         mRegisters.DX = tmpUVal >> 16
                         clkCyc += 134
                     End If
                 End If
+                mRegisters.AX = tmpUVal
 
                 SetSZPFlags(tmpUVal, addrMode.Size)
                 If (tmpUVal And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF0000UI)) <> 0 Then
@@ -1993,7 +1986,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                If mVic20 Then mFlags.ZF = If(tmpVal <> 0, 1, 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
+                mFlags.ZF = If(mVic20, If(tmpUVal <> 0, 1, 0), 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
 
             Case 5 ' 101    --  imul
                 If addrMode.IsDirect Then
