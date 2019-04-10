@@ -41,7 +41,8 @@
     Public MustOverride Overrides Sub Run()
 
     Public MustOverride Sub Reset()
-    Public MustOverride Sub AutoSize()
+    Protected MustOverride Sub AutoSize()
+    Protected MustOverride Sub ResizeRenderControl()
 
     Protected mStartTextVideoAddress As Integer = &HB0000
     Protected mEndTextVideoAddress As Integer = &HA0000

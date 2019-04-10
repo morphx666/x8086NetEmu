@@ -289,7 +289,6 @@
     <Compile Include="Adapters\Video\VideoChar.vb" />
     <Compile Include="Adapters\WebUI.vb" />
     <Compile Include="Chipset\RTC.vb" />
-    <Compile Include="Chipset\PPI8255_ALT.vb" />
     <Compile Include="Helpers\Binary.vb" />
     <Compile Include="Helpers\Exceptions.vb" />
     <Compile Include="Helpers\OpCodes.vb" />

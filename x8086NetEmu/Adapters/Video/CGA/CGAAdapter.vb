@@ -117,8 +117,8 @@ Public MustInherit Class CGAAdapter
 
     Private mZoom As Double = 1.0
 
-    Protected videoBMP As DirectBitmap = New DirectBitmap(1, 1)
-    Private waiter As AutoResetEvent
+    Protected videoBMP As New DirectBitmap(1, 1)
+    Private ReadOnly waiter As New AutoResetEvent(False)
     Protected cancelAllThreads As Boolean
     Private ReadOnly useInternalTimer As Boolean
 
@@ -128,7 +128,7 @@ Public MustInherit Class CGAAdapter
 
     Protected vidModeChangeFlag As Integer = &B1000
 
-    Public MustOverride Overrides Sub AutoSize()
+    Protected MustOverride Overrides Sub AutoSize()
     Protected MustOverride Sub Render()
 
     Protected wui As WebUI
@@ -144,11 +144,6 @@ Public MustInherit Class CGAAdapter
         Next
         ValidPortAddress.Add(&H3B8)
 
-        ' This breaks ARKANOID ][
-        'For i As UInt32 = &H3B0 To &H3BB ' Hercules
-        '    ValidPortAddress.Add(i)
-        'Next
-
         For i As Integer = 0 To 255
             If i >= 32 AndAlso i < 255 Then
                 chars(i) = Convert.ToChar(i)
@@ -157,7 +152,6 @@ Public MustInherit Class CGAAdapter
             End If
         Next
 
-        waiter = New AutoResetEvent(False)
         Reset()
 
         'VideoMode = VideoModes.Mode7_Text_BW_80x25

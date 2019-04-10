@@ -1,4 +1,21 @@
 ﻿Partial Public Class X8086
+    Public Shared Property LogToConsole As Boolean
+
+    Private mMPIs As Double
+    Private mEmulateINT13 As Boolean = True
+    Private mVic20 As Boolean
+
+    Private mVideoAdapter As VideoAdapter
+    Private mKeyboard As KeyboardAdapter
+    Private mMouse As MouseAdapter
+    Private mFloppyController As FloppyControllerAdapter
+    Private mAdapters As Adapters = New Adapters(Me)
+    Private mPorts As IOPorts = New IOPorts(Me)
+    Private mEnableExceptions As Boolean
+
+    Private mDebugMode As Boolean
+    Private mIsPaused As Boolean
+
     Public ReadOnly Property V20 As Boolean
         Get
             Return mVic20
@@ -127,4 +144,10 @@
             Return mEmulateINT13
         End Get
     End Property
+
+    Private Function GetCpuSpeed() As UInt32
+        Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
+            Return CUInt(managementObject("CurrentClockSpeed"))
+        End Using
+    End Function
 End Class

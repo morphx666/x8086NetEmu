@@ -34,6 +34,18 @@ Public Class FormConsole
 
     Private Sub FormConsole_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         RichTextBoxConsole.Text = ""
+
+        AddHandler CopyToolStripMenuItem.Click, Sub()
+                                                    If RichTextBoxConsole.SelectedText = "" Then
+                                                        Clipboard.SetText(RichTextBoxConsole.Text)
+                                                    Else
+                                                        Clipboard.SetText(RichTextBoxConsole.SelectedText)
+                                                    End If
+                                                End Sub
+        AddHandler ClearToolStripMenuItem.Click, Sub()
+                                                     rtfText = ""
+                                                     RichTextBoxConsole.Clear()
+                                                 End Sub
     End Sub
 
     Public Property Emulator As X8086
@@ -109,17 +121,4 @@ Public Class FormConsole
             Return String.Format("{0:00}:{1:00}:{2:00}:{3:000}", Now.Hour, Now.Minute, Now.Second, Now.Millisecond)
         End Get
     End Property
-
-    Private Sub CopyToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles CopyToolStripMenuItem.Click
-        If RichTextBoxConsole.SelectedText = "" Then
-            Clipboard.SetText(RichTextBoxConsole.Text)
-        Else
-            Clipboard.SetText(RichTextBoxConsole.SelectedText)
-        End If
-    End Sub
-
-    Private Sub ClearToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ClearToolStripMenuItem.Click
-        rtfText = ""
-        RichTextBoxConsole.Clear()
-    End Sub
 End Class

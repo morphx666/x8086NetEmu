@@ -362,13 +362,104 @@
                 mMouse = adptr
             Case Adapter.AdapterType.Video
                 mVideoAdapter = adptr
+                SetupSystem()
             Case Adapter.AdapterType.Floppy
                 mFloppyController = adptr
         End Select
     End Sub
 
+    Private Sub AddInternalHooks()
+        If mEmulateINT13 Then TryAttachHook(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
+    End Sub
+
+    Private Sub BuildDecoderCache()
+        For i As Integer = 0 To 255
+            For j As Integer = 0 To 255
+                addrMode.Decode(i, j)
+                decoderCache((i << 8) Or j) = addrMode
+            Next
+        Next
+    End Sub
+
+    Private Sub BuildSZPTables()
+        Dim d As UInt32
+
+        For c As Integer = 0 To szpLUT8.Length - 1
+            d = 0
+            If (c And 1) <> 0 Then d += 1
+            If (c And 2) <> 0 Then d += 1
+            If (c And 4) <> 0 Then d += 1
+            If (c And 8) <> 0 Then d += 1
+            If (c And 16) <> 0 Then d += 1
+            If (c And 32) <> 0 Then d += 1
+            If (c And 64) <> 0 Then d += 1
+            If (c And 128) <> 0 Then d += 1
+
+            szpLUT8(c) = If((d And 1) <> 0, 0, GPFlags.FlagsTypes.PF)
+            If c = 0 Then szpLUT8(c) = szpLUT8(c) Or GPFlags.FlagsTypes.ZF
+            If (c And &H80) <> 0 Then szpLUT8(c) = szpLUT8(c) Or GPFlags.FlagsTypes.SF
+        Next
+
+        For c As Integer = 0 To szpLUT16.Length - 1
+            d = 0
+            If (c And 1) <> 0 Then d += 1
+            If (c And 2) <> 0 Then d += 1
+            If (c And 4) <> 0 Then d += 1
+            If (c And 8) <> 0 Then d += 1
+            If (c And 16) <> 0 Then d += 1
+            If (c And 32) <> 0 Then d += 1
+            If (c And 64) <> 0 Then d += 1
+            If (c And 128) <> 0 Then d += 1
+
+            szpLUT16(c) = If((d And 1) <> 0, 0, GPFlags.FlagsTypes.PF)
+            If c = 0 Then szpLUT16(c) = szpLUT16(c) Or GPFlags.FlagsTypes.ZF
+            If (c And &H8000) <> 0 Then szpLUT16(c) = szpLUT16(c) Or GPFlags.FlagsTypes.SF
+        Next
+    End Sub
+
+    ' If necessary, in future versions we could implement support for
+    '   multiple hooks attached to the same interrupt and execute them based on some priority condition
+    Public Function TryAttachHook(intNum As Byte, handler As IntHandler) As Boolean
+        If intHooks.ContainsKey(intNum) Then intHooks.Remove(intNum)
+        intHooks.Add(intNum, handler)
+        Return True
+    End Function
+
+    Public Function TryAttachHook(handler As MemHandler) As Boolean
+        memHooks.Add(handler)
+        Return True
+    End Function
+
+    Public Function TryDetachHook(intNum As Byte) As Boolean
+        If Not intHooks.ContainsKey(intNum) Then Return False
+        intHooks.Remove(intNum)
+        Return True
+    End Function
+
+    Public Function TryDetachHook(memHandler As MemHandler) As Boolean
+        If Not memHooks.Contains(memHandler) Then Return False
+        memHooks.Remove(memHandler)
+        Return True
+    End Function
+
     Public Function GetAdaptersByType(adapterType As Adapter.AdapterType) As List(Of Adapter)
         Return (From adptr In mAdapters Where adptr.Type = adapterType Select adptr).ToList()
+    End Function
+
+    Public Shared ReadOnly Property IsRunningOnMono As Boolean
+        Get
+            Return Type.GetType("Mono.Runtime") IsNot Nothing
+        End Get
+    End Property
+
+    Public Shared Function FixPath(fileName As String) As String
+#If Win32 Then
+        Return fileName
+#Else
+        Return If(Environment.OSVersion.Platform = PlatformID.Unix,
+                    fileName.Replace("\", IO.Path.DirectorySeparatorChar),
+                    fileName)
+#End If
     End Function
 
     Private Sub PrintOpCodes(n As UInt16)

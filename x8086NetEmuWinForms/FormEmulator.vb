@@ -275,8 +275,6 @@ Public Class FormEmulator
         'cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 #End If
 
-        cpu.VideoAdapter?.AutoSize()
-
 #If DEBUG Then
         X8086.LogToConsole = False
 #Else
@@ -673,6 +671,7 @@ Public Class FormEmulator
 #If Not DEBUG Then
             Me.TopMost = True
 #End If
+
             While cpu.VideoAdapter.TextResolution.Width * cpu.VideoAdapter.CellSize.Width * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Width AndAlso
                   cpu.VideoAdapter.TextResolution.Height * cpu.VideoAdapter.CellSize.Height * cpu.VideoAdapter.Zoom < Screen.FromControl(Me).Bounds.Size.Height
                 SetZoomLevel(cpu.VideoAdapter.Zoom + 0.015)

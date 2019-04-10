@@ -1,6 +1,9 @@
 ﻿' MODE 0x13: http://www.brackeen.com/vga/basics.html
 ' Color Graphics Adapter (CGA) http://webpages.charter.net/danrollins/techhelp/0066.HTM
 
+' http://www.powernet.co.za/info/BIOS/Mem/
+' http://www-ivs.cs.uni-magdeburg.de/~zbrog/asm/memory.html
+
 Public Class CGAWinForms
     Inherits CGAAdapter
 
@@ -140,7 +143,7 @@ Public Class CGAWinForms
         DetachRenderControl()
     End Sub
 
-    Public Overrides Sub AutoSize()
+    Protected Overrides Sub AutoSize()
         If mRenderControl IsNot Nothing Then
             If mRenderControl.InvokeRequired Then
                 mRenderControl.Invoke(Sub() ResizeRenderControl())
@@ -150,7 +153,7 @@ Public Class CGAWinForms
         End If
     End Sub
 
-    Private Sub ResizeRenderControl()
+    Protected Overrides Sub ResizeRenderControl()
         Dim ctrlSize As Size
 
         If MainMode = MainModes.Text Then
@@ -160,7 +163,8 @@ Public Class CGAWinForms
         End If
 
         Dim frmSize As New Size(640 * Zoom, 400 * Zoom)
-        mRenderControl.FindForm.ClientSize = frmSize
+        Dim frm As Form = mRenderControl.FindForm
+        frm.ClientSize = frmSize
         mRenderControl.Location = Point.Empty
         mRenderControl.Size = frmSize
         If mCellSize.Width = 0 OrElse mCellSize.Height = 0 Then Exit Sub
@@ -379,48 +383,6 @@ Public Class CGAWinForms
         End Get
     End Property
 
-    ' http://www.powernet.co.za/info/BIOS/Mem/
-    ' http://www-ivs.cs.uni-magdeburg.de/~zbrog/asm/memory.html
-    Private Sub UpdateSystemInformationArea()
-        '' Display Mode
-        'Emulator.RAM8(&H40, &H49) = CByte(MyBase.VideoMode)
-
-        '' Number of columns on screen
-        'Emulator.RAM16(&H40, &H4A) = TextResolution.Width
-
-        '' Length of Regen Buffer
-        'Emulator.RAM16(&H40, &H4C) = MyBase.EndTextVideoAddress - MyBase.StartTextVideoAddress
-
-        '' Current video page start address in video memory (after 0B800:0000)
-        '' Starting Address of Regen Buffer. Offset from the beginning of the display adapter memory
-        'Emulator.RAM16(&H40, &H4E) = &HB800
-
-        '' Current video page start address in video memory (after 0B800:0000)
-        'For i As Integer = 0 To 1 'MyBase.pagesCount
-        '    Emulator.RAM8(&H40, &H50 + i * 2 + 0) = CursorCol
-        '    Emulator.RAM8(&H40, &H50 + i * 2 + 1) = CursorRow
-        'Next
-
-        '' Cursor Start and End Scan Lines
-        'Emulator.RAM8(&H40, &H60) = 0 ' ????????
-        'Emulator.RAM8(&H40, &H61) = 0 ' ????????
-
-        '' Current Display Page
-        'Emulator.RAM8(&H40, &H62) = 1 'activePage
-
-        '' CRT Controller Base Address 
-        'Emulator.RAM16(&H40, &H63) = &H3D4
-
-        '' Current Setting of the Mode Control Register
-        'Emulator.RAM8(&H40, &H65) = x8086.BitsArrayToWord(CGAModeControlRegister)
-
-        '' Current Setting of the Color Select Register
-        'Emulator.RAM16(&H40, &H66) = Emulator.RAM16(&H40, &H63) + 5
-
-        '' Rows on screen minus one
-        'Emulator.RAM8(&H40, &H84) = TextResolution.Height - 1
-    End Sub
-
     Public Overrides Sub Run()
         If mRenderControl IsNot Nothing Then mRenderControl.Invalidate()
     End Sub
@@ -457,7 +419,5 @@ Public Class CGAWinForms
             If g IsNot Nothing Then g.Dispose()
             g = Graphics.FromImage(videoBMP)
         End If
-
-        UpdateSystemInformationArea()
     End Sub
 End Class

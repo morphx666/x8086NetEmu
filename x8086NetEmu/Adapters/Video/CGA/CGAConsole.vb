@@ -55,7 +55,7 @@ Public Class CGAConsole
         Return (v And t) = t
     End Function
 
-    Public Overrides Sub AutoSize()
+    Protected Overrides Sub AutoSize()
         Dim length As Integer = TextResolution.Width * TextResolution.Height * 2
         If buffer Is Nothing OrElse buffer?.Length <> length Then
             ReDim buffer(length - 1)
@@ -63,7 +63,7 @@ Public Class CGAConsole
         End If
     End Sub
 
-    Private Overloads Sub ResizeRenderControl()
+    Protected Overrides Sub ResizeRenderControl()
 #If Win32 Then
         Select Case MainMode
             Case MainModes.Text

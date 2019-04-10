@@ -134,7 +134,7 @@
         DetachRenderControl()
     End Sub
 
-    Public Overrides Sub AutoSize()
+    Protected Overrides Sub AutoSize()
         If mRenderControl IsNot Nothing Then
             If mRenderControl.InvokeRequired Then
                 mRenderControl.Invoke(Sub() ResizeRenderControl())
@@ -144,23 +144,21 @@
         End If
     End Sub
 
-    Private Sub ResizeRenderControl()
+    Protected Overrides Sub ResizeRenderControl()
         Dim ctrlSize As Size
 
         If MainMode = MainModes.Text Then
-            '    'Using g As Graphics = mRenderControl.CreateGraphics()
-            ctrlSize = New Size(CellSize.Width * TextResolution.Width, CellSize.Height * TextResolution.Height)
-            '    'End Using
+            ctrlSize = New Size(mCellSize.Width * TextResolution.Width, mCellSize.Height * TextResolution.Height)
         Else
             ctrlSize = New Size(GraphicsResolution.Width, GraphicsResolution.Height)
         End If
 
-        'Dim frmSize As New Size(If(ctrlSize.Width = 0, 640, ctrlSize.Width) * Zoom, If(ctrlSize.Height = 0, 640, ctrlSize.Height) * Zoom)
-        Dim r As Double = 1 '(If(ctrlSize.Width = 0, 640, ctrlSize.Width) / 640) / (If(ctrlSize.Height = 0, 400, ctrlSize.Height) / 400)
-        Dim frmSize As New Size(640 * Zoom * r, 400 * Zoom / r)
-        mRenderControl.FindForm.ClientSize = frmSize
+        Dim frmSize As New Size(640 * Zoom, 400 * Zoom)
+        Dim frm As Form = mRenderControl.FindForm
+        frm.ClientSize = frmSize
+        mRenderControl.Location = Point.Empty
         mRenderControl.Size = frmSize
-        If CellSize.Width = 0 OrElse CellSize.Height = 0 Then Exit Sub
+        If mCellSize.Width = 0 OrElse mCellSize.Height = 0 Then Exit Sub
 
         scale = New SizeF(frmSize.Width / ctrlSize.Width, frmSize.Height / ctrlSize.Height)
     End Sub
@@ -294,7 +292,6 @@
                         b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b0 = b0 Or ((vRAM(address + &H20000) >> h1) And 1) << 2
                         b0 = b0 Or ((vRAM(address + &H30000) >> h1) And 1) << 3
-                        If b0 <> 0 Then Stop
                         videoBMP.Pixel(x, y) = vgaPalette(b0)
 
                     Case &H13

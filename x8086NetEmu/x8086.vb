@@ -14,28 +14,18 @@ Public Class X8086
     End Enum
 
     Private mModel As Models = Models.IBMPC_5160
-    Private mVic20 As Boolean
 
     Private mRegisters As GPRegisters = New GPRegisters()
     Private mFlags As GPFlags = New GPFlags()
-    Private mVideoAdapter As VideoAdapter
-    Private mKeyboard As KeyboardAdapter
-    Private mMouse As MouseAdapter
-    Private mFloppyController As FloppyControllerAdapter
-    Private mAdapters As Adapters = New Adapters(Me)
-    Private mPorts As IOPorts = New IOPorts(Me)
-    Private mEnableExceptions As Boolean
-    Private mDebugMode As Boolean
-    Private mIsPaused As Boolean
 
-    Public Delegate Function IntHandler() As Boolean
-    Private intHooks As New Dictionary(Of Byte, IntHandler)
     Public Enum MemHookMode
         Read
         Write
     End Enum
     Public Delegate Function MemHandler(address As UInt32, ByRef value As UInt16, mode As MemHookMode) As Boolean
     Private memHooks As New List(Of MemHandler)
+    Public Delegate Function IntHandler() As Boolean
+    Private intHooks As New Dictionary(Of Byte, IntHandler)
 
     Private opCode As Byte
     Private opCodeSize As Byte
@@ -48,14 +38,9 @@ Public Class X8086
 
     Private mipsThread As Thread
     Private mipsWaiter As AutoResetEvent
-    Private mMPIs As Double
     Private instrucionsCounter As UInt32
     Private newPrefix As Boolean = False
     Private newPrefixLast As Integer = 0
-
-    Public Shared Property LogToConsole As Boolean
-
-    Private mEmulateINT13 As Boolean = True
 
     Public Enum REPLoopModes
         None
@@ -82,7 +67,6 @@ Public Class X8086
     Public Const GHz As ULong = MHz * KHz
     Public Shared BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
     Private mCyclesPerSecond As ULong = BASECLOCK
-    Private clockFactor As Double = 1.0
     Private clkCyc As ULong = 0
 
     Private mDoReSchedule As Boolean
@@ -135,102 +119,6 @@ Public Class X8086
         BuildDecoderCache()
         Init()
     End Sub
-
-    Private Function GetCpuSpeed() As UInt32
-        Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
-            Return CUInt(managementObject("CurrentClockSpeed"))
-        End Using
-    End Function
-
-    Private Sub AddInternalHooks()
-        If mEmulateINT13 Then TryAttachHook(&H13, AddressOf HandleINT13) ' Disk I/O Emulation
-    End Sub
-
-    Private Sub BuildDecoderCache()
-        For i As Integer = 0 To 255
-            For j As Integer = 0 To 255
-                addrMode.Decode(i, j)
-                decoderCache((i << 8) Or j) = addrMode
-            Next
-        Next
-    End Sub
-
-    Private Sub BuildSZPTables()
-        Dim d As UInt32
-
-        For c As Integer = 0 To szpLUT8.Length - 1
-            d = 0
-            If (c And 1) <> 0 Then d += 1
-            If (c And 2) <> 0 Then d += 1
-            If (c And 4) <> 0 Then d += 1
-            If (c And 8) <> 0 Then d += 1
-            If (c And 16) <> 0 Then d += 1
-            If (c And 32) <> 0 Then d += 1
-            If (c And 64) <> 0 Then d += 1
-            If (c And 128) <> 0 Then d += 1
-
-            szpLUT8(c) = If((d And 1) <> 0, 0, GPFlags.FlagsTypes.PF)
-            If c = 0 Then szpLUT8(c) = szpLUT8(c) Or GPFlags.FlagsTypes.ZF
-            If (c And &H80) <> 0 Then szpLUT8(c) = szpLUT8(c) Or GPFlags.FlagsTypes.SF
-        Next
-
-        For c As Integer = 0 To szpLUT16.Length - 1
-            d = 0
-            If (c And 1) <> 0 Then d += 1
-            If (c And 2) <> 0 Then d += 1
-            If (c And 4) <> 0 Then d += 1
-            If (c And 8) <> 0 Then d += 1
-            If (c And 16) <> 0 Then d += 1
-            If (c And 32) <> 0 Then d += 1
-            If (c And 64) <> 0 Then d += 1
-            If (c And 128) <> 0 Then d += 1
-
-            szpLUT16(c) = If((d And 1) <> 0, 0, GPFlags.FlagsTypes.PF)
-            If c = 0 Then szpLUT16(c) = szpLUT16(c) Or GPFlags.FlagsTypes.ZF
-            If (c And &H8000) <> 0 Then szpLUT16(c) = szpLUT16(c) Or GPFlags.FlagsTypes.SF
-        Next
-    End Sub
-
-    ' If necessary, in future versions we could implement support for
-    '   multiple hooks attached to the same interrupt and execute them based on some priority condition
-    Public Function TryAttachHook(intNum As Byte, handler As IntHandler) As Boolean
-        If intHooks.ContainsKey(intNum) Then intHooks.Remove(intNum)
-        intHooks.Add(intNum, handler)
-        Return True
-    End Function
-
-    Public Function TryAttachHook(handler As MemHandler) As Boolean
-        memHooks.Add(handler)
-        Return True
-    End Function
-
-    Public Function TryDetachHook(intNum As Byte) As Boolean
-        If Not intHooks.ContainsKey(intNum) Then Return False
-        intHooks.Remove(intNum)
-        Return True
-    End Function
-
-    Public Function TryDetachHook(memHandler As MemHandler) As Boolean
-        If Not memHooks.Contains(memHandler) Then Return False
-        memHooks.Remove(memHandler)
-        Return True
-    End Function
-
-    Public Shared ReadOnly Property IsRunningOnMono As Boolean
-        Get
-            Return Type.GetType("Mono.Runtime") IsNot Nothing
-        End Get
-    End Property
-
-    Public Shared Function FixPath(fileName As String) As String
-#If Win32 Then
-        Return fileName
-#Else
-        Return If(Environment.OSVersion.Platform = PlatformID.Unix,
-                    fileName.Replace("\", IO.Path.DirectorySeparatorChar),
-                    fileName)
-#End If
-    End Function
 
     Private Sub Init()
         Sched = New Scheduler(Me)
@@ -301,13 +189,12 @@ Public Class X8086
 
     Private Sub SetupSystem()
         picIsAvailable = PIC IsNot Nothing
-        If Not picIsAvailable Then Exit Sub
 
         ' http://docs.huihoo.com/help-pc/int-int_11.html
         Dim equipmentByte As Byte = Binary.From("0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 1".Replace(" ", ""))
         '                                       │F│E│D│C│B│A│9│8│7│6│5│4│3│2│1│0│  AX
         '                                        │ │ │ │ │ │ │ │ │ │ │ │ │ │ │ └──── IPL diskette installed
-        '                                        │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math coprocessor
+        '                                        │ │ │ │ │ │ │ │ │ │ │ │ │ │ └───── math co-processor
         '                                        │ │ │ │ │ │ │ │ │ │ │ │ ├─┼────── old PC system board RAM < 256K (00=256k, 01=512k, 10=576k, 11=640k)
         '                                        │ │ │ │ │ │ │ │ │ │ │ │ │ └───── pointing device installed (PS/2)
         '                                        │ │ │ │ │ │ │ │ │ │ │ │ └────── not used on PS/2
@@ -319,75 +206,9 @@ Public Class X8086
         '                                        │ │ └──────────────────── unused, internal modem (PS/2)
         '                                        └─┴───────────────────── number of printer ports
 
+        If mVideoAdapter IsNot Nothing AndAlso TypeOf mVideoAdapter Is VGAAdapter Then equipmentByte = equipmentByte And &B11111111111001111
+        If FPU IsNot Nothing Then equipmentByte = equipmentByte Or &B10
         If PPI IsNot Nothing Then PPI.SwitchData = equipmentByte
-
-        'RTC.CmosWrite(RTC.CMOS_BIOS_BOOTFLAG1, 1 Or (2 Or &H213) >> 4 And &HF0)
-        'RTC.CmosWrite(RTC.CMOS_BIOS_BOOTFLAG2, (2 Or &H213) >> 4 And &HFF)
-        'RTC.CmosWrite(RTC.CMOS_MEM_BASE_LOW, 640 And &HFF)
-        'RTC.CmosWrite(RTC.CMOS_MEM_BASE_HIGH, 640 >> 8)
-        'RTC.CmosWrite(RTC.CMOS_MEM_OLD_EXT_LOW, 0)
-        'RTC.CmosWrite(RTC.CMOS_MEM_OLD_EXT_HIGH, 0)
-        'RTC.CmosWrite(RTC.CMOS_MEM_EXTMEM_LOW, 0)
-        'RTC.CmosWrite(RTC.CMOS_MEM_EXTMEM_HIGH, 0)
-        'RTC.CmosWrite(RTC.CMOS_MEM_EXTMEM2_LOW, 0)
-        'RTC.CmosWrite(RTC.CMOS_MEM_EXTMEM2_HIGH, 0)
-        'RTC.CmosWrite(RTC.CMOS_MEM_HIGHMEM_LOW, 0)
-        'RTC.CmosWrite(RTC.CMOS_MEM_HIGHMEM_MID, 0)
-        'RTC.CmosWrite(RTC.CMOS_MEM_HIGHMEM_HIGH, 0)
-        'RTC.CmosWrite(RTC.CMOS_EQUIPMENT_INFO, equipmentByte)
-        'RTC.CmosWrite(RTC.CMOS_BIOS_SMP_COUNT, 0)
-
-        'PPI.PortA(0) = &H30 Or &HC
-        'PPI.PortA(1) = &H0
-        'PPI.PortB = &H8
-        'PPI.PortC(0) = If(mModel = Models.IBMPC_5160, 1, 0)
-        'PPI.PortC(1) = 0
-
-        '' Floppy count
-        'Dim count = 2 ' Forced, for now...
-        'Select Case mModel
-        '    Case Models.IBMPC_5150
-        '        PPI.PortA(0) = PPI.PortA(0) And (Not &HC1)
-        '        If count > 0 Then
-        '            PPI.PortA(0) = PPI.PortA(0) Or &H1
-        '            PPI.PortA(0) = PPI.PortA(0) Or (((count - 1) And &H3) << 6)
-        '        End If
-        '    Case Models.IBMPC_5160
-        '        PPI.PortC(1) = PPI.PortC(1) And (Not &HC)
-        '        If count > 0 Then
-        '            PPI.PortC(1) = PPI.PortC(1) Or (((count - 1) And &H3) << 2)
-        '        End If
-        'End Select
-
-        '' Video Mode
-        'Dim videoMode As CGAAdapter.VideoModes = CGAAdapter.VideoModes.Mode4_Graphic_Color_320x200  ' Forced, for now...
-        'Select Case mModel
-        '    Case Models.IBMPC_5150
-        '        PPI.PortA(0) = PPI.PortA(0) And (Not &H30)
-        '        PPI.PortA(0) = PPI.PortA(0) Or ((videoMode And &H3) << 4)
-        '    Case Models.IBMPC_5160
-        '        PPI.PortC(1) = PPI.PortC(1) And (Not &H3)
-        '        PPI.PortC(1) = PPI.PortC(1) Or (videoMode And &H3)
-        'End Select
-
-        '' RAM size
-        'Dim size = Memory.Length ' Forced, for now...
-        'Select Case mModel
-        '    Case Models.IBMPC_5150
-        '        size = If(size < 65536, 0, (size - 65536) / 32768)
-        '        PPI.PortC(0) = PPI.PortC(0) And &HF0
-        '        PPI.PortC(1) = PPI.PortC(1) And &HFE
-        '        PPI.PortC(0) = PPI.PortC(0) Or (size And &HF)
-        '        PPI.PortC(1) = PPI.PortC(1) Or ((size >> 4) And &H1)
-        '    Case Models.IBMPC_5160
-        '        size = size >> 16
-        '        If size > 0 Then
-        '            size -= 1
-        '            If size > 3 Then size = 3
-        '        End If
-        '        PPI.PortC(0) = PPI.PortC(0) And &HF3
-        '        PPI.PortC(0) = PPI.PortC(0) Or ((size << 2) And &HC)
-        'End Select
     End Sub
 
     Private Sub LoadBIOS()
@@ -543,8 +364,6 @@ Public Class X8086
 
     Private Sub SetSynchronization()
         mDoReSchedule = True
-
-        clockFactor = mCyclesPerSecond / BASECLOCK
 
         Sched.SetSynchronization(True,
                                 Scheduler.BASECLOCK \ 100,
@@ -821,7 +640,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H2F ' das
-                Dim al As Byte = mRegisters.AL
+                tmpVal = mRegisters.AL
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     tmpUVal = CShort(mRegisters.AL) - 6
                     mRegisters.AL -= 6
@@ -830,7 +649,7 @@ Public Class X8086
                 Else
                     mFlags.AF = 0
                 End If
-                If al > &H99 OrElse mFlags.CF = 1 Then
+                If tmpVal > &H99 OrElse mFlags.CF = 1 Then
                     tmpUVal = CShort(mRegisters.AL) - &H60
                     mRegisters.AL -= &H60
                     mFlags.CF = 1
@@ -1890,7 +1709,7 @@ Public Class X8086
                 ElseIf count > 1 Then
                     newValue = If(count > mask8_16, 0, oldValue >> (count - 1))
                     mFlags.CF = newValue And 1
-                    newValue = newValue >> 1
+                    newValue >>= 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 Else
                     mFlags.OF = 0
