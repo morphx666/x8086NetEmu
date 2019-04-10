@@ -3,7 +3,7 @@
     Private portsCache As New Dictionary(Of UInt32, IOPortHandler)
     Private szpLUT8(256 - 1) As GPFlags.FlagsTypes
     Private szpLUT16(65536 - 1) As GPFlags.FlagsTypes
-    Private decoderCache((255 << 8) Or 255) As AddressingMode
+    Private decoderCache(65536 - 1) As AddressingMode
 
     Public Enum ParamIndex
         First = 0
@@ -230,7 +230,6 @@
         End If
 
         NoIOPort(portAddress)
-
         Return &HFF
     End Function
 

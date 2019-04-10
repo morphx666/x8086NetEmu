@@ -276,6 +276,7 @@
     <Compile Include="Adapters\Disk\FileSystem\StandardDiskFormat.vb" />
     <Compile Include="Adapters\Disk\FloppyController.vb" />
     <Compile Include="Adapters\Disk\FileSystem\HostFolderAsDisk.vb" />
+    <Compile Include="Adapters\DummyAdapter.vb" />
     <Compile Include="Adapters\Keyboard\KeyMap.vb" />
     <Compile Include="Adapters\Serial\MouseAdapter.vb" />
     <Compile Include="Adapters\Video\CGA\CGAAdapter.vb" />
