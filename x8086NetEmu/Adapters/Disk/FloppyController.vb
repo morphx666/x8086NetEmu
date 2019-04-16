@@ -167,7 +167,7 @@ Public Class FloppyControllerAdapter
         If irq IsNot Nothing Then irq.Raise(False)
         If dma IsNot Nothing Then dma.DMARequest(False)
         state = States.IDLE
-        task.Cancel()
+        task?.Cancel()
     End Sub
 
     ' Prepare to transfer next byte(s)

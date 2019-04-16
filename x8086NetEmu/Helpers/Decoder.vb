@@ -102,6 +102,8 @@
     Public Function Decode(segment As UInt16, offset As UInt16, Optional force As Boolean = False) As Instruction
         Dim cs As UInt16 = mRegisters.CS
         Dim ip As UInt16 = mRegisters.IP
+        Dim asc As Boolean = mRegisters.ActiveSegmentChanged
+        Dim asr As GPRegisters.RegistersTypes = mRegisters.ActiveSegmentRegister
         Dim ins As Instruction
 
         mRegisters.CS = segment
@@ -118,10 +120,17 @@
         mRegisters.CS = cs
         mRegisters.IP = ip
 
+        If asc Then
+            mRegisters.ActiveSegmentRegister = asr
+        Else
+            mRegisters.ResetActiveSegment()
+        End If
+
         Return ins
     End Function
 
     Private Function DoDecode() As Instruction
+        newPrefix = False
         opCodeSize = 1
         decoderIPAddrOff = 0
         opCodeASM = ""
@@ -395,6 +404,7 @@
                 decoderAddrMode.Register1 = decoderAddrMode.Register1 - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
                 opCodeASM = decoderAddrMode.Register1.ToString() + ":"
                 segOvr = opCodeASM
+                newPrefix = True
                 decoderClkCyc += 2
 
             Case &H40 To &H47 ' inc reg
@@ -891,10 +901,12 @@
 
             Case &HF2 ' repne/repnz
                 opCodeASM = "REPNE"
+                newPrefix = True
                 decoderClkCyc += 2
 
             Case &HF3 ' rep/repe
                 opCodeASM = "REPE"
+                newPrefix = True
                 decoderClkCyc += 2
 
             Case &HF4 ' hlt
@@ -941,6 +953,8 @@
             Throw New Exception("Decoding error for opCode " + opCode.ToString("X2"))
         End If
 
+        If segOvr = "" Then segOvr = mRegisters.ActiveSegmentRegister.ToString() + ":"
+
         Dim info As Instruction = New Instruction() With {
             .IsValid = True,
             .OpCode = opCode,
@@ -982,6 +996,8 @@
         End If
         If segOvr <> "" AndAlso info.Mnemonic <> segOvr Then segOvr = ""
         decoderClkCyc += opCodeSize * 4
+
+        If Not newPrefix AndAlso mRegisters.ActiveSegmentChanged Then mRegisters.ResetActiveSegment()
 
         Return info
     End Function
