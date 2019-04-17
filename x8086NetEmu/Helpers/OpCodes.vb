@@ -217,7 +217,7 @@ AddressOf _D4,  ' aam
 AddressOf _D5,  ' aad
 AddressOf _D6,  ' xlat / salc
 AddressOf _D7,  ' xlatb
-AddressOf _D8_DF,   ' Ignore co-processor instructions
+AddressOf _D8_DF,   ' Ignore 8087 co-processor instructions
 AddressOf _D8_DF,
 AddressOf _D8_DF,
 AddressOf _D8_DF,
@@ -601,7 +601,7 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _50_57()    ' push reg
-        If opCode = &H54 Then ' SP
+        If opCode = &H54 Then  ' SP
             ' The 8086/8088 pushes the value of SP after it has been decremented
             ' http://css.csail.mit.edu/6.858/2013/readings/i386/s15_06.htm
             PushIntoStack(mRegisters.SP - 2)
@@ -685,11 +685,11 @@ AddressOf _FE_FF}
             SetAddressing()
             Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
             Dim tmp2 As UInt32 = Param(ParamIndex.First, , DataSize.Word)
-            If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
-            If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
+            If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000
+            If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000
             Dim tmp3 As UInt32 = tmp1 * tmp2
-            mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFUI
-            If (tmp3 And &HFFFF0000UI) <> 0 Then
+            mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
+            If (tmp3 And &HFFFF_0000) <> 0 Then
                 mFlags.CF = 1
                 mFlags.OF = 1
             Else
@@ -718,11 +718,11 @@ AddressOf _FE_FF}
             SetAddressing()
             Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
             Dim tmp2 As UInt32 = To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))
-            If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF0000UI
-            If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF0000UI
+            If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000
+            If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000
             Dim tmp3 As UInt32 = tmp1 * tmp2
-            mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFFUI
-            If (tmp3 And &HFFFF0000UI) <> 0 Then
+            mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
+            If (tmp3 And &HFFFF_0000) <> 0 Then
                 mFlags.CF = 1
                 mFlags.OF = 1
             Else
@@ -1261,7 +1261,7 @@ AddressOf _FE_FF}
         clkCyc += 11
     End Sub
 
-    Private Sub _D8_DF()    ' Ignore co-processor instructions
+    Private Sub _D8_DF()    ' Ignore 8087 co-processor instructions
         SetAddressing()
         'FPU.Execute(opCode, addrMode)
 

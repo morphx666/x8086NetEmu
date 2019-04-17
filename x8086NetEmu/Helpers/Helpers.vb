@@ -168,7 +168,7 @@
     End Function
 
     Private Function To32bitsWithSign(v As UInt16) As UInt32
-        Return If((v And &H8000UI) <> 0, &HFFFF0000UI Or v, v)
+        Return If((v And &H8000) <> 0, &HFFFF_0000 Or v, v)
     End Function
 
     Private Function ToXbitsWithSign(v As UInt32) As UInt32
@@ -329,11 +329,11 @@
         SetSZPFlags(result, size)
 
         If size = DataSize.Byte Then
-            mFlags.CF = If((result And &HFF00US) <> 0, 1, 0)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80US) <> 0, 1, 0)
+            mFlags.CF = If((result And &HFF00) <> 0, 1, 0)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80) <> 0, 1, 0)
         Else
-            mFlags.CF = If((result And &HFFFF0000UL) <> 0, 1, 0)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000UL) <> 0, 1, 0)
+            mFlags.CF = If((result And &HFFFF_0000) <> 0, 1, 0)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) <> 0, 1, 0)
         End If
 
         mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)

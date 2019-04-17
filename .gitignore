@@ -246,11 +246,11 @@ ModelManifest.xml
 .fake
 
 # ROMS, disks & compiled resources
-!**/bin/
-**/bin/disks
-**/bin/*.dll
-**/bin/*.xml
-**/bin/*.exe
-**/bin/*.config
+!**/Release/
+**/Release/disks
+**/Release/*.dll
+**/Release/*.xml
+**/Release/*.exe
+**/Release/*.config
 **/settings.dat
-**/bin/*.manifest
+**/Release/*.manifest

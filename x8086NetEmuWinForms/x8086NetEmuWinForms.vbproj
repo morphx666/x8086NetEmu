@@ -147,7 +147,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <OutputPath>..\x8086NetEmu\bin\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>Win32 = True</DefineConstants>
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <DocumentationFile>x8086NetEmuWinForms.xml</DocumentationFile>
@@ -158,7 +158,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
-    <OutputPath>..\x8086NetEmu\bin\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>Win32 = True</DefineConstants>
     <DocumentationFile>x8086NetEmuWinForms.xml</DocumentationFile>
     <Optimize>true</Optimize>
@@ -171,7 +171,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <OutputPath>..\x8086NetEmu\bin\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>Win32 = False</DefineConstants>
     <DocumentationFile>x8086NetEmuWinForms.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
@@ -181,7 +181,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release %28Non Win%29|AnyCPU'">
     <DefineTrace>true</DefineTrace>
-    <OutputPath>..\x8086NetEmu\bin\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>Win32 = False</DefineConstants>
     <DocumentationFile>x8086NetEmuWinForms.xml</DocumentationFile>
     <Optimize>true</Optimize>
@@ -341,7 +341,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" />
+      <UserProperties BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_DetectChanges="False" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
