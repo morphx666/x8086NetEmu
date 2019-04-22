@@ -130,7 +130,7 @@ Partial Public Class X8086
 
                     Case RegistersTypes.BP : Return BP
 
-                    Case Else : Throw New Exception("Invalid Register")
+                    Case Else : Throw New Exception($"Invalid Register: {reg}")
                 End Select
             End Get
             Set(value As UInt16)
@@ -165,7 +165,7 @@ Partial Public Class X8086
 
                     Case RegistersTypes.BP : BP = value
 
-                    Case Else : Throw New Exception("Invalid Register")
+                    Case Else : Throw New Exception($"Invalid Register: {reg}")
                 End Select
             End Set
         End Property

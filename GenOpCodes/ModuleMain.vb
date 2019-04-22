@@ -3,15 +3,16 @@
 ' which results in a +2x performance improvement
 
 Module ModuleMain
+    Private Const relPath As String = "..\x8086NetEmu\"
+
     Sub Main()
         Dim abortMsg As String = "This tool can only be run in DEBUG mode while inside the IDE"
 #If DEBUG Then
         If Debugger.IsAttached Then
             Console.WriteLine("Are you sure you want to parse the opcodes' emulation code? [y/N]")
             If Console.ReadKey(True).Key = ConsoleKey.Y Then
-                Console.Write("Working... ")
+                Console.WriteLine("Working... ")
                 RunParser()
-                Console.WriteLine("Done!")
             Else
                 Console.WriteLine("Process aborted...")
             End If
@@ -27,7 +28,7 @@ Module ModuleMain
     End Sub
 
     Private Sub RunParser()
-        Dim src As String = IO.File.ReadAllText("..\x8086.vb")
+        Dim src As String = IO.File.ReadAllText($"{relPath}x8086.vb")
         Dim trg As String = "Partial Public Class X8086
                                 Private Delegate Sub ExecOpcode()
                                 Private opCodes() As ExecOpcode = {
@@ -166,7 +167,16 @@ Module ModuleMain
                 tmp = Join(subCalls.ToArray(), vbCrLf)
                 tmp = tmp.Substring(0, tmp.Length - 1)
                 trg = trg.Replace("%1", tmp).Replace("%2", subBody)
-                IO.File.WriteAllText("..\Helpers\OpCodes.vb", trg)
+                src = IO.File.ReadAllText($"{relPath}Helpers\OpCodes.vb")
+                If src <> trg Then
+                    IO.File.WriteAllText($"{relPath}Helpers\OpCodes.vb", trg)
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.WriteLine("Changes successfully applied...")
+                Else
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.WriteLine("No changes found...")
+                End If
+                Console.ForegroundColor = ConsoleColor.Gray
                 Exit Do
             End If
 

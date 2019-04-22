@@ -104,6 +104,7 @@
             Else
                 mDebugMode = value
                 mDoReSchedule = True
+                RaiseEvent DebugModeChanged(Me, New EventArgs())
             End If
         End Set
     End Property

@@ -95,6 +95,7 @@ Public Class X8086
     Public Event InstructionDecoded()
     Public Shared Event [Error](sender As Object, e As EmulatorErrorEventArgs)
     Public Shared Event Output(message As String, reason As NotificationReasons, arg() As Object)
+    Public Event DebugModeChanged(sender As Object, e As EventArgs)
     Public Event MIPsUpdated()
 
     Public Delegate Sub RestartEmulation()
@@ -931,7 +932,6 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-
             Case &H77 ' ja/jnbe (unsigned)
                 If mFlags.CF = 0 AndAlso mFlags.ZF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
@@ -1400,7 +1400,7 @@ Public Class X8086
 
             Case &HEA ' jmp direct intersegment
                 IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
-                mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word) 
+                mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word)
                 clkCyc += 15
 
             Case &HEB ' jmp direct within segment short
@@ -1487,7 +1487,6 @@ Public Class X8086
             mRegisters.IP += opCodeSize
         End If
 
-        'clkCyc += CUInt(Fix(opCodeSize * 4 * clockFactor))
         clkCyc += opCodeSize * 4
 
         If Not newPrefix Then

@@ -84,11 +84,6 @@ Public Class FormEmulator
         AddHandler PasteTextToolStripMenuItem.Click, Sub() PasteTextFromClipboard()
         AddHandler CopyTextToolStripMenuItem.Click, Sub() CopyTextFromEmulator()
 
-        'AddHandler cpu.EmulationHalted, Sub()
-        '                                    MsgBox(String.Format("System Halted at {0:X4}:{1:X4}", cpu.Registers.CS, cpu.Registers.IP),
-        '                                           MsgBoxStyle.Critical, "Emulation Stopped")
-        '                                End Sub
-
         AddHandler INT13EmulationToolStripMenuItem.Click, Sub()
                                                               int13Emulation = Not int13Emulation
                                                               INT13EmulationToolStripMenuItem.Checked = int13Emulation
@@ -157,6 +152,8 @@ Public Class FormEmulator
                                         End Sub
 #End If
         AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(Sub() SetTitleText())
+
+        AddHandler cpu.DebugModeChanged, Sub() Me.Invoke(Sub() ShowDebugger())
     End Sub
 
     Private Sub WarnAboutRestart()
@@ -359,7 +356,7 @@ Public Class FormEmulator
                                                 Case &HF : fnc = "Set Logical Drive (3.2+)"
                                                 Case Else : fnc = $"Unknown Function '{cpu.Registers.AL:X2}'"
                                             End Select
-                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} {fnc}: {cpu.Registers.BL}[{cpu.Registers.CX}] -> {cpu.Registers.DS:X4}:{cpu.Registers.DX:X4}", X8086.NotificationReasons.Dbg)
+                                            X8086.Notify($"INT21:{cpu.Registers.AH:X2} IOCTL,{cpu.Registers.AL}:{cpu.Registers.BX:X4} -> {cpu.Registers.DS:X4}:{cpu.Registers.DX:X4} * {cpu.Registers.CX:X4}", X8086.NotificationReasons.Dbg)
 #End If
 
                                         Case &H0, &H4C, &H31
@@ -378,21 +375,6 @@ Public Class FormEmulator
                                                 Case 4 : mode = "LXB" ' Load & Execute in background
                                             End Select
                                             X8086.Notify($"INT21:{cpu.Registers.AH:X2} {mode}: {runningApp} -> {cpu.Registers.ES:X4}:{cpu.Registers.BX:X4}", X8086.NotificationReasons.Dbg)
-
-                                            'cpu.DebugMode = True
-                                            'Dim iretCount As Integer
-                                            'Threading.Tasks.Task.Run(Sub()
-                                            '                             While cpu.IsExecuting
-                                            '                                 Threading.Thread.Sleep(100)
-                                            '                             End While
-                                            '                             While iretCount < 2
-                                            '                                 While cpu.RAM8(cpu.Registers.CS, cpu.Registers.IP) <> &HCF
-                                            '                                     cpu.StepInto()
-                                            '                                 End While
-                                            '                                 iretCount += 1
-                                            '                             End While
-                                            '                             Debug.WriteLine($"{iretCount} IRET")
-                                            '                         End Sub)
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.

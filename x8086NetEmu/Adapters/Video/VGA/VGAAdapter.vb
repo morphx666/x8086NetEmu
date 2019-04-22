@@ -1,4 +1,4 @@
-﻿' http://www.osdever.net/FreeVGA/vga/vgatext.htm
+﻿' http://www.osdever.net/FreeVGA/home.htm
 ' https://pdos.csail.mit.edu/6.828/2007/readings/hardware/vgadoc/VGABIOS.TXT
 ' http://stanislavs.org/helppc/ports.html
 
@@ -287,6 +287,7 @@ Public MustInherit Class VGAAdapter
     Private Const planeSize As UInt32 = &H10000
     Private tmpRGB As UInt32
     Private tmpVal As Byte
+    Private ramOffset As UInt32
 
     Private Const useROM As Boolean = True
 
@@ -302,9 +303,9 @@ Public MustInherit Class VGAAdapter
 
         MyBase.vidModeChangeFlag = 0 ' Prevent the CGA adapter from changing video modes
 
-        'If useROM Then mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
-        If useROM Then mCPU.LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
-        'If useROM Then mCPU.LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
+        If useROM Then mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
+        'If useROM Then mCPU.LoadBIN("..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
+        'If useROM Then mCPU.LoadBIN("..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
         'If useROM Then mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
 
         ValidPortAddress.Clear()
@@ -331,7 +332,7 @@ Public MustInherit Class VGAAdapter
                                                             End If
                                                             Return False
                                                         Case MainModes.Graphics
-                                                            If address >= mStartGraphicsVideoAddress AndAlso address < mEndGraphicsVideoAddress AndAlso (VGA_SC(4) And 6) <> 0 Then
+                                                            If address >= mStartGraphicsVideoAddress AndAlso address < mEndGraphicsVideoAddress Then
                                                                 Select Case mode
                                                                     Case X8086.MemHookMode.Read
                                                                         value = VideoRAM(address - mStartGraphicsVideoAddress)
@@ -384,17 +385,21 @@ Public MustInherit Class VGAAdapter
 
     Public Property VideoRAM(address As UInt16) As Byte
         Get
-            If mUseVRAM OrElse (VGA_SC(4) And 6) <> 0 Then
-                Return Read(address)
+            If Not mUseVRAM Then
+                Return mCPU.Memory(address + ramOffset)
+            ElseIf (VGA_SC(4) And 6) = 0 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 AndAlso mVideoMode <> &H12 Then
+                Return mCPU.Memory(address + ramOffset)
             Else
-                Return mCPU.Memory(address + If(mMainMode = MainModes.Text, mStartTextVideoAddress, mStartGraphicsVideoAddress))
+                Return Read(address)
             End If
         End Get
         Set(value As Byte)
-            If mUseVRAM OrElse (VGA_SC(4) And 6) <> 0 Then
-                Write(address, value)
+            If Not mUseVRAM Then
+                mCPU.Memory(address + ramOffset) = value
+            ElseIf (VGA_SC(4) And 6) = 0 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 AndAlso mVideoMode <> &H12 Then
+                mCPU.Memory(address + ramOffset) = value
             Else
-                mCPU.Memory(address + If(mMainMode = MainModes.Text, mStartTextVideoAddress, mStartGraphicsVideoAddress)) = value
+                Write(address, value)
             End If
         End Set
     End Property
@@ -742,9 +747,10 @@ Public MustInherit Class VGAAdapter
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
         If Not isInit Then Exit Sub
 
-        'Dim ppb As Integer = mPixelsPerByte
         MyBase.InitVideoMemory(clearScreen)
-        'mPixelsPerByte = ppb
+
+        mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + 128 * 1024 ' 128KB
+        ramOffset = If(mMainMode = MainModes.Text, mStartTextVideoAddress, mStartGraphicsVideoAddress)
 
         AutoSize()
     End Sub

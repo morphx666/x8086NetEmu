@@ -55,8 +55,6 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     }
     }
 
-    Private ReadOnly oplStep() As Byte = {0, 0, 0, 0, 0, 0, 0, 0, 0}
-
     Private Structure OplStruct
         Public wave As Byte
     End Structure
@@ -132,7 +130,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         waveOut.Play()
 
         Tasks.Task.Run(Sub()
-                           Dim maxTicks As Long = Scheduler.BASECLOCK \ SpeakerAdpater.SampleRate
+                           Dim maxTicks As Long = 100000 * Scheduler.BASECLOCK \ SpeakerAdpater.SampleRate
                            Dim curTick As Long
                            Dim lastTick As Long
                            Do
@@ -141,18 +139,16 @@ Public Class AdlibAdapter ' Based on fake86's implementation
                                If curTick >= (lastTick + maxTicks) Then
                                    lastTick = curTick - (curTick - (lastTick + maxTicks))
 
-                                   SyncLock channel
-                                       For currentChannel As Byte = 0 To 9 - 1
-                                           If Frequency(currentChannel) <> 0 Then
-                                               If attack2(currentChannel) Then
-                                                   envelope(currentChannel) *= decay(currentChannel)
-                                               Else
-                                                   envelope(currentChannel) *= attack(currentChannel)
-                                                   If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
-                                               End If
+                                   For currentChannel As Byte = 0 To 9 - 1
+                                       If Frequency(currentChannel) <> 0 Then
+                                           If attack2(currentChannel) Then
+                                               envelope(currentChannel) *= decay(currentChannel)
+                                           Else
+                                               envelope(currentChannel) *= attack(currentChannel)
+                                               If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
                                            End If
-                                       Next
-                                   End SyncLock
+                                       End If
+                                   Next
                                End If
 
                                Thread.Sleep(100)
@@ -196,64 +192,60 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             attack(port) = attackTable(15 - (value >> 4)) * 1.006
             decay(port) = decayTable(value And 15)
         ElseIf port >= &HA0 AndAlso port <= &HB8 Then ' Octave / Frequency / Key On
-            port = port And 15
-            If Not channel(port Mod 9).KeyOn AndAlso ((regMem(&HB0 + port) >> 5) And 1) = 1 Then
-                attack2(port Mod 9) = False
-                envelope(port Mod 9) = 0.0025
+            port = (port And 15) Mod 9
+            If Not channel(port).KeyOn AndAlso ((regMem(&HB0 + port) >> 5) And 1) = 1 Then
+                attack2(port) = False
+                envelope(port) = 0.0025
             End If
 
-            SyncLock channel
-                channel(port Mod 9).Frequency = regMem(&HA0 + port) Or ((regMem(&HB0 + port) And 3) << 8)
-                channel(port Mod 9).ConvFreq = channel(port Mod 9).Frequency * 0.7626459
-                channel(port Mod 9).KeyOn = ((regMem(&HB0 + port) >> 5) And 1) = 1
-                channel(port Mod 9).Octave = (regMem(&HB0 + port) >> 2) And 7
-            End SyncLock
+            channel(port).Frequency = regMem(&HA0 + port) Or ((regMem(&HB0 + port) And 3) << 8)
+            channel(port).ConvFreq = channel(port).Frequency * 0.7626459
+            channel(port).KeyOn = ((regMem(&HB0 + port) >> 5) And 1) = 1
+            channel(port).Octave = (regMem(&HB0 + port) >> 2) And 7
         ElseIf port >= &HE0 And port <= &HF5 Then ' Waveform select
             channel((port And 15) Mod 9).WaveformSelect = value And 3
         End If
     End Sub
 
-    Private Function Frequency(channel As Byte) As UInt16
-        Dim tmpFrequency As UInt16
+    Private Function Frequency(chanNum As Byte) As UInt16
+        Dim tmpFreq As UInt16
 
-        If Not Me.channel(channel).KeyOn Then Return 0
-        tmpFrequency = Me.channel(channel).ConvFreq
+        If Not channel(chanNum).KeyOn Then Return 0
+        tmpFreq = channel(chanNum).ConvFreq
 
-        Select Case Me.channel(channel).Octave
-            Case 0 : tmpFrequency = tmpFrequency >> 4
-            Case 1 : tmpFrequency = tmpFrequency >> 3
-            Case 2 : tmpFrequency = tmpFrequency >> 2
-            Case 3 : tmpFrequency = tmpFrequency >> 1
-            Case 5 : tmpFrequency = tmpFrequency << 1
-            Case 6 : tmpFrequency = tmpFrequency << 2
-            Case 7 : tmpFrequency = tmpFrequency << 3
+        Select Case channel(chanNum).Octave
+            Case 0 : tmpFreq >>= 4
+            Case 1 : tmpFreq >>= 3
+            Case 2 : tmpFreq >>= 2
+            Case 3 : tmpFreq >>= 1
+            Case 5 : tmpFreq <<= 1
+            Case 6 : tmpFreq <<= 2
+            Case 7 : tmpFreq <<= 3
         End Select
 
-        Return tmpFrequency
+        Return tmpFreq
     End Function
 
-    Private Function Sample(channel As Byte) As Int32
-        If precussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
+    Private Function Sample(chanNum As Byte) As Int32
+        If precussion AndAlso chanNum >= 6 AndAlso chanNum <= 8 Then Return 0
 
-        Dim fullStep As UInt32 = SpeakerAdpater.SampleRate \ Frequency(channel)
-        Dim idx As Byte = (oplSstep(channel) / (fullStep / 256.0)) Mod 255
-        Dim tmpSample As Integer = oplWave(Me.channel(channel).WaveformSelect)(idx)
-        Dim tmpStep As Double = envelope(channel)
+        Dim fullStep As UInt16 = SpeakerAdpater.SampleRate \ Frequency(chanNum)
+        Dim idx As Byte = (oplSstep(chanNum) / (fullStep / 256.0)) Mod 255
+        Dim tmpSample As UInt32 = oplWave(channel(chanNum).WaveformSelect)(idx)
+        Dim tmpStep As Double = envelope(chanNum)
         If tmpStep > 1.0 Then tmpStep = 1.0
         tmpSample = tmpSample * tmpStep * 12.0
 
-        oplSstep(channel) += 1
-        If oplSstep(channel) > fullStep Then oplSstep(channel) = 0
+        oplSstep(chanNum) += 1
+        If oplSstep(chanNum) > fullStep Then oplSstep(chanNum) = 0
         Return tmpSample
     End Function
 
     Private Function GenerateSample() As Int16
-        Dim accumulator As Int16 = 0
-        SyncLock channel
-            For currentChannel As Byte = 0 To 9 - 1
-                If Frequency(currentChannel) <> 0 Then accumulator += Sample(currentChannel)
-            Next
-        End SyncLock
+        Dim accumulator As Int32 = 0
+        For chanNum As Byte = 0 To 9 - 1
+            If Frequency(chanNum) <> 0 Then accumulator += Sample(chanNum)
+        Next
         Return accumulator
     End Function
 
