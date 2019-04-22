@@ -94,8 +94,8 @@ Partial Public Class X8086
 
         <FieldOffset(24)> Public BP As UInt16
 
-        <FieldOffset(100)> Private mActiveSegmentRegister As RegistersTypes
-        <FieldOffset(200)> Private mActiveSegmentChanged As Boolean
+        <FieldOffset(26)> Private mActiveSegmentRegister As RegistersTypes
+        <FieldOffset(30)> Private mActiveSegmentChanged As Boolean
 
         Public Property Val(reg As RegistersTypes) As UInt16
             Get

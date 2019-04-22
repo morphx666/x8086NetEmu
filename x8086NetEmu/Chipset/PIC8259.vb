@@ -13,7 +13,7 @@
     Private expectICW3 As Boolean
     Private expectICW4 As Boolean
 
-    Private slave() As PIC8259
+    Private slave(8 - 1) As PIC8259
     Private master As PIC8259
     Private masterIrq As Byte
 
@@ -49,8 +49,6 @@
     End Class
 
     Public Sub New(cpu As X8086, Optional master As PIC8259 = Nothing)
-        ReDim slave(8 - 1)
-
         If master Is Nothing Then
             For i As Integer = &H20 To &H2F
                 ValidPortAddress.Add(i)
@@ -69,35 +67,35 @@
     End Sub
 
     Public Overrides Function GetPendingInterrupt() As Byte
-        If state <> States.Ready Then Return -1
+        If state <> States.Ready Then Return &HFF
 
         ' Determine set of pending interrupt requests
-        Dim reqmask As Byte = rIRR And (Not rIMR)
+        Dim reqMask As Byte = rIRR And (Not rIMR)
         If specialNest Then
-            reqmask = reqmask And ((Not rISR) Or slaveInput)
+            reqMask = reqMask And ((Not rISR) Or slaveInput)
         Else
-            reqmask = reqmask And (Not rISR)
+            reqMask = reqMask And (Not rISR)
         End If
 
         ' Select non-masked request with highest priority
-        If reqmask = 0 Then Return &HFF
+        If reqMask = 0 Then Return &HFF
 
         Dim irq As Integer = (lowPrio + 1) And 7
-        While (reqmask And (1 << irq)) = 0
+        While (reqMask And (1 << irq)) = 0
             If Not specialMask AndAlso ((rISR And (1 << irq)) <> 0) Then Return &HFF ' ISR bit blocks all lower-priority requests
             irq = (irq + 1) And 7
         End While
 
-        Dim irqbit As Byte = 1 << irq
+        Dim irqBit As Byte = 1 << irq
 
         ' Update controller state
-        If Not autoEOI Then rISR = rISR Or irqbit
-        If Not levelTriggered Then rIRR = rIRR And (Not irqbit)
+        If Not autoEOI Then rISR = rISR Or irqBit
+        If Not levelTriggered Then rIRR = rIRR And (Not irqBit)
         If autoEOI AndAlso autoRotate Then lowPrio = irq
         If master IsNot Nothing Then UpdateSlaveOutput()
 
         ' Return vector number or pass down to slave controller
-        If (slaveInput And irqbit) <> 0 AndAlso slave(irq) IsNot Nothing Then
+        If (slaveInput And irqBit) <> 0 AndAlso slave(irq) IsNot Nothing Then
             Return slave(irq).GetPendingInterrupt()
         Else
             Return (baseVector + irq)
@@ -112,21 +110,21 @@
         If enable Then
             rIRR = rIRR Or (1 << irq)
         Else
-            rIRR = rIRR And (Not 1 << irq)
+            rIRR = rIRR And (Not (1 << irq))
         End If
         If master IsNot Nothing Then UpdateSlaveOutput()
     End Sub
 
     Public Overrides Function [In](port As UInt32) As UInt16
         If (port And 1) = 0 Then
-            ' A0 == 0
+            ' A0 = 0
             If pollMode Then
                 Dim pi As Byte = GetPendingInterrupt()
-                Return If(pi = -1, 0, &H80 Or pi)
+                Return If(pi = &HFF, 0, &H80 Or pi)
             End If
             Return If(readISR, rISR, rIRR)
         Else
-            ' A0 == 1
+            ' A0 = 1
             Return rIMR
         End If
     End Function
@@ -142,7 +140,7 @@
                 DoOCW3(value)
             End If
         Else
-            ' A0 == 1
+            ' A0 = 1
             Select Case state
                 Case States.ICW2 : DoICW2(value)
                 Case States.ICW3 : DoICW3(value)
@@ -219,18 +217,20 @@
         ' Resolve non-specific EOI
         If Not specific Then
             Dim m As Byte = If(specialMask, rISR And (Not rIMR), rISR)
-            Dim i As Byte = lowPrio
-            Do
-                i = (i + 1) And 7
-                If (m And (1 << i)) <> 0 Then
-                    irq = i
-                    Exit Do
-                End If
-            Loop While i <> lowPrio
+            If m <> 0 Then
+                Dim i As Byte = lowPrio
+                Do
+                    i = (i + 1) And 7
+                    If (m And (1 << i)) <> 0 Then
+                        irq = i
+                        Exit Do
+                    End If
+                Loop While i <> lowPrio
+            End If
         End If
 
         If eoi Then
-            rISR = rISR And (Not 1 << irq)
+            rISR = rISR And (Not (1 << irq))
             If master IsNot Nothing Then UpdateSlaveOutput()
         End If
 
