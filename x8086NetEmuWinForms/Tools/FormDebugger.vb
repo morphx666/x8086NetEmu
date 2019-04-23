@@ -1,6 +1,7 @@
 ﻿Imports System.Threading
 Imports x8086NetEmu
 Imports System.Text
+Imports x8086NetEmuWinForms
 
 Public Class FormDebugger
     Public Enum LastInstructionMode
@@ -11,12 +12,14 @@ Public Class FormDebugger
     End Enum
 
     Private Structure Breakpoint
-        Public Segment As Integer
-        Public Offset As Integer
+        Public ReadOnly Segment As Integer
+        Public ReadOnly Offset As Integer
+        Public ReadOnly Address As UInt32
 
         Public Sub New(segment As Integer, offset As Integer)
             Me.Segment = segment
             Me.Offset = offset
+            Me.Address = X8086.SegmentOffetToAbsolute(segment, offset)
         End Sub
     End Structure
 
@@ -76,7 +79,7 @@ Public Class FormDebugger
     Private isInit As Boolean
     Private breakIP As Integer = -1
     Private breakCS As Integer = -1
-    Private breakPoints As List(Of Breakpoint) = New List(Of Breakpoint)
+    Private breakPoints As New List(Of Breakpoint)
     Private baseCS As Integer
     Private baseIP As Integer
 
@@ -106,6 +109,13 @@ Public Class FormDebugger
     Private Evaluator As Func(Of String, Double) = Function(exp) CDbl(navigator.Evaluate("number(" + rex.Replace(exp, " ${1} ").Replace("/", " div ").Replace("%", " mod ") + ")"))
 
     Private segmentTextBoxes As New List(Of TextBox)
+
+    Private ReadOnly selOpColor As Color = Color.FromArgb(65, 66, 96)
+    Private ReadOnly bpColor As Color = Color.FromArgb(127, 54, 64)
+    Private ReadOnly selOpBpColor As Color = Color.FromArgb(117, 44, 96)
+    Private ReadOnly bytesColor As Color = Color.FromArgb(88 + 20, 81 + 20, 64 + 20)
+    Private ReadOnly opCodeColor As Color = Color.FromArgb(97, 175, 99)
+    Private ReadOnly opCodeParamsColor As Color = Color.FromArgb(35 + 20, 87 + 20, 140 + 20)
 
 #Region "Controls' Event Handlers"
     Private Sub FormDebugger_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -208,7 +218,7 @@ Public Class FormDebugger
 
         If e.Item.Checked Then
             breakPoints.Add(New Breakpoint(segment, offset))
-            e.Item.BackColor = Color.FromArgb(127, 54, 64)
+            e.Item.BackColor = bpColor
         Else
             e.Item.BackColor = ListViewCode.BackColor
         End If
@@ -226,7 +236,7 @@ Public Class FormDebugger
     End Sub
 
     Private Sub ButtonReboot_Click(sender As Object, e As EventArgs) Handles ButtonReboot.Click
-        Emulator.HardReset()
+        mEmulator.HardReset()
         historyPointer = -1
         RefreshCodeListing()
     End Sub
@@ -269,15 +279,24 @@ Public Class FormDebugger
             mEmulator = value
             AddHandler mEmulator.InstructionDecoded, Sub()
                                                          If debugMode = DebugModes.Step Then UpdateUI()
+                                                         instructionDecoded = True
                                                          loopWaiter.Set()
                                                      End Sub
-            'AddHandler mEmulator.EmulationTerminated, Sub() If isRunning Then StartStopRunMode()
-            AddHandler mEmulator.InstructionDecoded, Sub() instructionDecoded = True
-            isInit = True
 
-            'StepInto()
             mEmulator.DoReschedule = True
             mEmulator.DebugMode = True
+
+            CheckBoxCF.DataBindings.Add("Checked", mEmulator.Flags, "CF", False, DataSourceUpdateMode.OnPropertyChanged)
+            CheckBoxPF.DataBindings.Add("Checked", mEmulator.Flags, "PF", False, DataSourceUpdateMode.OnPropertyChanged)
+            CheckBoxAF.DataBindings.Add("Checked", mEmulator.Flags, "AF", False, DataSourceUpdateMode.OnPropertyChanged)
+            CheckBoxZF.DataBindings.Add("Checked", mEmulator.Flags, "ZF", False, DataSourceUpdateMode.OnPropertyChanged)
+            CheckBoxSF.DataBindings.Add("Checked", mEmulator.Flags, "SF", False, DataSourceUpdateMode.OnPropertyChanged)
+            CheckBoxTF.DataBindings.Add("Checked", mEmulator.Flags, "TF", False, DataSourceUpdateMode.OnPropertyChanged)
+            CheckBoxIF.DataBindings.Add("Checked", mEmulator.Flags, "IF", False, DataSourceUpdateMode.OnPropertyChanged)
+            CheckBoxDF.DataBindings.Add("Checked", mEmulator.Flags, "DF", False, DataSourceUpdateMode.OnPropertyChanged)
+            CheckBoxOF.DataBindings.Add("Checked", mEmulator.Flags, "OF", False, DataSourceUpdateMode.OnPropertyChanged)
+
+            isInit = True
         End Set
     End Property
 
@@ -304,7 +323,7 @@ Public Class FormDebugger
     Private Sub SetSegmentTextBoxesState()
         Static asr As String
 
-        Dim newAsr As String = Emulator.Registers.ActiveSegmentRegister.ToString()
+        Dim newAsr As String = mEmulator.Registers.ActiveSegmentRegister.ToString()
         If newAsr <> asr Then
             asr = newAsr
 
@@ -320,30 +339,37 @@ Public Class FormDebugger
 
     Private Sub UpdateMemory()
         If Not isInit Then Exit Sub
+        Static lastRes As String
 
-        Try
-            Dim address As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
+        Dim address As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
 
-            Dim b As Byte
-            Dim res As String = ""
-            For i As Integer = 0 To 16 * 15 Step 16
-                Dim mem As String = ""
-                Dim bcr As String = "    "
-                For k = 0 To 15
-                    b = mEmulator.Memory(address + i + k)
-                    If k = 8 Then mem += "- "
-                    mem += $"{b:X2} "
-                    If b <= 31 OrElse b > 122 Then
-                        bcr += "."
-                    Else
-                        bcr += Chr(b)
-                    End If
-                Next
-                res += mem + bcr + vbCrLf
+        Dim b As Byte
+        Dim res As New StringBuilder()
+        Dim mem As New StringBuilder()
+        Dim bcr As New StringBuilder()
+
+        For i As Integer = 0 To 16 * Math.Floor(TextBoxMem.Height / TextBoxMem.Font.Height) Step 16
+            mem.Clear()
+            bcr.Clear().Append("    ")
+            For k = 0 To 15
+                b = mEmulator.Memory(address + i + k)
+                mem.Append(If(k = 8, "- ", "") + $"{b:X2} ")
+                If b <= 31 OrElse b > 122 Then
+                    bcr.Append(".")
+                Else
+                    bcr.Append(Convert.ToChar(b))
+                End If
             Next
-            TextBoxMem.Text = res
-        Catch
-        End Try
+            res.Append(mem)
+            res.Append(bcr)
+            res.AppendLine()
+        Next
+
+        Dim resAsString As String = res.ToString()
+        If lastRes <> resAsString Then
+            lastRes = resAsString
+            TextBoxMem.Text = resAsString
+        End If
     End Sub
 
     Private Function StringToRegister(value As String) As X8086.GPRegisters.RegistersTypes
@@ -477,19 +503,17 @@ Public Class FormDebugger
 
                 If Not TextBoxES.Focused Then TextBoxES.Text = $"{ .ES:X4}"
             End With
-
-            With Emulator.Flags
-                CheckBoxAF.Checked = (.AF = 1)
-                CheckBoxCF.Checked = (.CF = 1)
-                CheckBoxDF.Checked = (.DF = 1)
-                CheckBoxIF.Checked = (.IF = 1)
-                CheckBoxOF.Checked = (.OF = 1)
-                CheckBoxPF.Checked = (.PF = 1)
-                CheckBoxSF.Checked = (.SF = 1)
-                CheckBoxZF.Checked = (.ZF = 1)
-                CheckBoxTF.Checked = (.TF = 1)
-            End With
         End With
+
+        CheckBoxCF.DataBindings(0).ReadValue()
+        CheckBoxPF.DataBindings(0).ReadValue()
+        CheckBoxAF.DataBindings(0).ReadValue()
+        CheckBoxZF.DataBindings(0).ReadValue()
+        CheckBoxSF.DataBindings(0).ReadValue()
+        CheckBoxTF.DataBindings(0).ReadValue()
+        CheckBoxIF.DataBindings(0).ReadValue()
+        CheckBoxDF.DataBindings(0).ReadValue()
+        CheckBoxOF.DataBindings(0).ReadValue()
     End Sub
 
     Private Sub UpdateStack()
@@ -502,34 +526,36 @@ Public Class FormDebugger
         '    End With
         'End If
 
-        With Emulator
+        With mEmulator
             currentSSSP = X8086.SegmentOffetToAbsolute(.Registers.SS, .Registers.SP).ToString("X5")
 
             Dim offset As Integer = 0
-            If .Registers.SP Mod 2 = 0 Then offset = 1
+            If (.Registers.SP Mod 2) = 0 Then offset = 1
 
             Dim startOffset As Integer = Math.Min(Math.Max(.Registers.SP + 0, .Registers.SP + 128), &HFFFF - offset)
             Dim endOffset As Integer = Math.Max(Math.Min(.Registers.SP + 0, .Registers.SP - 128), 0 + offset)
 
-            For ptr As Integer = startOffset To endOffset Step -2
-                Dim address As String = X8086.SegmentOffetToAbsolute(.Registers.SS, ptr).ToString("X5")
-                Dim value As Integer = .RAM16(.Registers.SS, ptr,, True)
+            Dim address As String
+            Dim value As Integer
+            Dim item As ListViewItem
 
-                Dim item As ListViewItem
+            For ptr As Integer = startOffset To endOffset Step -2
+                address = X8086.SegmentOffetToAbsolute(.Registers.SS, ptr).ToString("X5")
+                value = .RAM16(.Registers.SS, ptr,, True)
+
                 If index < ListViewStack.Items.Count Then
                     item = ListViewStack.Items(index)
                 Else
                     item = ListViewStack.Items.Add(address, "", 0)
                     item.SubItems.Add("")
                 End If
-                item.Text = .Registers.SS.ToString("X4") + ":" + ptr.ToString("X4")
+                item.Text = $"{ .Registers.SS:X4}:{ptr:X4}"
                 item.SubItems(1).Text = value.ToString("X4")
                 If ptr = .Registers.SP Then
                     item.BackColor = Color.DarkSlateBlue
                     item.EnsureVisible()
                 Else
                     item.BackColor = ListViewStack.BackColor
-                    'item.SubItems(1).BackColor = ListViewStack.BackColor
                 End If
 
                 index += 1
@@ -542,14 +568,17 @@ Public Class FormDebugger
     End Sub
 
     Private Sub GenCodeAhead()
-        ' TODO: This code listview should probably be implemented as a virtual listview
-
         Dim item As ListViewItem
         Dim CS As UInt16 = mEmulator.Registers.CS
         Dim IP As UInt16 = mEmulator.Registers.IP
         Dim insIndex As Integer
         Dim insertedCount As Integer
         Dim newCount As Integer
+        Dim sbBytes As New StringBuilder()
+        Dim address As UInt32
+        Dim addressStr As String
+        Dim info As X8086.Instruction
+        Dim curIP As String
 
         If ListViewCode.Items.ContainsKey(currentCSIP) Then
             With ListViewCode.Items(currentCSIP)
@@ -562,11 +591,12 @@ Public Class FormDebugger
 
         currentCSIP = X8086.SegmentOffetToAbsolute(CS, IP).ToString("X5")
         Do
-            Dim address As String = X8086.SegmentOffetToAbsolute(CS, IP).ToString("X5")
+            address = X8086.SegmentOffetToAbsolute(CS, IP)
+            addressStr = address.ToString("X5")
 
             insIndex = -1
-            If ListViewCode.Items.ContainsKey(address) Then
-                item = ListViewCode.Items(address)
+            If ListViewCode.Items.ContainsKey(addressStr) Then
+                item = ListViewCode.Items(addressStr)
                 insertedCount += 1
             Else
                 For Each sItem As ListViewItem In ListViewCode.Items
@@ -576,10 +606,10 @@ Public Class FormDebugger
                     End If
                 Next
                 If insIndex <> -1 Then
-                    item = ListViewCode.Items.Insert(insIndex, address, "", 0)
+                    item = ListViewCode.Items.Insert(insIndex, addressStr, "", 0)
                     insertedCount += 1
                 Else
-                    item = ListViewCode.Items.Add(address, "", 0)
+                    item = ListViewCode.Items.Add(addressStr, "", 0)
                     newCount += 1
                 End If
                 item.SubItems.Add("")
@@ -589,42 +619,43 @@ Public Class FormDebugger
                 item.UseItemStyleForSubItems = False
 
                 item.ForeColor = ListViewCode.ForeColor
-                item.SubItems(1).ForeColor = Color.FromArgb(88 + 20, 81 + 20, 64 + 20)
-                item.SubItems(2).ForeColor = Color.FromArgb(97, 175, 99)
-                item.SubItems(3).ForeColor = Color.FromArgb(35 + 20, 87 + 20, 140 + 20)
+                item.SubItems(1).ForeColor = bytesColor
+                item.SubItems(2).ForeColor = opCodeColor
+                item.SubItems(3).ForeColor = opCodeParamsColor
             End If
 
-            If Emulator.IsExecuting Then Exit Do
-            Dim info As X8086.Instruction = mEmulator.Decode(CS, IP)
+            info = mEmulator.Decode(CS, IP)
             If Not info.IsValid Then Exit Do
 
-            Dim curIP As String = IP.ToString("X4")
-            If IP + info.Size > &HFFFF Then Exit Do
+            curIP = IP.ToString("X4")
             IP = (IP + info.Size) Mod &HFFFF
 
             If item.Text = "" Then
-                item.Text = info.CS.ToString("X4") + ":" + info.IP.ToString("X4")
-                item.SubItems(1).Text = GetBytesString(info.Bytes)
+                item.Text = $"{info.CS:X4}:{info.IP:X4}"
+                item.SubItems(1).Text = GetBytesString(sbBytes, info.Bytes)
                 item.SubItems(2).Text = info.Mnemonic
                 If info.Message = "" Then
-                    If info.Parameter2 = "" Then
-                        item.SubItems(3).Text = info.Parameter1?.Replace("[", "[" + info.SegmentOverride)
-                    Else
-                        item.SubItems(3).Text = info.Parameter1?.Replace("[", "[" + info.SegmentOverride) + ", " + info.Parameter2?.Replace("[", "[" + info.SegmentOverride)
-                    End If
+                    item.SubItems(3).Text = info.Parameter1?.Replace("[", "[" + info.SegmentOverride) + If(info.Parameter2 = "", "", ", " + info.Parameter2?.Replace("[", "[" + info.SegmentOverride))
                 Else
                     item.SubItems(3).Text = info.Message
                 End If
             End If
 
-            If address = currentCSIP Then
-                item.BackColor = Color.FromArgb(197 / 3, 199 / 3, 192 / 2)
+            ' TODO: For this to work correctly we need to implement the coloring in the subclassed ListView
+            If Not item.Checked AndAlso breakPoints.Any(Function(b) b.Address = address) Then item.Checked = True
+            If addressStr = currentCSIP Then
+                item.BackColor = If(item.Checked, selOpBpColor, selOpColor)
                 item.SubItems(1).BackColor = item.BackColor
                 item.SubItems(2).BackColor = item.BackColor
                 item.SubItems(3).BackColor = item.BackColor
-                item.EnsureVisible()
+                item.EnsureVisible() ' TODO: Implement option to enable/disable this
                 activeInstruction = info
-            ElseIf item.BackColor <> ListViewCode.BackColor AndAlso Not item.Checked Then
+            ElseIf Not item.Checked AndAlso item.BackColor <> ListViewCode.BackColor Then
+                item.SubItems(1).BackColor = item.BackColor
+                item.SubItems(2).BackColor = item.BackColor
+                item.SubItems(3).BackColor = item.BackColor
+            ElseIf item.Checked AndAlso item.BackColor <> bpColor Then
+                item.BackColor = bpColor
                 item.SubItems(1).BackColor = item.BackColor
                 item.SubItems(2).BackColor = item.BackColor
                 item.SubItems(3).BackColor = item.BackColor
@@ -830,18 +861,19 @@ Public Class FormDebugger
         lv.Columns(lv.Columns.Count - 1).Width += w
     End Sub
 
-    Private Function GetBytesString(b() As Byte) As String
-        Dim r As String = ""
+    Private Function GetBytesString(r As StringBuilder, b() As Byte) As String
+        r.Clear()
         If b IsNot Nothing Then
             For i As Integer = 0 To b.Length - 1
                 If CheckBoxBytesOrChars.Checked Then
-                    r += Chr(b(i)) + " "
+                    r.Append(Convert.ToChar(b(i)))
                 Else
-                    r += b(i).ToString("X2") + " "
+                    r.AppendFormat("{0:X2}", b(i))
                 End If
+                r.Append(" ")
             Next
         End If
-        Return r.Trim()
+        Return r.ToString().TrimEnd()
     End Function
 
     Private Sub OffsetHistoryPointer(value As Integer)

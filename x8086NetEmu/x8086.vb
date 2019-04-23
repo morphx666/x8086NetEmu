@@ -234,7 +234,8 @@ Public Class X8086
 
         ' Lots of ROMs: http://www.hampa.ch/pce/download.html
 
-        'LoadBIN("..\..\Other Emulators & Resources\PCemV13.1\roms\ide_xt.bin", &HC800, &H0)
+        ' XT IDE
+        'LoadBIN("roms\ide_at.bin", &HC800, &H0)
     End Sub
 
     Public Sub Close()

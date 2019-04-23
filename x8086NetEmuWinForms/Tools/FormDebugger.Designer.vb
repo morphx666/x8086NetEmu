@@ -127,7 +127,7 @@ Partial Class FormDebugger
         Me.CheckBoxTF.Location = New System.Drawing.Point(6, 169)
         Me.CheckBoxTF.Name = "CheckBoxTF"
         Me.CheckBoxTF.Size = New System.Drawing.Size(91, 24)
-        Me.CheckBoxTF.TabIndex = 8
+        Me.CheckBoxTF.TabIndex = 5
         Me.CheckBoxTF.Text = "TF: Trap"
         Me.CheckBoxTF.UseVisualStyleBackColor = True
         '
@@ -166,7 +166,7 @@ Partial Class FormDebugger
         Me.CheckBoxAF.Location = New System.Drawing.Point(6, 79)
         Me.CheckBoxAF.Name = "CheckBoxAF"
         Me.CheckBoxAF.Size = New System.Drawing.Size(91, 24)
-        Me.CheckBoxAF.TabIndex = 5
+        Me.CheckBoxAF.TabIndex = 2
         Me.CheckBoxAF.Text = "AF: Aux"
         Me.CheckBoxAF.UseVisualStyleBackColor = True
         '
@@ -179,7 +179,7 @@ Partial Class FormDebugger
         Me.CheckBoxPF.Location = New System.Drawing.Point(6, 49)
         Me.CheckBoxPF.Name = "CheckBoxPF"
         Me.CheckBoxPF.Size = New System.Drawing.Size(91, 24)
-        Me.CheckBoxPF.TabIndex = 4
+        Me.CheckBoxPF.TabIndex = 1
         Me.CheckBoxPF.Text = "PF: Parity"
         Me.CheckBoxPF.UseVisualStyleBackColor = True
         '
@@ -192,7 +192,7 @@ Partial Class FormDebugger
         Me.CheckBoxOF.Location = New System.Drawing.Point(6, 259)
         Me.CheckBoxOF.Name = "CheckBoxOF"
         Me.CheckBoxOF.Size = New System.Drawing.Size(91, 24)
-        Me.CheckBoxOF.TabIndex = 3
+        Me.CheckBoxOF.TabIndex = 8
         Me.CheckBoxOF.Text = "OF: Overflow"
         Me.CheckBoxOF.UseVisualStyleBackColor = True
         '
@@ -205,7 +205,7 @@ Partial Class FormDebugger
         Me.CheckBoxSF.Location = New System.Drawing.Point(6, 139)
         Me.CheckBoxSF.Name = "CheckBoxSF"
         Me.CheckBoxSF.Size = New System.Drawing.Size(91, 24)
-        Me.CheckBoxSF.TabIndex = 2
+        Me.CheckBoxSF.TabIndex = 4
         Me.CheckBoxSF.Text = "SF: Sign"
         Me.CheckBoxSF.UseVisualStyleBackColor = True
         '
@@ -218,7 +218,7 @@ Partial Class FormDebugger
         Me.CheckBoxZF.Location = New System.Drawing.Point(6, 109)
         Me.CheckBoxZF.Name = "CheckBoxZF"
         Me.CheckBoxZF.Size = New System.Drawing.Size(91, 24)
-        Me.CheckBoxZF.TabIndex = 1
+        Me.CheckBoxZF.TabIndex = 3
         Me.CheckBoxZF.Text = "ZF: Zero"
         Me.CheckBoxZF.UseVisualStyleBackColor = True
         '
@@ -319,7 +319,7 @@ Partial Class FormDebugger
         Me.TextBoxSI.Location = New System.Drawing.Point(136, 210)
         Me.TextBoxSI.Name = "TextBoxSI"
         Me.TextBoxSI.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxSI.TabIndex = 17
+        Me.TextBoxSI.TabIndex = 21
         Me.TextBoxSI.Text = "0000"
         Me.TextBoxSI.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -343,7 +343,7 @@ Partial Class FormDebugger
         Me.TextBoxES.Location = New System.Drawing.Point(33, 242)
         Me.TextBoxES.Name = "TextBoxES"
         Me.TextBoxES.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxES.TabIndex = 11
+        Me.TextBoxES.TabIndex = 15
         Me.TextBoxES.Text = "0000"
         Me.TextBoxES.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -355,7 +355,7 @@ Partial Class FormDebugger
         Me.TextBoxBP.Location = New System.Drawing.Point(136, 274)
         Me.TextBoxBP.Name = "TextBoxBP"
         Me.TextBoxBP.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxBP.TabIndex = 19
+        Me.TextBoxBP.TabIndex = 25
         Me.TextBoxBP.Text = "0000"
         Me.TextBoxBP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -391,7 +391,7 @@ Partial Class FormDebugger
         Me.TextBoxDI.Location = New System.Drawing.Point(136, 242)
         Me.TextBoxDI.Name = "TextBoxDI"
         Me.TextBoxDI.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxDI.TabIndex = 18
+        Me.TextBoxDI.TabIndex = 23
         Me.TextBoxDI.Text = "0000"
         Me.TextBoxDI.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -403,7 +403,7 @@ Partial Class FormDebugger
         Me.TextBoxDS.Location = New System.Drawing.Point(33, 210)
         Me.TextBoxDS.Name = "TextBoxDS"
         Me.TextBoxDS.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxDS.TabIndex = 10
+        Me.TextBoxDS.TabIndex = 13
         Me.TextBoxDS.Text = "0000"
         Me.TextBoxDS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -415,7 +415,7 @@ Partial Class FormDebugger
         Me.TextBoxSP.Location = New System.Drawing.Point(136, 178)
         Me.TextBoxSP.Name = "TextBoxSP"
         Me.TextBoxSP.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxSP.TabIndex = 16
+        Me.TextBoxSP.TabIndex = 19
         Me.TextBoxSP.Text = "0000"
         Me.TextBoxSP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -427,7 +427,7 @@ Partial Class FormDebugger
         Me.TextBoxSS.Location = New System.Drawing.Point(33, 178)
         Me.TextBoxSS.Name = "TextBoxSS"
         Me.TextBoxSS.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxSS.TabIndex = 9
+        Me.TextBoxSS.TabIndex = 11
         Me.TextBoxSS.Text = "0000"
         Me.TextBoxSS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -565,7 +565,7 @@ Partial Class FormDebugger
         Me.TextBoxIP.Location = New System.Drawing.Point(136, 146)
         Me.TextBoxIP.Name = "TextBoxIP"
         Me.TextBoxIP.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxIP.TabIndex = 15
+        Me.TextBoxIP.TabIndex = 17
         Me.TextBoxIP.Text = "0000"
         Me.TextBoxIP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -577,7 +577,7 @@ Partial Class FormDebugger
         Me.TextBoxCS.Location = New System.Drawing.Point(33, 146)
         Me.TextBoxCS.Name = "TextBoxCS"
         Me.TextBoxCS.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxCS.TabIndex = 8
+        Me.TextBoxCS.TabIndex = 9
         Me.TextBoxCS.Text = "0000"
         Me.TextBoxCS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -675,7 +675,7 @@ Partial Class FormDebugger
         Me.ButtonStep.Location = New System.Drawing.Point(942, 628)
         Me.ButtonStep.Name = "ButtonStep"
         Me.ButtonStep.Size = New System.Drawing.Size(97, 32)
-        Me.ButtonStep.TabIndex = 13
+        Me.ButtonStep.TabIndex = 8
         Me.ButtonStep.Text = "Step"
         Me.ButtonStep.UseVisualStyleBackColor = True
         '
@@ -721,7 +721,7 @@ Partial Class FormDebugger
         Me.ButtonRefresh.Location = New System.Drawing.Point(839, 628)
         Me.ButtonRefresh.Name = "ButtonRefresh"
         Me.ButtonRefresh.Size = New System.Drawing.Size(97, 32)
-        Me.ButtonRefresh.TabIndex = 12
+        Me.ButtonRefresh.TabIndex = 7
         Me.ButtonRefresh.Text = "Refresh"
         Me.ButtonRefresh.UseVisualStyleBackColor = True
         '
@@ -742,12 +742,14 @@ Partial Class FormDebugger
         Me.TextBoxBreakIP.Location = New System.Drawing.Point(475, 327)
         Me.TextBoxBreakIP.Name = "TextBoxBreakIP"
         Me.TextBoxBreakIP.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxBreakIP.TabIndex = 6
+        Me.TextBoxBreakIP.TabIndex = 3
         Me.TextBoxBreakIP.Text = "0000"
         Me.TextBoxBreakIP.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
         'TextBoxMem
         '
+        Me.TextBoxMem.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left), System.Windows.Forms.AnchorStyles)
         Me.TextBoxMem.BackColor = System.Drawing.Color.FromArgb(CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer), CType(CType(44, Byte), Integer))
         Me.TextBoxMem.Cursor = System.Windows.Forms.Cursors.Arrow
         Me.TextBoxMem.Font = New System.Drawing.Font("Consolas", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
@@ -767,7 +769,7 @@ Partial Class FormDebugger
         Me.TextBoxMemSeg.Location = New System.Drawing.Point(12, 327)
         Me.TextBoxMemSeg.Name = "TextBoxMemSeg"
         Me.TextBoxMemSeg.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxMemSeg.TabIndex = 1
+        Me.TextBoxMemSeg.TabIndex = 0
         Me.TextBoxMemSeg.Text = "0000"
         Me.TextBoxMemSeg.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -779,7 +781,7 @@ Partial Class FormDebugger
         Me.TextBoxMemOff.Location = New System.Drawing.Point(88, 327)
         Me.TextBoxMemOff.Name = "TextBoxMemOff"
         Me.TextBoxMemOff.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxMemOff.TabIndex = 2
+        Me.TextBoxMemOff.TabIndex = 1
         Me.TextBoxMemOff.Text = "0000"
         Me.TextBoxMemOff.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -791,7 +793,7 @@ Partial Class FormDebugger
         Me.ButtonRun.Location = New System.Drawing.Point(1045, 628)
         Me.ButtonRun.Name = "ButtonRun"
         Me.ButtonRun.Size = New System.Drawing.Size(97, 32)
-        Me.ButtonRun.TabIndex = 14
+        Me.ButtonRun.TabIndex = 9
         Me.ButtonRun.Text = "Run"
         Me.ButtonRun.UseVisualStyleBackColor = True
         '
@@ -803,7 +805,7 @@ Partial Class FormDebugger
         Me.ButtonReboot.Location = New System.Drawing.Point(551, 628)
         Me.ButtonReboot.Name = "ButtonReboot"
         Me.ButtonReboot.Size = New System.Drawing.Size(97, 32)
-        Me.ButtonReboot.TabIndex = 10
+        Me.ButtonReboot.TabIndex = 6
         Me.ButtonReboot.Text = "Reboot"
         Me.ButtonReboot.UseVisualStyleBackColor = True
         '
@@ -815,7 +817,7 @@ Partial Class FormDebugger
         Me.TextBoxBreakCS.Location = New System.Drawing.Point(399, 327)
         Me.TextBoxBreakCS.Name = "TextBoxBreakCS"
         Me.TextBoxBreakCS.Size = New System.Drawing.Size(70, 26)
-        Me.TextBoxBreakCS.TabIndex = 5
+        Me.TextBoxBreakCS.TabIndex = 2
         Me.TextBoxBreakCS.Text = "0000"
         Me.TextBoxBreakCS.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
         '
@@ -862,7 +864,7 @@ Partial Class FormDebugger
         Me.TextBoxSearch.Location = New System.Drawing.Point(12, 631)
         Me.TextBoxSearch.Name = "TextBoxSearch"
         Me.TextBoxSearch.Size = New System.Drawing.Size(327, 26)
-        Me.TextBoxSearch.TabIndex = 7
+        Me.TextBoxSearch.TabIndex = 4
         '
         'ButtonSearch
         '
@@ -872,7 +874,7 @@ Partial Class FormDebugger
         Me.ButtonSearch.Location = New System.Drawing.Point(366, 628)
         Me.ButtonSearch.Name = "ButtonSearch"
         Me.ButtonSearch.Size = New System.Drawing.Size(97, 32)
-        Me.ButtonSearch.TabIndex = 9
+        Me.ButtonSearch.TabIndex = 5
         Me.ButtonSearch.Text = "Search"
         Me.ButtonSearch.UseVisualStyleBackColor = True
         '
