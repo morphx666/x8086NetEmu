@@ -166,13 +166,13 @@ Public Class FormEmulator
 
     Private Sub CopyTextFromEmulator()
         If isSelectingText Then Exit Sub
-        If TypeOf cpu.VideoAdapter Is CGAWinForms OrElse TypeOf cpu.VideoAdapter Is VGAWinForms Then
+        If (TypeOf cpu.VideoAdapter Is CGAWinForms OrElse TypeOf cpu.VideoAdapter Is VGAWinForms) AndAlso cpu.VideoAdapter.MainMode = VideoAdapter.MainModes.Text Then
             CursorVisible = True
             Me.Cursor = Cursors.IBeam
             cpu.Pause()
             isSelectingText = True
         Else
-            MsgBox("Text copying is only supported on CGAWinForms and VGAWinForms video adapters", MsgBoxStyle.Information)
+            MsgBox("Text copying is only supported on CGAWinForms and VGAWinForms video adapters in Text Mode", MsgBoxStyle.Information)
         End If
     End Sub
 
@@ -549,7 +549,6 @@ Public Class FormEmulator
         AddHandler videoPort.MouseDown, Sub(s As Object, e As MouseEventArgs)
                                             If e.Button = MouseButtons.Left AndAlso isSelectingText Then
                                                 If cpu.VideoAdapter.MainMode <> CGAAdapter.MainModes.Text Then
-                                                    MsgBox("Text copying is only supported in Text video modes", MsgBoxStyle.Information)
                                                     isSelectingText = False
                                                     Exit Sub
                                                 End If

@@ -929,7 +929,12 @@ Public Class FormDebugger
     End Sub
 
     Private Function TextBoxValueToHuman(tb As TextBox) As String
-        Dim value As Binary = Binary.From(EvaluateExpression(tb.Text).Value) And &HFFFF
+        Dim value As Binary
+
+        Try
+            value = Binary.From(EvaluateExpression(tb.Text).Value) And &HFFFF
+        Catch
+        End Try
 
         Return String.Format("{1:N0}d{0}{2}h{0}{3}b", Environment.NewLine,
                                  value.ToLong(),

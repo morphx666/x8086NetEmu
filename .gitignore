@@ -247,10 +247,19 @@ ModelManifest.xml
 
 # ROMS, disks & compiled resources
 !**/Release/
-**/Release/disks
+
 **/Release/*.dll
 **/Release/*.xml
 **/Release/*.exe
 **/Release/*.config
-**/settings.dat
 **/Release/*.manifest
+**/Release/states/
+
+**/Release/disks/*
+!**/Release/disks/hd0-dist.img
+
+**/Release/roms/*
+!**/Release/roms/BASICC11.BIN
+!**/Release/roms/pcxtbios.rom
+
+**/settings.dat

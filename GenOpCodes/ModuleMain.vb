@@ -7,7 +7,6 @@ Module ModuleMain
 
     Sub Main()
         Dim abortMsg As String = "This tool can only be run in DEBUG mode while inside the IDE"
-#If DEBUG Then
         If Debugger.IsAttached Then
             Console.WriteLine("Are you sure you want to parse the opcodes' emulation code? [y/N]")
             If Console.ReadKey(True).Key = ConsoleKey.Y Then
@@ -19,9 +18,7 @@ Module ModuleMain
         Else
             Console.WriteLine(abortMsg)
         End If
-#Else
-        Console.WriteLine(abortMsg)
-#End If
+
         Console.WriteLine("")
         Console.WriteLine("Press any key to exit")
         Console.ReadKey()
@@ -58,10 +55,15 @@ Module ModuleMain
         Dim eof As Integer = src.IndexOf("If useIPAddrOffset Then", p1)
         needle = "Case &H"
 
-        Dim addSubCall = Sub(addComment As Boolean, v As Integer)
+        Dim addSubCall = Sub(addComment As Boolean, v As Integer, paramIdx As Integer)
                              subCalls(v) = $"AddressOf {subName},"
                              If addComment AndAlso src.Substring(p2, p3 - p2).Trim() <> "'" Then
-                                 comment = $"{vbTab}{src.Substring(p2, p3 - p2)}"
+                                 comment = $"{src.Substring(p2, p3 - p2)}".Trim()
+                                 If comment.Contains("|") Then
+                                     Dim fName As String = "' " + comment.Split(" ")(1).Split(" ")(0)
+                                     Dim pName As String = comment.Replace(fName, "").Split("|")(paramIdx).Trim()
+                                     comment = $"{fName} {pName}"
+                                 End If
                                  subCalls(v) += comment
                              End If
                          End Sub
@@ -74,11 +76,11 @@ Module ModuleMain
                                   endIndex = Integer.Parse(subTokens(2).Replace("&H", ""), Globalization.NumberStyles.HexNumber)
 
                                   For i As Integer = startIndex To endIndex
-                                      addSubCall(False, i)
+                                      addSubCall(False, i, i - startIndex)
                                   Next
                               Else
                                   For i As Integer = 1 To subTokens.Length - 1
-                                      addSubCall(True, Integer.Parse(subTokens(i).Replace("&H", ""), Globalization.NumberStyles.HexNumber))
+                                      addSubCall(True, Integer.Parse(subTokens(i).Replace("&H", ""), Globalization.NumberStyles.HexNumber), -1)
                                   Next
                               End If
                           End Sub
@@ -145,7 +147,7 @@ Module ModuleMain
 
             If tokens.Length = 1 Then
                 parseCase()
-                addSubCall(True, startIndex)
+                addSubCall(True, startIndex, -1)
                 addSubDef()
             Else
                 If tmp.Contains(",") Then
@@ -153,7 +155,7 @@ Module ModuleMain
                 Else
                     parseCaseTo()
                     For i As Integer = startIndex To endIndex
-                        addSubCall(i = startIndex, i)
+                        addSubCall(True, i, i - startIndex)
                     Next
                     addSubDef()
                 End If

@@ -235,7 +235,7 @@ Public Class X8086
         ' Lots of ROMs: http://www.hampa.ch/pce/download.html
 
         ' XT IDE
-        'LoadBIN("roms\ide_at.bin", &HC800, &H0)
+        'LoadBIN("roms\ide_xt.bin", &HC800, &H0)
     End Sub
 
     Public Sub Close()
@@ -437,7 +437,7 @@ Public Class X8086
 
     Private Sub Execute_DEBUG()
         Select Case opCode
-            Case &H0 To &H3 ' add reg<->reg / reg<->mem
+            Case &H0 To &H3 ' ADD Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
@@ -452,24 +452,24 @@ Public Class X8086
                     End If
                 End If
 
-            Case &H4 ' add al, imm
+            Case &H4 ' ADD AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Add, DataSize.Byte)
                 clkCyc += 4
 
-            Case &H5 ' add ax, imm
+            Case &H5 ' ADD AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Add, DataSize.Word)
                 clkCyc += 4
 
-            Case &H6 ' push es
+            Case &H6 ' PUSH ES
                 PushIntoStack(mRegisters.ES)
                 clkCyc += 10
 
-            Case &H7 ' pop es
+            Case &H7 ' POP ES
                 mRegisters.ES = PopFromStack()
                 ignoreINTs = True
                 clkCyc += 8
 
-            Case &H8 To &HB ' or
+            Case &H8 To &HB ' OR Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
@@ -484,26 +484,26 @@ Public Class X8086
                     End If
                 End If
 
-            Case &HC ' or al and imm
+            Case &HC ' OR AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicOr, DataSize.Byte)
                 clkCyc += 4
 
-            Case &HD ' or ax and imm
+            Case &HD ' OR AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicOr, DataSize.Word)
                 clkCyc += 4
 
-            Case &HE ' push cs
+            Case &HE ' PUSH CS
                 PushIntoStack(mRegisters.CS)
                 clkCyc += 10
 
-            Case &HF ' pop cs
+            Case &HF ' POP CS
                 If Not mVic20 Then
                     mRegisters.CS = PopFromStack()
                     ignoreINTs = True
                     clkCyc += 8
                 End If
 
-            Case &H10 To &H13 ' adc
+            Case &H10 To &H13 ' ADC Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
@@ -518,19 +518,19 @@ Public Class X8086
                     End If
                 End If
 
-            Case &H14 ' adc al and imm
+            Case &H14 ' ADC AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.AddWithCarry, DataSize.Byte)
                 clkCyc += 3
 
-            Case &H15 ' adc ax and imm
+            Case &H15 ' ADC AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.AddWithCarry, DataSize.Word)
                 clkCyc += 3
 
-            Case &H16 ' push ss
+            Case &H16 ' PUSH SS
                 PushIntoStack(mRegisters.SS)
                 clkCyc += 10
 
-            Case &H17 ' pop ss
+            Case &H17 ' POP SS
                 mRegisters.SS = PopFromStack()
                 ' Lesson 4: http://ntsecurity.nu/onmymind/2007/2007-08-22.html
                 ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
@@ -538,7 +538,7 @@ Public Class X8086
                 ignoreINTs = True
                 clkCyc += 8
 
-            Case &H18 To &H1B ' sbb
+            Case &H18 To &H1B ' SBB Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
@@ -553,24 +553,24 @@ Public Class X8086
                     End If
                 End If
 
-            Case &H1C ' sbb al and imm
+            Case &H1C ' SBB AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.SubstractWithCarry, DataSize.Byte)
                 clkCyc += 4
 
-            Case &H1D ' sbb ax and imm
+            Case &H1D ' SBB AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.SubstractWithCarry, DataSize.Word)
                 clkCyc += 4
 
-            Case &H1E ' push ds
+            Case &H1E ' PUSH DS
                 PushIntoStack(mRegisters.DS)
                 clkCyc += 10
 
-            Case &H1F ' pop ds
+            Case &H1F ' POP DS
                 mRegisters.DS = PopFromStack()
                 ignoreINTs = True
                 clkCyc += 8
 
-            Case &H20 To &H23 ' and reg/mem and reg to either
+            Case &H20 To &H23 ' AND Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
@@ -585,11 +585,11 @@ Public Class X8086
                     End If
                 End If
 
-            Case &H24 ' and al and imm
+            Case &H24 ' AND AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicAnd, DataSize.Byte)
                 clkCyc += 4
 
-            Case &H25 ' and ax and imm
+            Case &H25 ' AND AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicAnd, DataSize.Word)
                 clkCyc += 4
 
@@ -599,7 +599,7 @@ Public Class X8086
                 newPrefix = True
                 clkCyc += 2
 
-            Case &H27 ' daa
+            Case &H27 ' DAA
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     tmpUVal = CUInt(mRegisters.AL) + 6
                     mRegisters.AL += 6
@@ -618,7 +618,7 @@ Public Class X8086
                 SetSZPFlags(tmpUVal, DataSize.Byte)
                 clkCyc += 4
 
-            Case &H28 To &H2B ' sub reg/mem with reg to either
+            Case &H28 To &H2B ' SUB Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
@@ -633,15 +633,15 @@ Public Class X8086
                     End If
                 End If
 
-            Case &H2C ' sub al and imm
+            Case &H2C ' SUB AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Substract, DataSize.Byte)
                 clkCyc += 4
 
-            Case &H2D ' sub ax and imm
+            Case &H2D ' SUB AX, Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Substract, DataSize.Word)
                 clkCyc += 4
 
-            Case &H2F ' das
+            Case &H2F ' DAS
                 tmpVal = mRegisters.AL
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     tmpUVal = CShort(mRegisters.AL) - 6
@@ -661,7 +661,7 @@ Public Class X8086
                 SetSZPFlags(tmpUVal, DataSize.Byte)
                 clkCyc += 4
 
-            Case &H30 To &H33 ' xor reg/mem and reg to either
+            Case &H30 To &H33 ' XOR Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
@@ -676,15 +676,15 @@ Public Class X8086
                     End If
                 End If
 
-            Case &H34 ' xor al and imm
+            Case &H34 ' XOR AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicXor, DataSize.Byte)
                 clkCyc += 4
 
-            Case &H35 ' xor ax and imm
+            Case &H35 ' XOR AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicXor, DataSize.Word)
                 clkCyc += 4
 
-            Case &H37 ' aaa
+            Case &H37 ' AAA
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     mRegisters.AX += &H106
                     mFlags.AF = 1
@@ -696,7 +696,7 @@ Public Class X8086
                 mRegisters.AL = mRegisters.AL.LowNib()
                 clkCyc += 8
 
-            Case &H38 To &H3B ' cmp reg/mem and reg
+            Case &H38 To &H3B ' CMP Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
@@ -710,15 +710,15 @@ Public Class X8086
                     clkCyc += 9
                 End If
 
-            Case &H3C ' cmp al and imm
+            Case &H3C ' CMP AL Ib
                 Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Compare, DataSize.Byte)
                 clkCyc += 4
 
-            Case &H3D ' cmp ax and imm
+            Case &H3D ' CMP AX Iv
                 Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Compare, DataSize.Word)
                 clkCyc += 4
 
-            Case &H3F ' aas
+            Case &H3F ' AAS
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
                     mRegisters.AX -= &H106
                     mFlags.AF = 1
@@ -730,17 +730,17 @@ Public Class X8086
                 mRegisters.AL = mRegisters.AL.LowNib()
                 clkCyc += 8
 
-            Case &H40 To &H47 ' inc reg
+            Case &H40 To &H47 ' INC AX | CX | DX | BX | SP | BP | SI | DI
                 SetRegister1Alt(opCode)
                 mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), 1, Operation.Increment, DataSize.Word)
                 clkCyc += 3
 
-            Case &H48 To &H4F ' dec reg
+            Case &H48 To &H4F ' DEC AX | CX | DX | BX | SP | BP | SI | DI
                 SetRegister1Alt(opCode)
                 mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), 1, Operation.Decrement, DataSize.Word)
                 clkCyc += 3
 
-            Case &H50 To &H57 ' push reg
+            Case &H50 To &H57 ' PUSH AX | CX | DX | BX | SP | BP | SI | DI
                 If opCode = &H54 Then  ' SP
                     ' The 8086/8088 pushes the value of SP after it has been decremented
                     ' http://css.csail.mit.edu/6.858/2013/readings/i386/s15_06.htm
@@ -751,12 +751,12 @@ Public Class X8086
                 End If
                 clkCyc += 11
 
-            Case &H58 To &H5F ' pop reg
+            Case &H58 To &H5F ' POP AX | CX | DX | BX | SP | BP | SI | DI
                 SetRegister1Alt(opCode)
                 mRegisters.Val(addrMode.Register1) = PopFromStack()
                 clkCyc += 8
 
-            Case &H60 ' pusha (80186)
+            Case &H60 ' PUSHA (80186)
                 If mVic20 Then
                     tmpUVal = mRegisters.SP
                     PushIntoStack(mRegisters.AX)
@@ -772,7 +772,7 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &H61 ' popa (80186)
+            Case &H61 ' POPA (80186)
                 If mVic20 Then
                     mRegisters.DI = PopFromStack()
                     mRegisters.SI = PopFromStack()
@@ -787,7 +787,7 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &H62 ' bound (80186)
+            Case &H62 ' BOUND (80186)
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
@@ -804,7 +804,7 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &H68 ' push (80186)
+            Case &H68 ' PUSH Iv (80186)
                 ' PRE ALPHA CODE - UNTESTED
                 If mVic20 Then
                     PushIntoStack(Param(ParamIndex.First, , DataSize.Word))
@@ -813,7 +813,7 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &H69 ' imul (80186)
+            Case &H69 ' IMUL (80186)
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
@@ -835,7 +835,7 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &H6A ' push (80186)
+            Case &H6A ' PUSH Ib (80186)
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
@@ -844,7 +844,7 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &H6B ' imul (80186)
+            Case &H6B ' IMUL (80186)
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
@@ -870,7 +870,7 @@ Public Class X8086
                 opCodeSize += 1
                 clkCyc += 3
 
-            Case &H70 ' jo
+            Case &H70 ' JO Jb
                 If mFlags.OF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -879,7 +879,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H71 ' jno
+            Case &H71 ' JNO  Jb
                 If mFlags.OF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -888,7 +888,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H72 ' jb/jnae/jc (unsigned)
+            Case &H72 ' JB/JNAE/JC Jb
                 If mFlags.CF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -897,7 +897,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H73 ' jnb/jae/jnc (unsigned)
+            Case &H73 ' JNB/JAE/JNC Jb
                 If mFlags.CF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -906,7 +906,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H74 ' je/jz
+            Case &H74 ' JZ/JE Jb
                 If mFlags.ZF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -915,7 +915,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H75 ' jne/jnz
+            Case &H75 ' JNZ/JNE Jb
                 If mFlags.ZF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -924,7 +924,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H76 ' jbe/jna (unsigned)
+            Case &H76 ' JBE/JNA Jb
                 If mFlags.CF = 1 OrElse mFlags.ZF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -933,7 +933,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H77 ' ja/jnbe (unsigned)
+            Case &H77 ' JA/JNBE Jb
                 If mFlags.CF = 0 AndAlso mFlags.ZF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -942,7 +942,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H78 ' js
+            Case &H78 ' JS Jb
                 If mFlags.SF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -951,7 +951,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H79 ' jns
+            Case &H79 ' JNS Jb
                 If mFlags.SF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -960,7 +960,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7A ' jp/jpe
+            Case &H7A ' JPE/JP Jb
                 If mFlags.PF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -969,7 +969,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7B ' jnp/jpo
+            Case &H7B ' JPO/JNP Jb
                 If mFlags.PF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -978,7 +978,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7C ' jl/jnge (signed)
+            Case &H7C ' JL/JNGE Jb
                 If mFlags.SF <> mFlags.OF Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -987,7 +987,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7D ' jnl/jge (signed)
+            Case &H7D ' JGE/JNL Jb
                 If mFlags.SF = mFlags.OF Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -996,7 +996,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7E ' jle/jng (signed)
+            Case &H7E ' JLE/JNG Jb
                 If mFlags.ZF = 1 OrElse (mFlags.SF <> mFlags.OF) Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1005,7 +1005,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &H7F ' jg/jnle (signed)
+            Case &H7F ' JG/JNLE Jb
                 If mFlags.ZF = 0 AndAlso (mFlags.SF = mFlags.OF) Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 16
@@ -1016,7 +1016,7 @@ Public Class X8086
 
             Case &H80 To &H83 : ExecuteGroup1()
 
-            Case &H84 To &H85 ' test reg with reg/mem
+            Case &H84 To &H85 ' TEST Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Test, addrMode.Size)
@@ -1026,7 +1026,7 @@ Public Class X8086
                     clkCyc += 9
                 End If
 
-            Case &H86 To &H87 ' xchg reg/mem with reg
+            Case &H86 To &H87 ' XCHG Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     tmpUVal = mRegisters.Val(addrMode.Dst)
@@ -1039,7 +1039,7 @@ Public Class X8086
                     clkCyc += 17
                 End If
 
-            Case &H88 To &H8B ' mov ind <-> reg8/reg16
+            Case &H88 To &H8B ' MOV Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
@@ -1054,34 +1054,24 @@ Public Class X8086
                     End If
                 End If
 
-            Case &H8C ' mov Ew, Sw
+            Case &H8C ' MOV Ew Sw
                 SetAddressing(DataSize.Word)
-                addrMode.Src += GPRegisters.RegistersTypes.ES
-                If addrMode.Dst > GPRegisters.RegistersTypes.BL Then
-                    addrMode.Dst = (addrMode.Dst + GPRegisters.RegistersTypes.ES) Or shl3
-                Else
-                    addrMode.Dst = addrMode.Dst Or shl3
-                End If
-
+                SetRegister2ToSegReg()
                 If addrMode.IsDirect Then
-                    mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
+                    SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
+                    mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
                     clkCyc += 2
                 Else
-                    If addrMode.Direction = 0 Then
-                        RAMn = mRegisters.Val(addrMode.Src)
-                        clkCyc += 9
-                    Else
-                        mRegisters.Val(addrMode.Dst) = addrMode.IndMem
-                        clkCyc += 8
-                    End If
+                    RAMn = mRegisters.Val(addrMode.Register2)
+                    clkCyc += 8
                 End If
 
-            Case &H8D ' lea
+            Case &H8D ' LEA Gv M
                 SetAddressing()
                 mRegisters.Val(addrMode.Src) = addrMode.IndAdr
                 clkCyc += 2
 
-            Case &H8E  ' mov Sw, Ew
+            Case &H8E ' MOV Sw Ew
                 SetAddressing(DataSize.Word)
                 SetRegister2ToSegReg()
                 If addrMode.IsDirect Then
@@ -1092,14 +1082,10 @@ Public Class X8086
                     mRegisters.Val(addrMode.Register2) = addrMode.IndMem
                     clkCyc += 8
                 End If
-                ignoreINTs = ignoreINTs Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.CS) Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.SS) Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.DS) Or
-                        (addrMode.Register2 = GPRegisters.RegistersTypes.ES)
+                ignoreINTs = True
                 If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then mDoReSchedule = True
 
-            Case &H8F ' pop reg/mem
+            Case &H8F ' POP Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
                     addrMode.Decode(opCode, opCode)
@@ -1109,25 +1095,54 @@ Public Class X8086
                 End If
                 clkCyc += 17
 
-            Case &H90 ' nop
+            Case &H90 ' NOP
                 clkCyc += 3
 
-            Case &H90 To &H97 ' xchg reg with acc
-                SetRegister1Alt(opCode)
+            Case &H91 ' XCHG CX AX
                 tmpUVal = mRegisters.AX
-                mRegisters.AX = mRegisters.Val(addrMode.Register1)
-                mRegisters.Val(addrMode.Register1) = tmpUVal
+                mRegisters.AX = mRegisters.CX
+                mRegisters.CX = tmpUVal
+                clkCyc += 3
+            Case &H92 ' XCHG DX AX
+                tmpUVal = mRegisters.AX
+                mRegisters.AX = mRegisters.DX
+                mRegisters.DX = tmpUVal
+                clkCyc += 3
+            Case &H93 ' XCHG BX AX
+                tmpUVal = mRegisters.AX
+                mRegisters.AX = mRegisters.BX
+                mRegisters.BX = tmpUVal
+                clkCyc += 3
+            Case &H94 ' XCHG SP AX
+                tmpUVal = mRegisters.AX
+                mRegisters.AX = mRegisters.SP
+                mRegisters.SP = tmpUVal
+                clkCyc += 3
+            Case &H95 ' XCHG BP AX
+                tmpUVal = mRegisters.AX
+                mRegisters.AX = mRegisters.BP
+                mRegisters.BP = tmpUVal
+                clkCyc += 3
+            Case &H96 ' XCHG SI AX
+                tmpUVal = mRegisters.AX
+                mRegisters.AX = mRegisters.SI
+                mRegisters.SI = tmpUVal
+                clkCyc += 3
+            Case &H97 ' XCHG DI AX
+                tmpUVal = mRegisters.AX
+                mRegisters.AX = mRegisters.DI
+                mRegisters.DI = tmpUVal
                 clkCyc += 3
 
-            Case &H98 ' cbw
+            Case &H98 ' CBW
                 mRegisters.AX = To16bitsWithSign(mRegisters.AL)
                 clkCyc += 2
 
-            Case &H99 ' cwd
+            Case &H99 ' CWD
                 mRegisters.DX = If((mRegisters.AH And &H80) <> 0, &HFFFF, &H0)
                 clkCyc += 5
 
-            Case &H9A ' call direct inter-segment
+            Case &H9A ' CALL Ap
                 IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
                 tmpUVal = Param(ParamIndex.Second, , DataSize.Word)
                 PushIntoStack(mRegisters.CS)
@@ -1135,58 +1150,76 @@ Public Class X8086
                 mRegisters.CS = tmpUVal
                 clkCyc += 28
 
-            Case &H9B ' wait
+            Case &H9B ' WAIT
                 clkCyc += 4
 
-            Case &H9C ' pushf
+            Case &H9C ' PUSHF
                 PushIntoStack(If(mModel = Models.IBMPC_5150, &HFFF, &HFFFF) And mFlags.EFlags)
                 clkCyc += 10
 
-            Case &H9D ' popf
+            Case &H9D ' POPF
                 mFlags.EFlags = PopFromStack()
                 clkCyc += 8
 
-            Case &H9E ' sahf
+            Case &H9E ' SAHF
                 mFlags.EFlags = (mFlags.EFlags And &HFF00) Or mRegisters.AH
                 clkCyc += 4
 
-            Case &H9F ' lahf
+            Case &H9F ' LAHF
                 mRegisters.AH = mFlags.EFlags
                 clkCyc += 4
 
-            Case &HA0 To &HA3 ' mov mem to acc | mov acc to mem
-                addrMode.Size = opCode And 1
-                addrMode.Direction = (opCode >> 1) And 1
-                addrMode.IndAdr = Param(ParamIndex.First, , DataSize.Word)
-                addrMode.Register1 = If(addrMode.Size = DataSize.Byte, GPRegisters.RegistersTypes.AL, GPRegisters.RegistersTypes.AX)
-                If addrMode.Direction = 0 Then
-                    mRegisters.Val(addrMode.Register1) = RAMn
-                Else
-                    RAMn = mRegisters.Val(addrMode.Register1)
-                End If
-                clkCyc += 10
+            Case &HA0 ' MOV AL Ob
+                mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) : clkCyc += 10
+            Case &HA1 ' MOV AX Ov
+                mRegisters.AX = RAM16(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) : clkCyc += 10
+            Case &HA2 ' MOV Ob AL
+                RAM8(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) = mRegisters.AL : clkCyc += 10
+            Case &HA3 ' MOV Ov AX
+                RAM16(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) = mRegisters.AX : clkCyc += 10
 
             Case &HA4 To &HA7, &HAA To &HAF : HandleREPMode()
 
-            Case &HA8 ' test al imm8
+            Case &HA8 ' TEST AL Ib
                 Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
                 clkCyc += 4
 
-            Case &HA9 ' test ax imm16
+            Case &HA9 ' TEST AX Iv
                 Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Test, DataSize.Word)
                 clkCyc += 4
 
-            Case &HB0 To &HBF ' mov imm to reg
-                addrMode.Register1 = opCode And &H7
-                If (opCode And &H8) = &H8 Then
-                    addrMode.Register1 += GPRegisters.RegistersTypes.AX
-                    If (opCode And &H4) = &H4 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
-                    addrMode.Size = DataSize.Word
-                Else
-                    addrMode.Size = DataSize.Byte
-                End If
-                mRegisters.Val(addrMode.Register1) = Param(ParamIndex.First)
-                clkCyc += 4
+            Case &HB0 ' MOV AL Ib
+                mRegisters.AL = Param(ParamIndex.First,, DataSize.Byte) : clkCyc += 4
+            Case &HB1 ' MOV CL Ib
+                mRegisters.CL = Param(ParamIndex.First,, DataSize.Byte) : clkCyc += 4
+            Case &HB2 ' MOV DL Ib
+                mRegisters.DL = Param(ParamIndex.First,, DataSize.Byte) : clkCyc += 4
+            Case &HB3 ' MOV BL Ib
+                mRegisters.BL = Param(ParamIndex.First,, DataSize.Byte) : clkCyc += 4
+            Case &HB4 ' MOV AH Ib
+                mRegisters.AH = Param(ParamIndex.First,, DataSize.Byte) : clkCyc += 4
+            Case &HB5 ' MOV CH Ib
+                mRegisters.CH = Param(ParamIndex.First,, DataSize.Byte) : clkCyc += 4
+            Case &HB6 ' MOV DH Ib
+                mRegisters.DH = Param(ParamIndex.First,, DataSize.Byte) : clkCyc += 4
+            Case &HB7 ' MOV BH Ib
+                mRegisters.BH = Param(ParamIndex.First,, DataSize.Byte) : clkCyc += 4
+            Case &HB8 ' MOV AX Ib
+                mRegisters.AX = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
+            Case &HB9 ' MOV CX Ib
+                mRegisters.CX = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
+            Case &HBA ' MOV DX Ib
+                mRegisters.DX = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
+            Case &HBB ' MOV BX Ib
+                mRegisters.BX = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
+            Case &HBC ' MOV SP Ib
+                mRegisters.SP = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
+            Case &HBD ' MOV BP Ib
+                mRegisters.BP = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
+            Case &HBE ' MOV SI Ib
+                mRegisters.SI = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
+            Case &HBF ' MOV DI Ib
+                mRegisters.DI = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
 
             Case &HC0, &HC1 ' GRP2 byte/word imm8/16 ??? (80186)
                 If mVic20 Then
@@ -1196,16 +1229,16 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &HC2 ' ret (ret n) within segment adding imm to sp
+            Case &HC2 ' RET Iw
                 IPAddrOffet = PopFromStack()
                 mRegisters.SP += Param(ParamIndex.First, , DataSize.Word)
                 clkCyc += 20
 
-            Case &HC3 ' ret within segment
+            Case &HC3 ' RET
                 IPAddrOffet = PopFromStack()
                 clkCyc += 16
 
-            Case &HC4 To &HC5 ' les | lds
+            Case &HC4 To &HC5 ' LES / LDS Gv Mp
                 SetAddressing(DataSize.Word)
                 If (addrMode.Register1 And shl2) = shl2 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
                 mRegisters.Val(addrMode.Register1 Or shl3) = addrMode.IndMem
@@ -1213,7 +1246,7 @@ Public Class X8086
                 ignoreINTs = True
                 clkCyc += 16
 
-            Case &HC6 To &HC7 ' mov imm to reg/mem
+            Case &HC6 To &HC7 ' MOV Eb Ib | MOV Ev Iv
                 SetAddressing()
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Src) = Param(ParamIndex.First, opCodeSize)
@@ -1222,7 +1255,7 @@ Public Class X8086
                 End If
                 clkCyc += 10
 
-            Case &HC8 ' enter (80186)
+            Case &HC8 ' ENTER (80186)
                 If mVic20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     Dim stackSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)
@@ -1249,7 +1282,7 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &HC9 ' leave (80186)
+            Case &HC9 ' LEAVE (80186)
                 If mVic20 Then
                     mRegisters.SP = mRegisters.BP
                     mRegisters.BP = PopFromStack()
@@ -1258,27 +1291,27 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &HCA ' ret intersegment adding imm to sp (ret n /retf)
+            Case &HCA ' RETF Iw
                 tmpUVal = Param(ParamIndex.First, , DataSize.Word)
                 IPAddrOffet = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 mRegisters.SP += tmpUVal
                 clkCyc += 17
 
-            Case &HCB ' ret intersegment (retf)
+            Case &HCB ' RETF
                 IPAddrOffet = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 clkCyc += 18
 
-            Case &HCC ' int with type 3
+            Case &HCC ' INT 3
                 HandleInterrupt(3, False)
                 clkCyc += 1
 
-            Case &HCD ' int with type specified
+            Case &HCD ' INT Ib
                 HandleInterrupt(Param(ParamIndex.First, , DataSize.Byte), False)
                 clkCyc += 0
 
-            Case &HCE ' into
+            Case &HCE ' INTO
                 If mFlags.OF = 1 Then
                     HandleInterrupt(4, False)
                     clkCyc += 3
@@ -1286,7 +1319,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &HCF ' iret
+            Case &HCF ' IRET
                 IPAddrOffet = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 mFlags.EFlags = PopFromStack()
@@ -1294,7 +1327,7 @@ Public Class X8086
 
             Case &HD0 To &HD3 : ExecuteGroup2()
 
-            Case &HD4 ' aam
+            Case &HD4 ' AAM I0
                 tmpUVal = Param(ParamIndex.First, , DataSize.Byte)
                 If tmpUVal = 0 Then
                     HandleInterrupt(0, True)
@@ -1305,14 +1338,16 @@ Public Class X8086
                 SetSZPFlags(mRegisters.AX, DataSize.Word)
                 clkCyc += 83
 
-            Case &HD5 ' aad
-                mRegisters.AL += mRegisters.AH * Param(ParamIndex.First, , DataSize.Byte)
+            Case &HD5 ' AAD I0
+                tmpUVal = Param(ParamIndex.First, , DataSize.Byte)
+                tmpUVal = tmpUVal * mRegisters.AH + mRegisters.AL
+                mRegisters.AL = tmpUVal
                 mRegisters.AH = 0
-                SetSZPFlags(mRegisters.AX, DataSize.Word)
+                SetSZPFlags(tmpUVal, DataSize.Word)
                 mFlags.SF = 0
                 clkCyc += 60
 
-            Case &HD6 ' xlat / salc
+            Case &HD6 ' XLAT for V20 / SALC
                 If mVic20 Then
                     mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
                 Else
@@ -1320,7 +1355,7 @@ Public Class X8086
                     clkCyc += 4
                 End If
 
-            Case &HD7 ' xlatb
+            Case &HD7 ' XLATB
                 mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
                 clkCyc += 11
 
@@ -1335,7 +1370,7 @@ Public Class X8086
                 OpCodeNotImplemented("FPU Not Available")
                 clkCyc += 2
 
-            Case &HE0 ' loopne/loopnz
+            Case &HE0 ' LOOPNE/LOOPNZ
                 mRegisters.CX -= 1
                 If mRegisters.CX > 0 AndAlso mFlags.ZF = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
@@ -1345,7 +1380,7 @@ Public Class X8086
                     clkCyc += 5
                 End If
 
-            Case &HE1 ' loope/loopz
+            Case &HE1 ' LOOPE/LOOPZ
                 mRegisters.CX -= 1
                 If mRegisters.CX > 0 AndAlso mFlags.ZF = 1 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
@@ -1355,7 +1390,7 @@ Public Class X8086
                     clkCyc += 6
                 End If
 
-            Case &HE2 ' loop
+            Case &HE2 ' LOOP
                 mRegisters.CX -= 1
                 If mRegisters.CX > 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
@@ -1365,7 +1400,7 @@ Public Class X8086
                     clkCyc += 5
                 End If
 
-            Case &HE3 ' jcxz/jecxz
+            Case &HE3 ' JCXZ/JECXZ
                 If mRegisters.CX = 0 Then
                     IPAddrOffet = OffsetIP(DataSize.Byte)
                     clkCyc += 18
@@ -1374,61 +1409,61 @@ Public Class X8086
                     clkCyc += 6
                 End If
 
-            Case &HE4 ' in to al from fixed port
+            Case &HE4 ' IN AL Ib
                 mRegisters.AL = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
                 clkCyc += 10
 
-            Case &HE5 ' inw to ax from fixed port
+            Case &HE5 ' IN AX Ib
                 mRegisters.AX = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
                 clkCyc += 10
 
-            Case &HE6  ' out to al to fixed port
+            Case &HE6  ' OUT Ib AL
                 SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AL)
                 clkCyc += 10
 
-            Case &HE7  ' outw to ax to fixed port
+            Case &HE7  ' OUT Ib AX
                 SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AX)
                 clkCyc += 10
 
-            Case &HE8 ' call direct within segment
+            Case &HE8 ' CALL Jv
                 IPAddrOffet = OffsetIP(DataSize.Word)
                 PushIntoStack(Registers.IP + opCodeSize)
                 clkCyc += 19
 
-            Case &HE9 ' jmp direct within segment
+            Case &HE9 ' JMP Jv
                 IPAddrOffet = OffsetIP(DataSize.Word)
                 clkCyc += 15
 
-            Case &HEA ' jmp direct intersegment
+            Case &HEA ' JMP Ap
                 IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
                 mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word)
                 clkCyc += 15
 
-            Case &HEB ' jmp direct within segment short
+            Case &HEB ' JMP Jb
                 IPAddrOffet = OffsetIP(DataSize.Byte)
                 clkCyc += 15
 
-            Case &HEC  ' in to al from variable port in dx
+            Case &HEC ' IN AL DX
                 mRegisters.AL = ReceiveFromPort(mRegisters.DX)
                 clkCyc += 8
 
-            Case &HED ' inw to ax from variable port in dx
+            Case &HED ' IN AX DX
                 mRegisters.AX = ReceiveFromPort(mRegisters.DX)
                 clkCyc += 8
 
-            Case &HEE ' out to port dx from al
+            Case &HEE ' OUT DX AL
                 SendToPort(mRegisters.DX, mRegisters.AL)
                 clkCyc += 8
 
-            Case &HEF ' out to port dx from ax
+            Case &HEF ' OUT DX AX
                 SendToPort(mRegisters.DX, mRegisters.AX)
                 clkCyc += 8
 
-            Case &HF0 ' lock
+            Case &HF0 ' LOCK
                 OpCodeNotImplemented("LOCK")
                 clkCyc += 2
 
-            Case &HF2 ' repne/repnz
+            Case &HF2 ' REPBE/REPNZ
                 mRepeLoopMode = REPLoopModes.REPENE
                 newPrefix = True
                 clkCyc += 2
@@ -1438,39 +1473,39 @@ Public Class X8086
                 newPrefix = True
                 clkCyc += 2
 
-            Case &HF4 ' hlt
+            Case &HF4 ' HLT
                 If Not mIsHalted Then SystemHalted()
                 mRegisters.IP -= 1
                 clkCyc += 2
 
-            Case &HF5 ' cmc
+            Case &HF5 ' CMC
                 mFlags.CF = If(mFlags.CF = 0, 1, 0)
                 clkCyc += 2
 
             Case &HF6 To &HF7 : ExecuteGroup3()
 
-            Case &HF8 ' clc
+            Case &HF8 ' CLC
                 mFlags.CF = 0
                 clkCyc += 2
 
-            Case &HF9 ' stc
+            Case &HF9 ' STC
                 mFlags.CF = 1
                 clkCyc += 2
 
-            Case &HFA ' cli
+            Case &HFA ' CLI
                 mFlags.IF = 0
                 clkCyc += 2
 
-            Case &HFB ' sti
+            Case &HFB ' STI
                 mFlags.IF = 1
                 ignoreINTs = True ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
                 clkCyc += 2
 
-            Case &HFC ' cld
+            Case &HFC ' CLD
                 mFlags.DF = 0
                 clkCyc += 2
 
-            Case &HFD ' std
+            Case &HFD ' STD
                 mFlags.DF = 1
                 clkCyc += 2
 
@@ -1501,12 +1536,12 @@ Public Class X8086
     Private Sub ExecuteGroup1() ' &H80 To &H83
         SetAddressing()
 
-        Dim arg1 As UInt16 = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)              ' reg
-        Dim arg2 As UInt16 = Param(ParamIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))    ' imm
+        Dim arg1 As UInt16 = If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem)
+        Dim arg2 As UInt16 = Param(ParamIndex.First, opCodeSize, If(opCode = &H83, DataSize.Byte, addrMode.Size))
         If opCode = &H83 Then arg2 = To16bitsWithSign(arg2)
 
         Select Case addrMode.Reg
-            Case 0 ' 000 -- add imm to reg/mem
+            Case 0 ' ADD Eb Ib | Ev Iv | Ev Ib (opcode 83h only)
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(arg1, arg2, Operation.Add, addrMode.Size)
                     clkCyc += 4
@@ -1515,7 +1550,7 @@ Public Class X8086
                     clkCyc += 17
                 End If
 
-            Case 1 ' 001 --  or imm to reg/mem
+            Case 1 ' OR Eb Ib | Ev Iv | Ev Ib (opcode 83h only)
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(arg1, arg2, Operation.LogicOr, addrMode.Size)
                     clkCyc += 4
@@ -1524,7 +1559,7 @@ Public Class X8086
                     clkCyc += 17
                 End If
 
-            Case 2 ' 010 --  adc imm to reg/mem
+            Case 2 ' ADC Eb Ib | Ev Iv | Ev Ib (opcode 83h only)
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(arg1, arg2, Operation.AddWithCarry, addrMode.Size)
                     clkCyc += 4
@@ -1533,7 +1568,7 @@ Public Class X8086
                     clkCyc += 17
                 End If
 
-            Case 3 ' 011 --  sbb imm from reg/mem
+            Case 3 ' SBB Eb Ib | Ev Iv | Ev Ib (opcode 83h only)
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(arg1, arg2, Operation.SubstractWithCarry, addrMode.Size)
                     clkCyc += 4
@@ -1542,7 +1577,7 @@ Public Class X8086
                     clkCyc += 17
                 End If
 
-            Case 4 ' 100 --  and imm to reg/mem
+            Case 4 ' AND Eb Ib | Ev Iv | Ev Ib (opcode 83h only)
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(arg1, arg2, Operation.LogicAnd, addrMode.Size)
                     clkCyc += 4
@@ -1551,7 +1586,7 @@ Public Class X8086
                     clkCyc += 17
                 End If
 
-            Case 5 ' 101 --  sub imm from reg/mem
+            Case 5 ' SUB Eb Ib | Ev Iv | Ev Ib (opcode 83h only)
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(arg1, arg2, Operation.Substract, addrMode.Size)
                     clkCyc += 4
@@ -1560,7 +1595,7 @@ Public Class X8086
                     clkCyc += 17
                 End If
 
-            Case 6 ' 110 --  xor imm to reg/mem
+            Case 6 ' XOR Eb Ib | Ev Iv | Ev Ib (opcode 83h only)
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(arg1, arg2, Operation.LogicXor, addrMode.Size)
                     clkCyc += 4
@@ -1569,7 +1604,7 @@ Public Class X8086
                     clkCyc += 17
                 End If
 
-            Case 7 ' 111 --  cmp imm with reg/mem
+            Case 7 ' CMP Eb Ib | Ev Iv | Ev Ib (opcode 83h only)
                 Eval(arg1, arg2, Operation.Compare, addrMode.Size)
                 clkCyc += If(addrMode.IsDirect, 4, 10)
 
@@ -1638,7 +1673,7 @@ Public Class X8086
         If count = 0 Then newValue = oldValue
 
         Select Case addrMode.Reg
-            Case 0 ' 000 -- rol
+            Case 0 ' ROL Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue << 1) Or (oldValue >> mask07_15)
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
@@ -1649,7 +1684,7 @@ Public Class X8086
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
 
-            Case 1 ' 001 -- ror
+            Case 1 ' ROR Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue << mask07_15)
                     mFlags.CF = oldValue And 1
@@ -1660,7 +1695,7 @@ Public Class X8086
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
 
-            Case 2 ' 010 -- rcl
+            Case 2 ' RCL Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue << 1) Or mFlags.CF
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
@@ -1672,7 +1707,7 @@ Public Class X8086
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 End If
 
-            Case 3 ' 011 -- rcr
+            Case 3 ' RCR Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (CUInt(mFlags.CF) << mask07_15)
                     mFlags.CF = oldValue And 1
@@ -1686,7 +1721,7 @@ Public Class X8086
                     mFlags.OF = 0
                 End If
 
-            Case 4, 6 ' 100/110 -- shl/sal
+            Case 4, 6 ' SHL/SAL Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = oldValue << 1
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
@@ -1700,7 +1735,7 @@ Public Class X8086
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
 
-            Case 5 ' 101 -- shr
+            Case 5 ' SHR Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = oldValue >> 1
                     mFlags.CF = oldValue And 1
@@ -1715,7 +1750,7 @@ Public Class X8086
                 End If
                 SetSZPFlags(newValue, addrMode.Size)
 
-            Case 7 ' 111 -- sar
+            Case 7 ' SAR Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue And mask80_8000)
                     mFlags.CF = oldValue And 1
@@ -1743,7 +1778,7 @@ Public Class X8086
         SetAddressing()
 
         Select Case addrMode.Reg
-            Case 0 ' 000 -- test
+            Case 0 ' TEST Eb Ib | Ev Iv
                 If addrMode.IsDirect Then
                     Eval(mRegisters.Val(addrMode.Register2), Param(ParamIndex.First, opCodeSize), Operation.Test, addrMode.Size)
                     clkCyc += 5
@@ -1752,7 +1787,7 @@ Public Class X8086
                     clkCyc += 11
                 End If
 
-            Case 2 ' 010 -- not
+            Case 2 ' NOT Eb | Ev
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Not mRegisters.Val(addrMode.Register2)
                     clkCyc += 3
@@ -1761,7 +1796,7 @@ Public Class X8086
                     clkCyc += 16
                 End If
 
-            Case 3 ' 011 -- neg
+            Case 3 ' NEG Eb | Ev
                 If addrMode.IsDirect Then
                     Eval(0, mRegisters.Val(addrMode.Register2), Operation.Substract, addrMode.Size)
                     tmpUVal = (Not mRegisters.Val(addrMode.Register2)) + 1
@@ -1774,7 +1809,7 @@ Public Class X8086
                     clkCyc += 16
                 End If
 
-            Case 4 ' 100 -- mul
+            Case 4 ' MUL
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
                         tmpUVal = mRegisters.Val(addrMode.Register2) * mRegisters.AL
@@ -1806,7 +1841,7 @@ Public Class X8086
                 End If
                 mFlags.ZF = If(mVic20, If(tmpUVal <> 0, 1, 0), 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
 
-            Case 5 ' 101 -- imul
+            Case 5 ' IMUL
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
                         Dim m1 As UInt32 = To16bitsWithSign(mRegisters.AL)
@@ -1864,7 +1899,7 @@ Public Class X8086
                 End If
                 If Not mVic20 Then mFlags.ZF = 0
 
-            Case 6 ' 110 -- div
+            Case 6 ' DIV
                 Dim div As UInt32
                 Dim num As UInt32
                 Dim result As UInt32
@@ -1908,7 +1943,7 @@ Public Class X8086
                     mRegisters.DX = remain
                 End If
 
-            Case 7 ' 111 -- idiv
+            Case 7 ' IDIV
                 Dim div As UInt32
                 Dim num As UInt32
                 Dim result As UInt32
@@ -2002,7 +2037,7 @@ Public Class X8086
         SetAddressing()
 
         Select Case addrMode.Reg
-            Case 0 ' 000 -- inc reg/mem
+            Case 0 ' INC Eb | Ev
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), 1, Operation.Increment, addrMode.Size)
                     clkCyc += 3
@@ -2011,7 +2046,7 @@ Public Class X8086
                     clkCyc += 15
                 End If
 
-            Case 1 ' 001 -- dec reg/mem
+            Case 1 ' DEC Eb | Ev
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Register2) = Eval(mRegisters.Val(addrMode.Register2), 1, Operation.Decrement, addrMode.Size)
                     clkCyc += 3
@@ -2020,32 +2055,32 @@ Public Class X8086
                     clkCyc += 15
                 End If
 
-            Case 2 ' 010 -- call indirect within segment
+            Case 2 ' CALL Mp
                 PushIntoStack(mRegisters.IP + opCodeSize)
                 IPAddrOffet = If(addrMode.IsDirect,
                                     mRegisters.Val(addrMode.Register2),
                                     addrMode.IndMem)
                 clkCyc += 11
 
-            Case 3 ' 011 -- call indirect inter-segment
+            Case 3 ' JMP Ev
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
                 IPAddrOffet = addrMode.IndMem
                 mRegisters.CS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 clkCyc += 37
 
-            Case 4 ' 100 -- jmp indirect within segment
+            Case 4 ' JMP Ev
                 IPAddrOffet = If(addrMode.IsDirect,
                                     mRegisters.Val(addrMode.Register2),
                                     addrMode.IndMem)
                 clkCyc += 15
 
-            Case 5 ' 101 -- jmp indirect inter-segment
+            Case 5 ' JMP Mp
                 IPAddrOffet = addrMode.IndMem
                 mRegisters.CS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 clkCyc += 24
 
-            Case 6 ' 110 -- push reg/mem
+            Case 6 ' PUSH Ev
                 If addrMode.IsDirect Then
                     If addrMode.Register2 = GPRegisters.RegistersTypes.SP Then
                         PushIntoStack(mRegisters.SP - 2)
@@ -2095,65 +2130,65 @@ Public Class X8086
         instrucionsCounter += 1
 
         Select Case opCode
-            Case &HA4  ' movsb
+            Case &HA4 ' MOVSB
                 RAM8(mRegisters.ES, mRegisters.DI,, True) = RAM8(tmpUVal, mRegisters.SI,, True)
                 mRegisters.SI += tmpVal
                 mRegisters.DI += tmpVal
                 clkCyc += 18
                 Return False
 
-            Case &HA5 ' movsw
+            Case &HA5 ' MOVSW
                 RAM16(mRegisters.ES, mRegisters.DI,, True) = RAM16(tmpUVal, mRegisters.SI,, True)
                 mRegisters.SI += tmpVal
                 mRegisters.DI += tmpVal
                 clkCyc += 18
                 Return False
 
-            Case &HA6  ' cmpsb
+            Case &HA6 ' CMPSB
                 Eval(RAM8(tmpUVal, mRegisters.SI,, True), RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
                 mRegisters.SI += tmpVal
                 mRegisters.DI += tmpVal
                 clkCyc += 22
                 Return True
 
-            Case &HA7 ' cmpsw
+            Case &HA7 ' CMPSW
                 Eval(RAM16(tmpUVal, mRegisters.SI,, True), RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
                 mRegisters.SI += tmpVal
                 mRegisters.DI += tmpVal
                 clkCyc += 22
                 Return True
 
-            Case &HAA ' stosb
+            Case &HAA ' STOSB
                 RAM8(mRegisters.ES, mRegisters.DI,, True) = mRegisters.AL
                 mRegisters.DI += tmpVal
                 clkCyc += 11
                 Return False
 
-            Case &HAB 'stosw
+            Case &HAB ' STOSW
                 RAM16(mRegisters.ES, mRegisters.DI,, True) = mRegisters.AX
                 mRegisters.DI += tmpVal
                 clkCyc += 11
                 Return False
 
-            Case &HAC ' lodsb
+            Case &HAC ' LODSB
                 mRegisters.AL = RAM8(tmpUVal, mRegisters.SI,, True)
                 mRegisters.SI += tmpVal
                 clkCyc += 12
                 Return False
 
-            Case &HAD ' lodsw
+            Case &HAD ' LODSW
                 mRegisters.AX = RAM16(tmpUVal, mRegisters.SI,, True)
                 mRegisters.SI += tmpVal
                 clkCyc += 16
                 Return False
 
-            Case &HAE ' scasb
+            Case &HAE ' SCASB
                 Eval(mRegisters.AL, RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
                 mRegisters.DI += tmpVal
                 clkCyc += 15
                 Return True
 
-            Case &HAF ' scasw
+            Case &HAF ' SCASW
                 Eval(mRegisters.AX, RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
                 mRegisters.DI += tmpVal
                 clkCyc += 15

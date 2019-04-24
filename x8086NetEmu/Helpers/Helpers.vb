@@ -102,10 +102,11 @@
         ' http://www.ic.unicamp.br/~celio/mc404s2-03/addr_modes/intel_addr.html
 
         If Not mRegisters.ActiveSegmentChanged Then
-            Select Case addrMode.Rm
-                Case 2, 3 : mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
-                Case 6 : If addrMode.Modifier <> 0 Then mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
-            End Select
+            If addrMode.Rm = 2 OrElse addrMode.Rm = 3 Then
+                mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
+            ElseIf addrMode.Rm = 6 AndAlso addrMode.Modifier <> 0 Then
+                mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
+            End If
         End If
 
         ' http://umcs.maine.edu/~cmeadow/courses/cos335/Asm07-MachineLanguage.pdf
