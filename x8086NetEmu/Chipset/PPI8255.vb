@@ -68,7 +68,7 @@
 
     Public Overrides ReadOnly Property Description As String
         Get
-            Return "Programmable Peripheral Interface 8255"
+            Return "Programmable Peripheral Interface"
         End Get
     End Property
 

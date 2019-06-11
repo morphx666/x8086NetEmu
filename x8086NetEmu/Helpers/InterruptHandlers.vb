@@ -43,9 +43,9 @@ Partial Public Class X8086
                 PushIntoStack(mRegisters.IP + opCodeSize)
             End If
 
-            tmpUVal = intNum * 4
-            IPAddrOffet = RAM16(0, tmpUVal,, True)
-            mRegisters.CS = RAM16(0, tmpUVal, 2, True)
+            tmpUVal1 = intNum * 4
+            IPAddrOffet = RAM16(0, tmpUVal1,, True)
+            mRegisters.CS = RAM16(0, tmpUVal1, 2, True)
 
             If intNum = 0 Then ThrowException("Division By Zero")
         End If

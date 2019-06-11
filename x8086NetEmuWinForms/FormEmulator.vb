@@ -87,12 +87,12 @@ Public Class FormEmulator
         AddHandler INT13EmulationToolStripMenuItem.Click, Sub()
                                                               int13Emulation = Not int13Emulation
                                                               INT13EmulationToolStripMenuItem.Checked = int13Emulation
-                                                              WarnAboutRestart()
+                                                              WarnAboutRestart(INT13EmulationToolStripMenuItem.Text)
                                                           End Sub
         AddHandler VIC20EmulationToolStripMenuItem.Click, Sub()
                                                               v20Emulation = Not v20Emulation
                                                               VIC20EmulationToolStripMenuItem.Checked = v20Emulation
-                                                              WarnAboutRestart()
+                                                              WarnAboutRestart(VIC20EmulationToolStripMenuItem.Text)
                                                           End Sub
     End Sub
 
@@ -156,10 +156,10 @@ Public Class FormEmulator
         AddHandler cpu.DebugModeChanged, Sub() Me.Invoke(Sub() ShowDebugger())
     End Sub
 
-    Private Sub WarnAboutRestart()
+    Private Sub WarnAboutRestart(optionName As String)
         cpu.Pause()
         Me.Hide()
-        MsgBox("Changes to this option require restarting the emulator", MsgBoxStyle.Information)
+        MsgBox($"Changes to '{optionName}' require restarting the emulator", MsgBoxStyle.Information)
         Me.Show()
         cpu.Resume()
     End Sub
@@ -172,7 +172,8 @@ Public Class FormEmulator
             cpu.Pause()
             isSelectingText = True
         Else
-            MsgBox("Text copying is only supported on CGAWinForms and VGAWinForms video adapters in Text Mode", MsgBoxStyle.Information)
+            MsgBox($"Text copying is only supported on CGAWinForms and VGAWinForms video adapters in Text Mode.{Environment.NewLine}{Environment.NewLine}" +
+                   $"You are currently using a {cpu.VideoAdapter.Name} adapter in {cpu.VideoAdapter.MainMode} mode.", MsgBoxStyle.Information)
         End If
     End Sub
 
@@ -712,7 +713,7 @@ Public Class FormEmulator
         ' Enforce defaults
 
         If IO.File.Exists("settings.dat") Then
-            Dim xml = XDocument.Load("settings.dat")
+            Dim xml As XDocument = XDocument.Load("settings.dat")
             ParseSettings(xml.<settings>(0))
         Else
             If showPrompt Then

@@ -934,6 +934,7 @@ Public Class FormDebugger
         Try
             value = Binary.From(EvaluateExpression(tb.Text).Value) And &HFFFF
         Catch
+            Return ""
         End Try
 
         Return String.Format("{1:N0}d{0}{2}h{0}{3}b", Environment.NewLine,
@@ -1030,7 +1031,7 @@ Public Class FormDebugger
     Private Sub ButtonMemBack_Click(sender As Object, e As EventArgs) Handles ButtonMemBack.Click
         Dim address As Integer = X8086.SegmentOffetToAbsolute(EvaluateExpression(TextBoxMemSeg.Text).Value, EvaluateExpression(TextBoxMemOff.Text).Value)
         address -= 256
-        TextBoxMemSeg.Text = X8086.AbsoluteToOffset(address).ToString("X4")
+        TextBoxMemSeg.Text = X8086.AbsoluteToSegment(address).ToString("X4")
         TextBoxMemOff.Text = X8086.AbsoluteToOffset(address).ToString("X4")
 
         UpdateMemory()

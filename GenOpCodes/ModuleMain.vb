@@ -69,7 +69,8 @@ Module ModuleMain
                          End Sub
 
         Dim addSubCalls = Sub(fName As String, range As Boolean)
-                              Dim subTokens() As String = fName.Split("_"c)
+                              'Dim subTokens() As String = fName.Split("_"c)
+                              Dim subTokens() As String = subName.Split("_"c)
 
                               If range Then
                                   startIndex = Integer.Parse(subTokens(1).Replace("&H", ""), Globalization.NumberStyles.HexNumber)

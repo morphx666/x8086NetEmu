@@ -440,7 +440,7 @@
 
     Public Overrides ReadOnly Property Description As String
         Get
-            Return "DMA Controller"
+            Return "Direct Memory Access Controller"
         End Get
     End Property
 

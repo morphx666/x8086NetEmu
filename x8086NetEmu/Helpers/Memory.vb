@@ -359,7 +359,7 @@ Partial Public Class X8086
 
             If Not ignoreHooks Then
                 For i As Integer = 0 To memHooks.Count - 1
-                    If memHooks(i).Invoke(address, tmpUVal, MemHookMode.Read) Then Return tmpUVal
+                    If memHooks(i).Invoke(address, tmpUVal1, MemHookMode.Read) Then Return tmpUVal1
                 Next
             End If
 
@@ -372,7 +372,8 @@ Partial Public Class X8086
                 Next
             End If
 
-            Memory(address And &HF_FFFF) = value
+            Memory(address) = value
+            'Memory(address And &HF_FFFF) = value
 
             'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set

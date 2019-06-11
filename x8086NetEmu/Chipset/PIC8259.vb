@@ -259,7 +259,7 @@
 
     Public Overrides ReadOnly Property Description As String
         Get
-            Return "8259 Programmable Interrupt Controller"
+            Return "Programmable Interrupt Controller"
         End Get
     End Property
 

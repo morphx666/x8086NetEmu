@@ -30,8 +30,8 @@ Public Class X8086
     Private opCode As Byte
     Private opCodeSize As Byte
 
-    Private tmpUVal As UInt32
-    Private tmpVal As Int32
+    Private tmpUVal1 As UInt32
+    Private tmpUVal2 As UInt32
 
     Private addrMode As AddressingMode
     Private mIsExecuting As Boolean = False
@@ -65,7 +65,8 @@ Public Class X8086
     Public Const KHz As ULong = 1000
     Public Const MHz As ULong = KHz * KHz
     Public Const GHz As ULong = MHz * KHz
-    Public Shared BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
+    Public Const BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
+    Public Shared EMULATOR_BASECLOCK As ULong = BASECLOCK
     Private mCyclesPerSecond As ULong = BASECLOCK
     Private clkCyc As ULong = 0
 
@@ -114,7 +115,7 @@ Public Class X8086
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
 
-        BASECLOCK = GetCpuSpeed() * X8086.MHz
+        EMULATOR_BASECLOCK = GetCpuSpeed() * X8086.MHz
 
         BuildSZPTables()
         BuildDecoderCache()
@@ -129,9 +130,9 @@ Public Class X8086
         DMA = New DMAI8237(Me)
         PIT = New PIT8254(Me, PIC.GetIrqLine(0))
         PPI = New PPI8255(Me, PIC.GetIrqLine(1))
-        'PPI = New PPI8255_ALT(Me, PIC.GetIrqLine(1))
         RTC = New RTC(Me, PIC.GetIrqLine(8))
 
+        'mPorts.Add(FPU)
         mPorts.Add(PIC)
         mPorts.Add(DMA)
         mPorts.Add(PIT)
@@ -261,18 +262,16 @@ Public Class X8086
     End Sub
 
     Public Sub SoftReset()
-        ' Just as Bill would've have wanted it... ;)
         PPI.PutKeyData(Keys.ControlKey, False)
         PPI.PutKeyData(Keys.Menu, False)
         PPI.PutKeyData(Keys.Delete, False)
     End Sub
 
     Public Sub HardReset()
+        Close()
         If restartCallback IsNot Nothing Then
-            Close()
             restartCallback.Invoke()
         Else
-            Close()
             Init()
         End If
     End Sub
@@ -319,7 +318,7 @@ Public Class X8086
         Do
             mipsWaiter.WaitOne(delay)
 
-            mMPIs = instrucionsCounter / delay / 1000
+            mMPIs = (instrucionsCounter / delay / 1000)
             instrucionsCounter = 0
 
             If cancelAllThreads Then Exit Do
@@ -442,14 +441,12 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
                     clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
+                    clkCyc += 16
                 Else
-                    If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
-                        clkCyc += 16
-                    Else
-                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Add, addrMode.Size)
-                        clkCyc += 9
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Add, addrMode.Size)
+                    clkCyc += 9
                 End If
 
             Case &H4 ' ADD AL Ib
@@ -474,14 +471,12 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
                     clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
+                    clkCyc += 16
                 Else
-                    If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
-                        clkCyc += 16
-                    Else
-                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicOr, addrMode.Size)
-                        clkCyc += 9
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicOr, addrMode.Size)
+                    clkCyc += 9
                 End If
 
             Case &HC ' OR AL Ib
@@ -508,14 +503,12 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
                     clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
+                    clkCyc += 16
                 Else
-                    If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
-                        clkCyc += 16
-                    Else
-                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.AddWithCarry, addrMode.Size)
-                        clkCyc += 9
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.AddWithCarry, addrMode.Size)
+                    clkCyc += 9
                 End If
 
             Case &H14 ' ADC AL Ib
@@ -543,14 +536,12 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
                     clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
+                    clkCyc += 16
                 Else
-                    If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
-                        clkCyc += 16
-                    Else
-                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.SubstractWithCarry, addrMode.Size)
-                        clkCyc += 9
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.SubstractWithCarry, addrMode.Size)
+                    clkCyc += 9
                 End If
 
             Case &H1C ' SBB AL Ib
@@ -575,14 +566,12 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
                     clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
+                    clkCyc += 16
                 Else
-                    If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
-                        clkCyc += 16
-                    Else
-                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicAnd, addrMode.Size)
-                        clkCyc += 9
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicAnd, addrMode.Size)
+                    clkCyc += 9
                 End If
 
             Case &H24 ' AND AL Ib
@@ -601,21 +590,21 @@ Public Class X8086
 
             Case &H27 ' DAA
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    tmpUVal = CUInt(mRegisters.AL) + 6
+                    tmpUVal1 = CUInt(mRegisters.AL) + 6
                     mRegisters.AL += 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpUVal And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
                 Else
                     mFlags.AF = 0
                 End If
                 If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
-                    tmpUVal = CUInt(mRegisters.AL) + &H60
+                    tmpUVal1 = CUInt(mRegisters.AL) + &H60
                     mRegisters.AL += &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                SetSZPFlags(tmpUVal, DataSize.Byte)
+                SetSZPFlags(tmpUVal1, DataSize.Byte)
                 clkCyc += 4
 
             Case &H28 To &H2B ' SUB Eb Gb | Ev Gv | Gb Eb | Gv Ev
@@ -623,14 +612,12 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
                     clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
+                    clkCyc += 16
                 Else
-                    If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
-                        clkCyc += 16
-                    Else
-                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Substract, addrMode.Size)
-                        clkCyc += 9
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Substract, addrMode.Size)
+                    clkCyc += 9
                 End If
 
             Case &H2C ' SUB AL Ib
@@ -642,23 +629,23 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H2F ' DAS
-                tmpVal = mRegisters.AL
+                tmpUVal2 = mRegisters.AL
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    tmpUVal = CShort(mRegisters.AL) - 6
+                    tmpUVal1 = CShort(mRegisters.AL) - 6
                     mRegisters.AL -= 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpUVal And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
                 Else
                     mFlags.AF = 0
                 End If
-                If tmpVal > &H99 OrElse mFlags.CF = 1 Then
-                    tmpUVal = CShort(mRegisters.AL) - &H60
+                If tmpUVal2 > &H99 OrElse mFlags.CF = 1 Then
+                    tmpUVal1 = CShort(mRegisters.AL) - &H60
                     mRegisters.AL -= &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                SetSZPFlags(tmpUVal, DataSize.Byte)
+                SetSZPFlags(tmpUVal1, DataSize.Byte)
                 clkCyc += 4
 
             Case &H30 To &H33 ' XOR Eb Gb | Ev Gv | Gb Eb | Gv Ev
@@ -666,14 +653,12 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
                     clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
+                    clkCyc += 16
                 Else
-                    If addrMode.Direction = 0 Then
-                        RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
-                        clkCyc += 16
-                    Else
-                        mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicXor, addrMode.Size)
-                        clkCyc += 9
-                    End If
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicXor, addrMode.Size)
+                    clkCyc += 9
                 End If
 
             Case &H34 ' XOR AL Ib
@@ -701,12 +686,11 @@ Public Class X8086
                 If addrMode.IsDirect Then
                     Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
                     clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
+                    clkCyc += 9
                 Else
-                    If addrMode.Direction = 0 Then
-                        Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
-                    Else
-                        Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Compare, addrMode.Size)
-                    End If
+                    Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Compare, addrMode.Size)
                     clkCyc += 9
                 End If
 
@@ -758,12 +742,12 @@ Public Class X8086
 
             Case &H60 ' PUSHA (80186)
                 If mVic20 Then
-                    tmpUVal = mRegisters.SP
+                    tmpUVal1 = mRegisters.SP
                     PushIntoStack(mRegisters.AX)
                     PushIntoStack(mRegisters.CX)
                     PushIntoStack(mRegisters.DX)
                     PushIntoStack(mRegisters.BX)
-                    PushIntoStack(tmpUVal)
+                    PushIntoStack(tmpUVal1)
                     PushIntoStack(mRegisters.BP)
                     PushIntoStack(mRegisters.SI)
                     PushIntoStack(mRegisters.DI)
@@ -819,11 +803,11 @@ Public Class X8086
                     SetAddressing()
                     Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
                     Dim tmp2 As UInt32 = Param(ParamIndex.First, , DataSize.Word)
-                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000
-                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000
+                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
+                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
                     Dim tmp3 As UInt32 = tmp1 * tmp2
                     mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
-                    If (tmp3 And &HFFFF_0000) <> 0 Then
+                    If (tmp3 And &HFFFF_0000UI) <> 0 Then
                         mFlags.CF = 1
                         mFlags.OF = 1
                     Else
@@ -850,11 +834,11 @@ Public Class X8086
                     SetAddressing()
                     Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
                     Dim tmp2 As UInt32 = To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))
-                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000
-                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000
+                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
+                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
                     Dim tmp3 As UInt32 = tmp1 * tmp2
                     mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
-                    If (tmp3 And &HFFFF_0000) <> 0 Then
+                    If (tmp3 And &HFFFF_0000UI) <> 0 Then
                         mFlags.CF = 1
                         mFlags.OF = 1
                     Else
@@ -1029,9 +1013,9 @@ Public Class X8086
             Case &H86 To &H87 ' XCHG Gb Eb | Gv Ev
                 SetAddressing()
                 If addrMode.IsDirect Then
-                    tmpUVal = mRegisters.Val(addrMode.Dst)
+                    tmpUVal1 = mRegisters.Val(addrMode.Dst)
                     mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
-                    mRegisters.Val(addrMode.Src) = tmpUVal
+                    mRegisters.Val(addrMode.Src) = tmpUVal1
                     clkCyc += 4
                 Else
                     RAMn = mRegisters.Val(addrMode.Dst)
@@ -1099,39 +1083,39 @@ Public Class X8086
                 clkCyc += 3
 
             Case &H91 ' XCHG CX AX
-                tmpUVal = mRegisters.AX
+                tmpUVal1 = mRegisters.AX
                 mRegisters.AX = mRegisters.CX
-                mRegisters.CX = tmpUVal
+                mRegisters.CX = tmpUVal1
                 clkCyc += 3
             Case &H92 ' XCHG DX AX
-                tmpUVal = mRegisters.AX
+                tmpUVal1 = mRegisters.AX
                 mRegisters.AX = mRegisters.DX
-                mRegisters.DX = tmpUVal
+                mRegisters.DX = tmpUVal1
                 clkCyc += 3
             Case &H93 ' XCHG BX AX
-                tmpUVal = mRegisters.AX
+                tmpUVal1 = mRegisters.AX
                 mRegisters.AX = mRegisters.BX
-                mRegisters.BX = tmpUVal
+                mRegisters.BX = tmpUVal1
                 clkCyc += 3
             Case &H94 ' XCHG SP AX
-                tmpUVal = mRegisters.AX
+                tmpUVal1 = mRegisters.AX
                 mRegisters.AX = mRegisters.SP
-                mRegisters.SP = tmpUVal
+                mRegisters.SP = tmpUVal1
                 clkCyc += 3
             Case &H95 ' XCHG BP AX
-                tmpUVal = mRegisters.AX
+                tmpUVal1 = mRegisters.AX
                 mRegisters.AX = mRegisters.BP
-                mRegisters.BP = tmpUVal
+                mRegisters.BP = tmpUVal1
                 clkCyc += 3
             Case &H96 ' XCHG SI AX
-                tmpUVal = mRegisters.AX
+                tmpUVal1 = mRegisters.AX
                 mRegisters.AX = mRegisters.SI
-                mRegisters.SI = tmpUVal
+                mRegisters.SI = tmpUVal1
                 clkCyc += 3
             Case &H97 ' XCHG DI AX
-                tmpUVal = mRegisters.AX
+                tmpUVal1 = mRegisters.AX
                 mRegisters.AX = mRegisters.DI
-                mRegisters.DI = tmpUVal
+                mRegisters.DI = tmpUVal1
                 clkCyc += 3
 
             Case &H98 ' CBW
@@ -1144,10 +1128,10 @@ Public Class X8086
 
             Case &H9A ' CALL Ap
                 IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
-                tmpUVal = Param(ParamIndex.Second, , DataSize.Word)
+                tmpUVal1 = Param(ParamIndex.Second, , DataSize.Word)
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
-                mRegisters.CS = tmpUVal
+                mRegisters.CS = tmpUVal1
                 clkCyc += 28
 
             Case &H9B ' WAIT
@@ -1292,10 +1276,10 @@ Public Class X8086
                 End If
 
             Case &HCA ' RETF Iw
-                tmpUVal = Param(ParamIndex.First, , DataSize.Word)
+                tmpUVal1 = Param(ParamIndex.First, , DataSize.Word)
                 IPAddrOffet = PopFromStack()
                 mRegisters.CS = PopFromStack()
-                mRegisters.SP += tmpUVal
+                mRegisters.SP += tmpUVal1
                 clkCyc += 17
 
             Case &HCB ' RETF
@@ -1328,22 +1312,22 @@ Public Class X8086
             Case &HD0 To &HD3 : ExecuteGroup2()
 
             Case &HD4 ' AAM I0
-                tmpUVal = Param(ParamIndex.First, , DataSize.Byte)
-                If tmpUVal = 0 Then
+                tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
+                If tmpUVal1 = 0 Then
                     HandleInterrupt(0, True)
                     Exit Select
                 End If
-                mRegisters.AH = mRegisters.AL \ tmpUVal
-                mRegisters.AL = mRegisters.AL Mod tmpUVal
+                mRegisters.AH = mRegisters.AL \ tmpUVal1
+                mRegisters.AL = mRegisters.AL Mod tmpUVal1
                 SetSZPFlags(mRegisters.AX, DataSize.Word)
                 clkCyc += 83
 
             Case &HD5 ' AAD I0
-                tmpUVal = Param(ParamIndex.First, , DataSize.Byte)
-                tmpUVal = tmpUVal * mRegisters.AH + mRegisters.AL
-                mRegisters.AL = tmpUVal
+                tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
+                tmpUVal1 = tmpUVal1 * mRegisters.AH + mRegisters.AL
+                mRegisters.AL = tmpUVal1
                 mRegisters.AH = 0
-                SetSZPFlags(tmpUVal, DataSize.Word)
+                SetSZPFlags(tmpUVal1, DataSize.Word)
                 mFlags.SF = 0
                 clkCyc += 60
 
@@ -1522,11 +1506,11 @@ Public Class X8086
             mRegisters.IP += opCodeSize
         End If
 
-        clkCyc += opCodeSize * 4
+        clkCyc += opCodeSize * 4 '* (mCyclesPerSecond / BASECLOCK) ' This seems to fix the music timing in Arkanoid, but slows down the emulation!
 
         If Not newPrefix Then
-            If mRepeLoopMode <> REPLoopModes.None Then mRepeLoopMode = REPLoopModes.None
-            If mRegisters.ActiveSegmentChanged Then mRegisters.ResetActiveSegment()
+            mRepeLoopMode = REPLoopModes.None
+            mRegisters.ResetActiveSegment()
             newPrefixLast = 0
         Else
             newPrefixLast += 1
@@ -1640,8 +1624,8 @@ Public Class X8086
             maskFF_FFFF = &HFFFF
             mask8_16 = 16
             mask9_17 = 17
-            mask100_10000 = &H1_0000
-            maskFF00_FFFF0000 = &HFFFF_0000
+            mask100_10000 = &H1_0000UI
+            maskFF00_FFFF0000 = &HFFFF_0000UI
         End If
 
         If addrMode.IsDirect Then
@@ -1765,6 +1749,7 @@ Public Class X8086
 
             Case Else
                 OpCodeNotImplemented($"Unknown Reg Mode {addrMode.Reg} for Opcode {opCode:X} (Group2)")
+
         End Select
 
         If addrMode.IsDirect Then
@@ -1799,93 +1784,94 @@ Public Class X8086
             Case 3 ' NEG Eb | Ev
                 If addrMode.IsDirect Then
                     Eval(0, mRegisters.Val(addrMode.Register2), Operation.Substract, addrMode.Size)
-                    tmpUVal = (Not mRegisters.Val(addrMode.Register2)) + 1
-                    mRegisters.Val(addrMode.Register2) = tmpUVal
+                    mRegisters.Val(addrMode.Register2) = (Not mRegisters.Val(addrMode.Register2)) + 1
                     clkCyc += 3
                 Else
                     Eval(0, addrMode.IndMem, Operation.Substract, addrMode.Size)
-                    tmpUVal = (Not addrMode.IndMem) + 1
-                    RAMn = tmpUVal
+                    RAMn = (Not addrMode.IndMem) + 1
                     clkCyc += 16
                 End If
 
             Case 4 ' MUL
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
-                        tmpUVal = mRegisters.Val(addrMode.Register2) * mRegisters.AL
+                        tmpUVal1 = mRegisters.Val(addrMode.Register2) * mRegisters.AL
                         clkCyc += 70
                     Else
-                        tmpUVal = CUInt(mRegisters.Val(addrMode.Register2)) * mRegisters.AX
-                        mRegisters.DX = tmpUVal >> 16
+                        tmpUVal1 = CUInt(mRegisters.Val(addrMode.Register2)) * mRegisters.AX
+                        mRegisters.DX = tmpUVal1 >> 16
                         clkCyc += 118
                     End If
                 Else
                     If addrMode.Size = DataSize.Byte Then
-                        tmpUVal = addrMode.IndMem * mRegisters.AL
+                        tmpUVal1 = addrMode.IndMem * mRegisters.AL
                         clkCyc += 76
                     Else
-                        tmpUVal = CUInt(addrMode.IndMem) * mRegisters.AX
-                        mRegisters.DX = tmpUVal >> 16
+                        tmpUVal1 = CUInt(addrMode.IndMem) * mRegisters.AX
+                        mRegisters.DX = tmpUVal1 >> 16
                         clkCyc += 134
                     End If
                 End If
-                mRegisters.AX = tmpUVal
+                mRegisters.AX = tmpUVal1
 
-                SetSZPFlags(tmpUVal, addrMode.Size)
-                If (tmpUVal And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF_0000)) <> 0 Then
+                SetSZPFlags(tmpUVal1, addrMode.Size)
+                If (tmpUVal1 And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF_0000UI)) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
                 Else
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                mFlags.ZF = If(mVic20, If(tmpUVal <> 0, 1, 0), 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
+                mFlags.ZF = If(mVic20, If(tmpUVal1 <> 0, 1, 0), 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
 
             Case 5 ' IMUL
+                Dim m1 As UInt32
+                Dim m2 As UInt32
+
                 If addrMode.IsDirect Then
                     If addrMode.Size = DataSize.Byte Then
-                        Dim m1 As UInt32 = To16bitsWithSign(mRegisters.AL)
-                        Dim m2 As UInt32 = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
+                        m1 = To16bitsWithSign(mRegisters.AL)
+                        m2 = To16bitsWithSign(mRegisters.Val(addrMode.Register2))
 
-                        m1 = If((m1 And &H80) <> 0, m1 Or &HFFFF_FF00, m1)
-                        m2 = If((m2 And &H80) <> 0, m2 Or &HFFFF_FF00, m2)
+                        m1 = If((m1 And &H80) <> 0, m1 Or &HFFFF_FF00UI, m1)
+                        m2 = If((m2 And &H80) <> 0, m2 Or &HFFFF_FF00UI, m2)
 
-                        tmpUVal = m1 * m2
-                        mRegisters.AX = tmpUVal
+                        tmpUVal1 = m1 * m2
+                        mRegisters.AX = tmpUVal1
                         clkCyc += 70
                     Else
-                        Dim m1 As UInt32 = To32bitsWithSign(mRegisters.AX)
-                        Dim m2 As UInt32 = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
+                        m1 = To32bitsWithSign(mRegisters.AX)
+                        m2 = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
 
-                        m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF_0000, m1)
-                        m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF_0000, m2)
+                        m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF_0000UI, m1)
+                        m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF_0000UI, m2)
 
-                        tmpUVal = m1 * m2
-                        mRegisters.AX = tmpUVal
-                        mRegisters.DX = tmpUVal >> 16
+                        tmpUVal1 = m1 * m2
+                        mRegisters.AX = tmpUVal1
+                        mRegisters.DX = tmpUVal1 >> 16
                         clkCyc += 118
                     End If
                 Else
                     If addrMode.Size = DataSize.Byte Then
-                        Dim m1 As UInt32 = To16bitsWithSign(mRegisters.AL)
-                        Dim m2 As UInt32 = To16bitsWithSign(addrMode.IndMem)
+                        m1 = To16bitsWithSign(mRegisters.AL)
+                        m2 = To16bitsWithSign(addrMode.IndMem)
 
-                        m1 = If((m1 And &H80) <> 0, m1 Or &HFFFF_FF00, m1)
-                        m2 = If((m2 And &H80) <> 0, m2 Or &HFFFF_FF00, m2)
+                        m1 = If((m1 And &H80) <> 0, m1 Or &HFFFF_FF00UI, m1)
+                        m2 = If((m2 And &H80) <> 0, m2 Or &HFFFF_FF00UI, m2)
 
-                        tmpUVal = m1 * m2
-                        mRegisters.AX = tmpUVal
+                        tmpUVal1 = m1 * m2
+                        mRegisters.AX = tmpUVal1
                         clkCyc += 76
                     Else
-                        Dim m1 As UInt32 = To32bitsWithSign(mRegisters.AX)
-                        Dim m2 As UInt32 = To32bitsWithSign(addrMode.IndMem)
+                        m1 = To32bitsWithSign(mRegisters.AX)
+                        m2 = To32bitsWithSign(addrMode.IndMem)
 
-                        m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF_0000, m1)
-                        m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF_0000, m2)
+                        m1 = If((m1 And &H8000) <> 0, m1 Or &HFFFF_0000UI, m1)
+                        m2 = If((m2 And &H8000) <> 0, m2 Or &HFFFF_0000UI, m2)
 
-                        tmpUVal = m1 * m2
-                        mRegisters.AX = tmpUVal
-                        mRegisters.DX = tmpUVal >> 16
+                        tmpUVal1 = m1 * m2
+                        mRegisters.AX = tmpUVal1
+                        mRegisters.DX = tmpUVal1 >> 16
                         clkCyc += 134
                     End If
                 End If
@@ -1966,8 +1952,8 @@ Public Class X8086
                         num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
                         div = To32bitsWithSign(mRegisters.Val(addrMode.Register2))
 
-                        signN = (num And &H8000_0000) <> 0
-                        signD = (div And &H8000_0000) <> 0
+                        signN = (num And &H8000_0000UI) <> 0
+                        signD = (div And &H8000_0000UI) <> 0
                         num = If(signN, ((Not num) + 1) And &HFFFF_FFFF, num)
                         div = If(signD, ((Not div) + 1) And &HFFFF_FFFF, div)
 
@@ -1988,8 +1974,8 @@ Public Class X8086
                         num = (CUInt(mRegisters.DX) << 16) Or mRegisters.AX
                         div = To32bitsWithSign(addrMode.IndMem)
 
-                        signN = (num And &H8000_0000) <> 0
-                        signD = (div And &H8000_0000) <> 0
+                        signN = (num And &H8000_0000UI) <> 0
+                        signD = (div And &H8000_0000UI) <> 0
                         num = If(signN, ((Not num) + 1) And &HFFFF_FFFF, num)
                         div = If(signD, ((Not div) + 1) And &HFFFF_FFFF, div)
 
@@ -2055,14 +2041,14 @@ Public Class X8086
                     clkCyc += 15
                 End If
 
-            Case 2 ' CALL Mp
+            Case 2 ' CALL Ev
                 PushIntoStack(mRegisters.IP + opCodeSize)
                 IPAddrOffet = If(addrMode.IsDirect,
                                     mRegisters.Val(addrMode.Register2),
                                     addrMode.IndMem)
                 clkCyc += 11
 
-            Case 3 ' JMP Ev
+            Case 3 ' CALL Mp
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
                 IPAddrOffet = addrMode.IndMem
@@ -2098,8 +2084,8 @@ Public Class X8086
     End Sub
 
     Private Sub HandleREPMode()
-        tmpUVal = mRegisters.ActiveSegmentValue
-        tmpVal = If((opCode And 1) = 1, 2, 1) * If(mFlags.DF = 0, 1, -1)
+        tmpUVal1 = mRegisters.ActiveSegmentValue
+        tmpUVal2 = If((opCode And 1) <> 0, 2, 1) * If(mFlags.DF <> 0, -1, 1)
 
         If mRepeLoopMode = REPLoopModes.None Then
             ExecStringOpCode()
@@ -2124,6 +2110,8 @@ Public Class X8086
                 End If
             End While
         End If
+
+        'If {&H26, &H2E, &H36, &H3E}.Contains(RAM8(mRegisters.CS, mRegisters.IP)) Then mRegisters.IP -= 1
     End Sub
 
     Private Function ExecStringOpCode() As Boolean
@@ -2131,68 +2119,78 @@ Public Class X8086
 
         Select Case opCode
             Case &HA4 ' MOVSB
-                RAM8(mRegisters.ES, mRegisters.DI,, True) = RAM8(tmpUVal, mRegisters.SI,, True)
-                mRegisters.SI += tmpVal
-                mRegisters.DI += tmpVal
+                RAM8(mRegisters.ES, mRegisters.DI,, True) = RAM8(tmpUVal1, mRegisters.SI,, True)
+                mRegisters.SI += tmpUVal2
+                mRegisters.DI += tmpUVal2
                 clkCyc += 18
                 Return False
 
             Case &HA5 ' MOVSW
-                RAM16(mRegisters.ES, mRegisters.DI,, True) = RAM16(tmpUVal, mRegisters.SI,, True)
-                mRegisters.SI += tmpVal
-                mRegisters.DI += tmpVal
+                RAM16(mRegisters.ES, mRegisters.DI,, True) = RAM16(tmpUVal1, mRegisters.SI,, True)
+                mRegisters.SI += tmpUVal2
+                mRegisters.DI += tmpUVal2
                 clkCyc += 18
                 Return False
 
             Case &HA6 ' CMPSB
-                Eval(RAM8(tmpUVal, mRegisters.SI,, True), RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
-                mRegisters.SI += tmpVal
-                mRegisters.DI += tmpVal
+                Eval(RAM8(tmpUVal1, mRegisters.SI,, True), RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
+                mRegisters.SI += tmpUVal2
+                mRegisters.DI += tmpUVal2
                 clkCyc += 22
                 Return True
 
             Case &HA7 ' CMPSW
-                Eval(RAM16(tmpUVal, mRegisters.SI,, True), RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
-                mRegisters.SI += tmpVal
-                mRegisters.DI += tmpVal
+                Eval(RAM16(tmpUVal1, mRegisters.SI,, True), RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
+                mRegisters.SI += tmpUVal2
+                mRegisters.DI += tmpUVal2
                 clkCyc += 22
                 Return True
 
             Case &HAA ' STOSB
                 RAM8(mRegisters.ES, mRegisters.DI,, True) = mRegisters.AL
-                mRegisters.DI += tmpVal
+                mRegisters.DI += tmpUVal2
                 clkCyc += 11
                 Return False
 
             Case &HAB ' STOSW
                 RAM16(mRegisters.ES, mRegisters.DI,, True) = mRegisters.AX
-                mRegisters.DI += tmpVal
+                mRegisters.DI += tmpUVal2
                 clkCyc += 11
                 Return False
 
             Case &HAC ' LODSB
-                mRegisters.AL = RAM8(tmpUVal, mRegisters.SI,, True)
-                mRegisters.SI += tmpVal
+                mRegisters.AL = RAM8(tmpUVal1, mRegisters.SI,, True)
+                mRegisters.SI += tmpUVal2
                 clkCyc += 12
                 Return False
 
             Case &HAD ' LODSW
-                mRegisters.AX = RAM16(tmpUVal, mRegisters.SI,, True)
-                mRegisters.SI += tmpVal
+                mRegisters.AX = RAM16(tmpUVal1, mRegisters.SI,, True)
+                mRegisters.SI += tmpUVal2
                 clkCyc += 16
                 Return False
 
             Case &HAE ' SCASB
                 Eval(mRegisters.AL, RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
-                mRegisters.DI += tmpVal
+                mRegisters.DI += tmpUVal2
                 clkCyc += 15
                 Return True
 
             Case &HAF ' SCASW
                 Eval(mRegisters.AX, RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
-                mRegisters.DI += tmpVal
+                mRegisters.DI += tmpUVal2
                 clkCyc += 15
                 Return True
+
+            Case &H26, &H2E, &H36, &H3E ' ES, CS, SS and DS segment override prefix
+                Stop
+                addrMode.Decode(opCode, opCode)
+                mRegisters.ActiveSegmentRegister = addrMode.Dst - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
+                clkCyc += 2
+                Return False
+
+            Case Else
+                Stop
 
         End Select
 
