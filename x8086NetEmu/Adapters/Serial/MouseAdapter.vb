@@ -11,7 +11,8 @@
     Private sm As New SerialMouse()
     Private irq As PIC8259.IRQLine
 
-    Public Property MidPoint As Point
+    Public Property MidPointOffset As Point
+
     Public Property IsCaptured As Boolean
 
     Private Const M As Integer = Asc("M")
@@ -83,13 +84,10 @@
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
+        Dim p As New Point(m.X - MidPointOffset.X, m.Y - MidPointOffset.Y)
 
-        Dim p As New Point(m.X - MidPoint.X, m.Y - MidPoint.Y)
-        'If p.X <> 0 Then If p.X > 0 Then p.X = 1 Else p.X = -1
-        'If p.Y <> 0 Then If p.Y > 0 Then p.Y = 1 Else p.Y = -1
-
-        p.X = Math.Ceiling(Math.Abs(p.X) / 5) * Math.Sign(p.X)
-        p.Y = Math.Ceiling(Math.Abs(p.Y) / 5) * Math.Sign(p.Y)
+        p.X = Math.Ceiling(Math.Abs(p.X)) * Math.Sign(p.X)
+        p.Y = Math.Ceiling(Math.Abs(p.Y)) * Math.Sign(p.Y)
 
         Dim highbits As Byte = 0
         If p.X < 0 Then highbits = 3

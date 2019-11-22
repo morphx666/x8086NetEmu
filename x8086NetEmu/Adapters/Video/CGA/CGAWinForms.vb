@@ -58,7 +58,7 @@ Public Class CGAWinForms
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
                                                  If MyBase.CPU.Mouse?.IsCaptured Then
                                                      OnMouseMove(Me, e)
-                                                     Cursor.Position = mRenderControl.PointToScreen(MyBase.CPU.Mouse.MidPoint)
+                                                     Cursor.Position = mRenderControl.PointToScreen(MyBase.CPU.Mouse.MidPointOffset)
                                                  End If
                                              End Sub
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, e)

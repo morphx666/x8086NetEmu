@@ -53,9 +53,9 @@
 
         AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, e)
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
-                                                 If mCPU.Mouse?.IsCaptured Then
+                                                 If MyBase.CPU.Mouse?.IsCaptured Then
                                                      OnMouseMove(Me, e)
-                                                     Cursor.Position = mRenderControl.PointToScreen(mCPU.Mouse.MidPoint)
+                                                     Cursor.Position = mRenderControl.PointToScreen(MyBase.CPU.Mouse.MidPointOffset)
                                                  End If
                                              End Sub
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, e)

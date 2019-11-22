@@ -18,13 +18,4 @@ Public Class RenderCtrlGDI
         ' It also allows us to capture the Alt key
         AddHandler PreviewKeyDown, Sub(sender As Object, e As PreviewKeyDownEventArgs) e.IsInputKey = True
     End Sub
-
-    ' This method also works
-    'Protected Overrides Function ProcessCmdKey(ByRef msg As Message, keyData As Keys) As Boolean
-    '    Select Case keyData
-    '        Case Keys.Up, Keys.Down, Keys.Left, Keys.Right
-    '            OnKeyDown(New KeyEventArgs(keyData))
-    '    End Select
-    '    Return MyBase.ProcessCmdKey(msg, keyData)
-    'End Function
 End Class

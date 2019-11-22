@@ -596,10 +596,11 @@ Public Class FormEmulator
 
     Private Sub CaptureMouse()
         If cpu.Adapters.Any(Function(a) a.Type = Adapter.AdapterType.SerialMouseCOM1) Then
-            Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
-            CursorVisible = False
             If cpu.Mouse IsNot Nothing Then
-                cpu.Mouse.MidPoint = PointToClient(New Point(videoPort.Width / 2, videoPort.Height / 2))
+                Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
+                CursorVisible = False
+
+                cpu.Mouse.MidPointOffset = Me.PointToClient(New Point(Me.Left + videoPort.Width / 2, Me.Top + videoPort.Height / 2))
                 cpu.Mouse.IsCaptured = True
             End If
         End If
