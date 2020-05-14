@@ -1041,23 +1041,35 @@
     Private Sub DecodeGroup2()
         SetDecoderAddressing()
 
-        If decoderAddrMode.IsDirect Then
-            If opCode >= &HD2 Then
-                opCodeASM = decoderAddrMode.Register2.ToString() + ", CL"
-                decoderClkCyc += 8 + 4 '* count
-            Else
+        Select Case opCode
+            Case &HD0, &HD1
                 opCodeASM = decoderAddrMode.Register2.ToString() + ", 1"
                 decoderClkCyc += 2
-            End If
-        Else
-            If (opCode And &H2) = &H2 Then
-                opCodeASM = indASM + ", CL"
-                decoderClkCyc += 20 + 4 '* count
-            Else
-                opCodeASM = indASM + ", 1"
-                decoderClkCyc += 15
-            End If
-        End If
+            Case &HD2, &HD3
+                opCodeASM = decoderAddrMode.Register2.ToString() + ", CL"
+                decoderClkCyc += 8 + 4 '* count
+            Case &HC0, &HC1
+                opCodeASM = decoderAddrMode.Register2.ToString() + ", " + DecoderParam(ParamIndex.Second,  , DataSize.Byte).ToHex()
+                decoderClkCyc += 2
+        End Select
+
+        'If decoderAddrMode.IsDirect Then
+        '    If opCode >= &HD2 Then
+        '        opCodeASM = decoderAddrMode.Register2.ToString() + ", CL"
+        '        decoderClkCyc += 8 + 4 '* count
+        '    Else
+        '        opCodeASM = decoderAddrMode.Register2.ToString() + ", 1"
+        '        decoderClkCyc += 2
+        '    End If
+        'Else
+        '    If (opCode And &H2) = &H2 Then
+        '        opCodeASM = indASM + ", CL"
+        '        decoderClkCyc += 20 + 4 '* count
+        '    Else
+        '        opCodeASM = indASM + ", 1"
+        '        decoderClkCyc += 15
+        '    End If
+        'End If
 
         Select Case decoderAddrMode.Reg
             Case 0 : opCodeASM = "ROL " + opCodeASM

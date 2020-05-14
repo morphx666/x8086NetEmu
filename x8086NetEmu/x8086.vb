@@ -1647,7 +1647,7 @@ Public Class X8086
         Select Case opCode
             Case &HD0, &HD1 : count = 1
             Case &HD2, &HD3 : count = mRegisters.CL
-            Case &HC0, &HC1 : count = Param(ParamIndex.First,  , DataSize.Byte)
+            Case &HC0, &HC1 : count = Param(ParamIndex.Second,  , DataSize.Byte)
         End Select
 
         ' 80186/V20 class CPUs limit shift count to 31
@@ -2181,16 +2181,6 @@ Public Class X8086
                 mRegisters.DI += tmpUVal2
                 clkCyc += 15
                 Return True
-
-            Case &H26, &H2E, &H36, &H3E ' ES, CS, SS and DS segment override prefix
-                Stop
-                addrMode.Decode(opCode, opCode)
-                mRegisters.ActiveSegmentRegister = addrMode.Dst - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
-                clkCyc += 2
-                Return False
-
-            Case Else
-                Stop
 
         End Select
 

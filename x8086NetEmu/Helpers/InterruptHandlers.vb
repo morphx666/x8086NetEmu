@@ -50,6 +50,8 @@ Partial Public Class X8086
             If intNum = 0 Then ThrowException("Division By Zero")
         End If
 
+        'If intNum = 19 Then DebugMode = True
+
         mFlags.IF = 0
         mFlags.TF = 0
 
