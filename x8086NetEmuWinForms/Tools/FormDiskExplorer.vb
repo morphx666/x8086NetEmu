@@ -4,13 +4,12 @@ Imports x8086NetEmu
 Public Class FormDiskExplorer
     Private sdf As StandardDiskFormat
     Private selectedParitionIndex As Integer
-    Private ignoreNextEvent As Boolean
-    Private draggedItems As New List(Of String)
+    Private ReadOnly draggedItems As New List(Of String)
     Private isLeftMouseDown As Boolean
     Private mouseDownLocation As Point
 
     Public Sub Initialize(fileName As String)
-        sdf = New StandardDiskFormat(New IO.FileStream(fileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite))
+        sdf = New StandardDiskFormat(New IO.FileStream(fileName, IO.FileMode.Open, IO.FileAccess.ReadWrite, IO.FileShare.ReadWrite))
 
         LabelImageFile.Text = fileName
         ImageListIcons.Images.Add(Win32FileIcon.GetIconFromFile("."))
@@ -144,7 +143,7 @@ Public Class FormDiskExplorer
                 Return n
             ElseIf n.Nodes.Count > 0 Then
                 n = FindNode(d, n)
-                If n?.Tag IsNot Nothing AndAlso n.Tag.Equals(  d) Then Return n
+                If n?.Tag IsNot Nothing AndAlso n.Tag.Equals(d) Then Return n
             End If
         Next
         Return Nothing
@@ -168,7 +167,7 @@ Public Class FormDiskExplorer
         If node Is Nothing Then Exit Sub
 
         Dim entry As Object = node.Tag
-        DisplayFileSystem(node, sdf.GetDirectoryEntries(0, If(entry?.StartingClusterValue = 0, -1, entry.StartingClusterValue)))
+        DisplayFileSystem(node, sdf.GetDirectoryEntries(selectedParitionIndex, If(entry?.StartingClusterValue = 0, -1, entry.StartingClusterValue)))
     End Sub
 
     Private Sub DecodeBootStrapCode()
@@ -326,6 +325,36 @@ Public Class FormDiskExplorer
         If Not isLeftMouseDown Then
             'draggedItems.ForEach(Sub(di) IO.File.Delete(di))
             draggedItems.Clear()
+        End If
+    End Sub
+
+    Private Sub ListViewFileSystem_DragDrop(sender As Object, e As DragEventArgs) Handles ListViewFileSystem.DragDrop
+        If e.Effect = DragDropEffects.Copy Then
+            Dim node As TreeNode = TreeViewDirs.SelectedNode
+            Dim de As Object = node.Tag '  Parent folder
+            Dim files() As String = CType(e.Data.GetData("FileName"), String())
+
+            For i = 0 To files.Length - 1
+                If Not IO.File.Exists(files(i)) Then
+                    MessageBox.Show("Dropping directories is not yet supported", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
+                    Exit Sub
+                End If
+            Next
+
+            For i = 0 To files.Length - 1
+                sdf.WriteFile(selectedParitionIndex, de, New IO.FileInfo(files(i)))
+            Next
+
+            DisplayFileSystem(node, sdf.GetDirectoryEntries(selectedParitionIndex, If(de?.StartingClusterValue = 0, -1, de.StartingClusterValue)))
+        End If
+    End Sub
+
+    Private Sub ListViewFileSystem_DragOver(sender As Object, e As DragEventArgs) Handles ListViewFileSystem.DragOver
+        e.Effect = DragDropEffects.None
+
+        If e.Data.GetFormats().Contains("FileDrop") Then
+            Dim files() As String = CType(e.Data.GetData("FileDrop"), String())
+            e.Effect = DragDropEffects.Copy
         End If
     End Sub
 

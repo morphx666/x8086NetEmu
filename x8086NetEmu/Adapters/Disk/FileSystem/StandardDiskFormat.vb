@@ -5,7 +5,7 @@
 ' https://506889e3-a-62cb3a1a-s-sites.googlegroups.com/site/pcdosretro/fatgen.pdf?attachauth=ANoY7cr_oPcwxUv1I3jB9eaDf2z368nLQUQBc6_zKTfZw8FAs47xAK7Mf3btR_bQEpE5UwDLFgDJrTMovoZOrlC4Eg2qMn935KsT6IAvl5GxhoO_fqmzH7lcAY-7u9y-pbrUKVweCor3XkJPcSg1p-c7COBrRPjHhCgmAIJz1KCZ0iDBzxeE-pGWJ7gbj9-51DovkOLBzmYEcdJVH8xGIwGR_qufNhUuvQ%3D%3D&attredirects=0
 
 Public Class StandardDiskFormat
-    Private geometryTable(,) As Integer = {
+    Private ReadOnly GeometryTable(,) As Integer = {
         {40, 1, 8, 160 * 1024},
         {40, 2, 8, 320 * 1024},
         {40, 1, 9, 180 * 1024},
@@ -103,7 +103,7 @@ Public Class StandardDiskFormat
     Private ReadOnly mFATDataPointers(4 - 1)() As UInt16
     Private ReadOnly mRootDirectoryEntries(4 - 1)() As Object ' FAT12.DirectoryEntry
 
-    Private strm As IO.Stream
+    Private ReadOnly strm As IO.Stream
     Private ReadOnly FATRegionStart(4 - 1) As Long
 
     Public Sub New(s As IO.Stream)
@@ -136,12 +136,12 @@ Public Class StandardDiskFormat
         ReDim mMasterBootRecord.Partitions(0)
         mMasterBootRecord.Partitions(0) = New Partition With {.BootIndicator = BootIndicators.SystemPartition}
 
-        For i As Integer = 0 To geometryTable.Length / 4 - 1
-            If strm.Length = geometryTable(i, 3) Then
-                mMasterBootRecord.Partitions(0).EndingSectorCylinder = ((geometryTable(i, 0) And &H3FC) << 8) Or
-                                                                       ((geometryTable(i, 0) And &H3) << 6) Or
-                                                                        geometryTable(i, 2)
-                mMasterBootRecord.Partitions(0).EndingHead = geometryTable(i, 1)
+        For i As Integer = 0 To GeometryTable.Length / 4 - 1
+            If strm.Length = GeometryTable(i, 3) Then
+                mMasterBootRecord.Partitions(0).EndingSectorCylinder = ((GeometryTable(i, 0) And &H3FC) << 8) Or
+                                                                       ((GeometryTable(i, 0) And &H3) << 6) Or
+                                                                        GeometryTable(i, 2)
+                mMasterBootRecord.Partitions(0).EndingHead = GeometryTable(i, 1)
                 Exit For
             End If
         Next
@@ -199,11 +199,31 @@ Public Class StandardDiskFormat
     Private Sub ReadFAT(partitionNumber As Integer)
         FATRegionStart(partitionNumber) = strm.Position
 
+        Dim lastNibble As Byte = 0
+
         ReDim mFATDataPointers(partitionNumber)(CUInt(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT) * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId ' mBootSectors(partitionNumber).ExtendedBIOSParameterBlock.FileSystemType
-                Case StandardDiskFormat.SystemIds.FAT_12 ' FIXME: FAT cluster chain is not correctly built when the file system if FAT12
-                    mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
+                Case StandardDiskFormat.SystemIds.FAT_12 ' TODO: There has to be a simpler way to parse all 12bit addresses
+                    Dim b1 As Byte = strm.ReadByte()
+                    Dim b2 As Byte = strm.ReadByte()
+                    Dim n As UInt16
+
+                    If j = 0 Then
+                        n = BitConverter.ToUInt16({b1, b2}, 0)
+                    Else
+                        If j Mod 2 = 0 Then
+                            b2 = b2 And &HF
+                        Else
+                            b1 = (b1 And &HF0) >> 4
+                        End If
+
+                        n = b1 + (b2 << 12)
+                        If n >= &HF8 Then n = &HFFFF
+                    End If
+
+                    mFATDataPointers(partitionNumber)(j) = n
+                    If j Mod 2 = 0 Then strm.Position -= 1
                 Case StandardDiskFormat.SystemIds.FAT_16
                     mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
                 Case StandardDiskFormat.SystemIds.FAT_BIGDOS
@@ -291,7 +311,8 @@ Public Class StandardDiskFormat
                 b(bytesRead) = strm.ReadByte()
                 bytesRead += 1
 
-                If bytesRead >= de.FileSize AndAlso (bytesRead Mod bytesInCluster) = 0 Then
+                'If bytesRead >= de.FileSize AndAlso (bytesRead Mod bytesInCluster) = 0 Then
+                If (bytesRead Mod bytesInCluster) = 0 Then
                     clusterIndex = mFATDataPointers(partitionNumber)(clusterIndex)
                     Exit Do
                 End If
@@ -301,6 +322,116 @@ Public Class StandardDiskFormat
         ReDim Preserve b(de.FileSize - 1)
         Return b
     End Function
+
+    Public Sub WriteFile(partitionNumber As Integer, de As Object, file As IO.FileInfo)
+        Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
+        Dim pb As GCHandle
+        Dim b(32 - 1) As Byte
+        Dim bytesWritten As UInt32
+        Dim clusterIndex As Integer = If(de?.StartingCluster = 0, -1, de.StartingCluster)
+        Dim foundEmptyDirectoryEntry As Boolean = False
+
+        Dim FindEmptyCluster = Function()
+                                   For i As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
+                                       If mFATDataPointers(partitionNumber)(i) = 0 Then
+                                           mFATDataPointers(partitionNumber)(i) = &HFFFF ' Temporarily mark as used (EOF)
+                                           Return i
+                                       End If
+                                   Next
+                                   Return -1
+                               End Function
+
+        ' Find empty directory entry
+        While clusterIndex < &HFFF8
+            If clusterIndex = -1 Then
+                strm.Position = FATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
+            Else
+                strm.Position = ClusterIndexToSector(partitionNumber, clusterIndex)
+            End If
+
+            Do
+                strm.Read(b, 0, b.Length)
+                If b(0) = 0 OrElse b(0) = 5 OrElse b(0) = &HE5 Then
+                    foundEmptyDirectoryEntry = True
+                    Exit While
+                End If
+
+                If clusterIndex <> -1 Then
+                    bytesWritten += b.Length
+                    If bytesWritten Mod bytesInCluster = 0 Then
+                        clusterIndex = mFATDataPointers(partitionNumber)(clusterIndex)
+                        Exit Do
+                    End If
+                End If
+            Loop
+
+            If clusterIndex = -1 Then Exit While
+        End While
+
+        Dim ndeObj As Object = Nothing
+
+        If foundEmptyDirectoryEntry Then
+            ' Write Directory Entry
+            strm.Position -= b.Length
+            pb = GCHandle.Alloc(b, GCHandleType.Pinned)
+            Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
+                Case SystemIds.FAT_12, SystemIds.FAT_16
+                    Dim nde As New FAT12.DirectoryEntry With {
+                        .FileName = If(file.Extension <> "", file.Name.Replace(file.Extension, ""), file.Name),
+                        .FileExtension = file.Extension.TrimStart("."c),
+                        .Attribute = FAT12.EntryAttributes.ArchiveFlag,
+                        .StartingCluster = FindEmptyCluster(),
+                        .FileSize = file.Length,
+                        .Creation = 0 ' FIXME: Is this correct?
+                    }
+                    nde.SetTimeDate(file.CreationTime, Now, Now)
+                    ndeObj = nde
+
+                    Marshal.StructureToPtr(Of FAT12.DirectoryEntry)(nde, pb.AddrOfPinnedObject(), True)
+                Case SystemIds.FAT_BIGDOS
+                    Dim nde As New FAT32.DirectoryEntry With {
+                        .FileName = If(file.Extension <> "", file.Name.Replace(file.Extension, ""), file.Name),
+                        .FileExtension = file.Extension.TrimStart("."c),
+                        .Attribute = FAT12.EntryAttributes.ArchiveFlag,
+                        .StartingCluster = FindEmptyCluster(),
+                        .FileSize = file.Length
+                    }
+                    nde.SetTimeDate(file.CreationTime, Now, Now)
+                    ndeObj = nde
+
+                    Marshal.StructureToPtr(Of FAT32.DirectoryEntry)(nde, pb.AddrOfPinnedObject(), True)
+            End Select
+            pb.Free()
+
+            strm.Write(b, 0, b.Length)
+
+            ' Write File Bytes
+            bytesWritten = 0
+            Using src As IO.FileStream = file.OpenRead()
+                clusterIndex = ndeObj.StartingCluster
+                strm.Position = ClusterIndexToSector(partitionNumber, clusterIndex)
+                While bytesWritten < file.Length
+                    strm.WriteByte(src.ReadByte())
+                    bytesWritten += 1
+
+                    If (bytesWritten Mod bytesInCluster) = 0 Then
+                        Dim newClusterIndex As Integer = FindEmptyCluster()
+                        mFATDataPointers(partitionNumber)(clusterIndex) = newClusterIndex
+                        clusterIndex = newClusterIndex
+                        strm.Position = ClusterIndexToSector(partitionNumber, clusterIndex)
+                    End If
+                End While
+
+                mFATDataPointers(partitionNumber)(clusterIndex) = &HFFFF
+                strm.Flush()
+
+                src.Close()
+            End Using
+        Else
+            ' TODO: Throw some error message...
+            Stop
+        End If
+    End Sub
 
     Public ReadOnly Property MasterBootRecord As MBR
         Get

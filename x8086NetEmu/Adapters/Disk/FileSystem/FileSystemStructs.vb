@@ -51,7 +51,7 @@ Public Class FAT12
     <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)>
     Public Structure DirectoryEntry
         <MarshalAs(UnmanagedType.ByValArray, SizeConst:=8)> Public FileNameChars() As Byte
-        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=3)> Private ReadOnly FileExtensionChars() As Byte
+        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=3)> Private FileExtensionChars() As Byte
         Public Attribute As EntryAttributes
         Public ReservedNT As Byte
         Public Creation As Byte
@@ -70,16 +70,26 @@ Public Class FAT12
             End Get
         End Property
 
-        Public ReadOnly Property FileName As String
+        Public Property FileName As String
             Get
                 Return Text.Encoding.ASCII.GetString(FileNameChars).TrimEnd()
             End Get
+            Set(value As String)
+                Dim fn As String = value.ToUpper()
+                If fn.Length > 8 Then fn = fn.Substring(0, 8 - 2) + "~1"
+                FileNameChars = Text.Encoding.ASCII.GetBytes(fn.PadRight(8, " "c))
+            End Set
         End Property
 
-        Public ReadOnly Property FileExtension As String
+        Public Property FileExtension As String
             Get
                 Return Text.Encoding.ASCII.GetString(FileExtensionChars).TrimEnd()
             End Get
+            Set(value As String)
+                Dim fe As String = value.ToUpper()
+                If fe.Length > 3 Then fe = fe.Substring(0, 3)
+                FileExtensionChars = Text.Encoding.ASCII.GetBytes(fe.PadRight(3, " "c))
+            End Set
         End Property
 
         Public ReadOnly Property FullFileName As String
@@ -91,6 +101,14 @@ Public Class FAT12
                 Return fn + fe
             End Get
         End Property
+
+        Public Sub SetTimeDate(creation As Date, lastWrite As Date, lastAccess As Date)
+            CreationTime = FSTimeFromNative(creation)
+            CreationDate = FSDateFromNative(creation)
+            LastWriteTime = FSTimeFromNative(lastWrite)
+            LastWriteDate = FSDateFromNative(lastWrite)
+            LastAccessDate = FSDateFromNative(lastAccess)
+        End Sub
 
         Public ReadOnly Property CreationDateTime As DateTime
             Get
@@ -112,20 +130,6 @@ Public Class FAT12
             End Get
         End Property
 
-        Private Function FSTimeToNative(v As UInt16) As Integer()
-            Dim s As Integer = (v And &H1F) * 2
-            Dim m As Integer = (v And &H3E0) >> 5
-            Dim h As Integer = (v And &HF800) >> 11
-            Return {h, m, s}
-        End Function
-
-        Private Function FSDateToNative(v As UInt16) As Integer()
-            Dim d As Integer = v And &H1F
-            Dim m As Integer = (v And &H1E0) >> 5
-            Dim y As Integer = ((v And &HFE00) >> 9) + 1980
-            Return {y, m, d}
-        End Function
-
         Public Shadows Function ToString() As String
             Dim attrs() As String = [Enum].GetNames(GetType(EntryAttributes))
             Dim attr As String = ""
@@ -146,6 +150,34 @@ Public Class FAT12
         Public Shared Operator <>(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
             Return Not d1 = d2
         End Operator
+
+        Private Function FSTimeToNative(v As UInt16) As Integer()
+            Dim s As Integer = (v And &H1F) * 2
+            Dim m As Integer = (v And &H3E0) >> 5
+            Dim h As Integer = (v And &HF800) >> 11
+            Return {h, m, s}
+        End Function
+
+        Private Function FSTimeFromNative(v As Date) As UInt16
+            Dim h As Integer = (v.Hour << 11) And &HF800
+            Dim m As Integer = (v.Minute << 5) And &H3E0
+            Dim s As Integer = (v.Second / 2) And &H1F
+            Return h Or m Or s
+        End Function
+
+        Private Function FSDateToNative(v As UInt16) As Integer()
+            Dim d As Integer = v And &H1F
+            Dim m As Integer = (v And &H1E0) >> 5
+            Dim y As Integer = ((v And &HFE00) >> 9) + 1980
+            Return {y, m, d}
+        End Function
+
+        Private Function FSDateFromNative(v As Date) As UInt16
+            Dim d As Integer = v.Day And &H1F
+            Dim m As Integer = (v.Month << 5) And &H1E0
+            Dim y As Integer = (v.Year << 9) And &HFE00 + 1980
+            Return y Or m Or d
+        End Function
     End Structure
 
     <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)>
@@ -192,13 +224,13 @@ Public Class FAT32
         Public ClusterStartRootDirectory As UInt32
         Public SectorStartFileSystemInformationSector As UInt16
         Public SectorStartBackupBootSector As UInt16
-        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=12)> Private Reserved() As Byte
+        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=12)> Private ReadOnly Reserved() As Byte
     End Structure
 
     <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)>
     Public Shadows Structure DirectoryEntry
         <MarshalAs(UnmanagedType.ByValArray, SizeConst:=8)> Public FileNameChars() As Byte
-        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=3)> Private ReadOnly FileExtensionChars() As Byte
+        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=3)> Private FileExtensionChars() As Byte
         Public Attribute As Byte
         <MarshalAs(UnmanagedType.ByValArray, SizeConst:=8)> Public Unused01() As Byte
         Public StartingCluster As UInt16
@@ -213,28 +245,44 @@ Public Class FAT32
             End Get
         End Property
 
-        Public ReadOnly Property LastWriteTime As UInt16
+        Public Property LastWriteTime As UInt16
             Get
                 Return CreationTime
             End Get
+            Set(value As UInt16)
+                CreationTime = value
+            End Set
         End Property
 
-        Public ReadOnly Property LastWriteDate As UInt16
+        Public Property LastWriteDate As UInt16
             Get
                 Return CreationDate
             End Get
+            Set(value As UInt16)
+                CreationDate = value
+            End Set
         End Property
 
-        Public ReadOnly Property FileName As String
+        Public Property FileName As String
             Get
                 Return Text.Encoding.ASCII.GetString(FileNameChars).TrimEnd()
             End Get
+            Set(value As String)
+                Dim fn As String = value.ToUpper()
+                If fn.Length > 8 Then fn = fn.Substring(0, 8 - 2) + "~1"
+                FileNameChars = Text.Encoding.ASCII.GetBytes(fn.PadRight(8, " "c))
+            End Set
         End Property
 
-        Public ReadOnly Property FileExtension As String
+        Public Property FileExtension As String
             Get
                 Return Text.Encoding.ASCII.GetString(FileExtensionChars).TrimEnd()
             End Get
+            Set(value As String)
+                Dim fe As String = value.ToUpper()
+                If fe.Length > 3 Then fe = fe.Substring(0, 3)
+                FileExtensionChars = Text.Encoding.ASCII.GetBytes(fe.PadRight(3, " "c))
+            End Set
         End Property
 
         Public ReadOnly Property FullFileName As String
@@ -246,6 +294,13 @@ Public Class FAT32
                 Return fn + fe
             End Get
         End Property
+
+        Public Sub SetTimeDate(creation As Date, lastWrite As Date, lastAccess As Date)
+            CreationTime = FSTimeFromNative(creation)
+            CreationDate = FSDateFromNative(creation)
+            LastWriteTime = FSTimeFromNative(lastWrite)
+            LastWriteDate = FSDateFromNative(lastWrite)
+        End Sub
 
         Public ReadOnly Property CreationDateTime As DateTime
             Get
@@ -268,20 +323,6 @@ Public Class FAT32
             End Get
         End Property
 
-        Private Function FSTimeToNative(v As UInt16) As Integer()
-            Dim s As Integer = (v And &H1F) * 2
-            Dim m As Integer = (v And &H3E0) >> 5
-            Dim h As Integer = (v And &HF800) >> 11
-            Return {h, m, s}
-        End Function
-
-        Private Function FSDateToNative(v As UInt16) As Integer()
-            Dim d As Integer = v And &H1F
-            Dim m As Integer = (v And &H1E0) >> 5
-            Dim y As Integer = ((v And &HFE00) >> 9) + 1980
-            Return {y, m, d}
-        End Function
-
         Public Shadows Function ToString() As String
             Dim attrs() As String = [Enum].GetNames(GetType(EntryAttributes))
             Dim attr As String = ""
@@ -302,6 +343,34 @@ Public Class FAT32
         Public Shared Operator <>(d1 As DirectoryEntry, d2 As DirectoryEntry) As Boolean
             Return Not d1 = d2
         End Operator
+
+        Private Function FSTimeToNative(v As UInt16) As Integer()
+            Dim s As Integer = (v And &H1F) * 2
+            Dim m As Integer = (v And &H3E0) >> 5
+            Dim h As Integer = (v And &HF800) >> 11
+            Return {h, m, s}
+        End Function
+
+        Private Function FSTimeFromNative(v As Date) As UInt16
+            Dim h As Integer = (v.Hour << 11) And &HF800
+            Dim m As Integer = (v.Minute << 5) And &H3E0
+            Dim s As Integer = (v.Second / 2) And &H1F
+            Return h Or m Or s
+        End Function
+
+        Private Function FSDateToNative(v As UInt16) As Integer()
+            Dim d As Integer = v And &H1F
+            Dim m As Integer = (v And &H1E0) >> 5
+            Dim y As Integer = ((v And &HFE00) >> 9) + 1980
+            Return {y, m, d}
+        End Function
+
+        Private Function FSDateFromNative(v As Date) As UInt16
+            Dim d As Integer = v.Day And &H1F
+            Dim m As Integer = (v.Month << 5) And &H1E0
+            Dim y As Integer = (v.Year << 9) And &HFE00 + 1980
+            Return y Or m Or d
+        End Function
     End Structure
 
     <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)>

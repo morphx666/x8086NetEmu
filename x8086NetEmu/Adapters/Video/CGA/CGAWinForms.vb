@@ -9,14 +9,14 @@ Public Class CGAWinForms
 
     Private blinkCounter As Integer
     Private frameRate As Integer = 30
-    Private cursorAddress As New List(Of Integer)
+    Private ReadOnly cursorAddress As New List(Of Integer)
 
     Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
     Private ReadOnly cursorBrush As Color = Color.FromArgb(128, Color.White)
 
     Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
-    Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
+    Private ReadOnly textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
     Private ReadOnly fontSourceMode As FontSources
     Private g As Graphics
@@ -43,7 +43,7 @@ Public Class CGAWinForms
             End Get
         End Property
     End Class
-    Private task As Scheduler.Task = New TaskSC(Me)
+    Private ReadOnly task As Scheduler.Task = New TaskSC(Me)
 
     Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu,, enableWebUI)
@@ -354,7 +354,7 @@ Public Class CGAWinForms
 
                 Dim rect As RectangleF = New RectangleF(0, 0, 1000, 1000)
                 Dim ranges() As CharacterRange = {New CharacterRange(0, 1)}
-                Dim regions() As Region = {New Region()}
+                Dim regions() As Region
 
                 textFormat.SetMeasurableCharacterRanges(ranges)
 
