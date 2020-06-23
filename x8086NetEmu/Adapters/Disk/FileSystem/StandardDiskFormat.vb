@@ -203,7 +203,6 @@ Public Class StandardDiskFormat
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId ' mBootSectors(partitionNumber).ExtendedBIOSParameterBlock.FileSystemType
                 Case StandardDiskFormat.SystemIds.FAT_12 ' TODO: There has to be a simpler way to parse all 12bit addresses
-                    'If strm.Position = 668 Then Stop
                     Dim b1 As Byte = strm.ReadByte()
                     Dim b2 As Byte = strm.ReadByte()
                     Dim n As UInt16
@@ -211,7 +210,7 @@ Public Class StandardDiskFormat
                     If j = 0 Then
                         n = BitConverter.ToUInt16({b1, b2}, 0)
                     Else
-                        If b1 = &HFF AndAlso b2 = &HF Then
+                        If b1 = &HFF AndAlso b2 = &HF Then ' FIXME: FAT 12 fluggly hack #1!
                             n = &HFFFF
                         Else
                             If j Mod 2 = 0 Then
@@ -221,6 +220,7 @@ Public Class StandardDiskFormat
                             End If
 
                             n = b1 + (b2 << 12)
+                            If n >= &HF8 Then n = &HFFFF ' FIXME: FAT 12 fluggly hack #2!
                         End If
                     End If
 
@@ -448,7 +448,7 @@ Public Class StandardDiskFormat
 
         strm.Position = fatTableStart
 
-        For j As Integer = 0 To mFATDataPointers(partitionNumber).Length / 3 - 1
+        For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
                 Case StandardDiskFormat.SystemIds.FAT_12
                     b = BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j) And &HFFFF)
@@ -465,27 +465,14 @@ Public Class StandardDiskFormat
                         ' Save
                         b(0) = nibbles(0) << 4 Or nibbles(1)
                         b(1) = nibbles(5) << 4 Or nibbles(3)
+                        If b(0) = 239 Then ' FIXME: FAT 12 fluggly hack #3!
+                            b(0) = 255
+                            b(1) = If(b(1) = 0, 15, 255)
+                        End If
                         strm.Write(b, 0, 2)
-
-                        ' ------------------------
-                        'Dim b2(2 - 1) As Byte
-                        'strm.Read(b2, 0, 2)
-                        'If b(0) = 239 Then
-                        '    b(0) = 255
-                        '    b(1) = If(b(1) = 0, 15, 255)
-                        'End If
-                        'If b2(0) <> b(0) OrElse b2(1) <> b(1) Then Stop
-                        'Debug.Write($"{b(0):X2} {b(1):X2} ")
-                        ' ------------------------
 
                         b(0) = nibbles(2) << 4 Or nibbles(4)
                         strm.Write(b, 0, 1)
-
-                        ' ------------------------
-                        'strm.Read(b2, 0, 1)
-                        'If b2(0) <> b(0) Then Stop
-                        'Debug.Write($"{b(0):X2} ")
-                        ' ------------------------
                     End If
                     f = Not f
                 Case StandardDiskFormat.SystemIds.FAT_16
