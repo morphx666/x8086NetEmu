@@ -203,6 +203,7 @@ Public Class StandardDiskFormat
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId ' mBootSectors(partitionNumber).ExtendedBIOSParameterBlock.FileSystemType
                 Case StandardDiskFormat.SystemIds.FAT_12 ' TODO: There has to be a simpler way to parse all 12bit addresses
+                    'If strm.Position = 668 Then Stop
                     Dim b1 As Byte = strm.ReadByte()
                     Dim b2 As Byte = strm.ReadByte()
                     Dim n As UInt16
@@ -210,14 +211,17 @@ Public Class StandardDiskFormat
                     If j = 0 Then
                         n = BitConverter.ToUInt16({b1, b2}, 0)
                     Else
-                        If j Mod 2 = 0 Then
-                            b2 = b2 And &HF
+                        If b1 = &HFF AndAlso b2 = &HF Then
+                            n = &HFFFF
                         Else
-                            b1 = (b1 And &HF0) >> 4
-                        End If
+                            If j Mod 2 = 0 Then
+                                b2 = b2 And &HF
+                            Else
+                                b1 = (b1 And &HF0) >> 4
+                            End If
 
-                        n = b1 + (b2 << 12)
-                        If n >= &HF8 Then n = &HFFFF
+                            n = b1 + (b2 << 12)
+                        End If
                     End If
 
                     mFATDataPointers(partitionNumber)(j) = n
@@ -447,7 +451,7 @@ Public Class StandardDiskFormat
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length / 3 - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
                 Case StandardDiskFormat.SystemIds.FAT_12
-                    b = BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j) And &HFFF)
+                    b = BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j) And &HFFFF)
 
                     If f Then
                         nibbles(0) = (b(0) And &HF0) >> 4

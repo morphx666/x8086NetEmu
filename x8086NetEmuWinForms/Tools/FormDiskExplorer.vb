@@ -56,51 +56,55 @@ Public Class FormDiskExplorer
     End Sub
 
     Private Sub DisplayFileSystem(parentNode As TreeNode, entries() As Object)
-        If entries Is Nothing Then entries = sdf.RootDirectoryEntries(selectedParitionIndex)
-
-        Dim directories = From de In entries
-                          Where (de.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory AndAlso
-                                Convert.ToByte(de.FileNameChars(0)) < &H5E
-                          Order By de.FileName
-        Dim files = From de In entries
-                    Where (de.Attribute And FAT12.EntryAttributes.Directory) <> FAT12.EntryAttributes.Directory AndAlso
-                          (de.Attribute And FAT12.EntryAttributes.VolumeName) <> FAT12.EntryAttributes.VolumeName AndAlso
-                          Convert.ToByte(de.FileNameChars(0)) < &H5E
-                    Order By GetTypeDescription(de.FileExtension)
-
-        Dim node As TreeNode = Nothing
         parentNode.Nodes.Clear()
         ListViewFileSystem.Items.Clear()
-        For Each d In directories
-            If d.FileName <> "." AndAlso d.FileName <> ".." Then
-                node = FindNode(d, parentNode)
 
-                If node Is Nothing Then
-                    node = New TreeNode(d.FileName, 0, 0) With {.Tag = d}
-                    parentNode.Nodes.Add(node)
-                End If
+        If entries Is Nothing Then entries = sdf.RootDirectoryEntries(selectedParitionIndex)
 
-                With ListViewFileSystem.Items.Add(d.FileName, 0)
-                    With .SubItems
-                        .Add("")
-                        .Add(GetTypeDescription("Directory"))
-                        .Add("")
+        If entries IsNot Nothing Then
+
+            Dim directories = From de In entries
+                              Where (de.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory AndAlso
+                                    Convert.ToByte(de.FileNameChars(0)) < &H5E
+                              Order By de.FileName
+            Dim files = From de In entries
+                        Where (de.Attribute And FAT12.EntryAttributes.Directory) <> FAT12.EntryAttributes.Directory AndAlso
+                              (de.Attribute And FAT12.EntryAttributes.VolumeName) <> FAT12.EntryAttributes.VolumeName AndAlso
+                              Convert.ToByte(de.FileNameChars(0)) < &H5E
+                        Order By GetTypeDescription(de.FileExtension)
+
+            Dim node As TreeNode = Nothing
+            For Each d In directories
+                If d.FileName <> "." AndAlso d.FileName <> ".." Then
+                    node = FindNode(d, parentNode)
+
+                    If node Is Nothing Then
+                        node = New TreeNode(d.FileName, 0, 0) With {.Tag = d}
+                        parentNode.Nodes.Add(node)
+                    End If
+
+                    With ListViewFileSystem.Items.Add(d.FileName, 0)
+                        With .SubItems
+                            .Add("")
+                            .Add(GetTypeDescription("Directory"))
+                            .Add("")
+                        End With
+                        .Tag = {node, d}
                     End With
-                    .Tag = {node, d}
-                End With
-            End If
-        Next
+                End If
+            Next
 
-        For Each f In files
-            With ListViewFileSystem.Items.Add(f.FileName, GetExtensionIconIndex(f.FileExtension))
-                With .SubItems
-                    .Add(CDbl(Math.Ceiling((f.FileSize / 1024))).ToString("N0") + " KB")
-                    .Add(GetTypeDescription($".{f.FileExtension}"))
-                    .Add($"{f.WriteDateTime.ToShortDateString()} {f.WriteDateTime.ToLongTimeString()}")
+            For Each f In files
+                With ListViewFileSystem.Items.Add(f.FileName, GetExtensionIconIndex(f.FileExtension))
+                    With .SubItems
+                        .Add(CDbl(Math.Ceiling((f.FileSize / 1024))).ToString("N0") + " KB")
+                        .Add(GetTypeDescription($".{f.FileExtension}"))
+                        .Add($"{f.WriteDateTime.ToShortDateString()} {f.WriteDateTime.ToLongTimeString()}")
+                    End With
+                    .Tag = {node, f}
                 End With
-                .Tag = {node, f}
-            End With
-        Next
+            Next
+        End If
 
         parentNode.Expand()
         TreeViewDirs.SelectedNode = parentNode
