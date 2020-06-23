@@ -75,7 +75,7 @@ Public Class FAT12
                 Return Text.Encoding.ASCII.GetString(FileNameChars).TrimEnd()
             End Get
             Set(value As String)
-                Dim fn As String = value.ToUpper()
+                Dim fn As String = value.ToUpper().Replace(" "c, "_"c)
                 If fn.Length > 8 Then fn = fn.Substring(0, 8 - 2) + "~1"
                 FileNameChars = Text.Encoding.ASCII.GetBytes(fn.PadRight(8, " "c))
             End Set
@@ -268,7 +268,7 @@ Public Class FAT32
                 Return Text.Encoding.ASCII.GetString(FileNameChars).TrimEnd()
             End Get
             Set(value As String)
-                Dim fn As String = value.ToUpper()
+                Dim fn As String = value.ToUpper().Replace(" "c, "_"c)
                 If fn.Length > 8 Then fn = fn.Substring(0, 8 - 2) + "~1"
                 FileNameChars = Text.Encoding.ASCII.GetBytes(fn.PadRight(8, " "c))
             End Set

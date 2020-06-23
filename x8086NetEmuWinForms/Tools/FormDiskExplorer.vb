@@ -336,7 +336,7 @@ Public Class FormDiskExplorer
         If e.Effect = DragDropEffects.Copy Then
             Dim node As TreeNode = TreeViewDirs.SelectedNode
             Dim de As Object = node.Tag '  Parent folder
-            Dim files() As String = CType(e.Data.GetData("FileName"), String())
+            Dim files() As String = CType(e.Data.GetData("FileDrop"), String())
 
             For i = 0 To files.Length - 1
                 If Not IO.File.Exists(files(i)) Then
