@@ -17,7 +17,7 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - Cross-platform support through Mono (the emulator has been tested under Windows, [MacOS, Linux and RaspberryPi](https://whenimbored.xfx.net/2013/10/x8086netemu-linux-mac-os-x-raspberry-pi/))
 - Support for both Floppy and Hard Disk images
 - Hard disk and floppy images inspector / Disk Explorer (FAT12 and FAT16 support only)
-- Support to drag & drop files and folders from the Disk Explorer to the host
+- Support to drag & drop files and folders from the Disk Explorer to the host and viceversa
 - Support to copy/paste text to/from the emulator and the host
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2018/01/debugger.png)
