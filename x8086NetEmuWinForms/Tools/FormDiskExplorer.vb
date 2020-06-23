@@ -332,13 +332,23 @@ Public Class FormDiskExplorer
         End If
     End Sub
 
+    Private showWarning As Boolean = True
     Private Sub ListViewFileSystem_DragDrop(sender As Object, e As DragEventArgs) Handles ListViewFileSystem.DragDrop
         If e.Effect = DragDropEffects.Copy Then
             Dim node As TreeNode = TreeViewDirs.SelectedNode
-            Dim de As Object = node.Tag '  Parent folder
+            Dim de As Object = node.Tag ' Parent folder
             Dim files() As String = CType(e.Data.GetData("FileDrop"), String())
 
-            For i = 0 To files.Length - 1
+            If showWarning Then
+                If MsgBox("This feature is still under heavy development and using it may corrupt your disk images." + Environment.NewLine +
+                           "Are you sure you want to use it anyway?", MsgBoxStyle.YesNo Or MsgBoxStyle.Question) = MsgBoxResult.Yes Then
+                    showWarning = False
+                Else
+                    Exit Sub
+                End If
+            End If
+
+                For i = 0 To files.Length - 1
                 If Not IO.File.Exists(files(i)) Then
                     MessageBox.Show("Dropping directories is not yet supported", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                     Exit Sub
