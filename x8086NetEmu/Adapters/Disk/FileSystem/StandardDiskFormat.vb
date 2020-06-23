@@ -199,8 +199,6 @@ Public Class StandardDiskFormat
     Private Sub ReadFAT(partitionNumber As Integer)
         FATRegionStart(partitionNumber) = strm.Position
 
-        Dim lastNibble As Byte = 0
-
         ReDim mFATDataPointers(partitionNumber)(CUInt(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT) * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId ' mBootSectors(partitionNumber).ExtendedBIOSParameterBlock.FileSystemType
@@ -325,6 +323,7 @@ Public Class StandardDiskFormat
 
     Public Sub WriteFile(partitionNumber As Integer, de As Object, file As IO.FileInfo)
         Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
+        Dim clustersInFile As UInt32
         Dim pb As GCHandle
         Dim b(32 - 1) As Byte
         Dim bytesWritten As UInt32
@@ -369,7 +368,6 @@ Public Class StandardDiskFormat
         End While
 
         Dim ndeObj As Object = Nothing
-
         If foundEmptyDirectoryEntry Then
             ' Write Directory Entry
             strm.Position -= b.Length
@@ -406,6 +404,7 @@ Public Class StandardDiskFormat
             strm.Write(b, 0, b.Length)
 
             ' Write File Bytes
+            clustersInFile = Math.Ceiling(ndeObj.FileSize / bytesInCluster)
             bytesWritten = 0
             Using src As IO.FileStream = file.OpenRead()
                 clusterIndex = ndeObj.StartingCluster
@@ -423,14 +422,74 @@ Public Class StandardDiskFormat
                 End While
 
                 mFATDataPointers(partitionNumber)(clusterIndex) = &HFFFF
-                strm.Flush()
 
+                ' Write new FAT table
+                For i As Integer = 0 To mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies - 1
+                    WriteNewFATTable(partitionNumber, FATRegionStart(partitionNumber) + i * mFATDataPointers(partitionNumber).Length * 2)
+                Next
+
+                strm.Flush()
                 src.Close()
             End Using
         Else
             ' TODO: Throw some error message...
             Stop
         End If
+    End Sub
+
+    Private Sub WriteNewFATTable(partitionNumber As Integer, fatTableStart As Long)
+        Dim b() As Byte
+        Dim nibbles(6 - 1) As UInt16
+        Dim f As Boolean = True
+
+        strm.Position = fatTableStart
+
+        For j As Integer = 0 To mFATDataPointers(partitionNumber).Length / 3 - 1
+            Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
+                Case StandardDiskFormat.SystemIds.FAT_12
+                    b = BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j) And &HFFF)
+
+                    If f Then
+                        nibbles(0) = (b(0) And &HF0) >> 4
+                        nibbles(1) = b(0) And &HF
+                        nibbles(3) = b(1) And &HF
+                    Else
+                        nibbles(4) = (b(0) And &HF0) >> 4
+                        nibbles(5) = b(0) And &HF
+                        nibbles(2) = b(1) And &HF
+
+                        ' Save
+                        b(0) = nibbles(0) << 4 Or nibbles(1)
+                        b(1) = nibbles(5) << 4 Or nibbles(3)
+                        strm.Write(b, 0, 2)
+
+                        ' ------------------------
+                        'Dim b2(2 - 1) As Byte
+                        'strm.Read(b2, 0, 2)
+                        'If b(0) = 239 Then
+                        '    b(0) = 255
+                        '    b(1) = If(b(1) = 0, 15, 255)
+                        'End If
+                        'If b2(0) <> b(0) OrElse b2(1) <> b(1) Then Stop
+                        'Debug.Write($"{b(0):X2} {b(1):X2} ")
+                        ' ------------------------
+
+                        b(0) = nibbles(2) << 4 Or nibbles(4)
+                        strm.Write(b, 0, 1)
+
+                        ' ------------------------
+                        'strm.Read(b2, 0, 1)
+                        'If b2(0) <> b(0) Then Stop
+                        'Debug.Write($"{b(0):X2} ")
+                        ' ------------------------
+                    End If
+                    f = Not f
+                Case StandardDiskFormat.SystemIds.FAT_16
+                    strm.Write(BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j)), 0, 2)
+                Case StandardDiskFormat.SystemIds.FAT_BIGDOS
+                    strm.Write(BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j)), 0, 2)
+            End Select
+        Next
     End Sub
 
     Public ReadOnly Property MasterBootRecord As MBR
