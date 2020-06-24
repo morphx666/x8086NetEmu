@@ -403,6 +403,8 @@ Public Class FormDiskExplorer
         Dim node As TreeNode = TreeViewDirs.SelectedNode
         de = node.Tag ' Parent folder
         itemsToDelete.ForEach(Sub(itd) sdf.DeleteFile(selectedParitionIndex, de, itd))
+
+        DisplayFileSystem(node, sdf.GetDirectoryEntries(selectedParitionIndex, If(de?.StartingClusterValue = 0, -1, de.StartingClusterValue)))
     End Sub
 
     'Private Sub ListViewFileSystem_MouseMove(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseMove
