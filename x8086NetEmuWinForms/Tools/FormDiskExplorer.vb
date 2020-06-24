@@ -8,6 +8,10 @@ Public Class FormDiskExplorer
     Private isLeftMouseDown As Boolean
     Private mouseDownLocation As Point
 
+    ' Alpha features
+    Private showDropWarning As Boolean = True
+    Private showDeleteWarning As Boolean = True
+
     Public Sub Initialize(fileName As String)
         sdf = New StandardDiskFormat(New IO.FileStream(fileName, IO.FileMode.Open, IO.FileAccess.ReadWrite, IO.FileShare.ReadWrite))
 
@@ -332,23 +336,22 @@ Public Class FormDiskExplorer
         End If
     End Sub
 
-    Private showWarning As Boolean = True
     Private Sub ListViewFileSystem_DragDrop(sender As Object, e As DragEventArgs) Handles ListViewFileSystem.DragDrop
         If e.Effect = DragDropEffects.Copy Then
             Dim node As TreeNode = TreeViewDirs.SelectedNode
             Dim de As Object = node.Tag ' Parent folder
             Dim files() As String = CType(e.Data.GetData("FileDrop"), String())
 
-            If showWarning Then
+            If showDropWarning Then
                 If MsgBox("This feature is still under heavy development and using it may corrupt your disk images." + Environment.NewLine +
                            "Are you sure you want to use it anyway?", MsgBoxStyle.YesNo Or MsgBoxStyle.Question) = MsgBoxResult.Yes Then
-                    showWarning = False
+                    showDropWarning = False
                 Else
                     Exit Sub
                 End If
             End If
 
-                For i = 0 To files.Length - 1
+            For i = 0 To files.Length - 1
                 If Not IO.File.Exists(files(i)) Then
                     MessageBox.Show("Dropping directories is not yet supported", "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)
                     Exit Sub
@@ -370,6 +373,36 @@ Public Class FormDiskExplorer
             Dim files() As String = CType(e.Data.GetData("FileDrop"), String())
             e.Effect = DragDropEffects.Copy
         End If
+    End Sub
+
+    Private Sub ListViewFileSystem_KeyDown(sender As Object, e As KeyEventArgs) Handles ListViewFileSystem.KeyDown
+        If ListViewFileSystem.SelectedItems.Count = 0 Then Exit Sub
+
+        If e.KeyCode = Keys.Delete Then
+            If showDeleteWarning Then
+                If MsgBox("This feature is still under heavy development and using it may corrupt your disk images." + Environment.NewLine +
+                           "Are you sure you want to use it anyway?", MsgBoxStyle.YesNo Or MsgBoxStyle.Question) = MsgBoxResult.Yes Then
+                    showDeleteWarning = False
+                Else
+                    Exit Sub
+                End If
+            End If
+        End If
+
+        Dim de As Object
+        Dim itemsToDelete As New List(Of Object)
+        For Each item As ListViewItem In ListViewFileSystem.SelectedItems
+            de = CType(item.Tag, Object())(1)
+            If (de.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory Then
+                MsgBox("Deleting dicretories is not yet supported")
+                Exit Sub
+            End If
+            itemsToDelete.Add(de)
+        Next
+
+        Dim node As TreeNode = TreeViewDirs.SelectedNode
+        de = node.Tag ' Parent folder
+        itemsToDelete.ForEach(Sub(itd) sdf.DeleteFile(selectedParitionIndex, de, itd))
     End Sub
 
     'Private Sub ListViewFileSystem_MouseMove(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseMove

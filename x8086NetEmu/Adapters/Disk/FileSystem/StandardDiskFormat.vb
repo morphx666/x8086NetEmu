@@ -106,6 +106,8 @@ Public Class StandardDiskFormat
     Private ReadOnly strm As IO.Stream
     Private ReadOnly FATRegionStart(4 - 1) As Long
 
+    Private fatEOF As Integer
+
     Public Sub New(s As IO.Stream)
         Dim pb As GCHandle
         Dim b(512 - 1) As Byte
@@ -125,6 +127,12 @@ Public Class StandardDiskFormat
         Else
             LoadAsHardDiskImage()
         End If
+
+        Select Case mBootSectors(0).ExtendedBIOSParameterBlock.FileSystemType
+            Case "FAT12" : fatEOF = &HFF8
+            Case "FAT16" : fatEOF = &HFFF8
+            Case Else : mMasterBootRecord.Partitions(0).SystemId = SystemIds.EMPTY
+        End Select
     End Sub
 
     Private Sub LoadAsFloppyImage()
@@ -180,11 +188,11 @@ Public Class StandardDiskFormat
             pb = GCHandle.Alloc(b, GCHandleType.Pinned)
 
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
-                Case StandardDiskFormat.SystemIds.FAT_12
+                Case SystemIds.FAT_12
                     mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
-                Case StandardDiskFormat.SystemIds.FAT_16
+                Case SystemIds.FAT_16
                     mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT16.BootSector))
-                Case StandardDiskFormat.SystemIds.FAT_BIGDOS
+                Case SystemIds.FAT_BIGDOS
                     mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT32.BootSector))
                 Case SystemIds.EMPTY
                     pb.Free()
@@ -197,35 +205,24 @@ Public Class StandardDiskFormat
     End Sub
 
     Private Sub ReadFAT(partitionNumber As Integer)
+        Dim b1 As UInt16
+        Dim b2 As UInt16
+        Dim b3 As UInt16
+
         FATRegionStart(partitionNumber) = strm.Position
 
         ReDim mFATDataPointers(partitionNumber)(CUInt(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT) * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
-            Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId ' mBootSectors(partitionNumber).ExtendedBIOSParameterBlock.FileSystemType
-                Case StandardDiskFormat.SystemIds.FAT_12 ' TODO: There has to be a simpler way to parse all 12bit addresses
-                    Dim b1 As Byte = strm.ReadByte()
-                    Dim b2 As Byte = strm.ReadByte()
-                    Dim n As UInt16
+            Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
+                Case StandardDiskFormat.SystemIds.FAT_12 ' Wish I had found this before: http://www.c-jump.com/CIS24/Slides/FAT/lecture.html
+                    b1 = strm.ReadByte()
+                    b2 = strm.ReadByte()
+                    b3 = strm.ReadByte()
 
-                    If j = 0 Then
-                        n = BitConverter.ToUInt16({b1, b2}, 0)
-                    Else
-                        If b1 = &HFF AndAlso b2 = &HF Then ' FIXME: FAT 12 fluggly hack #1!
-                            n = &HFFFF
-                        Else
-                            If j Mod 2 = 0 Then
-                                b2 = b2 And &HF
-                            Else
-                                b1 = (b1 And &HF0) >> 4
-                            End If
+                    mFATDataPointers(partitionNumber)(j + 0) = (b2 And &HF) << 8 Or b1
+                    mFATDataPointers(partitionNumber)(j + 1) = b3 << 4 Or b2 >> 4
 
-                            n = b1 + (b2 << 12)
-                            If n >= &HF8 Then n = &HFFFF ' FIXME: FAT 12 fluggly hack #2!
-                        End If
-                    End If
-
-                    mFATDataPointers(partitionNumber)(j) = n
-                    If j Mod 2 = 0 Then strm.Position -= 1
+                    j += 1
                 Case StandardDiskFormat.SystemIds.FAT_16
                     mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
                 Case StandardDiskFormat.SystemIds.FAT_BIGDOS
@@ -249,7 +246,7 @@ Public Class StandardDiskFormat
         Dim dirEntryCount As Integer = -1
         Dim de As Object = Nothing
 
-        While clusterIndex < &HFFF8
+        While clusterIndex < fatEOF
             If clusterIndex = -1 Then
                 strm.Position = FATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
             Else
@@ -306,14 +303,13 @@ Public Class StandardDiskFormat
         Dim clusterIndex As UInt16 = de.StartingClusterValue
         Dim bytesRead As Long
 
-        While clusterIndex < &HFFF8 AndAlso bytesRead < de.FileSize
+        While clusterIndex < fatEOF AndAlso bytesRead < de.FileSize
             strm.Position = ClusterIndexToSector(partitionNumber, clusterIndex)
 
             Do
                 b(bytesRead) = strm.ReadByte()
                 bytesRead += 1
 
-                'If bytesRead >= de.FileSize AndAlso (bytesRead Mod bytesInCluster) = 0 Then
                 If (bytesRead Mod bytesInCluster) = 0 Then
                     clusterIndex = mFATDataPointers(partitionNumber)(clusterIndex)
                     Exit Do
@@ -325,13 +321,13 @@ Public Class StandardDiskFormat
         Return b
     End Function
 
-    Public Sub WriteFile(partitionNumber As Integer, de As Object, file As IO.FileInfo)
+    Public Sub WriteFile(partitionNumber As Integer, parentFolder As Object, file As IO.FileInfo)
         Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
         Dim clustersInFile As UInt32
         Dim pb As GCHandle
         Dim b(32 - 1) As Byte
         Dim bytesWritten As UInt32
-        Dim clusterIndex As Integer = If(de?.StartingCluster = 0, -1, de.StartingCluster)
+        Dim clusterIndex As Integer = If(parentFolder?.StartingCluster = 0, -1, parentFolder.StartingCluster)
         Dim foundEmptyDirectoryEntry As Boolean = False
 
         Dim FindEmptyCluster = Function()
@@ -345,7 +341,7 @@ Public Class StandardDiskFormat
                                End Function
 
         ' Find empty directory entry
-        While clusterIndex < &HFFF8
+        While clusterIndex < fatEOF
             If clusterIndex = -1 Then
                 strm.Position = FATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
             Else
@@ -426,13 +422,8 @@ Public Class StandardDiskFormat
                 End While
 
                 mFATDataPointers(partitionNumber)(clusterIndex) = &HFFFF
+                UpdateFATTables(partitionNumber)
 
-                ' Write new FAT table
-                For i As Integer = 0 To mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies - 1
-                    WriteNewFATTable(partitionNumber, FATRegionStart(partitionNumber) + i * mFATDataPointers(partitionNumber).Length * 2)
-                Next
-
-                strm.Flush()
                 src.Close()
             End Using
         Else
@@ -441,7 +432,60 @@ Public Class StandardDiskFormat
         End If
     End Sub
 
-    Private Sub WriteNewFATTable(partitionNumber As Integer, fatTableStart As Long)
+    Public Sub DeleteFile(partitionNumber As Integer, parentFolder As Object, de As Object)
+        Dim pb As GCHandle
+        Dim b(32 - 1) As Byte
+        Dim bytesInCluster As UInt32 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
+        Dim clustersInFile As UInt32 = Math.Ceiling(de.FileSize / bytesInCluster)
+        Dim clusterIndex As Integer = de.StartingClusterValue
+        Dim tmpFile As Object = Nothing
+
+        While clusterIndex < fatEOF
+            Dim nextClusterIndex = mFATDataPointers(partitionNumber)(clusterIndex)
+            mFATDataPointers(partitionNumber)(clusterIndex) = 0
+            clusterIndex = nextClusterIndex
+        End While
+
+        clusterIndex = If(parentFolder?.StartingCluster = 0, -1, parentFolder.StartingCluster)
+        While clusterIndex < fatEOF
+            If clusterIndex = -1 Then
+                strm.Position = FATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
+            Else
+                strm.Position = ClusterIndexToSector(partitionNumber, clusterIndex)
+            End If
+
+            Do
+                strm.Read(b, 0, b.Length)
+                pb = GCHandle.Alloc(b, GCHandleType.Pinned)
+                Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
+                    Case SystemIds.FAT_12, SystemIds.FAT_16
+                        tmpFile = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.DirectoryEntry))
+                    Case SystemIds.FAT_BIGDOS
+                        tmpFile = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT32.DirectoryEntry))
+                End Select
+                pb.Free()
+
+                If tmpFile.FullFileName = de.FullFileName Then
+                    strm.Position -= b.Length
+                    strm.WriteByte(0)
+
+                    UpdateFATTables(partitionNumber)
+                    Exit Sub
+                End If
+            Loop
+
+            If clusterIndex = -1 Then Exit While
+        End While
+    End Sub
+
+    Private Sub UpdateFATTables(partitionNumber As Integer)
+        For i As Integer = 0 To mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies - 1
+            UpdateFATTable(partitionNumber, FATRegionStart(partitionNumber) + i * mFATDataPointers(partitionNumber).Length * 2)
+        Next
+        strm.Flush()
+    End Sub
+
+    Private Sub UpdateFATTable(partitionNumber As Integer, fatTableStart As Long)
         Dim b() As Byte
         Dim nibbles(6 - 1) As UInt16
         Dim f As Boolean = True
@@ -451,7 +495,7 @@ Public Class StandardDiskFormat
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
                 Case StandardDiskFormat.SystemIds.FAT_12
-                    b = BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j) And &HFFFF)
+                    b = BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j))
 
                     If f Then
                         nibbles(0) = (b(0) And &HF0) >> 4
@@ -465,10 +509,6 @@ Public Class StandardDiskFormat
                         ' Save
                         b(0) = nibbles(0) << 4 Or nibbles(1)
                         b(1) = nibbles(5) << 4 Or nibbles(3)
-                        If b(0) = 239 Then ' FIXME: FAT 12 fluggly hack #3!
-                            b(0) = 255
-                            b(1) = If(b(1) = 0, 15, 255)
-                        End If
                         strm.Write(b, 0, 2)
 
                         b(0) = nibbles(2) << 4 Or nibbles(4)
