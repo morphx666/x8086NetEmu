@@ -16,13 +16,13 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - WinForms and Console samples included
 - Cross-platform support through Mono (the emulator has been tested under Windows, [MacOS, Linux and RaspberryPi](https://whenimbored.xfx.net/2013/10/x8086netemu-linux-mac-os-x-raspberry-pi/))
 - Support for both Floppy and Hard Disk images
-- Hard disk and floppy images inspector / Disk Explorer (FAT12 and FAT16 support only)
-- Support to drag & drop files and folders from the Disk Explorer to the host and viceversa
+- Hard disk and floppy images inspector / Disk Explorer (FAT12, FAT16 and FAT16B/BIGDOS support only)
+- Support to drag & drop files to/from the Disk Explorer and the host
 - Support to copy/paste text to/from the emulator and the host
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2018/01/debugger.png)
 
-Development is currently stalled due to a breaking bug (or bugs?) which prevent the emulator from working properly.
+Development is currently stalled due to a breaking bug (or bugs?) which prevent the emulator from working correctly.
 The bug can be reproduced by booting into DOS 6.x and running EDIT, QBASIC, DEFRAG or MEMMAKER.
 Quite probably, this is the same bug that also prevents it from running Windows 1.01 (although Windows 2.03 *almost* works).
 
@@ -33,7 +33,7 @@ Precompiled binaries can now be downloaded from the [releases](https://github.co
 ### Compiling for non-Windows platforms
 
 The speaker emulation uses [NAudio](https://github.com/naudio/NAudio), which only works under Windows.
-So in order to compile a version of x8086 that works under non-Windows platforms, the Win32 custom constant in the project properties of all the projects in the solution must be set to `False`.
+So in order to compile a version of x8086 that works under non-Windows platforms, the Win32 custom build constant in the project properties of all the projects in the solution must be set to `False`.
 
 If the aforementioned bug or bugs can be resolved, I will switch the sound backend support to the cross-platform library [BASS](http://www.un4seen.com/).
 
@@ -43,7 +43,7 @@ If the aforementioned bug or bugs can be resolved, I will switch the sound backe
 
 Since [commit 248](https://github.com/morphx666/x8086NetEmu/commit/c08b69b7c6ffbe165a036b811ff8e2b71e529854) the emulator can be viewed and controlled through a browser by initializing one of the WinForms video adapters with the `enableWebUI` parameter set to `true`.
 
-`cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, ,, True))`
+`cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, , , True))`
 
 This will create a web server at http://localhost:8086 which uses a simple script to render the emulator's display and capture key events, which will be sent back to the emulator for processing.
 Mouse support is not currently available.
