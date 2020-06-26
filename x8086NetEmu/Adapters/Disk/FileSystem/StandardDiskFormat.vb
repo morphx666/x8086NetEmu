@@ -5,7 +5,7 @@
 ' https://506889e3-a-62cb3a1a-s-sites.googlegroups.com/site/pcdosretro/fatgen.pdf?attachauth=ANoY7cr_oPcwxUv1I3jB9eaDf2z368nLQUQBc6_zKTfZw8FAs47xAK7Mf3btR_bQEpE5UwDLFgDJrTMovoZOrlC4Eg2qMn935KsT6IAvl5GxhoO_fqmzH7lcAY-7u9y-pbrUKVweCor3XkJPcSg1p-c7COBrRPjHhCgmAIJz1KCZ0iDBzxeE-pGWJ7gbj9-51DovkOLBzmYEcdJVH8xGIwGR_qufNhUuvQ%3D%3D&attredirects=0
 
 Public Class StandardDiskFormat
-    Private ReadOnly GeometryTable(,) As Integer = {
+    Public Shared ReadOnly GeometryTable(,) As Integer = {
         {40, 1, 8, 160 * 1024},
         {40, 2, 8, 320 * 1024},
         {40, 1, 9, 180 * 1024},
@@ -104,7 +104,7 @@ Public Class StandardDiskFormat
     Private ReadOnly mRootDirectoryEntries(4 - 1)() As Object ' FAT12.DirectoryEntry
 
     Private ReadOnly strm As IO.Stream
-    Private ReadOnly FATRegionStart(4 - 1) As Long
+    Private ReadOnly mFATRegionStart(4 - 1) As Long
 
     Private fatEOF As Integer
 
@@ -213,7 +213,7 @@ Public Class StandardDiskFormat
         Dim b2 As UInt16
         Dim b3 As UInt16
 
-        FATRegionStart(partitionNumber) = strm.Position
+        mFATRegionStart(partitionNumber) = strm.Position
 
         ReDim mFATDataPointers(partitionNumber)(CUInt(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT) * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
@@ -252,7 +252,7 @@ Public Class StandardDiskFormat
 
         While clusterIndex < fatEOF
             If clusterIndex = -1 Then
-                strm.Position = FATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
+                strm.Position = mFATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
             Else
                 strm.Position = ClusterIndexToSector(partitionNumber, clusterIndex)
             End If
@@ -293,9 +293,9 @@ Public Class StandardDiskFormat
         Return des
     End Function
 
-    Private Function ClusterIndexToSector(partitionNumber As Integer, clusterIndex As Integer) As Long
+    Public Function ClusterIndexToSector(partitionNumber As Integer, clusterIndex As Integer) As Long
         Dim bs As Object = mBootSectors(partitionNumber)
-        Dim rootDirectoryRegionStart As Long = FATRegionStart(partitionNumber) + bs.BIOSParameterBlock.NumberOfFATCopies * bs.BIOSParameterBlock.SectorsPerFAT * bs.BIOSParameterBlock.BytesPerSector
+        Dim rootDirectoryRegionStart As Long = mFATRegionStart(partitionNumber) + bs.BIOSParameterBlock.NumberOfFATCopies * bs.BIOSParameterBlock.SectorsPerFAT * bs.BIOSParameterBlock.BytesPerSector
         Dim dataRegionStart As Long = rootDirectoryRegionStart + bs.BIOSParameterBlock.MaxRootEntries * 32
         Return dataRegionStart + (clusterIndex - 2) * bs.BIOSParameterBlock.SectorsPerCluster * bs.BIOSParameterBlock.BytesPerSector
     End Function
@@ -325,7 +325,7 @@ Public Class StandardDiskFormat
         Return b
     End Function
 
-    Public Sub WriteFile(partitionNumber As Integer, parentFolder As Object, file As IO.FileInfo)
+    Public Sub WriteFile(partitionNumber As Integer, parentFolder As Object, file As IO.FileInfo, Optional attributes As FAT12.EntryAttributes = FAT12.EntryAttributes.ArchiveFlag)
         Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
         Dim clustersInFile As UInt32
         Dim pb As GCHandle
@@ -347,7 +347,7 @@ Public Class StandardDiskFormat
         ' Find empty directory entry
         While clusterIndex < fatEOF
             If clusterIndex = -1 Then
-                strm.Position = FATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
+                strm.Position = mFATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
             Else
                 strm.Position = ClusterIndexToSector(partitionNumber, clusterIndex)
             End If
@@ -381,7 +381,7 @@ Public Class StandardDiskFormat
                     Dim nde As New FAT12.DirectoryEntry With {
                         .FileName = If(file.Extension <> "", file.Name.Replace(file.Extension, ""), file.Name),
                         .FileExtension = file.Extension.TrimStart("."c),
-                        .Attribute = FAT12.EntryAttributes.ArchiveFlag,
+                        .Attribute = attributes,
                         .StartingCluster = FindEmptyCluster(),
                         .FileSize = file.Length,
                         .Creation = 0 ' FIXME: Is this correct?
@@ -394,7 +394,7 @@ Public Class StandardDiskFormat
                     Dim nde As New FAT32.DirectoryEntry With {
                         .FileName = If(file.Extension <> "", file.Name.Replace(file.Extension, ""), file.Name),
                         .FileExtension = file.Extension.TrimStart("."c),
-                        .Attribute = FAT12.EntryAttributes.ArchiveFlag,
+                        .Attribute = attributes,
                         .StartingCluster = FindEmptyCluster(),
                         .FileSize = file.Length
                     }
@@ -436,6 +436,77 @@ Public Class StandardDiskFormat
         End If
     End Sub
 
+    Public Sub SetVolumeLabel(partitionNumber As Integer, label As String)
+        Dim bytesInCluster As UInt16 = mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerCluster * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector
+        Dim pb As GCHandle
+        Dim b(32 - 1) As Byte
+        Dim bytesWritten As UInt32
+        Dim clusterIndex As Integer = -1
+        Dim foundEmptyDirectoryEntry As Boolean = False
+
+        ' Find empty directory entry
+        While clusterIndex < fatEOF
+            strm.Position = mFATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
+
+            Do
+                strm.Read(b, 0, b.Length)
+                If b(0) = 0 OrElse b(0) = 5 OrElse b(0) = &HE5 Then
+                    foundEmptyDirectoryEntry = True
+                    Exit While
+                End If
+
+                If clusterIndex <> -1 Then
+                    bytesWritten += b.Length
+                    If bytesWritten Mod bytesInCluster = 0 Then
+                        clusterIndex = mFATDataPointers(partitionNumber)(clusterIndex)
+                        Exit Do
+                    End If
+                End If
+            Loop
+
+            If clusterIndex = -1 Then Exit While
+        End While
+
+        Dim ndeObj As Object = Nothing
+        If foundEmptyDirectoryEntry Then
+            ' Write Directory Entry
+            strm.Position -= b.Length
+            pb = GCHandle.Alloc(b, GCHandleType.Pinned)
+            Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
+                Case SystemIds.FAT_12, SystemIds.FAT_16
+                    Dim nde As New FAT12.DirectoryEntry With {
+                        .FileName = label,
+                        .FileExtension = "",
+                        .Attribute = FAT12.EntryAttributes.VolumeName,
+                        .StartingCluster = 0,
+                        .FileSize = 0
+                    }
+                    nde.SetTimeDate(Now, Now, Now)
+                    ndeObj = nde
+
+                    Marshal.StructureToPtr(Of FAT12.DirectoryEntry)(nde, pb.AddrOfPinnedObject(), True)
+                Case SystemIds.FAT_BIGDOS
+                    Dim nde As New FAT32.DirectoryEntry With {
+                        .FileName = label,
+                        .FileExtension = "",
+                        .Attribute = FAT12.EntryAttributes.VolumeName,
+                        .StartingCluster = 0,
+                        .FileSize = 0
+                    }
+                    nde.SetTimeDate(Now, Now, Now)
+                    ndeObj = nde
+
+                    Marshal.StructureToPtr(Of FAT32.DirectoryEntry)(nde, pb.AddrOfPinnedObject(), True)
+            End Select
+            pb.Free()
+
+            strm.Write(b, 0, b.Length)
+        Else
+            ' TODO: Throw some error message...
+            Stop
+        End If
+    End Sub
+
     Public Sub DeleteFile(partitionNumber As Integer, parentFolder As Object, de As Object)
         Dim pb As GCHandle
         Dim b(32 - 1) As Byte
@@ -453,7 +524,7 @@ Public Class StandardDiskFormat
         clusterIndex = If(parentFolder?.StartingCluster = 0, -1, parentFolder.StartingCluster)
         While clusterIndex < fatEOF
             If clusterIndex = -1 Then
-                strm.Position = FATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
+                strm.Position = mFATRegionStart(partitionNumber) + mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies * mFATDataPointers(partitionNumber).Length * 2
             Else
                 strm.Position = ClusterIndexToSector(partitionNumber, clusterIndex)
             End If
@@ -482,9 +553,9 @@ Public Class StandardDiskFormat
         End While
     End Sub
 
-    Private Sub UpdateFATTables(partitionNumber As Integer)
+    Public Sub UpdateFATTables(partitionNumber As Integer)
         For i As Integer = 0 To mBootSectors(partitionNumber).BIOSParameterBlock.NumberOfFATCopies - 1
-            UpdateFATTable(partitionNumber, FATRegionStart(partitionNumber) + i * mFATDataPointers(partitionNumber).Length * 2)
+            UpdateFATTable(partitionNumber, mFATRegionStart(partitionNumber) + i * mFATDataPointers(partitionNumber).Length * 2)
         Next
         strm.Flush()
     End Sub
@@ -533,58 +604,70 @@ Public Class StandardDiskFormat
         End Get
     End Property
 
-    Public ReadOnly Property BootSector(partitionIndex As Integer) As Object
+    Public ReadOnly Property BootSector(partitionNumber As Integer) As Object
         Get
-            Return mBootSectors(partitionIndex)
+            Return mBootSectors(partitionNumber)
         End Get
     End Property
 
-    Public ReadOnly Property IsClean(partitionIndex As Integer) As Boolean
+    Public ReadOnly Property IsClean(partitionNumber As Integer) As Boolean
         Get
-            Return (mFATDataPointers(partitionIndex)(1) And &H8000) <> 0
+            Return (mFATDataPointers(partitionNumber)(1) And &H8000) <> 0
         End Get
     End Property
 
-    Public ReadOnly Property IsBootable(partitionIndex As Integer) As Boolean
+    Public ReadOnly Property IsBootable(partitionNumber As Integer) As Boolean
         Get
-            Return mMasterBootRecord.Partitions(partitionIndex).BootIndicator = BootIndicators.SystemPartition AndAlso
-                    mBootSectors(partitionIndex).Signature = &HAA55
+            Return mMasterBootRecord.Partitions(partitionNumber).BootIndicator = BootIndicators.SystemPartition AndAlso
+                    mBootSectors(partitionNumber).Signature = &HAA55
         End Get
     End Property
 
-    Public ReadOnly Property ReadWriteError(partitionIndex As Integer) As Boolean
+    Public ReadOnly Property ReadWriteError(partitionNumber As Integer) As Boolean
         Get
-            Return (mFATDataPointers(partitionIndex)(1) And &H4000) = 0
+            Return (mFATDataPointers(partitionNumber)(1) And &H4000) = 0
         End Get
     End Property
 
-    Public ReadOnly Property RootDirectoryEntries(partitionIndex As Integer) As Object() ' FAT12.DirectoryEntry()
+    Public ReadOnly Property RootDirectoryEntries(partitionNumber As Integer) As Object() ' FAT12.DirectoryEntry()
         Get
-            Return mRootDirectoryEntries(partitionIndex)
+            Return mRootDirectoryEntries(partitionNumber)
         End Get
     End Property
 
-    Public ReadOnly Property Cylinders(partitionIndex As Integer) As Int16
+    Public ReadOnly Property Cylinders(partitionNumber As Integer) As Int16
         Get
-            Dim sc As Int16 = mMasterBootRecord.Partitions(partitionIndex).StartingSectorCylinder >> 6
+            Dim sc As Int16 = mMasterBootRecord.Partitions(partitionNumber).StartingSectorCylinder >> 6
             sc = (sc >> 2) Or ((sc And &H3) << 8)
-            Dim ec As Int16 = mMasterBootRecord.Partitions(partitionIndex).EndingSectorCylinder >> 6
+            Dim ec As Int16 = mMasterBootRecord.Partitions(partitionNumber).EndingSectorCylinder >> 6
             ec = (ec >> 2) Or ((ec And &H3) << 8)
             Return ec - sc + 1
         End Get
     End Property
 
-    Public ReadOnly Property Sectors(partitionIndex As Integer) As Int16
+    Public ReadOnly Property Sectors(partitionNumber As Integer) As Int16
         Get
-            Dim ss As Int16 = mMasterBootRecord.Partitions(partitionIndex).StartingSectorCylinder And &H3F
-            Dim es As Int16 = mMasterBootRecord.Partitions(partitionIndex).EndingSectorCylinder And &H3F
+            Dim ss As Int16 = mMasterBootRecord.Partitions(partitionNumber).StartingSectorCylinder And &H3F
+            Dim es As Int16 = mMasterBootRecord.Partitions(partitionNumber).EndingSectorCylinder And &H3F
             Return es - ss
         End Get
     End Property
 
-    Public ReadOnly Property Heads(partitionIndex As Integer) As Int16
+    Public ReadOnly Property Heads(partitionNumber As Integer) As Int16
         Get
-            Return mMasterBootRecord.Partitions(partitionIndex).EndingHead - mMasterBootRecord.Partitions(partitionIndex).StartingHead
+            Return mMasterBootRecord.Partitions(partitionNumber).EndingHead - mMasterBootRecord.Partitions(partitionNumber).StartingHead
+        End Get
+    End Property
+
+    Public ReadOnly Property FATDataPointers(partitionNumber As Integer) As UInt16()
+        Get
+            Return mFATDataPointers(partitionNumber)
+        End Get
+    End Property
+
+    Public ReadOnly Property FATRegionStart(partitionNumber As Integer) As Long
+        Get
+            Return mFATRegionStart(partitionNumber)
         End Get
     End Property
 End Class

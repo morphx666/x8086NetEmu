@@ -8,20 +8,31 @@ Public Class HostFolderAsDisk
     Private Const mediaDescriptor As Byte = &HF8
     Private Const volumeLabel As String = "X8086"
 
-    Private ReadOnly mDiskSize As Integer = 17 * 1024 * 1204
+    Private ReadOnly dataStart As Long
 
+    Private ReadOnly mDiskSize As Integer = 17 * 1024 * 1204
     Private ReadOnly ssdf As StandardDiskFormat
 
     Public Sub New(folderLocation As String, Optional mountInReadOnlyMode As Boolean = False)
         MyBase.New()
+
         imgDataStrm = New FileStream(Path.Combine(folderLocation, "vfs.dat"), FileMode.OpenOrCreate, FileAccess.ReadWrite)
+        imgDataStrm.SetLength(mDiskSize)
         mFileLength = mDiskSize
 
         CreateBootSector()
         CreatePartitions()
 
         ssdf = New StandardDiskFormat(imgDataStrm, True)
-        'ssdf.SetVolumeLabel(0, volumeLabel)
+
+        dataStart = ssdf.ClusterIndexToSector(0, 0)
+        imgDataStrm.SetLength(dataStart)
+
+        ssdf.FATDataPointers(0)(0) = &HFF00 Or mediaDescriptor
+        ssdf.FATDataPointers(0)(1) = &HFFFF
+
+        ssdf.UpdateFATTables(0)
+        ssdf.SetVolumeLabel(0, volumeLabel)
 
         MyBase.OpenImage(mountInReadOnlyMode, True)
     End Sub
@@ -106,4 +117,29 @@ Public Class HostFolderAsDisk
         imgDataStrm.Position = sectorsPerTrack * 512
         imgDataStrm.Write(b, 0, b.Length)
     End Sub
+
+    Public Overrides Function Read(offset As ULong, data() As Byte) As Integer
+        If offset > dataStart Then
+            ' TODO: Find what file is at 'offset' (using GetEntryAtOffset())
+            ' read it from the host
+            ' and return the requested bytes
+            Return 0
+        Else
+            Return MyBase.Read(offset, data)
+        End If
+    End Function
+
+    Public Overrides Function Write(offset As ULong, data() As Byte) As Integer
+        If offset > dataStart Then
+            ' TODO: Find what file is at 'offset' (using GetEntryAtOffset())
+            ' and write to it from the host
+            Return 0
+        Else
+            Return MyBase.Read(offset, data)
+        End If
+    End Function
+
+    Public Function GetEntryAtOffset(offset As ULong, Optional clusterIndex As Integer = 0) As FAT12.DirectoryEntry
+        Dim des() As Object = ssdf.GetDirectoryEntries(0, clusterIndex)
+    End Function
 End Class

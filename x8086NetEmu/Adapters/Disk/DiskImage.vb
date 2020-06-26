@@ -20,16 +20,6 @@ Public Class DiskImage
         Dt144M = 4
     End Enum
 
-    Private geometryTable(,) As Integer = {
-        {40, 1, 8, 160 * 1024},
-        {40, 2, 8, 320 * 1024},
-        {40, 1, 9, 180 * 1024},
-        {40, 2, 9, 360 * 1024},
-        {80, 2, 9, 720 * 1024},
-        {80, 2, 15, 1200 * 1024},
-        {80, 2, 18, 1440 * 1024},
-        {80, 2, 36, 2880 * 1024}}
-
     Protected imgDataStrm As IO.FileStream
     Protected mCylinders As UInt16
     Protected mHeads As UInt16
@@ -139,21 +129,21 @@ Public Class DiskImage
             mHeads = -1
             mSectors = -1
 
-            For i As Integer = 0 To geometryTable.Length / 4 - 1
-                If mFileLength = geometryTable(i, 3) Then
-                    mCylinders = geometryTable(i, 0)
-                    mHeads = geometryTable(i, 1)
-                    mSectors = geometryTable(i, 2)
+            For i As Integer = 0 To StandardDiskFormat.GeometryTable.Length / 4 - 1
+                If mFileLength = StandardDiskFormat.GeometryTable(i, 3) Then
+                    mCylinders = StandardDiskFormat.GeometryTable(i, 0)
+                    mHeads = StandardDiskFormat.GeometryTable(i, 1)
+                    mSectors = StandardDiskFormat.GeometryTable(i, 2)
                     Return True
                 End If
             Next
 
             ' Cheap trick to handle images with garbage at the end of the image file (such as the copyright crap inserted by DiskImage)
-            For i As Integer = 0 To geometryTable.Length / 4 - 1
-                If Math.Abs(mFileLength - geometryTable(i, 3)) <= 512 Then
-                    mCylinders = geometryTable(i, 0)
-                    mHeads = geometryTable(i, 1)
-                    mSectors = geometryTable(i, 2)
+            For i As Integer = 0 To StandardDiskFormat.GeometryTable.Length / 4 - 1
+                If Math.Abs(mFileLength - StandardDiskFormat.GeometryTable(i, 3)) <= 512 Then
+                    mCylinders = StandardDiskFormat.GeometryTable(i, 0)
+                    mHeads = StandardDiskFormat.GeometryTable(i, 1)
+                    mSectors = StandardDiskFormat.GeometryTable(i, 2)
                     Return True
                 End If
             Next
