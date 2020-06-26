@@ -32,19 +32,27 @@ Public Class FAT12
         Public Reserved As Byte
         Public ExtendedBootSignature As Byte
         Public SerialNumber As UInt32
-        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=11)> Private ReadOnly VolumeLabelChars() As Byte
-        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=8)> Private ReadOnly FileSystemTypeChars() As Byte
+        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=11)> Private VolumeLabelChars() As Byte
+        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=8)> Private FileSystemTypeChars() As Byte
 
-        Public ReadOnly Property VolumeLabel As String
+        Public Property VolumeLabel As String
             Get
                 Return Text.Encoding.ASCII.GetString(VolumeLabelChars).Replace(vbNullChar, "").TrimEnd()
             End Get
+            Set(value As String)
+                If value.Length > 11 Then value = value.Substring(0, 11)
+                VolumeLabelChars = Text.Encoding.ASCII.GetBytes(value.ToUpper().PadRight(11, " "c))
+            End Set
         End Property
 
-        Public ReadOnly Property FileSystemType As String
+        Public Property FileSystemType As String
             Get
                 Return Text.Encoding.ASCII.GetString(FileSystemTypeChars).TrimEnd()
             End Get
+            Set(value As String)
+                If value.Length > 8 Then value = value.Substring(0, 8)
+                FileSystemTypeChars = Text.Encoding.ASCII.GetBytes(value.ToUpper().PadRight(11, " "c))
+            End Set
         End Property
     End Structure
 
@@ -183,16 +191,20 @@ Public Class FAT12
     <StructLayout(LayoutKind.Sequential, CharSet:=CharSet.Ansi, Pack:=1)>
     Public Structure BootSector
         <MarshalAs(UnmanagedType.ByValArray, SizeConst:=3)> Public JumpCode() As Byte
-        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=8)> Private ReadOnly OemIdChars() As Byte
+        <MarshalAs(UnmanagedType.ByValArray, SizeConst:=8)> Private OemIdChars() As Byte
         <MarshalAs(UnmanagedType.Struct)> Public BIOSParameterBlock As ParameterBlock
         <MarshalAs(UnmanagedType.Struct)> Public ExtendedBIOSParameterBlock As ExtendedParameterBlock
         <MarshalAs(UnmanagedType.ByValArray, SizeConst:=448)> Public BootStrapCode() As Byte
         Public Signature As UInt16
 
-        Public ReadOnly Property OemId As String
+        Public Property OemId As String
             Get
                 Return Text.Encoding.ASCII.GetString(OemIdChars).TrimEnd()
             End Get
+            Set(value As String)
+                If value.Length > 8 Then value = value.Substring(0, 8)
+                OemIdChars = Text.Encoding.ASCII.GetBytes(value.ToUpper().PadRight(8, " "c))
+            End Set
         End Property
     End Structure
 End Class

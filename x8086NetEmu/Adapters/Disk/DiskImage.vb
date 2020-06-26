@@ -30,21 +30,25 @@ Public Class DiskImage
         {80, 2, 18, 1440 * 1024},
         {80, 2, 36, 2880 * 1024}}
 
-    Private file As IO.FileStream
-    Protected Friend mCylinders As UInt16
-    Protected Friend mHeads As UInt16
-    Protected Friend mSectors As UInt16
-    Protected Friend mSectorSize As UInt16
-    Protected Friend mReadOnly As Boolean
-    Protected Friend mStatus As ImageStatus = ImageStatus.NoDisk
-    Protected Friend mFileLength As ULong
-    Protected Friend mIsHardDisk As Boolean
-    Protected Friend mFileName As String
-    Protected Friend mDriveType As DriveTypes
+    Protected imgDataStrm As IO.FileStream
+    Protected mCylinders As UInt16
+    Protected mHeads As UInt16
+    Protected mSectors As UInt16
+    Protected mSectorSize As UInt16
+    Protected mReadOnly As Boolean
+    Protected mStatus As ImageStatus = ImageStatus.NoDisk
+    Protected mFileLength As ULong
+    Protected mIsHardDisk As Boolean
+    Protected mFileName As String
+    Protected mDriveType As DriveTypes
 
-    Protected Friend Shared mHardDiskCount As Integer
+    Protected Shared mHardDiskCount As Integer
 
     Public Sub New()
+        mCylinders = -1
+        mHeads = -1
+        mSectors = -1
+        mFileLength = -1
     End Sub
 
     Public ReadOnly Property IsReadOnly As Boolean
@@ -78,33 +82,28 @@ Public Class DiskImage
     End Property
 
     Public Sub New(fileName As String, Optional mountInReadOnlyMode As Boolean = False, Optional isHardDisk As Boolean = False)
+        MyBase.New()
+
         mFileName = X8086.FixPath(fileName)
 
-        mCylinders = -1
-        mHeads = -1
-        mSectors = -1
-        mFileLength = -1
-
-        If Not IO.File.Exists(mFileName) Then
-            mStatus = ImageStatus.DiskImageNotFound
+        If mReadOnly Then
+            imgDataStrm = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite)
         Else
-            OpenImage(mountInReadOnlyMode, isHardDisk)
+            imgDataStrm = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.ReadWrite, IO.FileShare.ReadWrite)
         End If
+        mFileLength = imgDataStrm.Length
+
+        OpenImage(mountInReadOnlyMode, isHardDisk)
 
         X8086.Notify("DiskImage '{0}': {1}", X8086.NotificationReasons.Info, mFileName, mStatus.ToString())
     End Sub
 
-    Private Sub OpenImage(mountInReadOnlyMode As Boolean, isHardDisk As Boolean)
+    Protected Sub OpenImage(mountInReadOnlyMode As Boolean, isHardDisk As Boolean)
         mReadOnly = mountInReadOnlyMode
 
-        Try
-            If mReadOnly Then
-                file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.Read, IO.FileShare.ReadWrite)
-            Else
-                file = New IO.FileStream(mFileName, IO.FileMode.Open, IO.FileAccess.ReadWrite, IO.FileShare.ReadWrite)
-            End If
+        imgDataStrm.Position = 0
 
-            mFileLength = file.Length
+        Try
             mIsHardDisk = isHardDisk
             If isHardDisk Then mHardDiskCount += 1
 
@@ -260,7 +259,7 @@ Public Class DiskImage
 
     Public Sub Close()
         Try
-            If mStatus = ImageStatus.DiskLoaded Then file.Close()
+            If mStatus = ImageStatus.DiskLoaded Then imgDataStrm.Close()
         Catch
         Finally
             mStatus = ImageStatus.NoDisk
@@ -279,8 +278,8 @@ Public Class DiskImage
         If offset < 0 OrElse offset + data.Length > mFileLength Then Return EOF
 
         Try
-            file.Seek(offset, IO.SeekOrigin.Begin)
-            file.Read(data, 0, data.Length)
+            imgDataStrm.Seek(offset, IO.SeekOrigin.Begin)
+            imgDataStrm.Read(data, 0, data.Length)
 
             Return 0
         Catch e As Exception
@@ -294,8 +293,8 @@ Public Class DiskImage
         If offset < 0 OrElse offset + data.Length > mFileLength Then Return EOF
 
         Try
-            file.Seek(offset, IO.SeekOrigin.Begin)
-            file.Write(data, 0, data.Length)
+            imgDataStrm.Seek(offset, IO.SeekOrigin.Begin)
+            imgDataStrm.Write(data, 0, data.Length)
             Return 0
         Catch e As Exception
             Return EIO

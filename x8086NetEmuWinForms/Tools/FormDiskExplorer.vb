@@ -330,10 +330,7 @@ Public Class FormDiskExplorer
 
     Private Sub ListViewFileSystem_MouseUp(sender As Object, e As MouseEventArgs) Handles ListViewFileSystem.MouseUp
         isLeftMouseDown = Not (e.Button = MouseButtons.Left)
-        If Not isLeftMouseDown Then
-            'draggedItems.ForEach(Sub(di) IO.File.Delete(di))
-            draggedItems.Clear()
-        End If
+        If Not isLeftMouseDown Then draggedItems.Clear()
     End Sub
 
     Private Sub ListViewFileSystem_DragDrop(sender As Object, e As DragEventArgs) Handles ListViewFileSystem.DragDrop
@@ -394,7 +391,7 @@ Public Class FormDiskExplorer
         For Each item As ListViewItem In ListViewFileSystem.SelectedItems
             de = CType(item.Tag, Object())(1)
             If (de.Attribute And FAT12.EntryAttributes.Directory) = FAT12.EntryAttributes.Directory Then
-                MsgBox("Deleting dicretories is not yet supported")
+                MsgBox("Deleting directories is not yet supported")
                 Exit Sub
             End If
             itemsToDelete.Add(de)

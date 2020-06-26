@@ -71,12 +71,16 @@
                 Dim di = mCPU.FloppyContoller.DiskImage(i)
 
                 If di.IsHardDisk Then
-                    xml.Add(<disk>
-                                <letter><%= Convert.ToChar(67 + (i - 128)) %></letter>
-                                <index><%= i %></index>
-                                <image><%= di.FileName.Replace(curPath, "") %></image>
-                                <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
-                            </disk>)
+                    If di.FileName = "" Then
+                        ' Do something?
+                    Else
+                        xml.Add(<disk>
+                                    <letter><%= Convert.ToChar(67 + (i - 128)) %></letter>
+                                    <index><%= i %></index>
+                                    <image><%= di.FileName.Replace(curPath, "") %></image>
+                                    <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
+                                </disk>)
+                    End If
                 End If
             End If
         Next

@@ -432,8 +432,6 @@ Public Class X8086
         instrucionsCounter += 1
 
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
-
-        'If mRegisters.IP = &H100 Then DebugMode = True
     End Sub
 
     Private Sub Execute_DEBUG()

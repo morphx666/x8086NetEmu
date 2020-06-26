@@ -774,6 +774,7 @@ Public Class FormEmulator
 
                     cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro, True)
                 Next
+                cpu.FloppyContoller.DiskImage(130) = New HostFolderAsDisk("D:\Users\Xavier Flix\Dropbox\Projects\x8086NetEmu\Release\disks\virtual", False)
             End If
 
             Try

@@ -108,24 +108,28 @@ Public Class StandardDiskFormat
 
     Private fatEOF As Integer
 
-    Public Sub New(s As IO.Stream)
+    Public Sub New(s As IO.Stream, Optional forceLoadAsHardDisk As Boolean = False)
         Dim pb As GCHandle
         Dim b(512 - 1) As Byte
 
         strm = s
 
-        ' Assume Floppy Image (No partitions)
-        ' FIXME: There has to be a better way to know if the image is a floppy or a hard disk
-        '        Perhaps some better way to detect if the image has a master boot record or something...
-        strm.Position = 0
-        strm.Read(b, 0, b.Length)
-        pb = GCHandle.Alloc(b, GCHandleType.Pinned)
-        Dim bs As FAT12.BootSector = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
-        pb.Free()
-        If bs.BIOSParameterBlock.BytesPerSector = 512 Then
-            LoadAsFloppyImage()
-        Else
+        If forceLoadAsHardDisk Then
             LoadAsHardDiskImage()
+        Else
+            ' Assume Floppy Image (No partitions)
+            ' FIXME: There has to be a better way to know if the image is a floppy or a hard disk
+            '        Perhaps some better way to detect if the image has a master boot record or something...
+            strm.Position = 0
+            strm.Read(b, 0, b.Length)
+            pb = GCHandle.Alloc(b, GCHandleType.Pinned)
+            Dim bs As FAT12.BootSector = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
+            pb.Free()
+            If bs.BIOSParameterBlock.BytesPerSector = 512 Then
+                LoadAsFloppyImage()
+            Else
+                LoadAsHardDiskImage()
+            End If
         End If
 
         Select Case mBootSectors(0).ExtendedBIOSParameterBlock.FileSystemType
