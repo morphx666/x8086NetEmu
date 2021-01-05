@@ -120,15 +120,12 @@
         For i As Integer = 0 To 4 - 1
             channels(i) = New Channel(Me)
         Next
-        MaskReg = &HF '  mask all channels
+        MaskReg = &HF ' Mask all channels
         ch0NextTrigger = -1
 
-        For i As UInt32 = &H0 To &HF
+        For i As Integer = &H0 To &HF
             ValidPortAddress.Add(i)
-        Next
-
-        For i As UInt32 = &H80 To &H8F
-            ValidPortAddress.Add(i)
+            ValidPortAddress.Add(&H80 Or i)
         Next
     End Sub
 
@@ -345,7 +342,6 @@
 
     Public Overrides Sub Out(port As UInt32, value As UInt16)
         UpdateCh0()
-
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel setup
             Dim chan As Channel = channels((port >> 1) And 3)

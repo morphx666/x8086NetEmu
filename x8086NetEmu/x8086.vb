@@ -727,7 +727,7 @@ Public Class X8086
                 clkCyc += 3
 
             Case &H50 To &H57 ' PUSH AX | CX | DX | BX | SP | BP | SI | DI
-                If opCode = &H54 Then  ' SP
+                If opCode = &H54 Then ' SP
                     ' The 8086/8088 pushes the value of SP after it has been decremented
                     ' http://css.csail.mit.edu/6.858/2013/readings/i386/s15_06.htm
                     PushIntoStack(mRegisters.SP - 2)
@@ -1224,11 +1224,19 @@ Public Class X8086
                 IPAddrOffet = PopFromStack()
                 clkCyc += 16
 
-            Case &HC4 To &HC5 ' LES / LDS Gv Mp
+            Case &HC4 ' LES Gv Mp
                 SetAddressing(DataSize.Word)
-                If (addrMode.Register1 And shl2) = shl2 Then addrMode.Register1 += GPRegisters.RegistersTypes.ES
-                mRegisters.Val(addrMode.Register1 Or shl3) = addrMode.IndMem
-                mRegisters.Val(If(opCode = &HC4, GPRegisters.RegistersTypes.ES, GPRegisters.RegistersTypes.DS)) = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
+                addrMode.Decode(&HC5, RAM8(mRegisters.CS, mRegisters.IP + 1))
+                mRegisters.Val(addrMode.Register1) = addrMode.IndMem
+                mRegisters.ES = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
+                ignoreINTs = True
+                clkCyc += 16
+
+            Case &HC5 ' LDS Gv Mp
+                SetAddressing(DataSize.Word)
+                addrMode.Decode(&HC5, RAM8(mRegisters.CS, mRegisters.IP + 1))
+                mRegisters.Val(addrMode.Register1) = addrMode.IndMem
+                mRegisters.DS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 ignoreINTs = True
                 clkCyc += 16
 
@@ -1454,7 +1462,7 @@ Public Class X8086
                 newPrefix = True
                 clkCyc += 2
 
-            Case &HF3 ' repe/repz
+            Case &HF3 ' REPE/REPZ
                 mRepeLoopMode = REPLoopModes.REPE
                 newPrefix = True
                 clkCyc += 2
@@ -2112,8 +2120,6 @@ Public Class X8086
                 End If
             End While
         End If
-
-        'If {&H26, &H2E, &H36, &H3E}.Contains(RAM8(mRegisters.CS, mRegisters.IP)) Then mRegisters.IP -= 1
     End Sub
 
     Private Function ExecStringOpCode() As Boolean

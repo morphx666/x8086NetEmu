@@ -32,13 +32,13 @@
                     End If
 
                     s1 = String.Format("{0}:{1} {2} {3}", CS.ToString("X4"),
-                                                                        IP.ToString("X4"),
-                                                                        r.PadRight(6 * 3),
-                                                                        Mnemonic.PadRight(6, " "))
+                                                            IP.ToString("X4"),
+                                                            r.PadRight(6 * 3),
+                                                            Mnemonic.PadRight(7, " "))
                 Else
                     s1 = String.Format("{0}:{1} {2}", CS.ToString("X4"),
-                                                                        IP.ToString("X4"),
-                                                                        Mnemonic.PadRight(6, " "))
+                                                        IP.ToString("X4"),
+                                                        Mnemonic.PadRight(7, " "))
                 End If
 
                 If Parameter1 <> "" Then

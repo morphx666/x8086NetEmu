@@ -83,21 +83,18 @@
     End Sub
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
-        Dim m As MouseEventArgs = CType(e.TheEvent, MouseEventArgs)
+        Dim m As MouseEventArgs = CType(e.Event, MouseEventArgs)
         Dim p As New Point(m.X - MidPointOffset.X, m.Y - MidPointOffset.Y)
 
-        p.X = Math.Ceiling(Math.Abs(p.X)) * Math.Sign(p.X)
-        p.Y = Math.Ceiling(Math.Abs(p.Y)) * Math.Sign(p.Y)
-
-        Dim highbits As Byte = 0
-        If p.X < 0 Then highbits = 3
-        If p.Y < 0 Then highbits = highbits Or &HC
+        Dim highBits As Byte = 0
+        If p.X < 0 Then highBits = &B11
+        If p.Y < 0 Then highBits = highBits Or &B1100
 
         Dim btns As Byte = 0
         If (m.Button And MouseButtons.Left) = MouseButtons.Left Then btns = btns Or 2
         If (m.Button And MouseButtons.Right) = MouseButtons.Right Then btns = btns Or 1
 
-        BufSerMouseData(&H40 Or (btns << 4) Or highbits)
+        BufSerMouseData(&H40 Or (btns << 4) Or highBits)
         BufSerMouseData(p.X And &H3F)
         BufSerMouseData(p.Y And &H3F)
     End Sub

@@ -208,7 +208,7 @@
     End Sub
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
-        Dim keyEvent As KeyEventArgs = CType(e.TheEvent, KeyEventArgs)
+        Dim keyEvent As KeyEventArgs = CType(e.Event, KeyEventArgs)
         Dim isUp As Boolean = CType(e.Extra, Boolean)
 
         If MyBase.CPU.PPI IsNot Nothing Then MyBase.CPU.PPI.PutKeyData(keyEvent.KeyValue And &HFF, isUp)

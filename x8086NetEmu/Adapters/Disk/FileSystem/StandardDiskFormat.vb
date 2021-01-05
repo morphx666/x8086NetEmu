@@ -131,7 +131,14 @@ Public Class StandardDiskFormat
         Select Case mBootSectors(0).ExtendedBIOSParameterBlock.FileSystemType
             Case "FAT12" : fatEOF = &HFF8
             Case "FAT16" : fatEOF = &HFFF8
-            Case Else : mMasterBootRecord.Partitions(0).SystemId = SystemIds.EMPTY
+            Case Else
+                Select Case mMasterBootRecord.Partitions(0).SystemId
+                    Case SystemIds.FAT_BIGDOS
+                        fatEOF = &HFFF8
+                    Case Else
+                        Stop
+                        mMasterBootRecord.Partitions(0).SystemId = SystemIds.EMPTY
+                End Select
         End Select
     End Sub
 

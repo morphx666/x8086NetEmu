@@ -1,9 +1,9 @@
 ﻿Partial Public Class X8086
-    Private tmpF As Byte
+    Private tmpCF As Byte
     Private portsCache As New Dictionary(Of UInt32, IOPortHandler)
-    Private szpLUT8(256 - 1) As GPFlags.FlagsTypes
-    Private szpLUT16(65536 - 1) As GPFlags.FlagsTypes
-    Private decoderCache(65536 - 1) As AddressingMode
+    Private ReadOnly szpLUT8(256 - 1) As GPFlags.FlagsTypes
+    Private ReadOnly szpLUT16(65536 - 1) As GPFlags.FlagsTypes
+    Private ReadOnly decoderCache(65536 - 1) As AddressingMode
 
     Public Enum ParamIndex
         First = 0
@@ -102,9 +102,8 @@
         ' http://www.ic.unicamp.br/~celio/mc404s2-03/addr_modes/intel_addr.html
 
         If Not mRegisters.ActiveSegmentChanged Then
-            If addrMode.Rm = 2 OrElse addrMode.Rm = 3 Then
-                mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
-            ElseIf addrMode.Rm = 6 AndAlso addrMode.Modifier <> 0 Then
+            If addrMode.Rm = 2 OrElse addrMode.Rm = 3 OrElse
+                (addrMode.Rm = 6 AndAlso addrMode.Modifier <> 0) Then
                 mRegisters.ActiveSegmentRegister = GPRegisters.RegistersTypes.SS
             End If
         End If
@@ -294,15 +293,15 @@
 
             Case Operation.Increment
                 result = v1 + v2
-                tmpF = mFlags.CF
+                tmpCF = mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, False)
-                mFlags.CF = tmpF
+                mFlags.CF = tmpCF
 
             Case Operation.Decrement
                 result = v1 - v2
-                tmpF = mFlags.CF
+                tmpCF = mFlags.CF
                 SetAddSubFlags(result, v1, v2, size, True)
-                mFlags.CF = tmpF
+                mFlags.CF = tmpCF
 
         End Select
 

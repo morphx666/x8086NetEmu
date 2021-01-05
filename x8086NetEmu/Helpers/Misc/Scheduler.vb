@@ -384,8 +384,8 @@ Public Class Scheduler
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         If e.Handler Is Nothing Then Exit Sub
 
-        If TypeOf e.TheEvent Is KeyEventArgs Then
-            Dim theEvent = CType(e.TheEvent, KeyEventArgs)
+        If TypeOf e.Event Is KeyEventArgs Then
+            Dim theEvent = CType(e.Event, KeyEventArgs)
 
             If cadCounter > 0 Then
                 cadCounter -= 1
@@ -405,7 +405,7 @@ Public Class Scheduler
 
             If isCtrlDown AndAlso isAltDown AndAlso (theEvent.KeyCode And Keys.Insert) = Keys.Insert Then
                 cadCounter = 3 ' Ignore the next three events, which will be the release of CTRL, ALT and DEL
-                e.TheEvent = New KeyEventArgs(Keys.Delete)
+                e.Event = New KeyEventArgs(Keys.Delete)
                 X8086.Notify("Sending CTRL+ALT+DEL", X8086.NotificationReasons.Info)
             End If
         End If
@@ -429,18 +429,18 @@ Public Class ExternalInputEvent
     Inherits EventArgs
 
     Public Property Handler As IExternalInputHandler
-    Public Property TheEvent As EventArgs
+    Public Property [Event] As EventArgs
     Public Property TimeStamp As Long
     Public Property Extra As Object
 
     Public Sub New(handler As IExternalInputHandler, theEvent As EventArgs)
         Me.Handler = handler
-        Me.TheEvent = theEvent
+        Me.Event = theEvent
     End Sub
 
     Public Sub New(handler As IExternalInputHandler, theEvent As EventArgs, extra As Object)
         Me.Handler = handler
-        Me.TheEvent = theEvent
+        Me.Event = theEvent
         Me.Extra = extra
     End Sub
 

@@ -2,6 +2,9 @@
 Imports System.Threading
 
 Module ModuleMain
+    Private Const DebugMode As Boolean = False
+    Private Const TraceDelay As Integer = 50
+
     Private cpu As X8086
     Private validData() As Byte = Nothing
     Private testsTotal As Integer = 0
@@ -21,6 +24,7 @@ Module ModuleMain
                                         End Sub
 
         X8086.LogToConsole = False
+        Console.CursorVisible = False
 
         For Each f As IO.FileInfo In (New IO.DirectoryInfo(IO.Path.Combine(My.Application.Info.DirectoryPath, "80186_tests"))).GetFiles("*.bin")
             Dim fileName As String = f.Name.Replace(f.Extension, "")
@@ -36,12 +40,15 @@ Module ModuleMain
 
             If cpu.IsHalted Then cpu.HardReset()
             cpu.LoadBIN(f.FullName, &HF000, &H0)
-            cpu.Run(, &HF000, &H0)
+            cpu.Run(DebugMode, &HF000, &H0)
 
-            'While Not cpu.IsHalted
-            '    DisplayInstructions()
-            '    cpu.StepInto()
-            'End While
+            If DebugMode Then
+                While Not cpu.IsHalted
+                    DisplayInstructions()
+                    cpu.StepInto()
+                    Thread.Sleep(TraceDelay)
+                End While
+            End If
 
             waiter.WaitOne()
         Next
@@ -55,18 +62,20 @@ Module ModuleMain
 
         Console.WriteLine("Press any key to exit")
         Console.ReadKey()
+        Console.CursorVisible = True
     End Sub
 
     Private Sub DisplayInstructions()
-        If inst.Count > 10 Then inst.RemoveAt(0)
+        If inst.Count > Console.WindowHeight - 1 Then inst.RemoveAt(0)
         inst.Add(cpu.Decode().ToString())
 
         Dim c As Integer = Console.CursorLeft
         Dim r As Integer = Console.CursorTop
+        Dim cw As Integer = Console.WindowWidth / 2
 
         For i As Integer = 0 To inst.Count - 1
-            Console.SetCursorPosition(Console.WindowWidth / 2, i)
-            Console.Write(inst(i))
+            Console.SetCursorPosition(cw, i)
+            Console.Write(inst(i).PadRight(cw - 1, " "))
         Next
 
         Console.SetCursorPosition(c, r)
