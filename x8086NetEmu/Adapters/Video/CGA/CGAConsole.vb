@@ -90,23 +90,30 @@ Public Class CGAConsole
         Select Case Environment.OSVersion.Platform
             Case PlatformID.Win32NT, PlatformID.Win32S, PlatformID.Win32Windows, PlatformID.WinCE
             Case Else
-                If mVideoMode <> &HFF AndAlso (Console.WindowWidth <> mTextResolution.Width OrElse Console.WindowHeight <> mTextResolution.Height) Then
-                    ConsoleCrayon.ResetColor()
-                    Console.Clear()
-                    ConsoleCrayon.WriteFast("Unsupported Console Window Size", ConsoleColor.White, ConsoleColor.Red, 0, 0)
-                    ConsoleCrayon.ResetColor()
-                    Console.WriteLine()
-                    Console.WriteLine("The window console cannot be resized on this platform, which will cause the text to be rendered incorrectly")
-                    Console.WriteLine()
-                    Console.WriteLine($"Expected Resolution for Video Mode {mVideoMode:X2}: {mTextResolution.Width}x{mTextResolution.Height}")
-                    Console.WriteLine($"Current console window resolution:     {Console.WindowWidth}x{Console.WindowHeight}")
-                    Console.WriteLine()
-                    Console.WriteLine("Manually resize the window to the appropriate resolution or press any key to continue")
-                    Do
-                        ConsoleCrayon.WriteFast($"New resolution: {Console.WindowWidth}x{Console.WindowHeight}", ConsoleColor.White, ConsoleColor.DarkRed, 0, 10)
-                        Thread.Sleep(200)
-                        If Console.WindowWidth = mTextResolution.Width AndAlso Console.WindowHeight = mTextResolution.Height Then Exit Do
-                    Loop Until Console.KeyAvailable
+                If mVideoMode <> &HFF Then
+                    Dim lw As Integer = -1
+                    Dim lh As Integer = -1
+                    While Console.WindowWidth <> mTextResolution.Width OrElse Console.WindowHeight <> mTextResolution.Height
+                        If lw <> Console.WindowWidth OrElse lh <> Console.WindowHeight Then
+                            lw = Console.WindowWidth
+                            lh = Console.WindowHeight
+
+                            Console.Clear()
+                            ConsoleCrayon.ResetColor()
+                            ConsoleCrayon.WriteFast("Unsupported Console Window Size", ConsoleColor.White, ConsoleColor.Red, 0, 0)
+                            ConsoleCrayon.ResetColor()
+                            Console.WriteLine()
+                            Console.WriteLine("The window console cannot be resized on this platform, which will cause the text to be rendered incorrectly")
+                            Console.WriteLine()
+                            Console.WriteLine($"Expected Resolution for Video Mode {mVideoMode:X2}: {mTextResolution.Width,4} x {mTextResolution.Height,4}")
+                            ConsoleCrayon.WriteFast($"Current console window resolution:     {Console.WindowWidth,4} x {Console.WindowHeight,4}", ConsoleColor.White, ConsoleColor.DarkRed, 0, Console.CursorTop)
+                            ConsoleCrayon.ResetColor()
+                            Console.WriteLine()
+                            Console.WriteLine("Manually resize the window to the appropriate resolution")
+                        End If
+
+                        Thread.Sleep(100)
+                    End While
                     ConsoleCrayon.ResetColor()
                     Console.Clear()
                 End If
@@ -215,7 +222,7 @@ Public Class CGAConsole
             b0 = CPU.Memory(address)
             b1 = CPU.Memory(address + 1)
 
-            If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) <> 0 Then b0 = 0
+            If (blinkCounter <BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) <> 0 Then b0 = 0
 
             If b1c <> b1 Then
                 ConsoleCrayon.WriteFast(text, b1c.LowNib(), b1c.HighNib(), c, r)
@@ -227,7 +234,7 @@ Public Class CGAConsole
             text += chars(b0)
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-                cv = blinkCounter < BlinkRate
+                cv = blinkCounter <BlinkRate
 
                 If blinkCounter >= 2 * BlinkRate Then
                     blinkCounter = 0
