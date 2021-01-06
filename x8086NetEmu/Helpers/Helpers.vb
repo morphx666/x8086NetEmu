@@ -313,9 +313,9 @@
                                             szpLUT8(result And &HFF),
                                             szpLUT16(result And &HFFFF))
 
-        mFlags.PF = If((ft And GPFlags.FlagsTypes.PF) <> 0, 1, 0)
-        mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
         mFlags.SF = If((ft And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
+        mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
+        mFlags.PF = If((ft And GPFlags.FlagsTypes.PF) <> 0, 1, 0)
     End Sub
 
     Private Sub SetLogicFlags(result As UInt32, size As DataSize)

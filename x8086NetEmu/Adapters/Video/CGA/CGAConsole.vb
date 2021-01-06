@@ -99,7 +99,6 @@ Public Class CGAConsole
                             lh = Console.WindowHeight
 
                             Console.Clear()
-                            ConsoleCrayon.ResetColor()
                             ConsoleCrayon.WriteFast("Unsupported Console Window Size", ConsoleColor.White, ConsoleColor.Red, 0, 0)
                             ConsoleCrayon.ResetColor()
                             Console.WriteLine()

@@ -1640,18 +1640,10 @@ Public Class X8086
 
         If addrMode.IsDirect Then
             oldValue = mRegisters.Val(addrMode.Register2)
-            If opCode >= &HD2 Then
-                clkCyc += 8
-            Else
-                clkCyc += 2
-            End If
+            clkCyc += If(opCode >= &HD2, 8, 2)
         Else
             oldValue = addrMode.IndMem
-            If opCode >= &HD2 Then
-                clkCyc += 20
-            Else
-                clkCyc += 13
-            End If
+            clkCyc += If(opCode >= &HD2, 20, 13)
         End If
 
         Select Case opCode
@@ -1662,9 +1654,8 @@ Public Class X8086
 
         ' 80186/V20 class CPUs limit shift count to 31
         If mVic20 Then count = count And &H1F
+        If count = 0 Then Exit Sub
         clkCyc += 4 * count
-
-        If count = 0 Then newValue = oldValue
 
         Select Case addrMode.Reg
             Case 0 ' ROL Gb CL/Ib | Gv CL/Ib
@@ -1672,7 +1663,7 @@ Public Class X8086
                     newValue = (oldValue << 1) Or (oldValue >> mask07_15)
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                ElseIf count > 1 Then
+                Else
                     newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
                     mFlags.CF = newValue And 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
@@ -1683,7 +1674,7 @@ Public Class X8086
                     newValue = (oldValue >> 1) Or (oldValue << mask07_15)
                     mFlags.CF = oldValue And 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                ElseIf count > 1 Then
+                Else
                     newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
                     mFlags.CF = If((newValue And mask80_8000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
@@ -1694,7 +1685,7 @@ Public Class X8086
                     newValue = (oldValue << 1) Or mFlags.CF
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                ElseIf count > 1 Then
+                Else
                     oldValue = oldValue Or (CUInt(mFlags.CF) << mask8_16)
                     newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
@@ -1706,49 +1697,41 @@ Public Class X8086
                     newValue = (oldValue >> 1) Or (CUInt(mFlags.CF) << mask07_15)
                     mFlags.CF = oldValue And 1
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                ElseIf count > 1 Then
+                Else
                     oldValue = oldValue Or (CUInt(mFlags.CF) << mask8_16)
                     newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
                     mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
-                    mFlags.OF = 0
                 End If
 
             Case 4, 6 ' SHL/SAL Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = oldValue << 1
                     mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                ElseIf count > 1 Then
+                Else
                     newValue = If(count > mask8_16, 0, oldValue << count)
                     mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
-                    mFlags.OF = 0
                 End If
+                mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 5 ' SHR Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = oldValue >> 1
                     mFlags.CF = oldValue And 1
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                ElseIf count > 1 Then
+                Else
                     newValue = If(count > mask8_16, 0, oldValue >> (count - 1))
                     mFlags.CF = newValue And 1
                     newValue >>= 1
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
-                Else
-                    mFlags.OF = 0
                 End If
+                mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 7 ' SAR Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue And mask80_8000)
                     mFlags.CF = oldValue And 1
-                ElseIf count > 1 Then
+                Else
                     oldValue = oldValue Or If((oldValue And mask80_8000) <> 0, maskFF00_FFFF0000, 0)
                     newValue = oldValue >> If(count >= mask8_16, mask07_15, count - 1)
                     mFlags.CF = newValue And 1
