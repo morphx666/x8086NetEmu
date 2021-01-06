@@ -222,7 +222,7 @@ Public Class CGAConsole
             b0 = CPU.Memory(address)
             b1 = CPU.Memory(address + 1)
 
-            If (blinkCounter <BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) <> 0 Then b0 = 0
+            If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) <> 0 Then b0 = 0
 
             If b1c <> b1 Then
                 ConsoleCrayon.WriteFast(text, b1c.LowNib(), b1c.HighNib(), c, r)
@@ -234,7 +234,7 @@ Public Class CGAConsole
             text += chars(b0)
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-                cv = blinkCounter <BlinkRate
+                cv = blinkCounter < BlinkRate
 
                 If blinkCounter >= 2 * BlinkRate Then
                     blinkCounter = 0
