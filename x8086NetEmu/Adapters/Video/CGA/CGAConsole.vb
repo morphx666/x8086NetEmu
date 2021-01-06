@@ -96,7 +96,7 @@ Public Class CGAConsole
                     ConsoleCrayon.WriteFast("Unsupported Console Window Size", ConsoleColor.White, ConsoleColor.Red, 0, 0)
                     ConsoleCrayon.ResetColor()
                     Console.WriteLine()
-                    Console.WriteLine("The window console cannot be resized on this platform, which will case the text to be rendered incorrectly")
+                    Console.WriteLine("The window console cannot be resized on this platform, which will cause the text to be rendered incorrectly")
                     Console.WriteLine()
                     Console.WriteLine($"Expected Resolution for Video Mode {mVideoMode:X2}: {mTextResolution.Width}x{mTextResolution.Height}")
                     Console.WriteLine($"Current console window resolution:     {Console.WindowWidth}x{Console.WindowHeight}")
