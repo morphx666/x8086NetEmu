@@ -15,7 +15,7 @@
 
     Public Property IsCaptured As Boolean
 
-    Private Const M As Integer = Asc("M")
+    Private Const M As Byte = Asc("M")
 
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)

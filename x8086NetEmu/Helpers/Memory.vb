@@ -97,6 +97,8 @@ Partial Public Class X8086
         <FieldOffset(26)> Private mActiveSegmentRegister As RegistersTypes
         <FieldOffset(30)> Private mActiveSegmentChanged As Boolean
 
+        <FieldOffset(32)> Private ReadOnly extraRegs As New Dictionary(Of Integer, UInt16)
+
         Public Property Val(reg As RegistersTypes) As UInt16
             Get
                 Select Case reg
@@ -130,7 +132,12 @@ Partial Public Class X8086
 
                     Case RegistersTypes.BP : Return BP
 
-                    Case Else : Throw New Exception($"Invalid Register: {reg}")
+                    Case Else
+                        If extraRegs.ContainsKey(reg) Then
+                            Return extraRegs(reg)
+                        Else
+                            Return 0
+                        End If
                 End Select
             End Get
             Set(value As UInt16)
@@ -165,7 +172,12 @@ Partial Public Class X8086
 
                     Case RegistersTypes.BP : BP = value
 
-                    Case Else : Throw New Exception($"Invalid Register: {reg}")
+                    Case Else
+                        If extraRegs.ContainsKey(reg) Then
+                            extraRegs(reg) = value
+                        Else
+                            extraRegs.Add(reg, value)
+                        End If
                 End Select
             End Set
         End Property

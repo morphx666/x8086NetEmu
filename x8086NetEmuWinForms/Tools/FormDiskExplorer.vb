@@ -1,5 +1,6 @@
 ﻿Imports Microsoft.Win32
 Imports x8086NetEmu
+Imports x8086NetEmu.StandardDiskFormat
 
 Public Class FormDiskExplorer
     Private sdf As StandardDiskFormat
@@ -22,7 +23,11 @@ Public Class FormDiskExplorer
         ListViewCode.BackColor = Color.FromArgb(34, 40, 42)
         ListViewCode.ForeColor = Color.FromArgb(102, 80, 15)
 
-        LoadPartitions()
+        If sdf.MasterBootRecord.Partitions(0).SystemId = SystemIds.EMPTY Then
+            DecodeBootStrapCode()
+        Else
+            LoadPartitions()
+        End If
     End Sub
 
     Private Sub LoadPartitions()

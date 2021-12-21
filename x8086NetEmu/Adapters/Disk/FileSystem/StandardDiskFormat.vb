@@ -122,11 +122,12 @@ Public Class StandardDiskFormat
         pb = GCHandle.Alloc(b, GCHandleType.Pinned)
         Dim bs As FAT12.BootSector = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
         pb.Free()
-        If bs.BIOSParameterBlock.BytesPerSector = 512 Then
-            LoadAsFloppyImage()
-        Else
-            LoadAsHardDiskImage()
-        End If
+
+        'If bs.BIOSParameterBlock.BytesPerSector = 512 Then
+        LoadAsFloppyImage()
+        'Else
+        '    LoadAsHardDiskImage()
+        'End If
 
         Select Case mBootSectors(0).ExtendedBIOSParameterBlock.FileSystemType
             Case "FAT12" : fatEOF = &HFF8
@@ -136,7 +137,8 @@ Public Class StandardDiskFormat
                     Case SystemIds.FAT_BIGDOS
                         fatEOF = &HFFF8
                     Case Else
-                        Stop
+                        ' Hack to support bootsector programs
+                        mBootSectors(0).BootStrapCode = b
                         mMasterBootRecord.Partitions(0).SystemId = SystemIds.EMPTY
                 End Select
         End Select

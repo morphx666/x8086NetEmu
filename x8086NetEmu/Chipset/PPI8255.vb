@@ -135,7 +135,7 @@
         If keyBuf.Length = 16 Then TrimBuffer()
 
         SyncLock keyBuf
-            keyBuf = keyBuf + Convert.ToChar(v)
+            keyBuf += Convert.ToChar(v)
             keyUpStates(keyBuf.Length - 1) = isKeyUp
 
             If keyBuf.Length = 1 AndAlso irq IsNot Nothing Then irq.Raise(True)

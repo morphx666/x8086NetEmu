@@ -409,6 +409,8 @@ Public Class X8086
                 opCodes(opCode).Invoke()
 #End If
                 PostExecute()
+                'If SegmentOffetToAbsolute(mRegisters.CS, mRegisters.IP) = &H7C00 Then DebugMode = True
+                'If mRegisters.CS = &H60 And mRegisters.IP = &H764D Then DebugMode = True
             End While
             mIsExecuting = False
         End If
@@ -2091,7 +2093,7 @@ Public Class X8086
                 End If
             End If
 
-            mRegisters.IP -= (opCodeSize + 1)
+            If mRegisters.CX > 0 Then mRegisters.IP -= (opCodeSize + 1)
         Else
             While mRegisters.CX > 0
                 mRegisters.CX -= 1

@@ -791,10 +791,8 @@ Public Class FormDebugger
                             mEmulator.IsHalted
 
             ignoreEvents = False
-
             loopWaiter.WaitOne()
             If abortThreads Then Exit Do
-
             ignoreEvents = True
 
             If mEmulator.IsHalted Then StartStopRunMode()

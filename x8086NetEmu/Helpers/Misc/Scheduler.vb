@@ -39,9 +39,7 @@ Public Class Scheduler
     Public pendingInput As ArrayList
 
     ' The CPU component controlled by this Scheduler
-    Private mCPU As X8086
-
-    Private loopThread As Thread
+    Private ReadOnly mCPU As X8086
 
     Private isCtrlDown As Boolean
     Private isAltDown As Boolean
