@@ -9,7 +9,6 @@ Public Class CGAWinForms
 
     Private blinkCounter As Integer
     Private frameRate As Integer = 30
-    Private ReadOnly cursorAddress As New List(Of Integer)
 
     Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
 
@@ -103,13 +102,13 @@ Public Class CGAWinForms
                                    StringFormatFlags.FitBlackBox Or
                                    StringFormatFlags.NoClip
 
-        System.Threading.Tasks.Task.Run(Sub()
-                                            Dim delay As Integer = 1000 / frameRate
-                                            Do
-                                                Threading.Thread.Sleep(delay)
-                                                mRenderControl.Invalidate()
-                                            Loop Until cancelAllThreads
-                                        End Sub)
+        Threading.Tasks.Task.Run(Sub()
+                                     Dim delay As Integer = 1000 / frameRate
+                                     Do
+                                         Threading.Thread.Sleep(delay)
+                                         mRenderControl.Invalidate()
+                                     Loop Until cancelAllThreads
+                                 End Sub)
     End Sub
 
     Public Property RenderControl As Control
@@ -232,15 +231,13 @@ Public Class CGAWinForms
                 If blinkCounter < BlinkRate Then b0 = 0
             End If
 
-            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location, cursorAddress.Contains(address))
-            cursorAddress.Remove(address)
+            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib()), r.Location)
 
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If blinkCounter < BlinkRate Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
                                            r.X + 0, r.Y - 1 + mCellSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
                                            mCellSize.Width, MyBase.CursorEnd - MyBase.CursorStart + 1)
-                    cursorAddress.Add(address)
                 End If
 
                 If blinkCounter >= 2 * BlinkRate Then
@@ -288,7 +285,7 @@ Public Class CGAWinForms
         Next
     End Sub
 
-    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point, Optional force As Boolean = False)
+    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
                 g.FillRectangle(bbb, New Rectangle(p, mCellSize))
@@ -299,12 +296,6 @@ Public Class CGAWinForms
         Else
             Dim ccc As New VideoChar(c, fb, bb)
             Dim idx As Integer
-
-            If Not force Then
-                idx = (p.Y << 8) + p.X
-                If memCache(idx) IsNot Nothing AndAlso memCache(idx) = ccc Then Exit Sub
-                memCache(idx) = ccc
-            End If
 
             idx = charsCache.IndexOf(ccc)
             If idx = -1 Then
