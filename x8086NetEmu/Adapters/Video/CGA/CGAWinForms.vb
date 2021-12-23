@@ -198,6 +198,8 @@ Public Class CGAWinForms
             For i As Integer = 0 To CGAPalette.Length - 1
                 brushCache(i) = CGAPalette(i)
             Next
+
+            charsCache.Clear()
         End If
     End Sub
 
@@ -295,9 +297,7 @@ Public Class CGAWinForms
             End Using
         Else
             Dim ccc As New VideoChar(c, fb, bb)
-            Dim idx As Integer
-
-            idx = charsCache.IndexOf(ccc)
+            Dim idx As Integer = charsCache.IndexOf(ccc)
             If idx = -1 Then
                 ccc.Render(mCellSize.Width, mCellSize.Height)
                 charsCache.Add(ccc)
@@ -342,7 +342,7 @@ Public Class CGAWinForms
             Case FontSources.TrueType
                 If charSizeCache.ContainsKey(code) Then Return charSizeCache(code)
 
-                Dim rect As RectangleF = New RectangleF(0, 0, 1000, 1000)
+                Dim rect As New RectangleF(0, 0, 1000, 1000)
                 Dim ranges() As CharacterRange = {New CharacterRange(0, 1)}
                 Dim regions() As Region
 
