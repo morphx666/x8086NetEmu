@@ -1518,7 +1518,7 @@ Public Class X8086
             mRegisters.IP += opCodeSize
         End If
 
-        clkCyc += opCodeSize * 4 '* (mCyclesPerSecond / BASECLOCK) ' This seems to fix the music timing in Arkanoid, but slows down the emulation!
+        clkCyc += opCodeSize ' * (mCyclesPerSecond / BASECLOCK) ' This seems to fix the music timing in Arkanoid, but slows down the emulation!
 
         If Not newPrefix Then
             mRepeLoopMode = REPLoopModes.None

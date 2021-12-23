@@ -392,6 +392,8 @@ Public Class FormDiskExplorer
                     Exit Sub
                 End If
             End If
+        Else
+            Exit Sub
         End If
 
         Dim de As Object

@@ -239,6 +239,7 @@ Partial Public Class X8086
     Public Class GPFlags
         Implements ICloneable
 
+        <Flags>
         Public Enum FlagsTypes
             CF = 2 ^ 0
             PF = 2 ^ 2

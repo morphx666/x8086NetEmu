@@ -296,8 +296,8 @@ Public MustInherit Class CGAAdapter
     End Sub
 
     Public Overrides Sub Reset()
-        X8086.WordToBitsArray(&H29, CGAModeControlRegister)
-        X8086.WordToBitsArray(&H0, CGAColorControlRegister)
+        CGAAdapter.WordToBitsArray(&H29, CGAModeControlRegister)
+        CGAAdapter.WordToBitsArray(&H0, CGAColorControlRegister)
         CRT6845DataRegister(0) = &H71
         CRT6845DataRegister(1) = &H50
         CRT6845DataRegister(2) = &H5A
@@ -425,14 +425,14 @@ Public MustInherit Class CGAAdapter
                 Return CRT6845DataRegister(CRT6845IndexRegister)
 
             Case &H3D8 ' CGA mode control register  (except PCjr)
-                Return X8086.BitsArrayToWord(CGAModeControlRegister)
+                Return CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
 
             Case &H3D9 ' CGA palette register
-                Return X8086.BitsArrayToWord(CGAPaletteRegister)
+                Return CGAAdapter.BitsArrayToWord(CGAPaletteRegister)
 
             Case &H3DA, &H3BA ' CGA status register
                 UpdateStatusRegister()
-                Return X8086.BitsArrayToWord(CGAStatusRegister)
+                Return CGAAdapter.BitsArrayToWord(CGAStatusRegister)
 
             Case &H3DF ' CRT/CPU page register  (PCjr only)
 #If DEBUG Then
@@ -463,15 +463,15 @@ Public MustInherit Class CGAAdapter
                 OnDataRegisterChanged()
 
             Case &H3D8, &H3B8 ' CGA mode control register  (except PCjr)
-                X8086.WordToBitsArray(value, CGAModeControlRegister)
+                CGAAdapter.WordToBitsArray(value, CGAModeControlRegister)
                 OnModeControlRegisterChanged()
 
             Case &H3D9, &H3B9 ' CGA palette register
-                X8086.WordToBitsArray(value, CGAPaletteRegister)
+                CGAAdapter.WordToBitsArray(value, CGAPaletteRegister)
                 OnPaletteRegisterChanged()
 
             Case &H3DA, &H3BA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
-                X8086.WordToBitsArray(value, CGAStatusRegister)
+                CGAAdapter.WordToBitsArray(value, CGAStatusRegister)
 
             Case &H3DB ' The trigger is cleared by writing any value to port 03DBh (undocumented)
                 CGAStatusRegister(CGAStatusRegisters.light_pen_trigger_set) = False
@@ -508,7 +508,7 @@ Public MustInherit Class CGAAdapter
 
     Protected Overridable Sub OnModeControlRegisterChanged()
         ' http://www.seasip.info/VintagePC/cga.html
-        Dim v As UInt32 = X8086.BitsArrayToWord(CGAModeControlRegister)
+        Dim v As UInt32 = CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
         Dim newMode As VideoModes = CType(v And &H17, VideoModes) ' 10111
 
         If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
@@ -521,8 +521,8 @@ Public MustInherit Class CGAAdapter
             CGAPalette = CType(CGABasePalette.Clone(), Color())
         Else
             Dim colors() As Color = Nothing
-            Dim cgaModeReg As UInt32 = X8086.BitsArrayToWord(CGAModeControlRegister)
-            Dim cgaColorReg As UInt32 = X8086.BitsArrayToWord(CGAPaletteRegister)
+            Dim cgaModeReg As UInt32 = CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
+            Dim cgaColorReg As UInt32 = CGAAdapter.BitsArrayToWord(CGAPaletteRegister)
 
             Select Case VideoMode
                 Case VideoModes.Mode4_Graphic_Color_320x200
@@ -577,5 +577,19 @@ Public MustInherit Class CGAAdapter
         wui?.Close()
 
         Application.DoEvents()
+    End Sub
+
+    Public Shared Function BitsArrayToWord(b() As Boolean) As UInt16
+        Dim r As UInt16 = 0
+        For i As Integer = 0 To b.Length - 1
+            If b(i) Then r += 2 ^ i
+        Next
+        Return r
+    End Function
+
+    Public Shared Sub WordToBitsArray(value As UInt16, a() As Boolean)
+        For i As Integer = 0 To a.Length - 1
+            a(i) = (value And 2 ^ i) <> 0
+        Next
     End Sub
 End Class

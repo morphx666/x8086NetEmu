@@ -25,7 +25,7 @@ Partial Public Class X8086
                 If mIsHalted Then
                     mIsHalted = False
                     ' https://docs.oracle.com/cd/E19455-01/806-3773/instructionset-130/index.html
-                    mRegisters.IP += 1 ' Is this right???
+                    'mRegisters.IP += 1 ' Is this right???
                 End If
                 HandleHardwareInterrupt(pendingIntNum)
             End If
@@ -36,12 +36,7 @@ Partial Public Class X8086
         If Not (intHooks.ContainsKey(intNum) AndAlso intHooks(intNum).Invoke()) Then
             PushIntoStack(mFlags.EFlags)
             PushIntoStack(mRegisters.CS)
-
-            If isHard Then
-                PushIntoStack(mRegisters.IP - newPrefixLast)
-            Else
-                PushIntoStack(mRegisters.IP + opCodeSize)
-            End If
+            PushIntoStack(mRegisters.IP + If(isHard, -newPrefixLast, opCodeSize))
 
             tmpUVal1 = intNum * 4
             IPAddrOffet = RAM16(0, tmpUVal1,, True)
@@ -49,8 +44,6 @@ Partial Public Class X8086
 
             If intNum = 0 Then ThrowException("Division By Zero")
         End If
-
-        'If intNum = 19 Then DebugMode = True
 
         mFlags.IF = 0
         mFlags.TF = 0

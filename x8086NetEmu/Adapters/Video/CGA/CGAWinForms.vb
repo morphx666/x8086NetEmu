@@ -12,11 +12,10 @@ Public Class CGAWinForms
     Private ReadOnly cursorAddress As New List(Of Integer)
 
     Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
-    Private ReadOnly cursorBrush As Color = Color.FromArgb(128, Color.White)
 
     Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
-    Private ReadOnly textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
+    Private ReadOnly textFormat As New StringFormat(StringFormat.GenericTypographic)
 
     Private ReadOnly fontSourceMode As FontSources
     Private g As Graphics
@@ -24,7 +23,6 @@ Public Class CGAWinForms
     Private scale As New SizeF(1, 1)
 
     Private mRenderControl As Control
-    Private mHideHostCursor As Boolean = True
 
     Private Class TaskSC
         Inherits Scheduler.Task
@@ -43,7 +41,7 @@ Public Class CGAWinForms
             End Get
         End Property
     End Class
-    Private ReadOnly task As Scheduler.Task = New TaskSC(Me)
+    Private ReadOnly schTask As New TaskSC(Me)
 
     Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu,, enableWebUI)
@@ -105,13 +103,13 @@ Public Class CGAWinForms
                                    StringFormatFlags.FitBlackBox Or
                                    StringFormatFlags.NoClip
 
-        Dim tmp As New Threading.Thread(Sub()
+        System.Threading.Tasks.Task.Run(Sub()
+                                            Dim delay As Integer = 1000 / frameRate
                                             Do
-                                                Threading.Thread.Sleep(1000 \ frameRate)
+                                                Threading.Thread.Sleep(delay)
                                                 mRenderControl.Invalidate()
                                             Loop Until cancelAllThreads
                                         End Sub)
-        tmp.Start()
     End Sub
 
     Public Property RenderControl As Control
@@ -270,8 +268,9 @@ Public Class CGAWinForms
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
 
         For y As Integer = 0 To GraphicsResolution.Height - 1
+            Dim cy As Integer = ((y >> 1) * 80) + ((y And 1) * &H2000)
             For x As Integer = 0 To GraphicsResolution.Width - 1
-                b = CPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * 80) + ((y And 1) * &H2000) + (x >> xDiv))
+                b = CPU.Memory(mStartGraphicsVideoAddress + cy + (x >> xDiv))
 
                 If PixelsPerByte = 4 Then
                     Select Case x And 3

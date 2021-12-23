@@ -67,4 +67,9 @@ Module Extensions
             Return value.ToString("X4")
         End If
     End Function
+
+    <Extension()>
+    Public Function ToHex(value As Byte) As String
+        Return value.ToString("X2")
+    End Function
 End Module

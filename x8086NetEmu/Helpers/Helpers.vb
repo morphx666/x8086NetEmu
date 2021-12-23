@@ -339,20 +339,6 @@
         mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)
     End Sub
 
-    Public Shared Function BitsArrayToWord(b() As Boolean) As UInt16
-        Dim r As UInt16 = 0
-        For i As Integer = 0 To b.Length - 1
-            If b(i) Then r += 2 ^ i
-        Next
-        Return r
-    End Function
-
-    Public Shared Sub WordToBitsArray(value As UInt16, a() As Boolean)
-        For i As Integer = 0 To a.Length - 1
-            a(i) = (value And 2 ^ i) <> 0
-        Next
-    End Sub
-
     Protected Friend Sub SetUpAdapter(adptr As Adapter)
         Select Case adptr.Type
             Case Adapter.AdapterType.Keyboard

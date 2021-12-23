@@ -25,7 +25,7 @@ Partial Public Class X8086
                 mFlags.CF = lastCF(mRegisters.DL)
                 ret = 0
 
-            Case &H2  ' Read sectors
+            Case &H2 ' Read sectors
                 If dskImg Is Nothing Then
                     X8086.Notify("Invalid Drive Number: Drive {0:000} Not Ready", NotificationReasons.Info, mRegisters.DL)
                     ret = &HAA ' fixed disk drive not ready

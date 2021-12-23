@@ -123,11 +123,11 @@ Public Class StandardDiskFormat
         Dim bs As FAT12.BootSector = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
         pb.Free()
 
-        'If bs.BIOSParameterBlock.BytesPerSector = 512 Then
-        LoadAsFloppyImage()
-        'Else
-        '    LoadAsHardDiskImage()
-        'End If
+        If bs.BIOSParameterBlock.BytesPerSector = 512 Then
+            LoadAsFloppyImage()
+        Else
+            LoadAsHardDiskImage()
+        End If
 
         Select Case mBootSectors(0).ExtendedBIOSParameterBlock.FileSystemType
             Case "FAT12" : fatEOF = &HFF8
