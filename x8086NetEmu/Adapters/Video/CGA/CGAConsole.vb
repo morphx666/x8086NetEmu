@@ -37,8 +37,8 @@ Public Class CGAConsole
                                    If MainMode = MainModes.Graphics Then
                                        i2a.ProcessImage(False)
 
-                                       For y As Integer = 0 To Console.WindowHeight - 1
-                                           For x As Integer = 0 To Console.WindowWidth - 1
+                                       For y As Integer = 0 To TextResolution.Height - 1
+                                           For x As Integer = 0 To TextResolution.Width - 1
                                                ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character,
                                                                         Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color),
                                                                         ConsoleColor.Black,
@@ -68,14 +68,18 @@ Public Class CGAConsole
         Select Case MainMode
             Case MainModes.Text
                 Console.SetWindowSize(TextResolution.Width, TextResolution.Height)
+                ConsoleCrayon.ConsoleWidth = TextResolution.Width
+                ConsoleCrayon.ConsoleHeight = TextResolution.Height
             Case MainModes.Graphics
                 ratio = New Size(Math.Ceiling(GraphicsResolution.Width / Console.LargestWindowWidth),
                                  Math.Ceiling(GraphicsResolution.Height / Console.LargestWindowHeight))
                 Console.SetWindowSize(GraphicsResolution.Width / ratio.Width, GraphicsResolution.Height / ratio.Height)
                 ResetI2A()
                 Console.SetWindowSize(i2a.CanvasSize.Width, i2a.CanvasSize.Height)
+                ConsoleCrayon.ConsoleWidth = i2a.CanvasSize.Width
+                ConsoleCrayon.ConsoleHeight = i2a.CanvasSize.Height
         End Select
-        Console.SetBufferSize(Console.WindowWidth, Console.WindowHeight)
+        'Console.SetBufferSize(TextResolution.Width, TextResolution.Height)
         Array.Clear(buffer, 0, buffer.Length)
 #End If
     End Sub
@@ -87,43 +91,39 @@ Public Class CGAConsole
 
         If MainMode = MainModes.Graphics Then ResetI2A()
 
-        Select Case Environment.OSVersion.Platform
-            Case PlatformID.Win32NT, PlatformID.Win32S, PlatformID.Win32Windows, PlatformID.WinCE
-            Case Else
-                If mVideoMode <> &HFF Then
-                    Dim lw As Integer = -1
-                    Dim lh As Integer = -1
-                    While Console.WindowWidth <> mTextResolution.Width OrElse Console.WindowHeight <> mTextResolution.Height
-                        If lw <> Console.WindowWidth OrElse lh <> Console.WindowHeight Then
-                            lw = Console.WindowWidth
-                            lh = Console.WindowHeight
+        If mVideoMode <> &HFF Then
+            Dim lw As Integer = -1
+            Dim lh As Integer = -1
+            While Console.WindowWidth <> mTextResolution.Width OrElse Console.WindowHeight <> mTextResolution.Height
+                If lw <> Console.WindowWidth OrElse lh <> Console.WindowHeight Then
+                    lw = Console.WindowWidth
+                    lh = Console.WindowHeight
 
-                            Console.Clear()
-                            ConsoleCrayon.WriteFast("Unsupported Console Window Size", ConsoleColor.White, ConsoleColor.Red, 0, 0)
-                            ConsoleCrayon.ResetColor()
-                            Console.WriteLine()
-                            Console.WriteLine("The window console cannot be resized on this platform, which will cause the text to be rendered incorrectly")
-                            Console.WriteLine()
-                            Console.WriteLine($"Expected Resolution for Video Mode {mVideoMode:X2}: {mTextResolution.Width,4} x {mTextResolution.Height,4}")
-                            ConsoleCrayon.WriteFast($"Current console window resolution:     {Console.WindowWidth,4} x {Console.WindowHeight,4}", ConsoleColor.White, ConsoleColor.DarkRed, 0, Console.CursorTop)
-                            ConsoleCrayon.ResetColor()
-                            Console.WriteLine()
-                            Console.WriteLine("Manually resize the window to the appropriate resolution")
-                        End If
-
-                        Thread.Sleep(100)
-                    End While
-                    ConsoleCrayon.ResetColor()
                     Console.Clear()
+                    ConsoleCrayon.WriteFast("Unsupported Console Window Size", ConsoleColor.White, ConsoleColor.Red, 0, 0)
+                    ConsoleCrayon.ResetColor()
+                    Console.WriteLine()
+                    Console.WriteLine("The window console cannot be resized on this platform, which will cause the text to be rendered incorrectly")
+                    Console.WriteLine()
+                    Console.WriteLine($"Expected Resolution for Video Mode {mVideoMode:X2}: {mTextResolution.Width,4} x {mTextResolution.Height,4}")
+                    ConsoleCrayon.WriteFast($"Current console window resolution:     {Console.WindowWidth,4} x {Console.WindowHeight,4}", ConsoleColor.White, ConsoleColor.DarkRed, 0, Console.CursorTop)
+                    ConsoleCrayon.ResetColor()
+                    Console.WriteLine()
+                    Console.WriteLine("Manually resize the window to the appropriate resolution")
                 End If
-        End Select
+
+                Thread.Sleep(100)
+            End While
+            ConsoleCrayon.ResetColor()
+            Console.Clear()
+        End If
     End Sub
 
     Private Sub ResetI2A()
         If i2a IsNot Nothing Then
             If i2a.Bitmap IsNot Nothing Then i2a.Bitmap.Dispose()
             i2a.Bitmap = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
-            i2a.CanvasSize = New Size(Console.WindowWidth, Console.WindowHeight)
+            i2a.CanvasSize = New Size(TextResolution.Width, TextResolution.Height)
             Console.CursorVisible = False
         End If
     End Sub
@@ -226,6 +226,7 @@ Public Class CGAConsole
             If b1c <> b1 Then
                 ConsoleCrayon.WriteFast(text, b1c.LowNib(), b1c.HighNib(), c, r)
                 text = ""
+
                 b1c = b1
                 c = col
                 r = row

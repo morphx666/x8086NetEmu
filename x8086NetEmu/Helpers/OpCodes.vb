@@ -1,7 +1,7 @@
 Partial Public Class X8086
-    Private Delegate Sub ExecOpcode()
-    Private opCodes() As ExecOpcode = {
-        AddressOf _00_03,' ADD Eb Gb
+                                Private Delegate Sub ExecOpcode()
+                                Private opCodes() As ExecOpcode = {
+                                    AddressOf _00_03,' ADD Eb Gb
 AddressOf _00_03,' ADD Ev Gv
 AddressOf _00_03,' ADD Gb Eb
 AddressOf _00_03,' ADD Gv Ev
@@ -258,1289 +258,1289 @@ AddressOf _FD,' STD
 AddressOf _FE_FF,
 AddressOf _FE_FF}
 
-    Private Sub _00_03() ' ADD Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
-            clkCyc += 3
-        ElseIf addrMode.Direction = 0 Then
-            RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
-            clkCyc += 16
-        Else
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Add, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _04() ' ADD AL Ib
-        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Add, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _05() ' ADD AX Iv
-        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Add, DataSize.Word)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _06() ' PUSH ES
-        PushIntoStack(mRegisters.ES)
-        clkCyc += 10
-    End Sub
-
-    Private Sub _07() ' POP ES
-        mRegisters.ES = PopFromStack()
-        ignoreINTs = True
-        clkCyc += 8
-    End Sub
-
-    Private Sub _08_0B() ' OR Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
-            clkCyc += 3
-        ElseIf addrMode.Direction = 0 Then
-            RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
-            clkCyc += 16
-        Else
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicOr, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _0C() ' OR AL Ib
-        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicOr, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _0D() ' OR AX Iv
-        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicOr, DataSize.Word)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _0E() ' PUSH CS
-        PushIntoStack(mRegisters.CS)
-        clkCyc += 10
-    End Sub
-
-    Private Sub _0F() ' POP CS
-        If Not mVic20 Then
-            mRegisters.CS = PopFromStack()
-            ignoreINTs = True
-            clkCyc += 8
-        End If
-    End Sub
-
-    Private Sub _10_13() ' ADC Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
-            clkCyc += 3
-        ElseIf addrMode.Direction = 0 Then
-            RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
-            clkCyc += 16
-        Else
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.AddWithCarry, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _14() ' ADC AL Ib
-        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.AddWithCarry, DataSize.Byte)
-        clkCyc += 3
-    End Sub
-
-    Private Sub _15() ' ADC AX Iv
-        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.AddWithCarry, DataSize.Word)
-        clkCyc += 3
-    End Sub
-
-    Private Sub _16() ' PUSH SS
-        PushIntoStack(mRegisters.SS)
-        clkCyc += 10
-    End Sub
-
-    Private Sub _17() ' POP SS
-        mRegisters.SS = PopFromStack()
-        ' Lesson 4: http://ntsecurity.nu/onmymind/2007/2007-08-22.html
-        ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
-        ' http://www.vcfed.org/forum/archive/index.php/t-41453.html
-        ignoreINTs = True
-        clkCyc += 8
-    End Sub
-
-    Private Sub _18_1B() ' SBB Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
-            clkCyc += 3
-        ElseIf addrMode.Direction = 0 Then
-            RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
-            clkCyc += 16
-        Else
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.SubstractWithCarry, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _1C() ' SBB AL Ib
-        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.SubstractWithCarry, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _1D() ' SBB AX Iv
-        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.SubstractWithCarry, DataSize.Word)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _1E() ' PUSH DS
-        PushIntoStack(mRegisters.DS)
-        clkCyc += 10
-    End Sub
-
-    Private Sub _1F() ' POP DS
-        mRegisters.DS = PopFromStack()
-        ignoreINTs = True
-        clkCyc += 8
-    End Sub
-
-    Private Sub _20_23() ' AND Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
-            clkCyc += 3
-        ElseIf addrMode.Direction = 0 Then
-            RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
-            clkCyc += 16
-        Else
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicAnd, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _24() ' AND AL Ib
-        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicAnd, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _25() ' AND AX Iv
-        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicAnd, DataSize.Word)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _26_2E_36_3E() ' ES, CS, SS and DS segment override prefix
-        addrMode.Decode(opCode, opCode)
-        mRegisters.ActiveSegmentRegister = addrMode.Dst - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
-        newPrefix = True
-        clkCyc += 2
-    End Sub
-
-    Private Sub _27() ' DAA
-        If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-            tmpUVal1 = CUInt(mRegisters.AL) + 6
-            mRegisters.AL += 6
-            mFlags.AF = 1
-            mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
-        Else
-            mFlags.AF = 0
-        End If
-        If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
-            tmpUVal1 = CUInt(mRegisters.AL) + &H60
-            mRegisters.AL += &H60
-            mFlags.CF = 1
-        Else
-            mFlags.CF = 0
-        End If
-        SetSZPFlags(tmpUVal1, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _28_2B() ' SUB Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
-            clkCyc += 3
-        ElseIf addrMode.Direction = 0 Then
-            RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
-            clkCyc += 16
-        Else
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Substract, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _2C() ' SUB AL Ib
-        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Substract, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _2D() ' SUB AX, Iv
-        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Substract, DataSize.Word)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _2F() ' DAS
-        tmpUVal2 = mRegisters.AL
-        If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-            tmpUVal1 = CShort(mRegisters.AL) - 6
-            mRegisters.AL -= 6
-            mFlags.AF = 1
-            mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
-        Else
-            mFlags.AF = 0
-        End If
-        If tmpUVal2 > &H99 OrElse mFlags.CF = 1 Then
-            tmpUVal1 = CShort(mRegisters.AL) - &H60
-            mRegisters.AL -= &H60
-            mFlags.CF = 1
-        Else
-            mFlags.CF = 0
-        End If
-        SetSZPFlags(tmpUVal1, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _30_33() ' XOR Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
-            clkCyc += 3
-        ElseIf addrMode.Direction = 0 Then
-            RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
-            clkCyc += 16
-        Else
-            mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicXor, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _34() ' XOR AL Ib
-        mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicXor, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _35() ' XOR AX Iv
-        mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicXor, DataSize.Word)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _37() ' AAA
-        If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-            mRegisters.AX += &H106
-            mFlags.AF = 1
-            mFlags.CF = 1
-        Else
-            mFlags.AF = 0
-            mFlags.CF = 0
-        End If
-        mRegisters.AL = mRegisters.AL.LowNib()
-        clkCyc += 8
-    End Sub
-
-    Private Sub _38_3B() ' CMP Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
-            clkCyc += 3
-        ElseIf addrMode.Direction = 0 Then
-            Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
-            clkCyc += 9
-        Else
-            Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Compare, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _3C() ' CMP AL Ib
-        Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Compare, DataSize.Byte)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _3D() ' CMP AX Iv
-        Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Compare, DataSize.Word)
-        clkCyc += 4
-    End Sub
-
-    Private Sub _3F() ' AAS
-        If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-            mRegisters.AX -= &H106
-            mFlags.AF = 1
-            mFlags.CF = 1
-        Else
-            mFlags.AF = 0
-            mFlags.CF = 0
-        End If
-        mRegisters.AL = mRegisters.AL.LowNib()
-        clkCyc += 8
-    End Sub
-
-    Private Sub _40_47() ' INC DI
-        SetRegister1Alt(opCode)
-        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), 1, Operation.Increment, DataSize.Word)
-        clkCyc += 3
-    End Sub
-
-    Private Sub _48_4F() ' DEC DI
-        SetRegister1Alt(opCode)
-        mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), 1, Operation.Decrement, DataSize.Word)
-        clkCyc += 3
-    End Sub
-
-    Private Sub _50_57() ' PUSH DI
-        If opCode = &H54 Then ' SP
-            ' The 8086/8088 pushes the value of SP after it has been decremented
-            ' http://css.csail.mit.edu/6.858/2013/readings/i386/s15_06.htm
-            PushIntoStack(mRegisters.SP - 2)
-        Else
-            SetRegister1Alt(opCode)
-            PushIntoStack(mRegisters.Val(addrMode.Register1))
-        End If
-        clkCyc += 11
-    End Sub
-
-    Private Sub _58_5F() ' POP DI
-        SetRegister1Alt(opCode)
-        mRegisters.Val(addrMode.Register1) = PopFromStack()
-        clkCyc += 8
-    End Sub
-
-    Private Sub _60() ' PUSHA (80186)
-        If mVic20 Then
-            tmpUVal1 = mRegisters.SP
-            PushIntoStack(mRegisters.AX)
-            PushIntoStack(mRegisters.CX)
-            PushIntoStack(mRegisters.DX)
-            PushIntoStack(mRegisters.BX)
-            PushIntoStack(tmpUVal1)
-            PushIntoStack(mRegisters.BP)
-            PushIntoStack(mRegisters.SI)
-            PushIntoStack(mRegisters.DI)
-            clkCyc += 19
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
-
-    Private Sub _61() ' POPA (80186)
-        If mVic20 Then
-            mRegisters.DI = PopFromStack()
-            mRegisters.SI = PopFromStack()
-            mRegisters.BP = PopFromStack()
-            PopFromStack() ' SP
-            mRegisters.BX = PopFromStack()
-            mRegisters.DX = PopFromStack()
-            mRegisters.CX = PopFromStack()
-            mRegisters.AX = PopFromStack()
-            clkCyc += 19
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
-
-    Private Sub _62() ' BOUND (80186)
-        If mVic20 Then
-            ' PRE ALPHA CODE - UNTESTED
-            SetAddressing()
-            If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
-                HandleInterrupt(5, False)
-            Else
-                addrMode.IndAdr += 2
-                If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
-                    HandleInterrupt(5, False)
+                                Private Sub _00_03' ADD Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
+                    clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Add, addrMode.Size)
+                    clkCyc += 16
+                Else
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Add, addrMode.Size)
+                    clkCyc += 9
                 End If
-            End If
-            clkCyc += 34
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
+                                 End Sub
 
-    Private Sub _68() ' PUSH Iv (80186)
-        ' PRE ALPHA CODE - UNTESTED
-        If mVic20 Then
-            PushIntoStack(Param(ParamIndex.First, , DataSize.Word))
-            clkCyc += 3
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
+Private Sub _04' ADD AL Ib
+                                    mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Add, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _69() ' IMUL (80186)
-        If mVic20 Then
-            ' PRE ALPHA CODE - UNTESTED
-            SetAddressing()
-            Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
-            Dim tmp2 As UInt32 = Param(ParamIndex.First, , DataSize.Word)
-            If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
-            If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
-            Dim tmp3 As UInt32 = tmp1 * tmp2
-            mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
-            If (tmp3 And &HFFFF_0000UI) <> 0 Then
-                mFlags.CF = 1
-                mFlags.OF = 1
-            Else
-                mFlags.CF = 0
-                mFlags.OF = 0
-            End If
-            clkCyc += 27
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
+Private Sub _05' ADD AX Iv
+                                    mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Add, DataSize.Word)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _6A() ' PUSH Ib (80186)
-        If mVic20 Then
-            ' PRE ALPHA CODE - UNTESTED
-            PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
-            clkCyc += 3
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
+Private Sub _06' PUSH ES
+                                    PushIntoStack(mRegisters.ES)
+                clkCyc += 10
+                                 End Sub
 
-    Private Sub _6B() ' IMUL (80186)
-        If mVic20 Then
-            ' PRE ALPHA CODE - UNTESTED
-            SetAddressing()
-            Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
-            Dim tmp2 As UInt32 = To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))
-            If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
-            If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
-            Dim tmp3 As UInt32 = tmp1 * tmp2
-            mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
-            If (tmp3 And &HFFFF_0000UI) <> 0 Then
-                mFlags.CF = 1
-                mFlags.OF = 1
-            Else
-                mFlags.CF = 0
-                mFlags.OF = 0
-            End If
-            clkCyc += 27
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
-
-    Private Sub _6C_6F() ' Ignore 80186/V20 port operations... for now...
-        opCodeSize += 1
-        clkCyc += 3
-    End Sub
-
-    Private Sub _70() ' JO Jb
-        If mFlags.OF = 1 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _71() ' JNO  Jb
-        If mFlags.OF = 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _72() ' JB/JNAE/JC Jb
-        If mFlags.CF = 1 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _73() ' JNB/JAE/JNC Jb
-        If mFlags.CF = 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _74() ' JZ/JE Jb
-        If mFlags.ZF = 1 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _75() ' JNZ/JNE Jb
-        If mFlags.ZF = 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _76() ' JBE/JNA Jb
-        If mFlags.CF = 1 OrElse mFlags.ZF = 1 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _77() ' JA/JNBE Jb
-        If mFlags.CF = 0 AndAlso mFlags.ZF = 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _78() ' JS Jb
-        If mFlags.SF = 1 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _79() ' JNS Jb
-        If mFlags.SF = 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _7A() ' JPE/JP Jb
-        If mFlags.PF = 1 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _7B() ' JPO/JNP Jb
-        If mFlags.PF = 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _7C() ' JL/JNGE Jb
-        If mFlags.SF <> mFlags.OF Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _7D() ' JGE/JNL Jb
-        If mFlags.SF = mFlags.OF Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _7E() ' JLE/JNG Jb
-        If mFlags.ZF = 1 OrElse (mFlags.SF <> mFlags.OF) Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _7F() ' JG/JNLE Jb
-        If mFlags.ZF = 0 AndAlso (mFlags.SF = mFlags.OF) Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 16
-        Else
-            opCodeSize += 1
-            clkCyc += 4
-        End If
-    End Sub
-
-    Private Sub _80_83()
-        ExecuteGroup1()
-    End Sub
-
-    Private Sub _84_85() ' TEST Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Test, addrMode.Size)
-            clkCyc += 3
-        Else
-            Eval(addrMode.IndMem, mRegisters.Val(addrMode.Dst), Operation.Test, addrMode.Size)
-            clkCyc += 9
-        End If
-    End Sub
-
-    Private Sub _86_87() ' XCHG Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            tmpUVal1 = mRegisters.Val(addrMode.Dst)
-            mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
-            mRegisters.Val(addrMode.Src) = tmpUVal1
-            clkCyc += 4
-        Else
-            RAMn = mRegisters.Val(addrMode.Dst)
-            mRegisters.Val(addrMode.Dst) = addrMode.IndMem
-            clkCyc += 17
-        End If
-    End Sub
-
-    Private Sub _88_8B() ' MOV Gv Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
-            clkCyc += 2
-        Else
-            If addrMode.Direction = 0 Then
-                RAMn = mRegisters.Val(addrMode.Src)
-                clkCyc += 9
-            Else
-                mRegisters.Val(addrMode.Dst) = addrMode.IndMem
+Private Sub _07' POP ES
+                                    mRegisters.ES = PopFromStack()
+                ignoreINTs = True
                 clkCyc += 8
-            End If
-        End If
-    End Sub
+                                 End Sub
 
-    Private Sub _8C() ' MOV Ew Sw
-        SetAddressing(DataSize.Word)
-        SetRegister2ToSegReg()
-        If addrMode.IsDirect Then
-            SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
-            mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
-            clkCyc += 2
-        Else
-            RAMn = mRegisters.Val(addrMode.Register2)
-            clkCyc += 8
-        End If
-    End Sub
+Private Sub _08_0B' OR Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
+                    clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicOr, addrMode.Size)
+                    clkCyc += 16
+                Else
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicOr, addrMode.Size)
+                    clkCyc += 9
+                End If
+                                 End Sub
 
-    Private Sub _8D() ' LEA Gv M
-        SetAddressing()
-        mRegisters.Val(addrMode.Src) = addrMode.IndAdr
-        clkCyc += 2
-    End Sub
+Private Sub _0C' OR AL Ib
+                                    mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicOr, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _8E() ' MOV Sw Ew
-        SetAddressing(DataSize.Word)
-        SetRegister2ToSegReg()
-        If addrMode.IsDirect Then
-            SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
-            mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
-            clkCyc += 2
-        Else
-            mRegisters.Val(addrMode.Register2) = addrMode.IndMem
-            clkCyc += 8
-        End If
-        ignoreINTs = True
-        If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then mDoReSchedule = True
-    End Sub
+Private Sub _0D' OR AX Iv
+                                    mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicOr, DataSize.Word)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _8F() ' POP Ev
-        SetAddressing()
-        If addrMode.IsDirect Then
-            addrMode.Decode(opCode, opCode)
-            mRegisters.Val(addrMode.Register1) = PopFromStack()
-        Else
-            RAMn = PopFromStack()
-        End If
-        clkCyc += 17
-    End Sub
+Private Sub _0E' PUSH CS
+                                    PushIntoStack(mRegisters.CS)
+                clkCyc += 10
+                                 End Sub
 
-    Private Sub _90() ' NOP
-        clkCyc += 3
-    End Sub
+Private Sub _0F' POP CS
+                                    If Not mVic20 Then
+                    mRegisters.CS = PopFromStack()
+                    ignoreINTs = True
+                    clkCyc += 8
+                End If
+                                 End Sub
 
-    Private Sub _91() ' XCHG CX AX
-        tmpUVal1 = mRegisters.AX
-        mRegisters.AX = mRegisters.CX
-        mRegisters.CX = tmpUVal1
-        clkCyc += 3
-    End Sub
+Private Sub _10_13' ADC Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
+                    clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.AddWithCarry, addrMode.Size)
+                    clkCyc += 16
+                Else
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.AddWithCarry, addrMode.Size)
+                    clkCyc += 9
+                End If
+                                 End Sub
 
-    Private Sub _92() ' XCHG DX AX
-        tmpUVal1 = mRegisters.AX
-        mRegisters.AX = mRegisters.DX
-        mRegisters.DX = tmpUVal1
-        clkCyc += 3
-    End Sub
+Private Sub _14' ADC AL Ib
+                                    mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.AddWithCarry, DataSize.Byte)
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _93() ' XCHG BX AX
-        tmpUVal1 = mRegisters.AX
-        mRegisters.AX = mRegisters.BX
-        mRegisters.BX = tmpUVal1
-        clkCyc += 3
-    End Sub
+Private Sub _15' ADC AX Iv
+                                    mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.AddWithCarry, DataSize.Word)
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _94() ' XCHG SP AX
-        tmpUVal1 = mRegisters.AX
-        mRegisters.AX = mRegisters.SP
-        mRegisters.SP = tmpUVal1
-        clkCyc += 3
-    End Sub
+Private Sub _16' PUSH SS
+                                    PushIntoStack(mRegisters.SS)
+                clkCyc += 10
+                                 End Sub
 
-    Private Sub _95() ' XCHG BP AX
-        tmpUVal1 = mRegisters.AX
-        mRegisters.AX = mRegisters.BP
-        mRegisters.BP = tmpUVal1
-        clkCyc += 3
-    End Sub
+Private Sub _17' POP SS
+                                    mRegisters.SS = PopFromStack()
+                ' Lesson 4: http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+                ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
+                ' http://www.vcfed.org/forum/archive/index.php/t-41453.html
+                ignoreINTs = True
+                clkCyc += 8
+                                 End Sub
 
-    Private Sub _96() ' XCHG SI AX
-        tmpUVal1 = mRegisters.AX
-        mRegisters.AX = mRegisters.SI
-        mRegisters.SI = tmpUVal1
-        clkCyc += 3
-    End Sub
+Private Sub _18_1B' SBB Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
+                    clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.SubstractWithCarry, addrMode.Size)
+                    clkCyc += 16
+                Else
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.SubstractWithCarry, addrMode.Size)
+                    clkCyc += 9
+                End If
+                                 End Sub
 
-    Private Sub _97() ' XCHG DI AX
-        tmpUVal1 = mRegisters.AX
-        mRegisters.AX = mRegisters.DI
-        mRegisters.DI = tmpUVal1
-        clkCyc += 3
-    End Sub
+Private Sub _1C' SBB AL Ib
+                                    mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.SubstractWithCarry, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _98() ' CBW
-        mRegisters.AX = To16bitsWithSign(mRegisters.AL)
-        clkCyc += 2
-    End Sub
+Private Sub _1D' SBB AX Iv
+                                    mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.SubstractWithCarry, DataSize.Word)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _99() ' CWD
-        mRegisters.DX = If((mRegisters.AH And &H80) <> 0, &HFFFF, &H0)
-        clkCyc += 5
-    End Sub
+Private Sub _1E' PUSH DS
+                                    PushIntoStack(mRegisters.DS)
+                clkCyc += 10
+                                 End Sub
 
-    Private Sub _9A() ' CALL Ap
-        IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
-        tmpUVal1 = Param(ParamIndex.Second, , DataSize.Word)
-        PushIntoStack(mRegisters.CS)
-        PushIntoStack(mRegisters.IP + opCodeSize)
-        mRegisters.CS = tmpUVal1
-        clkCyc += 28
-    End Sub
+Private Sub _1F' POP DS
+                                    mRegisters.DS = PopFromStack()
+                ignoreINTs = True
+                clkCyc += 8
+                                 End Sub
 
-    Private Sub _9B() ' WAIT
-        clkCyc += 4
-    End Sub
+Private Sub _20_23' AND Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
+                    clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicAnd, addrMode.Size)
+                    clkCyc += 16
+                Else
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicAnd, addrMode.Size)
+                    clkCyc += 9
+                End If
+                                 End Sub
 
-    Private Sub _9C() ' PUSHF
-        PushIntoStack(If(mModel = Models.IBMPC_5150, &HFFF, &HFFFF) And mFlags.EFlags)
-        clkCyc += 10
-    End Sub
+Private Sub _24' AND AL Ib
+                                    mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicAnd, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _9D() ' POPF
-        mFlags.EFlags = PopFromStack()
-        clkCyc += 8
-    End Sub
+Private Sub _25' AND AX Iv
+                                    mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicAnd, DataSize.Word)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _9E() ' SAHF
-        mFlags.EFlags = (mFlags.EFlags And &HFF00) Or mRegisters.AH
-        clkCyc += 4
-    End Sub
+Private Sub _26_2E_36_3E' ES, CS, SS and DS segment override prefix
+                                    addrMode.Decode(opCode, opCode)
+                mRegisters.ActiveSegmentRegister = addrMode.Dst - GPRegisters.RegistersTypes.AH + GPRegisters.RegistersTypes.ES
+                newPrefix = True
+                clkCyc += 2
+                                 End Sub
 
-    Private Sub _9F() ' LAHF
-        mRegisters.AH = mFlags.EFlags
-        clkCyc += 4
-    End Sub
+Private Sub _27' DAA
+                                    If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
+                    tmpUVal1 = CUInt(mRegisters.AL) + 6
+                    mRegisters.AL += 6
+                    mFlags.AF = 1
+                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
+                Else
+                    mFlags.AF = 0
+                End If
+                If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
+                    tmpUVal1 = CUInt(mRegisters.AL) + &H60
+                    mRegisters.AL += &H60
+                    mFlags.CF = 1
+                Else
+                    mFlags.CF = 0
+                End If
+                SetSZPFlags(tmpUVal1, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _A0() ' MOV AL Ob
-        mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) ' 
-        clkCyc += 10
-    End Sub
+Private Sub _28_2B' SUB Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
+                    clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Substract, addrMode.Size)
+                    clkCyc += 16
+                Else
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Substract, addrMode.Size)
+                    clkCyc += 9
+                End If
+                                 End Sub
 
-    Private Sub _A1() ' MOV AX Ov
-        mRegisters.AX = RAM16(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) ' 
-        clkCyc += 10
-    End Sub
+Private Sub _2C' SUB AL Ib
+                                    mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Substract, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _A2() ' MOV Ob AL
-        RAM8(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) = mRegisters.AL ' 
-        clkCyc += 10
-    End Sub
+Private Sub _2D' SUB AX, Iv
+                                    mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Substract, DataSize.Word)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _A3() ' MOV Ov AX
-        RAM16(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) = mRegisters.AX ' 
-        clkCyc += 10
-    End Sub
+Private Sub _2F' DAS
+                                    tmpUVal2 = mRegisters.AL
+                If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
+                    tmpUVal1 = CShort(mRegisters.AL) - 6
+                    mRegisters.AL -= 6
+                    mFlags.AF = 1
+                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
+                Else
+                    mFlags.AF = 0
+                End If
+                If tmpUVal2 > &H99 OrElse mFlags.CF = 1 Then
+                    tmpUVal1 = CShort(mRegisters.AL) - &H60
+                    mRegisters.AL -= &H60
+                    mFlags.CF = 1
+                Else
+                    mFlags.CF = 0
+                End If
+                SetSZPFlags(tmpUVal1, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _A4_A7()
-        HandleREPMode()
-    End Sub
+Private Sub _30_33' XOR Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
+                    clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    RAMn = Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.LogicXor, addrMode.Size)
+                    clkCyc += 16
+                Else
+                    mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicXor, addrMode.Size)
+                    clkCyc += 9
+                End If
+                                 End Sub
 
-    Private Sub _AA_AF()
-        HandleREPMode()
-    End Sub
+Private Sub _34' XOR AL Ib
+                                    mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicXor, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _A8() ' TEST AL Ib
-        Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
-        clkCyc += 4
-    End Sub
+Private Sub _35' XOR AX Iv
+                                    mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicXor, DataSize.Word)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _A9() ' TEST AX Iv
-        Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Test, DataSize.Word)
-        clkCyc += 4
-    End Sub
+Private Sub _37' AAA
+                                    If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
+                    mRegisters.AX += &H106
+                    mFlags.AF = 1
+                    mFlags.CF = 1
+                Else
+                    mFlags.AF = 0
+                    mFlags.CF = 0
+                End If
+                mRegisters.AL = mRegisters.AL.LowNib()
+                clkCyc += 8
+                                 End Sub
 
-    Private Sub _B0() ' MOV AL Ib
-        mRegisters.AL = Param(ParamIndex.First,, DataSize.Byte) ' 
-        clkCyc += 4
-    End Sub
+Private Sub _38_3B' CMP Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
+                    clkCyc += 3
+                ElseIf addrMode.Direction = 0 Then
+                    Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Compare, addrMode.Size)
+                    clkCyc += 9
+                Else
+                    Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Compare, addrMode.Size)
+                    clkCyc += 9
+                End If
+                                 End Sub
 
-    Private Sub _B1() ' MOV CL Ib
-        mRegisters.CL = Param(ParamIndex.First,, DataSize.Byte) ' 
-        clkCyc += 4
-    End Sub
+Private Sub _3C' CMP AL Ib
+                                    Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Compare, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _B2() ' MOV DL Ib
-        mRegisters.DL = Param(ParamIndex.First,, DataSize.Byte) ' 
-        clkCyc += 4
-    End Sub
+Private Sub _3D' CMP AX Iv
+                                    Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Compare, DataSize.Word)
+                clkCyc += 4
+                                 End Sub
 
-    Private Sub _B3() ' MOV BL Ib
-        mRegisters.BL = Param(ParamIndex.First,, DataSize.Byte) ' 
-        clkCyc += 4
-    End Sub
+Private Sub _3F' AAS
+                                    If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
+                    mRegisters.AX -= &H106
+                    mFlags.AF = 1
+                    mFlags.CF = 1
+                Else
+                    mFlags.AF = 0
+                    mFlags.CF = 0
+                End If
+                mRegisters.AL = mRegisters.AL.LowNib()
+                clkCyc += 8
+                                 End Sub
 
-    Private Sub _B4() ' MOV AH Ib
-        mRegisters.AH = Param(ParamIndex.First,, DataSize.Byte) ' 
-        clkCyc += 4
-    End Sub
+Private Sub _40_47' INC DI
+                                    SetRegister1Alt(opCode)
+                mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), 1, Operation.Increment, DataSize.Word)
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _B5() ' MOV CH Ib
-        mRegisters.CH = Param(ParamIndex.First,, DataSize.Byte) ' 
-        clkCyc += 4
-    End Sub
+Private Sub _48_4F' DEC DI
+                                    SetRegister1Alt(opCode)
+                mRegisters.Val(addrMode.Register1) = Eval(mRegisters.Val(addrMode.Register1), 1, Operation.Decrement, DataSize.Word)
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _B6() ' MOV DH Ib
-        mRegisters.DH = Param(ParamIndex.First,, DataSize.Byte) ' 
-        clkCyc += 4
-    End Sub
+Private Sub _50_57' PUSH DI
+                                    If opCode = &H54 Then ' SP
+                    ' The 8086/8088 pushes the value of SP after it has been decremented
+                    ' http://css.csail.mit.edu/6.858/2013/readings/i386/s15_06.htm
+                    PushIntoStack(mRegisters.SP - 2)
+                Else
+                    SetRegister1Alt(opCode)
+                    PushIntoStack(mRegisters.Val(addrMode.Register1))
+                End If
+                clkCyc += 11
+                                 End Sub
 
-    Private Sub _B7() ' MOV BH Ib
-        mRegisters.BH = Param(ParamIndex.First,, DataSize.Byte) ' 
-        clkCyc += 4
-    End Sub
+Private Sub _58_5F' POP DI
+                                    SetRegister1Alt(opCode)
+                mRegisters.Val(addrMode.Register1) = PopFromStack()
+                clkCyc += 8
+                                 End Sub
 
-    Private Sub _B8() ' MOV AX Ib
-        mRegisters.AX = Param(ParamIndex.First,, DataSize.Word) ' 
-        clkCyc += 4
-    End Sub
-
-    Private Sub _B9() ' MOV CX Ib
-        mRegisters.CX = Param(ParamIndex.First,, DataSize.Word) ' 
-        clkCyc += 4
-    End Sub
-
-    Private Sub _BA() ' MOV DX Ib
-        mRegisters.DX = Param(ParamIndex.First,, DataSize.Word) ' 
-        clkCyc += 4
-    End Sub
-
-    Private Sub _BB() ' MOV BX Ib
-        mRegisters.BX = Param(ParamIndex.First,, DataSize.Word) ' 
-        clkCyc += 4
-    End Sub
-
-    Private Sub _BC() ' MOV SP Ib
-        mRegisters.SP = Param(ParamIndex.First,, DataSize.Word) ' 
-        clkCyc += 4
-    End Sub
-
-    Private Sub _BD() ' MOV BP Ib
-        mRegisters.BP = Param(ParamIndex.First,, DataSize.Word) ' 
-        clkCyc += 4
-    End Sub
-
-    Private Sub _BE() ' MOV SI Ib
-        mRegisters.SI = Param(ParamIndex.First,, DataSize.Word) ' 
-        clkCyc += 4
-    End Sub
-
-    Private Sub _BF() ' MOV DI Ib
-        mRegisters.DI = Param(ParamIndex.First,, DataSize.Word) ' 
-        clkCyc += 4
-    End Sub
-
-    Private Sub _C0_C1() ' GRP2 byte/word imm8/16 ??? (80186)
-        If mVic20 Then
-            ' PRE ALPHA CODE - UNTESTED
-            ExecuteGroup2()
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
-
-    Private Sub _C2() ' RET Iw
-        IPAddrOffet = PopFromStack()
-        mRegisters.SP += Param(ParamIndex.First, , DataSize.Word)
-        clkCyc += 20
-    End Sub
-
-    Private Sub _C3() ' RET
-        IPAddrOffet = PopFromStack()
-        clkCyc += 16
-    End Sub
-
-    Private Sub _C4() ' LES Gv Mp
-        SetAddressing(DataSize.Word)
-        addrMode.Decode(&HC5, RAM8(mRegisters.CS, mRegisters.IP + 1))
-        mRegisters.Val(addrMode.Register1) = addrMode.IndMem
-        mRegisters.ES = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
-        ignoreINTs = True
-        clkCyc += 16
-    End Sub
-
-    Private Sub _C5() ' LDS Gv Mp
-        SetAddressing(DataSize.Word)
-        addrMode.Decode(&HC5, RAM8(mRegisters.CS, mRegisters.IP + 1))
-        mRegisters.Val(addrMode.Register1) = addrMode.IndMem
-        mRegisters.DS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
-        ignoreINTs = True
-        clkCyc += 16
-    End Sub
-
-    Private Sub _C6_C7() ' MOV MOV Ev Iv
-        SetAddressing()
-        If addrMode.IsDirect Then
-            mRegisters.Val(addrMode.Src) = Param(ParamIndex.First, opCodeSize)
-        Else
-            RAMn = Param(ParamIndex.First, opCodeSize)
-        End If
-        clkCyc += 10
-    End Sub
-
-    Private Sub _C8() ' ENTER (80186)
-        If mVic20 Then
-            ' PRE ALPHA CODE - UNTESTED
-            Dim stackSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)
-            Dim nestLevel As UInt16 = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
-            PushIntoStack(mRegisters.BP)
-            Dim frameTemp = mRegisters.SP
-            If nestLevel > 0 Then
-                For i As Integer = 1 To nestLevel - 1
-                    mRegisters.BP -= 2
-                    'PushIntoStack(RAM16(frameTemp, mRegisters.BP))
+Private Sub _60' PUSHA (80186)
+                                    If mVic20 Then
+                    tmpUVal1 = mRegisters.SP
+                    PushIntoStack(mRegisters.AX)
+                    PushIntoStack(mRegisters.CX)
+                    PushIntoStack(mRegisters.DX)
+                    PushIntoStack(mRegisters.BX)
+                    PushIntoStack(tmpUVal1)
                     PushIntoStack(mRegisters.BP)
-                Next
-                PushIntoStack(frameTemp)
-            End If
-            mRegisters.BP = frameTemp
-            mRegisters.SP -= stackSize
+                    PushIntoStack(mRegisters.SI)
+                    PushIntoStack(mRegisters.DI)
+                    clkCyc += 19
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
 
-            Select Case nestLevel
-                Case 0 ' 
-                    clkCyc += 15
-                Case 1 ' 
-                    clkCyc += 25
-                Case Else ' 
-                    clkCyc += 22 + 16 * (nestLevel - 1)
-            End Select
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
+Private Sub _61' POPA (80186)
+                                    If mVic20 Then
+                    mRegisters.DI = PopFromStack()
+                    mRegisters.SI = PopFromStack()
+                    mRegisters.BP = PopFromStack()
+                    PopFromStack() ' SP
+                    mRegisters.BX = PopFromStack()
+                    mRegisters.DX = PopFromStack()
+                    mRegisters.CX = PopFromStack()
+                    mRegisters.AX = PopFromStack()
+                    clkCyc += 19
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
 
-    Private Sub _C9() ' LEAVE (80186)
-        If mVic20 Then
-            mRegisters.SP = mRegisters.BP
-            mRegisters.BP = PopFromStack()
-            clkCyc += 8
-        Else
-            OpCodeNotImplemented()
-        End If
-    End Sub
+Private Sub _62' BOUND (80186)
+                                    If mVic20 Then
+                    ' PRE ALPHA CODE - UNTESTED
+                    SetAddressing()
+                    If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
+                        HandleInterrupt(5, False)
+                    Else
+                        addrMode.IndAdr += 2
+                        If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
+                            HandleInterrupt(5, False)
+                        End If
+                    End If
+                    clkCyc += 34
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
 
-    Private Sub _CA() ' RETF Iw
-        tmpUVal1 = Param(ParamIndex.First, , DataSize.Word)
-        IPAddrOffet = PopFromStack()
-        mRegisters.CS = PopFromStack()
-        mRegisters.SP += tmpUVal1
-        clkCyc += 17
-    End Sub
+Private Sub _68' PUSH Iv (80186)
+                                    ' PRE ALPHA CODE - UNTESTED
+                If mVic20 Then
+                    PushIntoStack(Param(ParamIndex.First, , DataSize.Word))
+                    clkCyc += 3
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
 
-    Private Sub _CB() ' RETF
-        IPAddrOffet = PopFromStack()
-        mRegisters.CS = PopFromStack()
-        clkCyc += 18
-    End Sub
+Private Sub _69' IMUL (80186)
+                                    If mVic20 Then
+                    ' PRE ALPHA CODE - UNTESTED
+                    SetAddressing()
+                    Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
+                    Dim tmp2 As UInt32 = Param(ParamIndex.First, , DataSize.Word)
+                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
+                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
+                    Dim tmp3 As UInt32 = tmp1 * tmp2
+                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
+                    If (tmp3 And &HFFFF_0000UI) <> 0 Then
+                        mFlags.CF = 1
+                        mFlags.OF = 1
+                    Else
+                        mFlags.CF = 0
+                        mFlags.OF = 0
+                    End If
+                    clkCyc += 27
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
 
-    Private Sub _CC() ' INT 3
-        HandleInterrupt(3, False)
-        clkCyc += 1
-    End Sub
+Private Sub _6A' PUSH Ib (80186)
+                                    If mVic20 Then
+                    ' PRE ALPHA CODE - UNTESTED
+                    PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
+                    clkCyc += 3
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
 
-    Private Sub _CD() ' INT Ib
-        HandleInterrupt(Param(ParamIndex.First, , DataSize.Byte), False)
-        clkCyc += 0
-    End Sub
+Private Sub _6B' IMUL (80186)
+                                    If mVic20 Then
+                    ' PRE ALPHA CODE - UNTESTED
+                    SetAddressing()
+                    Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
+                    Dim tmp2 As UInt32 = To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))
+                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
+                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
+                    Dim tmp3 As UInt32 = tmp1 * tmp2
+                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
+                    If (tmp3 And &HFFFF_0000UI) <> 0 Then
+                        mFlags.CF = 1
+                        mFlags.OF = 1
+                    Else
+                        mFlags.CF = 0
+                        mFlags.OF = 0
+                    End If
+                    clkCyc += 27
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
 
-    Private Sub _CE() ' INTO
-        If mFlags.OF = 1 Then
-            HandleInterrupt(4, False)
-            clkCyc += 3
-        Else
-            clkCyc += 4
-        End If
-    End Sub
+Private Sub _6C_6F' Ignore 80186/V20 port operations... for now...
+                                    opCodeSize += 1
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _CF() ' IRET
-        IPAddrOffet = PopFromStack()
-        mRegisters.CS = PopFromStack()
-        mFlags.EFlags = PopFromStack()
-        clkCyc += 32
-    End Sub
+Private Sub _70' JO Jb
+                                    If mFlags.OF = 1 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _D0_D3()
-        ExecuteGroup2()
-    End Sub
+Private Sub _71' JNO  Jb
+                                    If mFlags.OF = 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _D4() ' AAM I0
-        tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
-        If tmpUVal1 = 0 Then
-            HandleInterrupt(0, True)
-            Exit Sub
-        End If
-        mRegisters.AH = mRegisters.AL \ tmpUVal1
-        mRegisters.AL = mRegisters.AL Mod tmpUVal1
-        SetSZPFlags(mRegisters.AX, DataSize.Word)
-        clkCyc += 83
-    End Sub
+Private Sub _72' JB/JNAE/JC Jb
+                                    If mFlags.CF = 1 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _D5() ' AAD I0
-        tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
-        tmpUVal1 = tmpUVal1 * mRegisters.AH + mRegisters.AL
-        mRegisters.AL = tmpUVal1
-        mRegisters.AH = 0
-        SetSZPFlags(tmpUVal1, DataSize.Word)
-        mFlags.SF = 0
-        clkCyc += 60
-    End Sub
+Private Sub _73' JNB/JAE/JNC Jb
+                                    If mFlags.CF = 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _D6() ' XLAT for V20 / SALC
-        If mVic20 Then
-            mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
-        Else
-            mRegisters.AL = If(mFlags.CF = 1, &HFF, &H0)
-            clkCyc += 4
-        End If
-    End Sub
+Private Sub _74' JZ/JE Jb
+                                    If mFlags.ZF = 1 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _D7() ' XLATB
-        mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
-        clkCyc += 11
-    End Sub
+Private Sub _75' JNZ/JNE Jb
+                                    If mFlags.ZF = 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _D8_DF() ' Ignore 8087 co-processor instructions
-        SetAddressing()
-        'FPU.Execute(opCode, addrMode)
+Private Sub _76' JBE/JNA Jb
+                                    If mFlags.CF = 1 OrElse mFlags.ZF = 1 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-        ' Lesson 2
-        ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+Private Sub _77' JA/JNBE Jb
+                                    If mFlags.CF = 0 AndAlso mFlags.ZF = 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-        'HandleInterrupt(7, False)
-        OpCodeNotImplemented("FPU Not Available")
-        clkCyc += 2
-    End Sub
+Private Sub _78' JS Jb
+                                    If mFlags.SF = 1 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _E0() ' LOOPNE/LOOPNZ
-        mRegisters.CX -= 1
-        If mRegisters.CX > 0 AndAlso mFlags.ZF = 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 19
-        Else
-            opCodeSize += 1
-            clkCyc += 5
-        End If
-    End Sub
+Private Sub _79' JNS Jb
+                                    If mFlags.SF = 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _E1() ' LOOPE/LOOPZ
-        mRegisters.CX -= 1
-        If mRegisters.CX > 0 AndAlso mFlags.ZF = 1 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 18
-        Else
-            opCodeSize += 1
-            clkCyc += 6
-        End If
-    End Sub
+Private Sub _7A' JPE/JP Jb
+                                    If mFlags.PF = 1 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _E2() ' LOOP
-        mRegisters.CX -= 1
-        If mRegisters.CX > 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 17
-        Else
-            opCodeSize += 1
-            clkCyc += 5
-        End If
-    End Sub
+Private Sub _7B' JPO/JNP Jb
+                                    If mFlags.PF = 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _E3() ' JCXZ/JECXZ
-        If mRegisters.CX = 0 Then
-            IPAddrOffet = OffsetIP(DataSize.Byte)
-            clkCyc += 18
-        Else
-            opCodeSize += 1
-            clkCyc += 6
-        End If
-    End Sub
+Private Sub _7C' JL/JNGE Jb
+                                    If mFlags.SF <> mFlags.OF Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _E4() ' IN AL Ib
-        mRegisters.AL = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
-        clkCyc += 10
-    End Sub
+Private Sub _7D' JGE/JNL Jb
+                                    If mFlags.SF = mFlags.OF Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _E5() ' IN AX Ib
-        mRegisters.AX = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
-        clkCyc += 10
-    End Sub
+Private Sub _7E' JLE/JNG Jb
+                                    If mFlags.ZF = 1 OrElse (mFlags.SF <> mFlags.OF) Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _E6() ' OUT Ib AL
-        SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AL)
-        clkCyc += 10
-    End Sub
+Private Sub _7F' JG/JNLE Jb
+                                    If mFlags.ZF = 0 AndAlso (mFlags.SF = mFlags.OF) Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 16
+                Else
+                    opCodeSize += 1
+                    clkCyc += 4
+                End If
+                                 End Sub
 
-    Private Sub _E7() ' OUT Ib AX
-        SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AX)
-        clkCyc += 10
-    End Sub
+Private Sub _80_83
+                                    ExecuteGroup1()
+                                 End Sub
 
-    Private Sub _E8() ' CALL Jv
-        IPAddrOffet = OffsetIP(DataSize.Word)
-        PushIntoStack(Registers.IP + opCodeSize)
-        clkCyc += 19
-    End Sub
+Private Sub _84_85' TEST Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Test, addrMode.Size)
+                    clkCyc += 3
+                Else
+                    Eval(addrMode.IndMem, mRegisters.Val(addrMode.Dst), Operation.Test, addrMode.Size)
+                    clkCyc += 9
+                End If
+                                 End Sub
 
-    Private Sub _E9() ' JMP Jv
-        IPAddrOffet = OffsetIP(DataSize.Word)
-        clkCyc += 15
-    End Sub
+Private Sub _86_87' XCHG Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    tmpUVal1 = mRegisters.Val(addrMode.Dst)
+                    mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
+                    mRegisters.Val(addrMode.Src) = tmpUVal1
+                    clkCyc += 4
+                Else
+                    RAMn = mRegisters.Val(addrMode.Dst)
+                    mRegisters.Val(addrMode.Dst) = addrMode.IndMem
+                    clkCyc += 17
+                End If
+                                 End Sub
 
-    Private Sub _EA() ' JMP Ap
-        IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
-        mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word)
-        clkCyc += 15
-    End Sub
+Private Sub _88_8B' MOV Gv Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Dst) = mRegisters.Val(addrMode.Src)
+                    clkCyc += 2
+                Else
+                    If addrMode.Direction = 0 Then
+                        RAMn = mRegisters.Val(addrMode.Src)
+                        clkCyc += 9
+                    Else
+                        mRegisters.Val(addrMode.Dst) = addrMode.IndMem
+                        clkCyc += 8
+                    End If
+                End If
+                                 End Sub
 
-    Private Sub _EB() ' JMP Jb
-        IPAddrOffet = OffsetIP(DataSize.Byte)
-        clkCyc += 15
-    End Sub
+Private Sub _8C' MOV Ew Sw
+                                    SetAddressing(DataSize.Word)
+                SetRegister2ToSegReg()
+                If addrMode.IsDirect Then
+                    SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
+                    mRegisters.Val(addrMode.Register1) = mRegisters.Val(addrMode.Register2)
+                    clkCyc += 2
+                Else
+                    RAMn = mRegisters.Val(addrMode.Register2)
+                    clkCyc += 8
+                End If
+                                 End Sub
 
-    Private Sub _EC() ' IN AL DX
-        mRegisters.AL = ReceiveFromPort(mRegisters.DX)
-        clkCyc += 8
-    End Sub
+Private Sub _8D' LEA Gv M
+                                    SetAddressing()
+                mRegisters.Val(addrMode.Src) = addrMode.IndAdr
+                clkCyc += 2
+                                 End Sub
 
-    Private Sub _ED() ' IN AX DX
-        mRegisters.AX = ReceiveFromPort(mRegisters.DX)
-        clkCyc += 8
-    End Sub
+Private Sub _8E' MOV Sw Ew
+                                    SetAddressing(DataSize.Word)
+                SetRegister2ToSegReg()
+                If addrMode.IsDirect Then
+                    SetRegister1Alt(RAM8(mRegisters.CS, mRegisters.IP + 1))
+                    mRegisters.Val(addrMode.Register2) = mRegisters.Val(addrMode.Register1)
+                    clkCyc += 2
+                Else
+                    mRegisters.Val(addrMode.Register2) = addrMode.IndMem
+                    clkCyc += 8
+                End If
+                ignoreINTs = True
+                If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then mDoReSchedule = True
+                                 End Sub
 
-    Private Sub _EE() ' OUT DX AL
-        SendToPort(mRegisters.DX, mRegisters.AL)
-        clkCyc += 8
-    End Sub
+Private Sub _8F' POP Ev
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    addrMode.Decode(opCode, opCode)
+                    mRegisters.Val(addrMode.Register1) = PopFromStack()
+                Else
+                    RAMn = PopFromStack()
+                End If
+                clkCyc += 17
+                                 End Sub
 
-    Private Sub _EF() ' OUT DX AX
-        SendToPort(mRegisters.DX, mRegisters.AX)
-        clkCyc += 8
-    End Sub
+Private Sub _90' NOP
+                                    clkCyc += 3
+                                 End Sub
 
-    Private Sub _F0() ' LOCK
-        OpCodeNotImplemented("LOCK")
-        clkCyc += 2
-    End Sub
+Private Sub _91' XCHG CX AX
+                                    tmpUVal1 = mRegisters.AX
+                mRegisters.AX = mRegisters.CX
+                mRegisters.CX = tmpUVal1
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _F2() ' REPBE/REPNZ
-        mRepeLoopMode = REPLoopModes.REPENE
-        newPrefix = True
-        clkCyc += 2
-    End Sub
+Private Sub _92' XCHG DX AX
+                                    tmpUVal1 = mRegisters.AX
+                mRegisters.AX = mRegisters.DX
+                mRegisters.DX = tmpUVal1
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _F3() ' REPE/REPZ
-        mRepeLoopMode = REPLoopModes.REPE
-        newPrefix = True
-        clkCyc += 2
-    End Sub
+Private Sub _93' XCHG BX AX
+                                    tmpUVal1 = mRegisters.AX
+                mRegisters.AX = mRegisters.BX
+                mRegisters.BX = tmpUVal1
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _F4() ' HLT
-        If Not mIsHalted Then SystemHalted()
-        mRegisters.IP -= 1
-        clkCyc += 2
-    End Sub
+Private Sub _94' XCHG SP AX
+                                    tmpUVal1 = mRegisters.AX
+                mRegisters.AX = mRegisters.SP
+                mRegisters.SP = tmpUVal1
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _F5() ' CMC
-        mFlags.CF = If(mFlags.CF = 0, 1, 0)
-        clkCyc += 2
-    End Sub
+Private Sub _95' XCHG BP AX
+                                    tmpUVal1 = mRegisters.AX
+                mRegisters.AX = mRegisters.BP
+                mRegisters.BP = tmpUVal1
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _F6_F7()
-        ExecuteGroup3()
-    End Sub
+Private Sub _96' XCHG SI AX
+                                    tmpUVal1 = mRegisters.AX
+                mRegisters.AX = mRegisters.SI
+                mRegisters.SI = tmpUVal1
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _F8() ' CLC
-        mFlags.CF = 0
-        clkCyc += 2
-    End Sub
+Private Sub _97' XCHG DI AX
+                                    tmpUVal1 = mRegisters.AX
+                mRegisters.AX = mRegisters.DI
+                mRegisters.DI = tmpUVal1
+                clkCyc += 3
+                                 End Sub
 
-    Private Sub _F9() ' STC
-        mFlags.CF = 1
-        clkCyc += 2
-    End Sub
+Private Sub _98' CBW
+                                    mRegisters.AX = To16bitsWithSign(mRegisters.AL)
+                clkCyc += 2
+                                 End Sub
 
-    Private Sub _FA() ' CLI
-        mFlags.IF = 0
-        clkCyc += 2
-    End Sub
+Private Sub _99' CWD
+                                    mRegisters.DX = If((mRegisters.AH And &H80) <> 0, &HFFFF, &H0)
+                clkCyc += 5
+                                 End Sub
 
-    Private Sub _FB() ' STI
-        mFlags.IF = 1
-        ignoreINTs = True ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
-        clkCyc += 2
-    End Sub
+Private Sub _9A' CALL Ap
+                                    IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
+                tmpUVal1 = Param(ParamIndex.Second, , DataSize.Word)
+                PushIntoStack(mRegisters.CS)
+                PushIntoStack(mRegisters.IP + opCodeSize)
+                mRegisters.CS = tmpUVal1
+                clkCyc += 28
+                                 End Sub
 
-    Private Sub _FC() ' CLD
-        mFlags.DF = 0
-        clkCyc += 2
-    End Sub
+Private Sub _9B' WAIT
+                                    clkCyc += 4
+                                 End Sub
 
-    Private Sub _FD() ' STD
-        mFlags.DF = 1
-        clkCyc += 2
-    End Sub
+Private Sub _9C' PUSHF
+                                    PushIntoStack(If(mModel = Models.IBMPC_5150, &HFFF, &HFFFF) And mFlags.EFlags)
+                clkCyc += 10
+                                 End Sub
 
-    Private Sub _FE_FF()
-        ExecuteGroup4_And_5()
-    End Sub
+Private Sub _9D' POPF
+                                    mFlags.EFlags = PopFromStack()
+                clkCyc += 8
+                                 End Sub
+
+Private Sub _9E' SAHF
+                                    mFlags.EFlags = (mFlags.EFlags And &HFF00) Or mRegisters.AH
+                clkCyc += 4
+                                 End Sub
+
+Private Sub _9F' LAHF
+                                    mRegisters.AH = mFlags.EFlags
+                clkCyc += 4
+                                 End Sub
+
+Private Sub _A0' MOV AL Ob
+                                    mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word))' 
+clkCyc += 10
+                                 End Sub
+
+Private Sub _A1' MOV AX Ov
+                                    mRegisters.AX = RAM16(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word))' 
+clkCyc += 10
+                                 End Sub
+
+Private Sub _A2' MOV Ob AL
+                                    RAM8(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) = mRegisters.AL' 
+clkCyc += 10
+                                 End Sub
+
+Private Sub _A3' MOV Ov AX
+                                    RAM16(mRegisters.ActiveSegmentValue, Param(ParamIndex.First,, DataSize.Word)) = mRegisters.AX' 
+clkCyc += 10
+                                 End Sub
+
+Private Sub _A4_A7
+                                    HandleREPMode()
+                                 End Sub
+
+Private Sub _AA_AF
+                                    HandleREPMode()
+                                 End Sub
+
+Private Sub _A8' TEST AL Ib
+                                    Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
+                clkCyc += 4
+                                 End Sub
+
+Private Sub _A9' TEST AX Iv
+                                    Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Test, DataSize.Word)
+                clkCyc += 4
+                                 End Sub
+
+Private Sub _B0' MOV AL Ib
+                                    mRegisters.AL = Param(ParamIndex.First,, DataSize.Byte)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B1' MOV CL Ib
+                                    mRegisters.CL = Param(ParamIndex.First,, DataSize.Byte)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B2' MOV DL Ib
+                                    mRegisters.DL = Param(ParamIndex.First,, DataSize.Byte)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B3' MOV BL Ib
+                                    mRegisters.BL = Param(ParamIndex.First,, DataSize.Byte)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B4' MOV AH Ib
+                                    mRegisters.AH = Param(ParamIndex.First,, DataSize.Byte)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B5' MOV CH Ib
+                                    mRegisters.CH = Param(ParamIndex.First,, DataSize.Byte)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B6' MOV DH Ib
+                                    mRegisters.DH = Param(ParamIndex.First,, DataSize.Byte)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B7' MOV BH Ib
+                                    mRegisters.BH = Param(ParamIndex.First,, DataSize.Byte)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B8' MOV AX Ib
+                                    mRegisters.AX = Param(ParamIndex.First,, DataSize.Word)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _B9' MOV CX Ib
+                                    mRegisters.CX = Param(ParamIndex.First,, DataSize.Word)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _BA' MOV DX Ib
+                                    mRegisters.DX = Param(ParamIndex.First,, DataSize.Word)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _BB' MOV BX Ib
+                                    mRegisters.BX = Param(ParamIndex.First,, DataSize.Word)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _BC' MOV SP Ib
+                                    mRegisters.SP = Param(ParamIndex.First,, DataSize.Word)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _BD' MOV BP Ib
+                                    mRegisters.BP = Param(ParamIndex.First,, DataSize.Word)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _BE' MOV SI Ib
+                                    mRegisters.SI = Param(ParamIndex.First,, DataSize.Word)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _BF' MOV DI Ib
+                                    mRegisters.DI = Param(ParamIndex.First,, DataSize.Word)' 
+clkCyc += 4
+                                 End Sub
+
+Private Sub _C0_C1' GRP2 byte/word imm8/16 ??? (80186)
+                                    If mVic20 Then
+                    ' PRE ALPHA CODE - UNTESTED
+                    ExecuteGroup2()
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
+
+Private Sub _C2' RET Iw
+                                    IPAddrOffet = PopFromStack()
+                mRegisters.SP += Param(ParamIndex.First, , DataSize.Word)
+                clkCyc += 20
+                                 End Sub
+
+Private Sub _C3' RET
+                                    IPAddrOffet = PopFromStack()
+                clkCyc += 16
+                                 End Sub
+
+Private Sub _C4' LES Gv Mp
+                                    SetAddressing(DataSize.Word)
+                addrMode.Decode(&HC5, RAM8(mRegisters.CS, mRegisters.IP + 1))
+                mRegisters.Val(addrMode.Register1) = addrMode.IndMem
+                mRegisters.ES = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
+                ignoreINTs = True
+                clkCyc += 16
+                                 End Sub
+
+Private Sub _C5' LDS Gv Mp
+                                    SetAddressing(DataSize.Word)
+                addrMode.Decode(&HC5, RAM8(mRegisters.CS, mRegisters.IP + 1))
+                mRegisters.Val(addrMode.Register1) = addrMode.IndMem
+                mRegisters.DS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
+                ignoreINTs = True
+                clkCyc += 16
+                                 End Sub
+
+Private Sub _C6_C7' MOV MOV Ev Iv
+                                    SetAddressing()
+                If addrMode.IsDirect Then
+                    mRegisters.Val(addrMode.Src) = Param(ParamIndex.First, opCodeSize)
+                Else
+                    RAMn = Param(ParamIndex.First, opCodeSize)
+                End If
+                clkCyc += 10
+                                 End Sub
+
+Private Sub _C8' ENTER (80186)
+                                    If mVic20 Then
+                    ' PRE ALPHA CODE - UNTESTED
+                    Dim stackSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)
+                    Dim nestLevel As UInt16 = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
+                    PushIntoStack(mRegisters.BP)
+                    Dim frameTemp = mRegisters.SP
+                    If nestLevel > 0 Then
+                        For i As Integer = 1 To nestLevel - 1
+                            mRegisters.BP -= 2
+                            'PushIntoStack(RAM16(frameTemp, mRegisters.BP))
+                            PushIntoStack(mRegisters.BP)
+                        Next
+                        PushIntoStack(frameTemp)
+                    End If
+                    mRegisters.BP = frameTemp
+                    mRegisters.SP -= stackSize
+
+                    Select Case nestLevel
+                        Case 0' 
+clkCyc += 15
+                        Case 1' 
+clkCyc += 25
+                        Case Else' 
+clkCyc += 22 + 16 * (nestLevel - 1)
+                    End Select
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
+
+Private Sub _C9' LEAVE (80186)
+                                    If mVic20 Then
+                    mRegisters.SP = mRegisters.BP
+                    mRegisters.BP = PopFromStack()
+                    clkCyc += 8
+                Else
+                    OpCodeNotImplemented()
+                End If
+                                 End Sub
+
+Private Sub _CA' RETF Iw
+                                    tmpUVal1 = Param(ParamIndex.First, , DataSize.Word)
+                IPAddrOffet = PopFromStack()
+                mRegisters.CS = PopFromStack()
+                mRegisters.SP += tmpUVal1
+                clkCyc += 17
+                                 End Sub
+
+Private Sub _CB' RETF
+                                    IPAddrOffet = PopFromStack()
+                mRegisters.CS = PopFromStack()
+                clkCyc += 18
+                                 End Sub
+
+Private Sub _CC' INT 3
+                                    HandleInterrupt(3, False)
+                clkCyc += 1
+                                 End Sub
+
+Private Sub _CD' INT Ib
+                                    HandleInterrupt(Param(ParamIndex.First, , DataSize.Byte), False)
+                clkCyc += 0
+                                 End Sub
+
+Private Sub _CE' INTO
+                                    If mFlags.OF = 1 Then
+                    HandleInterrupt(4, False)
+                    clkCyc += 3
+                Else
+                    clkCyc += 4
+                End If
+                                 End Sub
+
+Private Sub _CF' IRET
+                                    IPAddrOffet = PopFromStack()
+                mRegisters.CS = PopFromStack()
+                mFlags.EFlags = PopFromStack()
+                clkCyc += 32
+                                 End Sub
+
+Private Sub _D0_D3
+                                    ExecuteGroup2()
+                                 End Sub
+
+Private Sub _D4' AAM I0
+                                    tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
+                If tmpUVal1 = 0 Then
+                    HandleInterrupt(0, True)
+                    Exit Sub
+                End If
+                mRegisters.AH = mRegisters.AL \ tmpUVal1
+                mRegisters.AL = mRegisters.AL Mod tmpUVal1
+                SetSZPFlags(mRegisters.AX, DataSize.Word)
+                clkCyc += 83
+                                 End Sub
+
+Private Sub _D5' AAD I0
+                                    tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
+                tmpUVal1 = tmpUVal1 * mRegisters.AH + mRegisters.AL
+                mRegisters.AL = tmpUVal1
+                mRegisters.AH = 0
+                SetSZPFlags(tmpUVal1, DataSize.Word)
+                mFlags.SF = 0
+                clkCyc += 60
+                                 End Sub
+
+Private Sub _D6' XLAT for V20 / SALC
+                                    If mVic20 Then
+                    mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
+                Else
+                    mRegisters.AL = If(mFlags.CF = 1, &HFF, &H0)
+                    clkCyc += 4
+                End If
+                                 End Sub
+
+Private Sub _D7' XLATB
+                                    mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
+                clkCyc += 11
+                                 End Sub
+
+Private Sub _D8_DF' Ignore 8087 co-processor instructions
+                                    SetAddressing()
+                'FPU.Execute(opCode, addrMode)
+
+                ' Lesson 2
+                ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
+
+                'HandleInterrupt(7, False)
+                OpCodeNotImplemented("FPU Not Available")
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _E0' LOOPNE/LOOPNZ
+                                    mRegisters.CX -= 1
+                If mRegisters.CX > 0 AndAlso mFlags.ZF = 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 19
+                Else
+                    opCodeSize += 1
+                    clkCyc += 5
+                End If
+                                 End Sub
+
+Private Sub _E1' LOOPE/LOOPZ
+                                    mRegisters.CX -= 1
+                If mRegisters.CX > 0 AndAlso mFlags.ZF = 1 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 18
+                Else
+                    opCodeSize += 1
+                    clkCyc += 6
+                End If
+                                 End Sub
+
+Private Sub _E2' LOOP
+                                    mRegisters.CX -= 1
+                If mRegisters.CX > 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 17
+                Else
+                    opCodeSize += 1
+                    clkCyc += 5
+                End If
+                                 End Sub
+
+Private Sub _E3' JCXZ/JECXZ
+                                    If mRegisters.CX = 0 Then
+                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    clkCyc += 18
+                Else
+                    opCodeSize += 1
+                    clkCyc += 6
+                End If
+                                 End Sub
+
+Private Sub _E4' IN AL Ib
+                                    mRegisters.AL = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
+                clkCyc += 10
+                                 End Sub
+
+Private Sub _E5' IN AX Ib
+                                    mRegisters.AX = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
+                clkCyc += 10
+                                 End Sub
+
+Private Sub _E6' OUT Ib AL
+                                    SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AL)
+                clkCyc += 10
+                                 End Sub
+
+Private Sub _E7' OUT Ib AX
+                                    SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AX)
+                clkCyc += 10
+                                 End Sub
+
+Private Sub _E8' CALL Jv
+                                    IPAddrOffet = OffsetIP(DataSize.Word)
+                PushIntoStack(Registers.IP + opCodeSize)
+                clkCyc += 19
+                                 End Sub
+
+Private Sub _E9' JMP Jv
+                                    IPAddrOffet = OffsetIP(DataSize.Word)
+                clkCyc += 15
+                                 End Sub
+
+Private Sub _EA' JMP Ap
+                                    IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
+                mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word)
+                clkCyc += 15
+                                 End Sub
+
+Private Sub _EB' JMP Jb
+                                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                clkCyc += 15
+                                 End Sub
+
+Private Sub _EC' IN AL DX
+                                    mRegisters.AL = ReceiveFromPort(mRegisters.DX)
+                clkCyc += 8
+                                 End Sub
+
+Private Sub _ED' IN AX DX
+                                    mRegisters.AX = ReceiveFromPort(mRegisters.DX)
+                clkCyc += 8
+                                 End Sub
+
+Private Sub _EE' OUT DX AL
+                                    SendToPort(mRegisters.DX, mRegisters.AL)
+                clkCyc += 8
+                                 End Sub
+
+Private Sub _EF' OUT DX AX
+                                    SendToPort(mRegisters.DX, mRegisters.AX)
+                clkCyc += 8
+                                 End Sub
+
+Private Sub _F0' LOCK
+                                    OpCodeNotImplemented("LOCK")
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _F2' REPBE/REPNZ
+                                    mRepeLoopMode = REPLoopModes.REPENE
+                newPrefix = True
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _F3' REPE/REPZ
+                                    mRepeLoopMode = REPLoopModes.REPE
+                newPrefix = True
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _F4' HLT
+                                    If Not mIsHalted Then SystemHalted()
+                mRegisters.IP -= 1
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _F5' CMC
+                                    mFlags.CF = If(mFlags.CF = 0, 1, 0)
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _F6_F7
+                                    ExecuteGroup3()
+                                 End Sub
+
+Private Sub _F8' CLC
+                                    mFlags.CF = 0
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _F9' STC
+                                    mFlags.CF = 1
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _FA' CLI
+                                    mFlags.IF = 0
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _FB' STI
+                                    mFlags.IF = 1
+                ignoreINTs = True ' http://zet.aluzina.org/forums/viewtopic.php?f=6&t=287
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _FC' CLD
+                                    mFlags.DF = 0
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _FD' STD
+                                    mFlags.DF = 1
+                clkCyc += 2
+                                 End Sub
+
+Private Sub _FE_FF
+                                    ExecuteGroup4_And_5()
+                                 End Sub
 
 
-End Class
+                            End Class

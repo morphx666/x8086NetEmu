@@ -477,15 +477,9 @@
     End Sub
 
     Private Sub PrintFlags()
-        X8086.Notify("{0}{1}{2}{3}{4}{5}{6}{7}", NotificationReasons.Info,
-                        mFlags.CF,
-                        mFlags.ZF,
-                        mFlags.SF,
-                        mFlags.OF,
-                        mFlags.PF,
-                        mFlags.AF,
-                        mFlags.IF,
-                        mFlags.DF)
+        With mFlags
+            X8086.Notify($"{ .CF}{ .ZF}{ .SF}{ .OF}{ .PF}{ .AF}{ .IF}{ .DF}", NotificationReasons.Info)
+        End With
         X8086.Notify("CZSOPAID", NotificationReasons.Info)
     End Sub
 

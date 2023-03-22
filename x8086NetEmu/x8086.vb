@@ -216,15 +216,15 @@ Public Class X8086
     Private Sub LoadBIOS()
         ' BIOS
         LoadBIN("roms\pcxtbios.rom", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\xtbios2\EPROMS\2764\XTBIOS.ROM", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\xtbios25\EPROMS\2764\PCXTBIOS.ROM", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\xtbios30\eproms\2764\pcxtbios.ROM", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\xtbios31\pcxtbios.bin", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\PCemV0.7\roms\genxt\pcxt.rom", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\pcxtbios.bin", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\award-2.05.rom", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\phoenix-2.51.rom", &HFE00, &H0)
-        'LoadBIN("..\..\Other Emulators & Resources\PCE - PC Emulator\bin\rom\ibm-pc-1982.rom", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\xtbios2\EPROMS\2764\XTBIOS.ROM", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\xtbios25\EPROMS\2764\PCXTBIOS.ROM", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\xtbios30\eproms\2764\pcxtbios.ROM", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\xtbios31\pcxtbios.bin", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\PCemV14Win\roms\genxt\pcxt.rom", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\pcxtbios.bin", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\award-2.05.rom", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\phoenix-2.51.rom", &HFE00, &H0)
+        'LoadBIN("..\Other Emulators & Resources\PCE - PC Emulator\bin\rom\ibm-pc-1982.rom", &HFE00, &H0)
 
         ' BASIC C1.10
         LoadBIN("roms\basicc11.bin", &HF600, &H0)
@@ -452,11 +452,9 @@ Public Class X8086
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Add, addrMode.Size)
                     clkCyc += 9
                 End If
-
             Case &H4 ' ADD AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Add, DataSize.Byte)
                 clkCyc += 4
-
             Case &H5 ' ADD AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Add, DataSize.Word)
                 clkCyc += 4
@@ -482,11 +480,9 @@ Public Class X8086
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicOr, addrMode.Size)
                     clkCyc += 9
                 End If
-
             Case &HC ' OR AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicOr, DataSize.Byte)
                 clkCyc += 4
-
             Case &HD ' OR AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicOr, DataSize.Word)
                 clkCyc += 4
@@ -514,11 +510,9 @@ Public Class X8086
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.AddWithCarry, addrMode.Size)
                     clkCyc += 9
                 End If
-
             Case &H14 ' ADC AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.AddWithCarry, DataSize.Byte)
                 clkCyc += 3
-
             Case &H15 ' ADC AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.AddWithCarry, DataSize.Word)
                 clkCyc += 3
@@ -547,11 +541,9 @@ Public Class X8086
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.SubstractWithCarry, addrMode.Size)
                     clkCyc += 9
                 End If
-
             Case &H1C ' SBB AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.SubstractWithCarry, DataSize.Byte)
                 clkCyc += 4
-
             Case &H1D ' SBB AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.SubstractWithCarry, DataSize.Word)
                 clkCyc += 4
@@ -577,11 +569,9 @@ Public Class X8086
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicAnd, addrMode.Size)
                     clkCyc += 9
                 End If
-
             Case &H24 ' AND AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicAnd, DataSize.Byte)
                 clkCyc += 4
-
             Case &H25 ' AND AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicAnd, DataSize.Word)
                 clkCyc += 4
@@ -623,11 +613,9 @@ Public Class X8086
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Substract, addrMode.Size)
                     clkCyc += 9
                 End If
-
             Case &H2C ' SUB AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Substract, DataSize.Byte)
                 clkCyc += 4
-
             Case &H2D ' SUB AX, Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Substract, DataSize.Word)
                 clkCyc += 4
@@ -664,11 +652,9 @@ Public Class X8086
                     mRegisters.Val(addrMode.Dst) = Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.LogicXor, addrMode.Size)
                     clkCyc += 9
                 End If
-
             Case &H34 ' XOR AL Ib
                 mRegisters.AL = Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.LogicXor, DataSize.Byte)
                 clkCyc += 4
-
             Case &H35 ' XOR AX Iv
                 mRegisters.AX = Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.LogicXor, DataSize.Word)
                 clkCyc += 4
@@ -697,11 +683,9 @@ Public Class X8086
                     Eval(mRegisters.Val(addrMode.Dst), addrMode.IndMem, Operation.Compare, addrMode.Size)
                     clkCyc += 9
                 End If
-
             Case &H3C ' CMP AL Ib
                 Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Compare, DataSize.Byte)
                 clkCyc += 4
-
             Case &H3D ' CMP AX Iv
                 Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Compare, DataSize.Word)
                 clkCyc += 4
@@ -1171,7 +1155,6 @@ Public Class X8086
             Case &HA8 ' TEST AL Ib
                 Eval(mRegisters.AL, Param(ParamIndex.First, , DataSize.Byte), Operation.Test, DataSize.Byte)
                 clkCyc += 4
-
             Case &HA9 ' TEST AX Iv
                 Eval(mRegisters.AX, Param(ParamIndex.First, , DataSize.Word), Operation.Test, DataSize.Word)
                 clkCyc += 4

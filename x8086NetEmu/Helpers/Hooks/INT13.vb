@@ -42,7 +42,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Read  H{1:00} T{2:000} S{3:000} x {4:000} {5:X6} -> {6:X4}:{7:X4}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
@@ -88,7 +88,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Write H{1:00} T{2:000} S{3:000} x {4:000} {5:X6} <- {6:X4}:{7:X4}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
@@ -128,7 +128,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Verify Sectors H{1:00} T{2:000} S{3:000} ? {4:000} {5:X6} ? {6:X4}:{7:X4}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
@@ -157,7 +157,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Format Track H{1:00} T{2:000} S{3:000} ? {4:000} {5:X6} = {6:X4}:{7:X4}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
@@ -175,7 +175,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Format Track (SBSF) H{1:00} T{2:000} S{3:000} ? {4:000}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
@@ -190,7 +190,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Format Drive H{1:00} T{2:000} S{3:000}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
@@ -252,7 +252,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Read Long H{1:00} T{2:000} S{3:000} x {4:000} {5:X6} -> {6:X4}:{7:X4}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 mRegisters.DH,
                                 mRegisters.CH,
                                 mRegisters.CL,
@@ -356,7 +356,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Read {4:000} {5:X6} -> {6:X4}:{7:X4}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 bufSize,
                                 offset,
                                 seg,
@@ -399,7 +399,7 @@ Partial Public Class X8086
                 End If
 
                 X8086.Notify("Drive {0:000} Write {4:000} {5:X6} <- {6:X4}:{7:X4}", NotificationReasons.Info,
-                                mRegisters.DL,
+                mRegisters.DL,
                                 bufSize,
                                 offset,
                                 seg,
@@ -437,7 +437,7 @@ Partial Public Class X8086
 
             Case Else
                 X8086.Notify("Drive {0:000} Unknown Request {1}", NotificationReasons.Err,
-                                                            mRegisters.DL,
+                mRegisters.DL,
                                                             ((mRegisters.AX And &HFF00) >> 8).ToString("X2"))
                 ret = &H1
         End Select

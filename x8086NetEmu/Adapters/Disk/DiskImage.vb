@@ -198,7 +198,6 @@ Public Class DiskImage
         Dim th2 As Integer
         Dim ts2 As Integer
 
-        Dim c As Integer = 0
         Dim h As Integer = 0
         Dim s As Integer = 0
 
@@ -238,7 +237,7 @@ Public Class DiskImage
         If s = 0 Then Return False
 
         h += 1
-        c = mFileLength / (h * s * mSectorSize)
+        Dim c As Integer = mFileLength / (h * s * mSectorSize)
 
         mCylinders = c
         mSectors = s
@@ -253,7 +252,10 @@ Public Class DiskImage
         cylinder = cylinder Or ((sector And &HC0) << 2)
         sector = sector And &H3F
 
-        If cylinder >= mCylinders OrElse sector = 0 OrElse sector > mSectors OrElse head >= mHeads Then Return -1
+        If cylinder >= mCylinders OrElse
+            sector = 0 OrElse
+            sector > mSectors OrElse
+            head >= mHeads Then Return -1
 
         Return (((cylinder * mHeads) + head) * mSectors + sector - 1) * mSectorSize
     End Function
@@ -281,7 +283,6 @@ Public Class DiskImage
         Try
             file.Seek(offset, IO.SeekOrigin.Begin)
             file.Read(data, 0, data.Length)
-
             Return 0
         Catch e As Exception
             Return EIO

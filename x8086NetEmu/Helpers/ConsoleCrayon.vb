@@ -24,7 +24,8 @@
 ' LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 ' OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 ' WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'
+
+' Documentation: http://ascii-table.com/ansi-escape-sequences.php
 
 ' Modifications and implementation of a simple hyper-text langage by Xavier Flix | 2013
 ' fc: Fore Color
@@ -32,8 +33,9 @@
 '
 ' Example:
 ' ConsoleCrayon.WriteToConsole("<bc:Red><fc:Gray>Hello World</fc></bc>")
-'
-' Documentation: http://ascii-table.com/ansi-escape-sequences.php
+
+' Console Virtual Terminal Sequences
+' https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
 
 Public NotInheritable Class ConsoleCrayon
 #Region "Public API"
@@ -43,21 +45,24 @@ Public NotInheritable Class ConsoleCrayon
         Right
     End Enum
 
-    Public Const toRadians As Double = Math.PI / 180
-    Public Const toDegrees As Double = 180 / Math.PI
+    Public Const ToRadians As Double = Math.PI / 180
+    Public Const ToDegrees As Double = 180 / Math.PI
 
     Public Shared SyncObject As New Object()
 
+    Public Shared Property ConsoleWidth As Integer
+    Public Shared Property ConsoleHeight As Integer
+
     Public Shared Sub WriteFast(text As String, foreColor As ConsoleColor, backColor As ConsoleColor, col As Integer, row As Integer)
         SyncLock SyncObject
-            If col < 0 OrElse col >= Console.WindowWidth OrElse
-               row < 0 OrElse row >= Console.WindowHeight Then Exit Sub
+            If col < 0 OrElse col >= ConsoleWidth OrElse
+               row < 0 OrElse row >= ConsoleHeight Then Exit Sub
 
             If ConsoleCrayon.XtermColors Then
                 Console.Write(ESC + (row + 1).ToString() + ";" + (col + 1).ToString() + "H" +
-                              GetAnsiColorControlCode(foreColor, True) +
-                              GetAnsiColorControlCode(backColor, False) +
-                              text)
+                                  GetAnsiColorControlCode(foreColor, True) +
+                                  GetAnsiColorControlCode(backColor, False) +
+                                  text)
             Else
                 If Console.CursorLeft <> col Then Console.CursorLeft = col
                 If Console.CursorTop <> row Then Console.CursorTop = row
@@ -65,8 +70,8 @@ Public NotInheritable Class ConsoleCrayon
                 If foreColor <> Console.ForegroundColor Then Console.ForegroundColor = foreColor
                 If backColor <> Console.BackgroundColor Then Console.BackgroundColor = backColor
 
-                Dim index As Integer = col + row * Console.WindowWidth
-                Dim size As Integer = Console.WindowWidth * Console.WindowHeight
+                Dim index As Integer = col + row * ConsoleWidth
+                Dim size As Integer = ConsoleWidth * ConsoleHeight
                 If index + text.Length >= size Then text = text.Substring(0, size - index - 1)
 
                 Console.Write(text)
@@ -95,8 +100,8 @@ Public NotInheritable Class ConsoleCrayon
     Public Shared Sub RemoveScrollbars()
         Select Case Environment.OSVersion.Platform
             Case PlatformID.Win32NT, PlatformID.Win32S, PlatformID.Win32Windows, PlatformID.WinCE
-                Console.BufferWidth = Console.WindowWidth
-                Console.BufferHeight = Console.WindowHeight
+                Console.BufferWidth = ConsoleWidth
+                Console.BufferHeight = ConsoleHeight
         End Select
     End Sub
 
@@ -109,7 +114,7 @@ Public NotInheritable Class ConsoleCrayon
     End Sub
 
     Private Shared Sub SetColor(color As ConsoleColor, isForeground As Boolean)
-        If color <ConsoleColor.Black OrElse color > ConsoleColor.White Then
+        If color < ConsoleColor.Black OrElse color > ConsoleColor.White Then
             Throw New ArgumentOutOfRangeException("color", "Not a ConsoleColor value")
         End If
 
@@ -137,7 +142,7 @@ Public NotInheritable Class ConsoleCrayon
 
         For i As Integer = 0 To text.Length - 1
             If i + 4 <= text.Length Then
-                tmpText= text.Substring(i, 4)
+                tmpText = text.Substring(i, 4)
             Else
                 tmpText = text(i)
             End If
@@ -168,8 +173,8 @@ Public NotInheritable Class ConsoleCrayon
         Dim length As Integer = Math.Sqrt((toCol - fromCol) ^ 2 + (toRow - fromRow) ^ 2)
         Dim px As Integer
         Dim py As Integer
-        Dim ca As Double = Math.Cos(angle * toRadians)
-        Dim sa As Double = Math.Sin(angle * toRadians)
+        Dim ca As Double = Math.Cos(angle * ToRadians)
+        Dim sa As Double = Math.Sin(angle * ToRadians)
 
         For radius As Integer = 0 To length
             px = CInt(radius * ca + fromCol)
@@ -192,7 +197,7 @@ Public NotInheritable Class ConsoleCrayon
         If dy = 0 Then
             a = If(dx > 0, 0, 180)
         Else
-            a = Math.Atan(dy / dx) * toDegrees
+            a = Math.Atan(dy / dx) * ToDegrees
             Select Case a
                 Case Is > 0
                     If dx < 0 AndAlso dy < 0 Then a += 180
@@ -346,10 +351,12 @@ Public NotInheritable Class ConsoleCrayon
 #End Region
 
 #Region "Runtime Detection"
-    Private Shared runtime_is_mono As System.Nullable(Of Boolean)
+    Private Shared runtime_is_mono As Boolean?
     Public Shared ReadOnly Property RuntimeIsMono() As Boolean
         Get
-            If runtime_is_mono Is Nothing Then runtime_is_mono = Type.[GetType]("System.MonoType") IsNot Nothing
+            If Not runtime_is_mono.HasValue Then
+                runtime_is_mono = Type.[GetType]("System.MonoType") IsNot Nothing
+            End If
             Return runtime_is_mono.Value
         End Get
     End Property

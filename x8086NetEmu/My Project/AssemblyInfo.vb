@@ -12,7 +12,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("")> 
 <Assembly: AssemblyCompany("xFX JumpStart")> 
 <Assembly: AssemblyProduct("x8086NetEmu")>
-<Assembly: AssemblyCopyright("Copyright © xFX JumpStart 2017")>
+<Assembly: AssemblyCopyright("Copyright ï¿½ xFX JumpStart 2017")>
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)> 
@@ -31,5 +31,7 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("2021.1.27.9415")>
-<Assembly: AssemblyFileVersion("2021.1.27.9408")>
+<Assembly: AssemblyVersion("2023.3.22.9541")>
+<Assembly: AssemblyFileVersion("2023.3.22.9534")>
+
+<assembly: AssemblyInformationalVersion("2023.3.125")>

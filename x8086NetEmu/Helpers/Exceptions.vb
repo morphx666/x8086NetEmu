@@ -31,7 +31,7 @@
 
     Private Sub NoIOPort(port As Integer)
         X8086.Notify("No IO port response from {0} called at {1}:{2}", NotificationReasons.Warn,
-                        port.ToString("X4"),
+        port.ToString("X4"),
                         mRegisters.CS.ToString("X4"),
                         mRegisters.IP.ToString("X4"))
     End Sub
@@ -58,15 +58,15 @@
     End Enum
 
     Public Shared Sub Notify(message As String, reason As NotificationReasons, ParamArray arg() As Object)
-        Dim formattedMessage = reason.ToString().PadRight(4) + " " + String.Format(message, arg)
+        '        Dim formattedMessage = reason.ToString().PadRight(4) + " " + String.Format(message, arg)
 
-        If LogToConsole Then
-            Console.WriteLine(formattedMessage)
-#If DEBUG Then
-            If reason = NotificationReasons.Dbg Then Debug.WriteLine(formattedMessage)
-#End If
-        End If
+        '        If LogToConsole Then
+        '            Console.WriteLine(formattedMessage)
+        '#If DEBUG Then
+        '            If reason = NotificationReasons.Dbg Then Debug.WriteLine(formattedMessage)
+        '#End If
+        '        End If
 
-        RaiseEvent Output(message, reason, arg)
+        '        RaiseEvent Output(message, reason, arg)
     End Sub
 End Class
