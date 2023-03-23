@@ -121,7 +121,7 @@
         Return (v And &HF) + 10 * ((v >> 4) And &HF0)
     End Function
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         Select Case index
             Case &H0 : Return EncodeTime(Now.ToUniversalTime().Second)
             Case &H2 : Return EncodeTime(Now.ToUniversalTime().Minute)
@@ -141,7 +141,7 @@
         Return cmosData(index)
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
         If (port And 1) = 0 Then
             index = value And &H7F
         Else

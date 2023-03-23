@@ -312,7 +312,7 @@ Public Class FloppyControllerAdapter
                 sched.RunTaskAfter(task, COMMANDDELAY)
 
             Case Else ' INVALID: respond immediately
-                regSt0 = CByte(&H80)
+                regSt0 = &H80
                 CommandEndSense(regSt0)
         End Select
     End Sub
@@ -679,7 +679,7 @@ Public Class FloppyControllerAdapter
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         If (port And 3) = 0 Then
             ' main status register
             Return GetMainStatus()
@@ -713,7 +713,7 @@ Public Class FloppyControllerAdapter
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
         If (port And 3) = 2 Then
             ' write to digital output register
             If (value And &H4) = 0 Then

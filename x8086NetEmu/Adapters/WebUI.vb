@@ -68,13 +68,13 @@ Public Class WebUI
                                 Case "/" : sndData = Text.UTF8Encoding.UTF8.GetBytes(GetUI())
                                 Case "/frame" : sndData = GetFrame() : cntType = "image/png"
                                 Case "/keyDown"
-                                    Dim k As Keys = CType(params.Split("=")(1), Keys)
+                                    Dim k As Keys = params.Split("=")(1)
                                     If k = lastKeyDown AndAlso Now.Ticks - lastKeyDownTime < 3000000 Then Exit Select
                                     lastKeyDown = k
                                     lastKeyDownTime = Now.Ticks
                                     cpu.PPI.PutKeyData(lastKeyDown, False)
                                 Case "/keyUp"
-                                    Dim k As Keys = CType(params.Split("=")(1), Keys)
+                                    Dim k As Keys = params.Split("=")(1)
                                     If k = lastKeyUp AndAlso Now.Ticks - lastKeyUpTime < 3000000 Then Exit Select
                                     lastKeyUp = k
                                     lastKeyUpTime = Now.Ticks

@@ -146,10 +146,10 @@ Public Class SpeakerAdpater
     End Sub
 
 #Disable Warning BC42353
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
 
     End Sub
 
@@ -211,11 +211,11 @@ Public Class SpeakerAdpater
         End Get
     End Property
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         Return 0
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
 
     End Sub
 

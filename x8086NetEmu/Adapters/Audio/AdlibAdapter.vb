@@ -162,13 +162,13 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         Next
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         status = If(regMem(4) = 0, 0, &H80)
         status += (regMem(4) And 1) * &H40 + (regMem(4) And 2) * &H10
         Return status
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
         If port = &H388 Then
             address = value
             Exit Sub

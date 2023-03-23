@@ -48,7 +48,7 @@
     Public Overrides Sub CloseAdapter()
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         Return &HFF
     End Function
 
@@ -200,7 +200,7 @@
         End Get
     End Property
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
     End Sub
 
     Public Overrides Sub Run()
@@ -209,7 +209,7 @@
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         Dim keyEvent As KeyEventArgs = CType(e.Event, KeyEventArgs)
-        Dim isUp As Boolean = CType(e.Extra, Boolean)
+        Dim isUp As Boolean = e.Extra
 
         If MyBase.CPU.PPI IsNot Nothing Then MyBase.CPU.PPI.PutKeyData(keyEvent.KeyValue And &HFF, isUp)
     End Sub

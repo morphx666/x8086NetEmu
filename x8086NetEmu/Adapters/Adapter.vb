@@ -48,7 +48,7 @@
     End Property
 
     Public MustOverride Overrides ReadOnly Property Description As String
-    Public MustOverride Overrides Function [In](port As UInt32) As UInt16
-    Public MustOverride Overrides Sub Out(port As UInt32, value As UInt16)
+    Public MustOverride Overrides Function [In](port As UInt16) As Byte
+    Public MustOverride Overrides Sub Out(port As UInt16, value As Byte)
     Public MustOverride Overrides ReadOnly Property Name As String
 End Class

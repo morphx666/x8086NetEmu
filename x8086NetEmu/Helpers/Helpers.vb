@@ -91,7 +91,7 @@
 #If DEBUG Then
         addrMode.Decode(opCode, RAM8(mRegisters.CS, mRegisters.IP + 1))
 #Else
-        addrMode = decoderCache((CUShort(opCode) << 8) Or RAM8(mRegisters.CS, mRegisters.IP + 1))
+        addrMode = decoderCache((Convert.ToUInt16(opCode) << 8) Or RAM8(mRegisters.CS, mRegisters.IP + 1))
 #End If
 
         If forceSize <> DataSize.UseAddressingMode Then addrMode.Size = forceSize
@@ -163,7 +163,7 @@
         opCodeSize += 1
     End Sub
 
-    Private Function To16bitsWithSign(v As UShort) As UInt16
+    Private Function To16bitsWithSign(v As UInt16) As UInt16
         Return If((v And &H80) <> 0, &HFF00 Or v, v)
     End Function
 

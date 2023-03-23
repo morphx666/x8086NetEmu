@@ -190,12 +190,12 @@
         Dim addrstep As Integer = If((cmdReg And &H2) = 0, If((channels(0).Mode And &H20) = 0, 1, -1), 0)
         If ntrigger <= channels(0).CurrentCount Then
             ' no terminal count
-            Dim n As Integer = CInt(ntrigger)
+            Dim n As Integer = ntrigger
             channels(0).CurrentCount -= n
             channels(0).CurrentAddress = (channels(0).CurrentAddress + n * addrstep) And &HFFFF
         Else
             ' terminal count occurred
-            Dim n As Integer = CInt((ntrigger - channels(0).CurrentCount - 1) Mod (channels(0).BaseCount + 1))
+            Dim n As Integer = (ntrigger - channels(0).CurrentCount - 1) Mod (channels(0).BaseCount + 1)
             channels(0).CurrentCount = channels(0).BaseCount - n
             channels(0).CurrentAddress = (channels(0).BaseAddress + n * addrstep) And &HFFFF
             statusReg = statusReg Or 1
@@ -315,7 +315,7 @@
         cpu.Sched.RunTaskAfter(task, transferTime)
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel status
@@ -340,7 +340,7 @@
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
         UpdateCh0()
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel setup
@@ -762,7 +762,7 @@ End Class
 '        cpu.Sched.RunTaskAfter(task, transferTime)
 '    End Sub
 
-'    Public Overrides Function [In](port As UInt32) As UInt16
+'    Public Overrides Function [In](port As UInt16) As Byte
 '        UpdateCh0()
 '        If (port And &HFFF8) = 0 Then
 '            ' DMA controller: channel status
@@ -787,7 +787,7 @@ End Class
 '        Return &HFF
 '    End Function
 
-'    Public Overrides Sub Out(port As UInt32, value As UInt16)
+'    Public Overrides Sub Out(port As UInt16, value As Byte)
 '        UpdateCh0()
 
 '        If (port And &HFFF8) = 0 Then

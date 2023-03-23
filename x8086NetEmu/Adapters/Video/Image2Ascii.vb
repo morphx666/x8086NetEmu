@@ -430,7 +430,7 @@
         index = index Or If(c.R > 64, 4, 0) ' Red bit
         index = index Or If(c.G > 64, 2, 0) ' Green bit
         index = index Or If(c.B > 64, 1, 0) ' Blue bit
-        Return CType(index, ConsoleColor)
+        Return index
     End Function
 
     Public Shared Function HexColorToArray(hexColor As String) As Integer()

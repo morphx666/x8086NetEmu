@@ -415,7 +415,7 @@ Public MustInherit Class CGAAdapter
         AutoSize()
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         Select Case port
             Case &H3D0, &H3D2, &H3D4, &H3D6 ' CRT (6845) index register
                 Return CRT6845IndexRegister
@@ -444,7 +444,7 @@ Public MustInherit Class CGAAdapter
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
         Select Case port
             Case &H3B8
                 If (value And 2) = 2 AndAlso mVideoMode <> VideoModes.Mode7_Text_BW_80x25 Then
@@ -508,7 +508,7 @@ Public MustInherit Class CGAAdapter
     Protected Overridable Sub OnModeControlRegisterChanged()
         ' http://www.seasip.info/VintagePC/cga.html
         Dim v As UInt32 = CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
-        Dim newMode As VideoModes = CType(v And &H17, VideoModes) ' 10111
+        Dim newMode As VideoModes = v And &H17 ' 10111
 
         If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
 

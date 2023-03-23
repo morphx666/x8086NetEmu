@@ -58,15 +58,15 @@
     End Enum
 
     Public Shared Sub Notify(message As String, reason As NotificationReasons, ParamArray arg() As Object)
-        '        Dim formattedMessage = reason.ToString().PadRight(4) + " " + String.Format(message, arg)
+        Dim formattedMessage = reason.ToString().PadRight(4) + " " + String.Format(message, arg)
 
-        '        If LogToConsole Then
-        '            Console.WriteLine(formattedMessage)
-        '#If DEBUG Then
-        '            If reason = NotificationReasons.Dbg Then Debug.WriteLine(formattedMessage)
-        '#End If
-        '        End If
+        If LogToConsole Then
+            Console.WriteLine(formattedMessage)
+#If DEBUG Then
+            If reason = NotificationReasons.Dbg Then Debug.WriteLine(formattedMessage)
+#End If
+        End If
 
-        '        RaiseEvent Output(message, reason, arg)
+        RaiseEvent Output(message, reason, arg)
     End Sub
 End Class

@@ -106,7 +106,7 @@ Public Class FormDebugger
 
     Private navigator As Xml.XPath.XPathNavigator = New Xml.XPath.XPathDocument(New IO.StringReader("<r/>")).CreateNavigator()
     Private rex As New RegularExpressions.Regex("([\+\-\*])")
-    Private Evaluator As Func(Of String, Double) = Function(exp) CDbl(navigator.Evaluate("number(" + rex.Replace(exp, " ${1} ").Replace("/", " div ").Replace("%", " mod ") + ")"))
+    Private Evaluator As Func(Of String, Double) = (Function(exp) navigator.Evaluate("number(" + rex.Replace(exp, " ${1} ").Replace("/", " div ").Replace("%", " mod ") + ")"))
 
     Private segmentTextBoxes As New List(Of TextBox)
 

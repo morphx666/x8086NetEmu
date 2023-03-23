@@ -205,7 +205,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         End If
     End Sub
 
-    Public Overrides Sub Out(port As UInteger, value As UShort)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
         Select Case port And &HF
             Case &H0, &H8 : adLib.Out(&H388, value)
             Case &H1, &H9 : adLib.Out(&H389, value)
@@ -230,7 +230,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         End Select
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UShort
+    Public Overrides Function [In](port As UInt16) As Byte
         Select Case port And &HF
             Case &H0, &H8 : Return adLib.In(&H388)
             Case &H1, &H9 : Return adLib.In(&H389)

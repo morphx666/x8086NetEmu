@@ -623,7 +623,7 @@ Public Class X8086
             Case &H2F ' DAS
                 tmpUVal2 = mRegisters.AL
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    tmpUVal1 = CShort(mRegisters.AL) - 6
+                    tmpUVal1 = mRegisters.AL - 6
                     mRegisters.AL -= 6
                     mFlags.AF = 1
                     mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
@@ -631,7 +631,7 @@ Public Class X8086
                     mFlags.AF = 0
                 End If
                 If tmpUVal2 > &H99 OrElse mFlags.CF = 1 Then
-                    tmpUVal1 = CShort(mRegisters.AL) - &H60
+                    tmpUVal1 = mRegisters.AL - &H60
                     mRegisters.AL -= &H60
                     mFlags.CF = 1
                 Else

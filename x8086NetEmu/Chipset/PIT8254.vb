@@ -577,7 +577,7 @@
 
     Public Sub UpdateClock()
         countRate = Scheduler.BASECLOCK / X8086.KHz * cpu.SimulationMultiplier
-        speakerBaseFrequency = CDbl(Scheduler.BASECLOCK / X8086.KHz) * 1000.0 / cpu.SimulationMultiplier
+        speakerBaseFrequency = Scheduler.BASECLOCK / X8086.KHz * 1000.0 / cpu.SimulationMultiplier
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean
@@ -590,7 +590,7 @@
         UpdateCh2(0)
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then
@@ -602,7 +602,7 @@
         End If
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
         If c = 3 Then

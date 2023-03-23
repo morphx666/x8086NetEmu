@@ -205,9 +205,9 @@
 
         ' For modes &h12 and &h13
         Dim planeMode As Boolean = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (VGA_SC(4) And 6) <> 0, False)
-        Dim vgaPage As UInt32 = If(mVideoMode <= 7 OrElse mVideoMode = &H12 OrElse mVideoMode = &H13, (CUInt(VGA_CRTC(&HC)) << 8) + CUInt(VGA_CRTC(&HD)), 0)
+        Dim vgaPage As UInteger = If(mVideoMode <= 7 OrElse MyBase.mVideoMode = &H12 OrElse MyBase.mVideoMode = &H13, (CUInt(VGA_CRTC(&HC)) << 8) + VGA_CRTC(&HD), 0)
 
-        Dim address As UInt32
+        Dim address As UInteger
         Dim h1 As UInt32
         Dim h2 As UInt32
         Dim k As UInt32 = mCellSize.Width * mCellSize.Height

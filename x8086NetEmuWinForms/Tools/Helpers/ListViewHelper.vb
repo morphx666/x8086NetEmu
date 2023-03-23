@@ -107,30 +107,30 @@ Public Class ListViewHelper
 
     Public Shared Sub SetExtendedStyle(control As Control, exStyle As ListViewExtendedStyles)
         Dim styles As ListViewExtendedStyles
-        styles = CType(SendMessage(control.Handle, CInt(ListViewMessages.GetExtendedStyle), 0, 0), ListViewExtendedStyles)
+        styles = CType(SendMessage(control.Handle, ListViewMessages.GetExtendedStyle, 0, 0), ListViewExtendedStyles)
         styles = styles Or exStyle
-        SendMessage(control.Handle, CInt(ListViewMessages.SetExtendedStyle), 0, CInt(styles))
+        SendMessage(control.Handle, ListViewMessages.SetExtendedStyle, 0, styles)
     End Sub
 
     Public Shared Sub EnableDoubleBuffer(control As Control)
         Dim styles As ListViewExtendedStyles
         ' read current style
-        styles = CType(SendMessage(control.Handle, CInt(ListViewMessages.GetExtendedStyle), 0, 0), ListViewExtendedStyles)
+        styles = CType(SendMessage(control.Handle, ListViewMessages.GetExtendedStyle, 0, 0), ListViewExtendedStyles)
         ' enable double buffer and border select
         styles = styles Or ListViewExtendedStyles.DoubleBuffer Or ListViewExtendedStyles.BorderSelect
         ' write new style
-        SendMessage(control.Handle, CInt(ListViewMessages.SetExtendedStyle), 0, CInt(styles))
+        SendMessage(control.Handle, ListViewMessages.SetExtendedStyle, 0, styles)
     End Sub
 
     Public Shared Sub DisableDoubleBuffer(control As Control)
         Dim styles As ListViewExtendedStyles
         ' read current style
-        styles = CType(SendMessage(control.Handle, CInt(ListViewMessages.GetExtendedStyle), 0, 0), ListViewExtendedStyles)
+        styles = CType(SendMessage(control.Handle, ListViewMessages.GetExtendedStyle, 0, 0), ListViewExtendedStyles)
         ' disable double buffer and border select
         styles -= styles And ListViewExtendedStyles.DoubleBuffer
         styles -= styles And ListViewExtendedStyles.BorderSelect
         ' write new style
-        SendMessage(control.Handle, CInt(ListViewMessages.SetExtendedStyle), 0, CInt(styles))
+        SendMessage(control.Handle, ListViewMessages.SetExtendedStyle, 0, styles)
     End Sub
 
     <DllImport("user32.dll")>
@@ -184,14 +184,14 @@ Public Class ListViewHelper
             Dim si As New SCROLLINFO()
             si.cbSize = CUInt(Marshal.SizeOf(si))
             si.fMask = CUInt(ScrollInfoMask.SIF_ALL)
-            GetScrollInfo(control.Handle, CInt(ScrollBarDirection.SB_VERT), si)
+            GetScrollInfo(control.Handle, ScrollBarDirection.SB_VERT, si)
             Return si.nPos
         End Get
         Set(ByVal value As Integer)
             Dim si As New SCROLLINFO()
             si.cbSize = CUInt(Marshal.SizeOf(si))
             si.fMask = CUInt(ScrollInfoMask.SIF_ALL)
-            GetScrollInfo(control.Handle, CInt(ScrollBarDirection.SB_VERT), si)
+            GetScrollInfo(control.Handle, ScrollBarDirection.SB_VERT, si)
             If value > si.nMax Then value = si.nMax
 
             'Dim ptrWparam = New IntPtr(SB_THUMBTRACK + &H10000 * value)

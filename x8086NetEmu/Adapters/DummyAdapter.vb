@@ -51,11 +51,11 @@ Public Class DummyAdapter
     Public Overrides Sub CloseAdapter()
     End Sub
 
-    Public Overrides Function [In](port As UInteger) As UShort
+    Public Overrides Function [In](port As UInt16) As Byte
         Return &HFF
     End Function
 
-    Public Overrides Sub Out(port As UInteger, value As UShort)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
     End Sub
 
     Public Overrides Sub Run()

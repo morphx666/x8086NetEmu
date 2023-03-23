@@ -197,7 +197,7 @@ Partial Public Class X8086
             End Set
         End Property
 
-        Public ReadOnly Property ActiveSegmentValue As UInt32
+        Public ReadOnly Property ActiveSegmentValue As UInt16
             Get
                 Return Val(mActiveSegmentRegister)
             End Get

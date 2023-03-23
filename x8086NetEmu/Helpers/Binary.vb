@@ -88,7 +88,7 @@
     End Operator
 
     Public Shared Narrowing Operator CType(value As Int32) As Binary
-        Return New Binary(CUInt(Math.Abs(value)))
+        Return New Binary(Math.Abs(value))
     End Operator
 
     Public Shared Narrowing Operator CType(value As String) As Binary

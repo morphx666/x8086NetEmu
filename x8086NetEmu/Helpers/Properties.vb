@@ -149,7 +149,7 @@
     Private Function GetCpuSpeed() As UInt32
 #If Win32 Then
         Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
-            Return CUInt(managementObject("CurrentClockSpeed"))
+            Return managementObject("CurrentClockSpeed")
         End Using
 #Else
         Return 1000

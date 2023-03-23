@@ -26,7 +26,7 @@
         Next
     End Sub
 
-    Public Overrides Function [In](port As UInt32) As UInt16
+    Public Overrides Function [In](port As UInt16) As Byte
         Dim tmp As Integer
 
         Select Case port
@@ -54,7 +54,7 @@
         Return sm.reg(port And 7)
     End Function
 
-    Public Overrides Sub Out(port As UInt32, value As UInt16)
+    Public Overrides Sub Out(port As UInt16, value As Byte)
         Dim oldReg As Integer = sm.reg(port And 7)
         sm.reg(port And 7) = value
 

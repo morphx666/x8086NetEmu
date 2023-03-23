@@ -1219,7 +1219,7 @@
 #If DEBUG Then
         decoderAddrMode.Decode(opCode, RAM8(mRegisters.CS, mRegisters.IP + 1))
 #Else
-        decoderAddrMode = decoderCache((CUShort(opCode) << 8) Or RAM8(mRegisters.CS, mRegisters.IP + 1))
+        decoderAddrMode = decoderCache((Convert.ToUInt16(opCode) << 8) Or RAM8(mRegisters.CS, mRegisters.IP + 1))
 #End If
 
         If forceSize <> DataSize.UseAddressingMode Then decoderAddrMode.Size = forceSize
