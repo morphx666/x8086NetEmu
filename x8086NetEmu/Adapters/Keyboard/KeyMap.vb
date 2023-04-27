@@ -150,6 +150,6 @@
     End Sub
 
     Public Function GetScanCode(keyValue As Integer) As Integer
-        Return keytbl(keyValue) ' And &HFF)
+        Return keytbl(keyValue And &HFF)
     End Function
 End Class
