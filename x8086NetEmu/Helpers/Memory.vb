@@ -379,6 +379,12 @@ Partial Public Class X8086
             Return Memory(address And &HF_FFFF) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
         End Get
         Set(value As Byte)
+            ' For edit.com:
+            ' Create a breakpoint when writing to address AS:0380
+            ' As should be 4F0A
+            'Dim tmp = SegmentOffetToAbsolute(&H4F0A, &H380)
+            'If tmp = address Then DebugMode = True
+
             If Not ignoreHooks Then
                 For i As Integer = 0 To memHooks.Count - 1
                     If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property

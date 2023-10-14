@@ -173,7 +173,7 @@
         SyncLock keyBuf
             If keyBuf.Length() > 0 Then
                 ' read byte from buffer
-                lastKeyCode = keyMap.GetScanCode(Asc(keyBuf(0))) And &HFF
+                lastKeyCode = keyMap.GetScanCode(AscW(keyBuf(0))) And &HFF
                 If keyUpStates(0) Then lastKeyCode = lastKeyCode Or &H80
 
                 ' wait .5 msec before going to the next byte
