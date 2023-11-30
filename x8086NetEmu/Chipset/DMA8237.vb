@@ -32,7 +32,7 @@
     Private ch0TriggerPeriod As Long
 
     ' Mask register (bits 0-3)
-    Public MaskReg As Byte
+    Private maskReg As Byte
 
     Private Class TaskSC
         Inherits Scheduler.Task
@@ -120,7 +120,7 @@
         For i As Integer = 0 To 4 - 1
             channels(i) = New Channel(Me)
         Next
-        MaskReg = &HF ' Mask all channels
+        maskReg = &HF ' Mask all channels
         ch0NextTrigger = -1
 
         For i As Integer = &H0 To &HF
@@ -180,7 +180,7 @@
         If (cmdReg And &H4) <> 0 Then Exit Sub
 
         ' Ignore triggers if channel 0 is masked
-        If (MaskReg And 1) = 1 Then Exit Sub
+        If (maskReg And 1) = 1 Then Exit Sub
 
         ' The only sensible mode for channel 0 in a PC is
         ' auto-initialized single read mode, so we simply assume that.
@@ -218,7 +218,7 @@
         If (cmdReg And &H4) <> 0 Then Exit Sub
 
         ' Select a channel with pending request
-        rbits = rbits And (Not MaskReg)
+        rbits = rbits And (Not maskReg)
         rbits = rbits And (Not 1) ' never select channel 0
         If rbits = 0 Then Exit Sub
 
@@ -294,7 +294,7 @@
             If termCount OrElse chan.ExternalEop Then
                 If (mode And &H10) = 0 Then
                     ' Set mask bit
-                    MaskReg = MaskReg Or (1 << i)
+                    maskReg = maskReg Or (1 << i)
                 Else
                     ' Auto-initialize
                     chan.CurrentCount = chan.BaseCount
@@ -390,9 +390,9 @@
 
                 Case 10 ' set/reset mask register
                     If (value And 4) = 0 Then
-                        MaskReg = MaskReg And Not (1 << (value And 3)) ' reset mask bit
+                        maskReg = maskReg And Not (1 << (value And 3)) ' reset mask bit
                     Else
-                        MaskReg = MaskReg Or (1 << (value And 3))  ' set mask bit
+                        maskReg = maskReg Or (1 << (value And 3))  ' set mask bit
                     End If
                     channels(value And 3).Masked = (value >> 2) And 1
 
@@ -412,13 +412,13 @@
                     statusReg = 0
                     reqReg = 0
                     tempReg = 0
-                    MaskReg = &HF
+                    maskReg = &HF
 
                 Case 14 ' clear mask register
-                    MaskReg = 0
+                    maskReg = 0
 
                 Case 15 ' write mask register
-                    MaskReg = value
+                    maskReg = value
             End Select
             TryHandleRequest()
 
