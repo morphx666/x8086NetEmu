@@ -103,7 +103,7 @@
                 debugWaiter.Set()
             Else
                 mDebugMode = value
-                mDoReSchedule = True
+                DoReschedule = True
                 RaiseEvent DebugModeChanged(Me, New EventArgs())
             End If
         End Set

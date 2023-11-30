@@ -204,7 +204,6 @@
     End Sub
 
     Public Overrides Sub Run()
-
     End Sub
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput

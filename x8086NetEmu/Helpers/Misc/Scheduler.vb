@@ -9,7 +9,7 @@ Public Class Scheduler
     Private Const STOPPING As Long = Long.MinValue
 
     ' Number of scheduler time units per simulated second (~1.0 GHz)
-    Public Const BASECLOCK As ULong = 1.19318 * X8086.GHz
+    Public Shared HOSTCLOCK As ULong = 1.19318 * X8086.GHz
 
     ' Current simulation time in scheduler time units (ns)
     Private mCurrentTime As Long
@@ -29,8 +29,8 @@ Public Class Scheduler
     ' Gain on wall time since last synchronization, plus one syncQuantum
     Private syncTimeSaldo As Long
 
-    ' Most recent value of <code>currentTimeMillis</code>
-    Private syncWallTimeMillis As Long
+    ' Most recent value of <code>currentTimeMs</code>
+    Private syncWallTimeMs As Long
 
     ' Queue containing pending synchronous events
     Private pq As PriorityQueue
@@ -52,7 +52,7 @@ Public Class Scheduler
     ' execution at a particular point in simulated time.
     Public MustInherit Class Task
         Inherits Runnable
-        Public Shared NOSCHED As Long = Long.MinValue
+        Public Const NOSCHED As Long = Long.MinValue
         Public Property LastTime As Long
         Public Property NextTime As Long
         Public Property Interval As Long
@@ -96,8 +96,8 @@ Public Class Scheduler
         pq = New PriorityQueue()
         pendingInput = New ArrayList()
 
-        syncQuantum = BASECLOCK / 20
-        syncSimTimePerWallMs = BASECLOCK / 1000
+        syncQuantum = HOSTCLOCK / 20
+        syncSimTimePerWallMs = HOSTCLOCK / 1000
     End Sub
 
     Public ReadOnly Property CurrentTime As Long
@@ -106,23 +106,24 @@ Public Class Scheduler
         End Get
     End Property
 
-    Public ReadOnly Property CurrentTimeMillis As Long
+    Private sw As Stopwatch = Stopwatch.StartNew()
+    Public ReadOnly Property CurrentTimeMs As Long
         Get
-            Return Now.Ticks / 10000
+            Return  sw.ElapsedMilliseconds
         End Get
     End Property
 
     Public Sub SetSynchronization(enabled As Boolean, quantum As Long, simTimePerWallMs As Long)
 #If DEBUG Then
-        If enabled And quantum < 1 Then Throw New ArgumentException("Invalid value for quantum")
-        If enabled And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid value for simTimePerWallMs")
+        If enabled And quantum < 1 Then Throw New ArgumentException("Invalid quantum value")
+        If enabled And simTimePerWallMs < 1000 Then Throw New ArgumentException("Invalid simTimePerWallMs value")
 #End If
 
         syncScheduler = enabled
         syncQuantum = quantum
         syncSimTimePerWallMs = simTimePerWallMs
         syncTimeSaldo = 0
-        syncWallTimeMillis = CurrentTimeMillis
+        syncWallTimeMs = CurrentTimeMs
     End Sub
 
     Public Sub RunTaskAt(tsk As Task, t As Long)
@@ -196,9 +197,9 @@ Public Class Scheduler
             syncTimeSaldo += t
             If syncTimeSaldo > 3 * syncQuantum Then
                 ' Check the wall clock
-                Dim wallTime As Long = CurrentTimeMillis
-                Dim wallDelta As Long = wallTime - syncWallTimeMillis
-                syncWallTimeMillis = wallTime
+                Dim wallTime As Long = CurrentTimeMs
+                Dim wallDelta As Long = wallTime - syncWallTimeMs
+                syncWallTimeMs = wallTime
                 If wallDelta < 0 Then wallDelta = 0 ' Some clown has set the system clock back
                 syncTimeSaldo -= wallDelta * syncSimTimePerWallMs
                 If syncTimeSaldo < 0 Then syncTimeSaldo = 0
@@ -231,9 +232,9 @@ Public Class Scheduler
             If nextTime <> STOPPING Then syncTimeSaldo += nextTime - mCurrentTime
             If syncTimeSaldo > 3 * syncQuantum Then
                 ' Check the wall clock
-                Dim wallTime As Long = CurrentTimeMillis()
-                Dim wallDelta As Long = wallTime - syncWallTimeMillis
-                syncWallTimeMillis = wallTime
+                Dim wallTime As Long = CurrentTimeMs
+                Dim wallDelta As Long = wallTime - syncWallTimeMs
+                syncWallTimeMs = wallTime
                 If wallDelta < 0 Then wallDelta = 0 ' some clown has set the system clock back
                 syncTimeSaldo -= wallDelta * syncSimTimePerWallMs
                 If syncTimeSaldo < 0 Then syncTimeSaldo = 0
@@ -244,9 +245,9 @@ Public Class Scheduler
                     If pendingInput.Count > 0 Then
                         ' We woke up from our sleep; find out how long
                         '   we slept and how much simulated time has passed
-                        wallTime = CurrentTimeMillis()
-                        wallDelta = wallTime - syncWallTimeMillis
-                        syncWallTimeMillis = wallTime
+                        wallTime = CurrentTimeMs
+                        wallDelta = wallTime - syncWallTimeMs
+                        syncWallTimeMs = wallTime
                         If wallDelta < 0 Then wallDelta = 0 ' Same clown again
                         syncTimeSaldo -= wallDelta * syncSimTimePerWallMs
                         If syncTimeSaldo > syncQuantum + nextTime - mCurrentTime Then
@@ -306,7 +307,7 @@ Public Class Scheduler
     Public Sub Start()
         mCurrentTime = 0
         nextTime = NOTASK
-        syncWallTimeMillis = CurrentTimeMillis()
+        syncWallTimeMs = CurrentTimeMs
         syncTimeSaldo = 0
 
         Tasks.Task.Run(AddressOf Run)

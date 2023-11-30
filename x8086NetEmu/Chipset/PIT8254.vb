@@ -73,7 +73,7 @@
             ' reset internal state
             timeStamp = owner.currentTime
             counterValue = 0
-            outputValue = If(countMode = 0, False, True)
+            outputValue = countMode <> 0
             nullCount = True
             trigger = False
             active = False
@@ -576,8 +576,11 @@
     End Sub
 
     Public Sub UpdateClock()
-        countRate = Scheduler.BASECLOCK / X8086.KHz * cpu.SimulationMultiplier
-        speakerBaseFrequency = Scheduler.BASECLOCK / X8086.KHz * 1000.0 / cpu.SimulationMultiplier
+        countRate = 1_193_180 ' 1.19318 MHz
+        speakerBaseFrequency = countRate * Scheduler.HOSTCLOCK / X8086.MHz
+
+        'countRate *= (cpu.Clock / X8086.BASECLOCK)
+        'speakerBaseFrequency /= (cpu.Clock / X8086.BASECLOCK)
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean
@@ -661,7 +664,7 @@
 
     Private Sub UpdateCh1()
         ' Notify the DMA controller of the new frequency
-        If cpu.DMA IsNot Nothing Then cpu.DMA.SetCh0Period(mChannels(1).GetPeriod())
+        cpu.DMA?.SetCh0Period(mChannels(1).GetPeriod())
     End Sub
 
     Private Sub UpdateCh2(v As Integer)
@@ -690,13 +693,13 @@
     End Sub
 
     Public Function TimeToClocks(t As Long) As Long
-        Return (t \ Scheduler.BASECLOCK) * countRate +
-               ((t Mod Scheduler.BASECLOCK) * countRate) \ Scheduler.BASECLOCK
+        Return (t \ Scheduler.HOSTCLOCK) * countRate +
+               ((t Mod Scheduler.HOSTCLOCK) * countRate) \ Scheduler.HOSTCLOCK
     End Function
 
     Public Function ClocksToTime(c As Long) As Long
-        Return (c \ countRate) * Scheduler.BASECLOCK +
-               ((c Mod countRate) * Scheduler.BASECLOCK + countRate - 1) \ countRate
+        Return (c \ countRate) * Scheduler.HOSTCLOCK +
+               ((c Mod countRate) * Scheduler.HOSTCLOCK + countRate - 1) \ countRate
     End Function
 
     Public Property Speaker As SpeakerAdpater

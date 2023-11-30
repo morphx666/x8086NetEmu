@@ -6,8 +6,8 @@ Public MustInherit Class CGAAdapter
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
-    Protected Const ht As ULong = Scheduler.BASECLOCK \ HORIZSYNC
-    Protected Const vt As ULong = (Scheduler.BASECLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
+    Protected ht As ULong = Scheduler.HOSTCLOCK \ HORIZSYNC
+    Protected vt As ULong = (Scheduler.HOSTCLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
 
     Protected ReadOnly charsCache As New List(Of VideoChar)
     Protected ReadOnly charSizeCache As New Dictionary(Of Integer, Size)

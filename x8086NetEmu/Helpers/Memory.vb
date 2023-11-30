@@ -276,7 +276,8 @@ Partial Public Class X8086
                      [IF] * FlagsTypes.IF Or
                        DF * FlagsTypes.DF Or
                      [OF] * FlagsTypes.OF Or
-                            &HF800 ' IOPL, NT and bit 15 are always "1" on 8086
+                            &HF000 ' IOPL (12-13), NT (14) and bit 15 are always "1" on 8086
+                ' https://www.aldeid.com/wiki/X86-assembly/Instructions/pushf
             End Get
             Set(value As UInt16)
                 CF = If((value And FlagsTypes.CF) = FlagsTypes.CF, 1, 0)
@@ -367,7 +368,7 @@ Partial Public Class X8086
 
     Public Property RAM(address As UInt32, Optional ignoreHooks As Boolean = False) As Byte
         Get
-            'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
+            'If DebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
             'Return FromPreftch(address)
 
             If Not ignoreHooks Then
@@ -393,7 +394,7 @@ Partial Public Class X8086
 
             Memory(address) = value
 
-            'If mDebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
+            'If DebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Write))
         End Set
     End Property
 

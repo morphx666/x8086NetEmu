@@ -961,8 +961,8 @@ Private Sub _8E' MOV Sw Ew
                     clkCyc += 8
                 End If
                 ignoreINTs = True
-                If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then mDoReSchedule = True
-                                 End Sub
+        If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then DoReschedule = True
+    End Sub
 
 Private Sub _8F' POP Ev
                                     SetAddressing()

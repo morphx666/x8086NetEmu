@@ -66,7 +66,6 @@ Public Class X8086
     Public Const MHz As ULong = KHz * KHz
     Public Const GHz As ULong = MHz * KHz
     Public Const BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
-    Public Shared EMULATOR_BASECLOCK As ULong = BASECLOCK
     Private mCyclesPerSecond As ULong = BASECLOCK
     Private clkCyc As ULong = 0
 
@@ -115,7 +114,7 @@ Public Class X8086
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
 
-        EMULATOR_BASECLOCK = GetCpuSpeed() * X8086.MHz
+        Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
 
         BuildSZPTables()
         BuildDecoderCache()
@@ -291,7 +290,7 @@ Public Class X8086
         If mVideoAdapter IsNot Nothing Then mVideoAdapter.Reset()
 #End If
 
-        If mDebugMode Then RaiseEvent InstructionDecoded()
+        If debugMode Then RaiseEvent InstructionDecoded()
 
         mRegisters.CS = cs
         mRegisters.IP = ip
@@ -341,17 +340,17 @@ Public Class X8086
     End Sub
 
     Public Sub [Resume]()
-        mDoReSchedule = False
+        DoReschedule = False
         mIsPaused = False
     End Sub
 
     Private Sub FlushCycles()
-        Dim t As Long = clkCyc * Scheduler.BASECLOCK + leftCycleFrags
-        Sched.AdvanceTime(t \ mCyclesPerSecond)
+        Dim t As Long = clkCyc * Scheduler.HOSTCLOCK + leftCycleFrags
+        Sched.AdvanceTime(t / mCyclesPerSecond)
         leftCycleFrags = t Mod mCyclesPerSecond
         clkCyc = 0
 
-        mDoReSchedule = False
+        DoReschedule = False
     End Sub
 
     Public Property DoReschedule As Boolean
@@ -364,11 +363,9 @@ Public Class X8086
     End Property
 
     Private Sub SetSynchronization()
-        mDoReSchedule = True
-
         Sched.SetSynchronization(True,
-                                Scheduler.BASECLOCK \ 100,
-                                Scheduler.BASECLOCK \ 1000)
+                                Scheduler.HOSTCLOCK / 10,
+                                Scheduler.HOSTCLOCK * mSimulationMultiplier / 1000)
 
         PIT?.UpdateClock()
     End Sub
@@ -376,13 +373,12 @@ Public Class X8086
     Public Sub RunEmulation()
         If mIsExecuting OrElse mIsPaused Then Exit Sub
 
-        Dim maxRunTime As ULong = Sched.GetTimeToNextEvent()
-        If maxRunTime <= 0 Then Exit Sub
-        If maxRunTime > Scheduler.BASECLOCK Then maxRunTime = Scheduler.BASECLOCK
-        Dim maxRunCycl As ULong = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.BASECLOCK - 1) \ Scheduler.BASECLOCK
+        Dim maxRunTime As Long = Sched.GetTimeToNextEvent()
+        If maxRunTime > Scheduler.HOSTCLOCK Then maxRunTime = Scheduler.HOSTCLOCK
+        Dim maxRunCycl As Long = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.HOSTCLOCK - 1) / Scheduler.HOSTCLOCK
 
-        If mDebugMode Then
-            While (clkCyc < maxRunCycl AndAlso Not mDoReSchedule AndAlso mDebugMode)
+        If DebugMode Then
+            While (clkCyc < maxRunCycl AndAlso Not DoReschedule AndAlso DebugMode)
                 debugWaiter.WaitOne()
 
                 SyncLock decoderSyncObj
@@ -401,7 +397,7 @@ Public Class X8086
             End While
         Else
             mIsExecuting = True
-            While clkCyc < maxRunCycl AndAlso Not mDoReSchedule
+            While clkCyc < maxRunCycl AndAlso Not DoReschedule
                 PreExecute()
 #If DEBUG Then
                 Execute_DEBUG()
@@ -415,7 +411,7 @@ Public Class X8086
             mIsExecuting = False
         End If
 
-        FlushCycles()
+        If clkCyc > 0 OrElse DoReschedule Then FlushCycles()
     End Sub
 
     Private Sub PreExecute()
@@ -1053,7 +1049,7 @@ Public Class X8086
                     clkCyc += 8
                 End If
                 ignoreINTs = True
-                If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then mDoReSchedule = True
+                If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then DoReschedule = True
 
             Case &H8F ' POP Ev
                 SetAddressing()
@@ -1499,7 +1495,7 @@ Public Class X8086
             mRegisters.IP += opCodeSize
         End If
 
-        clkCyc += opCodeSize ' * (mCyclesPerSecond / BASECLOCK) ' This seems to fix the music timing in Arkanoid, but slows down the emulation!
+        clkCyc += opCodeSize
 
         If Not newPrefix Then
             mRepeLoopMode = REPLoopModes.None
@@ -2065,7 +2061,7 @@ Public Class X8086
 
         If mRepeLoopMode = REPLoopModes.None Then
             ExecStringOpCode()
-        ElseIf mDebugMode AndAlso mRegisters.CX > 0 Then
+        ElseIf DebugMode AndAlso mRegisters.CX > 0 Then
             mRegisters.CX -= 1
             If ExecStringOpCode() Then
                 If (mRepeLoopMode = REPLoopModes.REPE AndAlso mFlags.ZF = 0) OrElse

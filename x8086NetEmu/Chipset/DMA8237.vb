@@ -264,7 +264,7 @@
                     ' DMA verify
                     curCount -= maxLen
                     curAddr = (curAddr + maxLen * addrStep) And &HFFFF
-                    transferTime += 3 * maxLen * Scheduler.BASECLOCK / cpu.Clock
+                    transferTime += 3 * maxLen * Scheduler.HOSTCLOCK
                 Case &H4
                     ' DMA write
                     While (maxLen > 0) AndAlso (Not chan.ExternalEop) AndAlso (blockMode OrElse chan.PendingRequest)
@@ -272,7 +272,7 @@
                         maxLen -= 1
                         curCount -= 1
                         curAddr = (curAddr + addrStep) And &HFFFF
-                        transferTime += 3 * Scheduler.BASECLOCK / cpu.Clock
+                        transferTime += 3 * Scheduler.HOSTCLOCK
                     End While
                 Case &H8
                     ' DMA read
@@ -281,7 +281,7 @@
                         maxLen -= 1
                         curCount -= 1
                         curAddr = (curAddr + addrStep) And &HFFFF
-                        transferTime += 3 * Scheduler.BASECLOCK / cpu.Clock
+                        transferTime += 3 * Scheduler.HOSTCLOCK
                     End While
             End Select
 
