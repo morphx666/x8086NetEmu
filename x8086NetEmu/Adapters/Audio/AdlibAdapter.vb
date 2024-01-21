@@ -1,5 +1,4 @@
 ﻿#If Win32 Then
-Imports System.Threading
 Imports NAudio.Wave
 Imports System.Threading.Tasks
 
@@ -122,7 +121,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Overrides Sub InitiAdapter()
         waveOut = New WaveOut() With {
-            .NumberOfBuffers = 32,
+            .NumberOfBuffers = 16,
             .DesiredLatency = 200
         }
 
@@ -130,32 +129,32 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         waveOut.Init(audioProvider)
         waveOut.Play()
 
-        Dim unused = Task.Run(Async Sub()
-                                  Dim maxTicks As Long = 100_000 + Scheduler.HOSTCLOCK \ SpeakerAdpater.SampleRate
-                                  Dim curTick As Long
-                                  Dim lastTick As Long
+        Dim unused = Task.Run(action:=Async Sub()
+                                          Dim maxTicks As Long = Scheduler.HOSTCLOCK \ SpeakerAdpater.SampleRate
+                                          Dim curTick As Long
+                                          Dim lastTick As Long
 
-                                  Do
-                                      curTick = MyBase.CPU.Sched.CurrentTime
+                                          Do
+                                              curTick = CPU.Sched.CurrentTime
 
-                                      If curTick >= (lastTick + maxTicks) Then
-                                          lastTick = curTick - (curTick - (lastTick + maxTicks))
+                                              If curTick >= (lastTick + maxTicks) Then
+                                                  lastTick = curTick - (curTick - (lastTick + maxTicks))
 
-                                          For currentChannel As Byte = 0 To 9 - 1
-                                              If Frequency(currentChannel) <> 0 Then
-                                                  If attack2(currentChannel) Then
-                                                      envelope(currentChannel) *= decay(currentChannel)
-                                                  Else
-                                                      envelope(currentChannel) *= attack(currentChannel)
-                                                      If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
-                                                  End If
+                                                  For currentChannel As Byte = 0 To 9 - 1
+                                                      If Frequency(currentChannel) <> 0 Then
+                                                          If attack2(currentChannel) Then
+                                                              envelope(currentChannel) *= decay(currentChannel)
+                                                          Else
+                                                              envelope(currentChannel) *= attack(currentChannel)
+                                                              If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
+                                                          End If
+                                                      End If
+                                                  Next
                                               End If
-                                          Next
-                                      End If
 
-                                      Await Task.Delay(100)
-                                  Loop While waveOut.PlaybackState = PlaybackState.Playing
-                              End Sub)
+                                              Await Task.Delay(30)
+                                          Loop While waveOut.PlaybackState = PlaybackState.Playing
+                                      End Sub)
     End Sub
 
     Private Sub FillAudioBuffer(buffer() As Byte)
@@ -230,6 +229,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Private Function Sample(chanNum As Byte) As Int32
         If precussion AndAlso chanNum >= 6 AndAlso chanNum <= 8 Then Return 0
+        If Frequency(chanNum) = 0 Then Return 0
 
         Dim fullStep As UInt16 = SpeakerAdpater.SampleRate \ Frequency(chanNum)
         Dim idx As Byte = (oplSstep(chanNum) / (fullStep / 256.0)) Mod 255

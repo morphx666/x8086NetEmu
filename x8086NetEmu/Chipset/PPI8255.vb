@@ -179,7 +179,7 @@
                 ' wait .5 msec before going to the next byte
                 If Not keyShiftPending Then
                     keyShiftPending = True
-                    sched.RunTaskAfter(task, 500000)
+                    sched.RunTaskAfter(task, 500_000)
                 End If
             End If
         End SyncLock

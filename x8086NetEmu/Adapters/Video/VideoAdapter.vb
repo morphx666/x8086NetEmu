@@ -39,6 +39,7 @@
     Public MustOverride Overrides Sub Out(port As UInt16, value As Byte)
     Public MustOverride Overrides Function [In](port As UInt16) As Byte
     Public MustOverride Overrides Sub Run()
+    Public MustOverride Sub UpdateClock()
 
     Public MustOverride Sub Reset()
     Protected MustOverride Sub AutoSize()

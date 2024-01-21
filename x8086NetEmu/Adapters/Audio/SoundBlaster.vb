@@ -65,7 +65,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            blaster.SampleTicks = MyBase.CPU.Clock / blaster.SampleRate
+            blaster.SampleTicks = MyBase.CPU.Clock \ blaster.SampleRate
         End If
     End Sub
 
@@ -90,7 +90,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
                         blaster.SpeakerEnabled = True
                     End If
                 Case &H40 ' set time constant
-                    blaster.SampleRate = (MyBase.CPU.Clock / (256 - value))
+                    blaster.SampleRate = (MyBase.CPU.Clock \ (256 - value))
                     SetSampleTicks()
                 Case &H48 ' set DSP block transfer size
                     If blaster.WaitForArg = 2 Then

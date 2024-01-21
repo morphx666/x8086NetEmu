@@ -40,10 +40,10 @@
 
     Public Property Clock As Double
         Get
-            Return mCyclesPerSecond
+            Return mClock
         End Get
         Set(ByVal value As Double)
-            mCyclesPerSecond = value
+            mClock = value
             SetSynchronization()
         End Set
     End Property

@@ -66,7 +66,7 @@ Public Class X8086
     Public Const MHz As ULong = KHz * KHz
     Public Const GHz As ULong = MHz * KHz
     Public Const BASECLOCK As ULong = 4.77273 * MHz ' http://dosmandrivel.blogspot.com/2009/03/ibm-pc-design-antics.html
-    Private mCyclesPerSecond As ULong = BASECLOCK
+    Private mClock As ULong = BASECLOCK
     Private clkCyc As ULong = 0
 
     Private mDoReSchedule As Boolean
@@ -106,6 +106,8 @@ Public Class X8086
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
                    Optional model As Models = Models.IBMPC_5160)
 
+        Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
+
         mVic20 = v20
         mEmulateINT13 = int13
         restartCallback = restartEmulationCallback
@@ -113,8 +115,6 @@ Public Class X8086
 
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
-
-        Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
 
         BuildSZPTables()
         BuildDecoderCache()
@@ -344,15 +344,6 @@ Public Class X8086
         mIsPaused = False
     End Sub
 
-    Private Sub FlushCycles()
-        Dim t As Long = clkCyc * Scheduler.HOSTCLOCK + leftCycleFrags
-        Sched.AdvanceTime(t / mCyclesPerSecond)
-        leftCycleFrags = t Mod mCyclesPerSecond
-        clkCyc = 0
-
-        DoReschedule = False
-    End Sub
-
     Public Property DoReschedule As Boolean
         Get
             Return mDoReSchedule
@@ -362,12 +353,24 @@ Public Class X8086
         End Set
     End Property
 
+    Private Sub FlushCycles()
+        Dim t As Long = clkCyc * Scheduler.HOSTCLOCK + leftCycleFrags
+        Sched.AdvanceTime(t \ mClock)
+        leftCycleFrags = t Mod mClock
+
+        clkCyc = 0
+        DoReschedule = True
+    End Sub
+
     Private Sub SetSynchronization()
+        ' Adjust simTimePerWallMs based on virtual processor speed (mCyclesPerSecond)
+        Dim f As Integer = Math.Ceiling(mClock / BASECLOCK)
         Sched.SetSynchronization(True,
-                                Scheduler.HOSTCLOCK / 10,
-                                Scheduler.HOSTCLOCK * mSimulationMultiplier / 1000)
+                                (Scheduler.HOSTCLOCK \ 100),
+                                (Scheduler.HOSTCLOCK \ 1000) * mSimulationMultiplier)
 
         PIT?.UpdateClock()
+        VideoAdapter?.UpdateClock()
     End Sub
 
     Public Sub RunEmulation()
@@ -375,10 +378,11 @@ Public Class X8086
 
         Dim maxRunTime As Long = Sched.GetTimeToNextEvent()
         If maxRunTime > Scheduler.HOSTCLOCK Then maxRunTime = Scheduler.HOSTCLOCK
-        Dim maxRunCycl As Long = (maxRunTime * mCyclesPerSecond - leftCycleFrags + Scheduler.HOSTCLOCK - 1) / Scheduler.HOSTCLOCK
+        Dim maxRunCycl As Long = (maxRunTime * mClock - leftCycleFrags + Scheduler.HOSTCLOCK - 1) / Scheduler.HOSTCLOCK
+        DoReschedule = False
 
         If DebugMode Then
-            While (clkCyc < maxRunCycl AndAlso Not DoReschedule AndAlso DebugMode)
+            While clkCyc < maxRunCycl AndAlso Not DoReschedule AndAlso DebugMode
                 debugWaiter.WaitOne()
 
                 SyncLock decoderSyncObj
@@ -405,8 +409,6 @@ Public Class X8086
                 opCodes(opCode).Invoke()
 #End If
                 PostExecute()
-                'If SegmentOffetToAbsolute(mRegisters.CS, mRegisters.IP) = &H7C00 Then DebugMode = True
-                'If mRegisters.CS = &H60 And mRegisters.IP = &H764D Then DebugMode = True
             End While
             mIsExecuting = False
         End If
