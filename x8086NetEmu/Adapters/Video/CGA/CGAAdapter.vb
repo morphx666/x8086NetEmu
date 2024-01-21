@@ -3,11 +3,13 @@
 Public MustInherit Class CGAAdapter
     Inherits VideoAdapter
 
+    Private Const BASECLOCK = 3_579_545 ' 3.579545 MHz
+
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
     Protected ht As ULong = Scheduler.HOSTCLOCK \ HORIZSYNC
-    Protected vt As ULong = (Scheduler.HOSTCLOCK \ HORIZSYNC) * (HORIZSYNC \ VERTSYNC)
+    Protected vt As ULong = ht * (HORIZSYNC \ VERTSYNC)
 
     Protected ReadOnly charsCache As New List(Of VideoChar)
     Protected ReadOnly charSizeCache As New Dictionary(Of Integer, Size)
@@ -154,6 +156,15 @@ Public MustInherit Class CGAAdapter
         Reset()
 
         'VideoMode = VideoModes.Mode7_Text_BW_80x25
+
+        UpdateClock()
+    End Sub
+
+    Public Overrides Sub UpdateClock()
+        'Dim f = CPU.Clock / X8086.BASECLOCK
+
+        'ht = f * (BASECLOCK \ HORIZSYNC)
+        'vt = ht * (HORIZSYNC \ VERTSYNC)
     End Sub
 
     Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)

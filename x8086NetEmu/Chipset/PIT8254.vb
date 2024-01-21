@@ -576,11 +576,9 @@
     End Sub
 
     Public Sub UpdateClock()
+        ' https://wiki.osdev.org/Programmable_Interval_Timer
         countRate = 1_193_180 ' 1.19318 MHz
         speakerBaseFrequency = countRate * Scheduler.HOSTCLOCK / X8086.MHz
-
-        'countRate *= (cpu.Clock / X8086.BASECLOCK)
-        'speakerBaseFrequency /= (cpu.Clock / X8086.BASECLOCK)
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean

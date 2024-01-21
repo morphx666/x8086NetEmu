@@ -106,10 +106,9 @@ Public Class Scheduler
         End Get
     End Property
 
-    Private sw As Stopwatch = Stopwatch.StartNew()
     Public ReadOnly Property CurrentTimeMs As Long
         Get
-            Return  sw.ElapsedMilliseconds
+            Return Now.Ticks / 10_000
         End Get
     End Property
 

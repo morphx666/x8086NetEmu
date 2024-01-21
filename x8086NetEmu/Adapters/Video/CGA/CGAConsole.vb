@@ -19,7 +19,7 @@ Public Class CGAConsole
         AutoSize()
 
         Console.TreatControlCAsInput = True
-        Console.OutputEncoding = New Text.UTF8Encoding()
+        Console.OutputEncoding = Text.Encoding.UTF8
         Console.Clear()
 
         i2a = New Image2Ascii() With {
