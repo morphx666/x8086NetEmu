@@ -2,8 +2,8 @@
 Imports System.Threading
 
 Module ModuleMain
-    Private Const DebugMode As Boolean = False
-    Private Const TraceDelay As Integer = 50
+    Private DebugMode As Boolean = False
+    Private TraceDelay As Integer = 30
 
     Private cpu As X8086
     Private validData() As Byte = Nothing
@@ -12,14 +12,21 @@ Module ModuleMain
     Private prefix As String
     Private inst As New List(Of String)
 
-    Sub Main()
+    Public Sub Main(args() As String)
         Dim waiter As New AutoResetEvent(False)
+
+        ParseArguments(args)
 
         ' X8086.Models.IBMPC_5150 is required as fake86 does not properly handle eflags
         cpu = New X8086(True, False,, X8086.Models.IBMPC_5150) With {.Clock = 47700000}
         AddHandler cpu.EmulationHalted, Sub()
                                             Compare()
                                             Console.WriteLine()
+                                            If DebugMode Then
+                                                AddInstruction("")
+                                                AddInstruction("--------- -----  ------------")
+                                                AddInstruction("")
+                                            End If
                                             waiter.Set()
                                         End Sub
 
@@ -29,8 +36,6 @@ Module ModuleMain
         For Each f As IO.FileInfo In (New IO.DirectoryInfo(IO.Path.Combine(My.Application.Info.DirectoryPath, "80186_tests"))).GetFiles("*.bin")
             Dim fileName As String = f.Name.Replace(f.Extension, "")
             Dim dataFileName As String = IO.Path.Combine(f.DirectoryName, $"res_{fileName}.bin")
-
-            'If fileName <> "segpr" Then Continue For
 
             If Not IO.File.Exists(dataFileName) Then Continue For
             validData = IO.File.ReadAllBytes(dataFileName)
@@ -65,20 +70,56 @@ Module ModuleMain
         Console.CursorVisible = True
     End Sub
 
+    Private Sub ParseArguments(args() As String)
+        For i As Integer = 0 To args.Length - 1
+            Select Case args(i).ToLower()
+                Case "-d", "--debug"
+                    DebugMode = True
+                Case "-t", "--trace-delay"
+                    TraceDelay = Integer.Parse(args(i + 1))
+                    i += 1
+            End Select
+        Next
+    End Sub
+
     Private Sub DisplayInstructions()
-        If inst.Count > Console.WindowHeight - 1 Then inst.RemoveAt(0)
-        inst.Add(cpu.Decode().ToString())
+        AddInstruction(cpu.Decode().ToString().Trim())
 
         Dim c As Integer = Console.CursorLeft
         Dim r As Integer = Console.CursorTop
         Dim cw As Integer = Console.WindowWidth / 2
 
+        Dim colors() As ConsoleColor = {ConsoleColor.DarkYellow, ConsoleColor.Green, ConsoleColor.Blue}
+        Dim changeColor As Boolean = True
+        Dim ci As Integer
+
         For i As Integer = 0 To inst.Count - 1
             Console.SetCursorPosition(cw, i)
-            Console.Write(inst(i).PadRight(cw - 1, " "))
+
+            ci = 0
+            Dim txt As String = inst(i).PadRight(cw - 1, " ")
+            For j As Integer = 1 To txt.Length - 1
+                If changeColor Then
+                    If txt(j) = " "c Then
+                        changeColor = False
+                        If ci < (colors.Length - 1) Then ci += 1
+                    End If
+                ElseIf txt(j) <> " "c Then
+                    changeColor = True
+                End If
+
+                Console.ForegroundColor = colors(ci)
+                Console.Write(txt(j))
+            Next
+            ' Console.Write(inst(i).PadRight(cw - 1, " "))
         Next
 
         Console.SetCursorPosition(c, r)
+    End Sub
+
+    Private Sub AddInstruction(instruction As String)
+        If inst.Count > Console.WindowHeight - 1 Then inst.RemoveAt(0)
+        inst.Add(instruction)
     End Sub
 
     Private Sub Compare()
