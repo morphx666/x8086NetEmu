@@ -52,7 +52,6 @@ Public Class FormEmulator
         Me.BackColor = Color.Black
 
         'RunChecks()
-        SetupCPUClockLabels()
 
         ' New settings that are recommend to be turned on
         INT13EmulationToolStripMenuItem.Checked = True
@@ -682,8 +681,7 @@ Public Class FormEmulator
 
     Private Sub SetSimulationMultiplierFromMenu(sender As Object, e As EventArgs) Handles ToolStripMenuItemSpeed25.Click, ToolStripMenuItemSpeed50.Click,
                                                                                         ToolStripMenuItemSpeed100.Click, ToolStripMenuItemSpeed150.Click,
-                                                                                        ToolStripMenuItemSpeed200.Click, ToolStripMenuItemSpeed500.Click,
-                                                                                        ToolStripMenuItemSpeed1000.Click
+                                                                                        ToolStripMenuItemSpeed200.Click
         Dim speedText As String = CType(sender, ToolStripMenuItem).Text
         Dim speedPercentage As Integer = Integer.Parse(speedText.Replace("%", ""))
 
@@ -705,18 +703,9 @@ Public Class FormEmulator
                                                                     MHz1908ToolStripMenuItem.Click, MHz3816ToolStripMenuItem.Click,
                                                                     MHz4770ToolStripMenuItem4.Click
 
-        Dim speedValue As Double = CType(sender, ToolStripMenuItem).Tag
-        SetCPUClockSpeed(speedValue)
-    End Sub
-
-    Private Sub SetupCPUClockLabels()
-        Dim mult() As Integer = {1, 2, 4, 8, 10}
-        For i As Integer = 0 To 4
-            With CPUClockToolStripMenuItem.DropDownItems(i)
-                .Text = $"{mult(i) * X8086.BASECLOCK / X8086.MHz:N2} MHz"
-                .Tag = mult(i) * X8086.BASECLOCK
-            End With
-        Next
+        Dim speedText As String = CType(sender, ToolStripMenuItem).Text
+        Dim speedValue As Double = Double.Parse(speedText.Replace(" MHz", ""))
+        SetCPUClockSpeed(speedValue * X8086.MHz)
     End Sub
 
     Private Sub ExitToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExitToolStripMenuItem.Click
@@ -813,7 +802,7 @@ Public Class FormEmulator
                 If mi.Text.StartsWith("Custom") Then
 
                 Else
-                    mi.Checked = (ddi.Tag = value)
+                    mi.Checked = (ddi.Text = clockSpeedText)
                 End If
             End If
         Next
