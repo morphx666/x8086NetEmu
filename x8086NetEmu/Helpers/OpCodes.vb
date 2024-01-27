@@ -439,7 +439,7 @@ Private Sub _27' DAA
                     tmpUVal1 = CUInt(mRegisters.AL) + 6
                     mRegisters.AL += 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) = 0, 0, 1)
                 Else
                     mFlags.AF = 0
                 End If
@@ -484,7 +484,7 @@ Private Sub _2F' DAS
                     tmpUVal1 = mRegisters.AL - 6
                     mRegisters.AL -= 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) = 0, 0, 1)
                 Else
                     mFlags.AF = 0
                 End If
@@ -961,8 +961,8 @@ Private Sub _8E' MOV Sw Ew
                     clkCyc += 8
                 End If
                 ignoreINTs = True
-        If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then DoReschedule = True
-    End Sub
+                If addrMode.Register2 = GPRegisters.RegistersTypes.CS Then DoReschedule = True
+                                 End Sub
 
 Private Sub _8F' POP Ev
                                     SetAddressing()

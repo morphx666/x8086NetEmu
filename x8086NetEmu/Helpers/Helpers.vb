@@ -164,11 +164,11 @@
     End Sub
 
     Private Function To16bitsWithSign(v As UInt16) As UInt16
-        Return If((v And &H80) <> 0, &HFF00 Or v, v)
+        Return If((v And &H80) = 0, v, &HFF00 Or v)
     End Function
 
     Private Function To32bitsWithSign(v As UInt16) As UInt32
-        Return If((v And &H8000) <> 0, &HFFFF_0000UI Or v, v)
+        Return If((v And &H8000) = 0, v, &HFFFF_0000UI Or v)
     End Function
 
     Private Function ToXbitsWithSign(v As UInt32) As UInt32
@@ -313,9 +313,9 @@
                                             szpLUT8(result And &HFF),
                                             szpLUT16(result And &HFFFF))
 
-        mFlags.SF = If((ft And GPFlags.FlagsTypes.SF) <> 0, 1, 0)
-        mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) <> 0, 1, 0)
-        mFlags.PF = If((ft And GPFlags.FlagsTypes.PF) <> 0, 1, 0)
+        mFlags.SF = If((ft And GPFlags.FlagsTypes.SF) = 0, 0, 1)
+        mFlags.ZF = If((ft And GPFlags.FlagsTypes.ZF) = 0, 0, 1)
+        mFlags.PF = If((ft And GPFlags.FlagsTypes.PF) = 0, 0, 1)
     End Sub
 
     Private Sub SetLogicFlags(result As UInt32, size As DataSize)
@@ -329,14 +329,14 @@
         SetSZPFlags(result, size)
 
         If size = DataSize.Byte Then
-            mFlags.CF = If((result And &HFF00) <> 0, 1, 0)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80) <> 0, 1, 0)
+            mFlags.CF = If((result And &HFF00) = 0, 0, 1)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H80) = 0, 0, 1)
         Else
-            mFlags.CF = If((result And &HFFFF_0000UI) <> 0, 1, 0)
-            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) <> 0, 1, 0)
+            mFlags.CF = If((result And &HFFFF_0000UI) = 0, 0, 1)
+            mFlags.OF = If(((result Xor v1) And (If(isSubstraction, v1, result) Xor v2) And &H8000) = 0, 0, 1)
         End If
 
-        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) <> 0, 1, 0)
+        mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) = 0, 0, 1)
     End Sub
 
     Protected Friend Sub SetUpAdapter(adptr As Adapter)

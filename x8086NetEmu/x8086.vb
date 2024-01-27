@@ -583,7 +583,7 @@ Public Class X8086
                     tmpUVal1 = CUInt(mRegisters.AL) + 6
                     mRegisters.AL += 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) = 0, 0, 1)
                 Else
                     mFlags.AF = 0
                 End If
@@ -622,7 +622,7 @@ Public Class X8086
                     tmpUVal1 = mRegisters.AL - 6
                     mRegisters.AL -= 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) <> 0, 1, 0)
+                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) = 0, 0, 1)
                 Else
                     mFlags.AF = 0
                 End If
@@ -1642,58 +1642,58 @@ Public Class X8086
             Case 0 ' ROL Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue << 1) Or (oldValue >> mask07_15)
-                    mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                    mFlags.CF = If((oldValue And mask80_8000) = 0, 0, 1)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 Else
                     newValue = (oldValue << (count And mask07_15)) Or (oldValue >> (mask8_16 - (count And mask07_15)))
                     mFlags.CF = newValue And 1
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 End If
 
             Case 1 ' ROR Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (oldValue << mask07_15)
                     mFlags.CF = oldValue And 1
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 Else
                     newValue = (oldValue >> (count And mask07_15)) Or (oldValue << (mask8_16 - (count And mask07_15)))
-                    mFlags.CF = If((newValue And mask80_8000) <> 0, 1, 0)
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                    mFlags.CF = If((newValue And mask80_8000) = 0, 0, 1)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 End If
 
             Case 2 ' RCL Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue << 1) Or mFlags.CF
-                    mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                    mFlags.CF = If((oldValue And mask80_8000) = 0, 0, 1)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 Else
                     oldValue = oldValue Or (CUInt(mFlags.CF) << mask8_16)
                     newValue = (oldValue << (count Mod mask9_17)) Or (oldValue >> (mask9_17 - (count Mod mask9_17)))
-                    mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                    mFlags.CF = If((newValue And mask100_10000) = 0, 0, 1)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 End If
 
             Case 3 ' RCR Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = (oldValue >> 1) Or (CUInt(mFlags.CF) << mask07_15)
                     mFlags.CF = oldValue And 1
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 Else
                     oldValue = oldValue Or (CUInt(mFlags.CF) << mask8_16)
                     newValue = (oldValue >> (count Mod mask9_17)) Or (oldValue << (mask9_17 - (count Mod mask9_17)))
-                    mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
-                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                    mFlags.CF = If((newValue And mask100_10000) = 0, 0, 1)
+                    mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 End If
 
             Case 4, 6 ' SHL/SAL Gb CL/Ib | Gv CL/Ib
                 If count = 1 Then
                     newValue = oldValue << 1
-                    mFlags.CF = If((oldValue And mask80_8000) <> 0, 1, 0)
+                    mFlags.CF = If((oldValue And mask80_8000) = 0, 0, 1)
                 Else
                     newValue = If(count > mask8_16, 0, oldValue << count)
-                    mFlags.CF = If((newValue And mask100_10000) <> 0, 1, 0)
+                    mFlags.CF = If((newValue And mask100_10000) = 0, 0, 1)
                 End If
-                mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 5 ' SHR Gb CL/Ib | Gv CL/Ib
@@ -1705,7 +1705,7 @@ Public Class X8086
                     mFlags.CF = newValue And 1
                     newValue >>= 1
                 End If
-                mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) <> 0, 1, 0)
+                mFlags.OF = If(((oldValue Xor newValue) And mask80_8000) = 0, 0, 1)
                 SetSZPFlags(newValue, addrMode.Size)
 
             Case 7 ' SAR Gb CL/Ib | Gv CL/Ib
@@ -1796,7 +1796,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                mFlags.ZF = If(mVic20, If(tmpUVal1 <> 0, 1, 0), 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
+                mFlags.ZF = If(mVic20, If(tmpUVal1 = 0, 0, 1), 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
 
             Case 5 ' IMUL
                 Dim m1 As UInt32

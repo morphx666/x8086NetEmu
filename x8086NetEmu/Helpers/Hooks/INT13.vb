@@ -446,7 +446,7 @@ Partial Public Class X8086
             RAM8(&H40, &H41) = ret
             mRegisters.AX = (ret << 8) Or AL
         End If
-        mFlags.CF = If(ret <> 0, 1, 0)
+        mFlags.CF = If(ret = 0, 0, 1)
 
         lastAH(mRegisters.DL) = mRegisters.AH
         lastCF(mRegisters.DL) = mFlags.CF

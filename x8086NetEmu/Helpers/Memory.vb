@@ -1,4 +1,5 @@
-﻿Imports System.Runtime.InteropServices
+﻿Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 
 Partial Public Class X8086
     Public Const MemSize As UInt32 = &H10_0000UI  ' 1MB
@@ -355,7 +356,8 @@ Partial Public Class X8086
     End Function
 
     Public Shared Function SegmentOffetToAbsolute(segment As UInt16, offset As UInt16) As UInt32
-        Return ((CUInt(segment) << 4) + offset)
+        'Return ((CUInt(segment) << 4) + offset)
+        Return ((CUInt(segment) << 4) + offset) And &HFFFFF ' This seems to improve (not much) AIDA16 compatibility
     End Function
 
     Public Shared Function AbsoluteToSegment(address As UInt32) As UInt16
