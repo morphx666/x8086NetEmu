@@ -56,7 +56,7 @@ Public Class FormEmulator
         ' New settings that are recommend to be turned on
         INT13EmulationToolStripMenuItem.Checked = True
         int13Emulation = True
-        VIC20EmulationToolStripMenuItem.Checked = True
+        V20EmulationToolStripMenuItem.Checked = True
         v20Emulation = True
 
         LoadSettings(False)  ' For pre-emulation settings
@@ -89,11 +89,11 @@ Public Class FormEmulator
                                                               INT13EmulationToolStripMenuItem.Checked = int13Emulation
                                                               WarnAboutRestart(INT13EmulationToolStripMenuItem.Text)
                                                           End Sub
-        AddHandler VIC20EmulationToolStripMenuItem.Click, Sub()
-                                                              v20Emulation = Not v20Emulation
-                                                              VIC20EmulationToolStripMenuItem.Checked = v20Emulation
-                                                              WarnAboutRestart(VIC20EmulationToolStripMenuItem.Text)
-                                                          End Sub
+        AddHandler V20EmulationToolStripMenuItem.Click, Sub()
+                                                            v20Emulation = Not v20Emulation
+                                                            V20EmulationToolStripMenuItem.Checked = v20Emulation
+                                                            WarnAboutRestart(V20EmulationToolStripMenuItem.Text)
+                                                        End Sub
     End Sub
 
     Private Sub RunMediaManager()
@@ -790,7 +790,7 @@ Public Class FormEmulator
 
         Dim b As Boolean
         If Boolean.TryParse(xml.<extras>.<emulateINT13>.Value, b) Then INT13EmulationToolStripMenuItem.Checked = b : int13Emulation = b
-        If Boolean.TryParse(xml.<extras>.<vic20>.Value, b) Then VIC20EmulationToolStripMenuItem.Checked = b : v20Emulation = b
+        If Boolean.TryParse(xml.<extras>.<v20>.Value, b) Then V20EmulationToolStripMenuItem.Checked = b : v20Emulation = b
     End Sub
 
     Private Sub SetCPUClockSpeed(value As Double)
@@ -834,7 +834,7 @@ Public Class FormEmulator
                                   <consoleVisible><%= fConsole IsNot Nothing %></consoleVisible>
                                   <debuggerVisible><%= fDebugger IsNot Nothing %></debuggerVisible>
                                   <emulateINT13><%= int13Emulation %></emulateINT13>
-                                  <vic20><%= v20Emulation %></vic20>
+                                  <v20><%= v20Emulation %></v20>
                                   <fullScreen><%= Me.TopMost %></fullScreen>
                                   <lastZoomLevel><%= lastZoomLevel %></lastZoomLevel>
                               </extras>)

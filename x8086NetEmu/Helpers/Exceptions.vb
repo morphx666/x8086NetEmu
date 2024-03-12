@@ -15,7 +15,7 @@
                                                                                mRegisters.PointerAddressToString().Replace("h", ""),
                                                                                If(comment = "", "", ": " + comment)))
         opCodeSize = originalOpCodeSize
-        If mVic20 Then HandleInterrupt(6, False)
+        If mV20 Then HandleInterrupt(6, False)
     End Sub
 
     Private Sub SystemHalted()

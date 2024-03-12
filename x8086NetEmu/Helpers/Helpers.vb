@@ -254,9 +254,11 @@
     End Property
 
     Private Function OffsetIP(size As DataSize) As UInt16
-        Return If(size = DataSize.Byte,
-            mRegisters.IP + To16bitsWithSign(Param(ParamIndex.First, , size)) + opCodeSize,
-            mRegisters.IP + Param(ParamIndex.First, , size) + opCodeSize)
+        Return mRegisters.IP +
+                If(size = DataSize.Byte,
+                    To16bitsWithSign(Param(ParamIndex.First, , size)),
+                    Param(ParamIndex.First, , size)) +
+                opCodeSize
     End Function
 
     Private Function Eval(v1 As UInt32, v2 As UInt32, opMode As Operation, size As DataSize) As UInt16

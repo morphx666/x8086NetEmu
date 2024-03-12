@@ -109,7 +109,7 @@ Public Class X8086
 
         Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
 
-        mVic20 = v20
+        mV20 = v20
         mEmulateINT13 = int13
         restartCallback = restartEmulationCallback
         mModel = model
@@ -460,8 +460,6 @@ Public Class X8086
     End Sub
 
     Public Sub Execute_DEBUG()
-        'If opCode >= &H60 AndAlso opCode <= &H6F Then opCode += &H10
-
         Select Case opCode
             Case &H0 To &H3 ' ADD Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
@@ -515,7 +513,7 @@ Public Class X8086
                 clkCyc += 10
 
             Case &HF ' POP CS
-                If mVic20 Then
+                If mV20 Then
                     PopFromStack()
                 Else
                     mRegisters.CS = PopFromStack()
@@ -754,7 +752,7 @@ Public Class X8086
                 clkCyc += 8
 
             Case &H60 ' PUSHA (80186)
-                If mVic20 Then
+                If mV20 Then
                     tmpUVal1 = mRegisters.SP
                     PushIntoStack(mRegisters.AX)
                     PushIntoStack(mRegisters.CX)
@@ -770,7 +768,7 @@ Public Class X8086
                 End If
 
             Case &H61 ' POPA (80186)
-                If mVic20 Then
+                If mV20 Then
                     mRegisters.DI = PopFromStack()
                     mRegisters.SI = PopFromStack()
                     mRegisters.BP = PopFromStack()
@@ -785,7 +783,7 @@ Public Class X8086
                 End If
 
             Case &H62 ' BOUND (80186)
-                If mVic20 Then
+                If mV20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
                     If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
@@ -803,7 +801,7 @@ Public Class X8086
 
             Case &H68 ' PUSH Iv (80186)
                 ' PRE ALPHA CODE - UNTESTED
-                If mVic20 Then
+                If mV20 Then
                     PushIntoStack(Param(ParamIndex.First, , DataSize.Word))
                     clkCyc += 3
                 Else
@@ -811,7 +809,7 @@ Public Class X8086
                 End If
 
             Case &H69 ' IMUL (80186)
-                If mVic20 Then
+                If mV20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
                     Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
@@ -833,7 +831,7 @@ Public Class X8086
                 End If
 
             Case &H6A ' PUSH Ib (80186)
-                If mVic20 Then
+                If mV20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
                     clkCyc += 3
@@ -842,7 +840,7 @@ Public Class X8086
                 End If
 
             Case &H6B ' IMUL (80186)
-                If mVic20 Then
+                If mV20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     SetAddressing()
                     Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
@@ -1218,7 +1216,7 @@ Public Class X8086
                 mRegisters.DI = Param(ParamIndex.First,, DataSize.Word) : clkCyc += 4
 
             Case &HC0, &HC1 ' GRP2 byte/word imm8/16 ??? (80186)
-                If mVic20 Then
+                If mV20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     ExecuteGroup2()
                 Else
@@ -1260,7 +1258,7 @@ Public Class X8086
                 clkCyc += 10
 
             Case &HC8 ' ENTER (80186)
-                If mVic20 Then
+                If mV20 Then
                     ' PRE ALPHA CODE - UNTESTED
                     Dim stackSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)
                     Dim nestLevel As UInt16 = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
@@ -1287,7 +1285,7 @@ Public Class X8086
                 End If
 
             Case &HC9 ' LEAVE (80186)
-                If mVic20 Then
+                If mV20 Then
                     mRegisters.SP = mRegisters.BP
                     mRegisters.BP = PopFromStack()
                     clkCyc += 8
@@ -1352,7 +1350,7 @@ Public Class X8086
                 clkCyc += 60
 
             Case &HD6 ' XLAT for V20 / SALC
-                If mVic20 Then
+                If mV20 Then
                     mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
                 Else
                     mRegisters.AL = If(mFlags.CF = 1, &HFF, &H0)
@@ -1663,7 +1661,7 @@ Public Class X8086
         End Select
 
         ' 80186/V20 class CPUs limit shift count to 31 (&H1F)
-        If mVic20 Then count = count And &H3F '&H1F
+        If mV20 Then count = count And &H3F '&H1F
         If count = 0 Then Exit Sub
         clkCyc += 4 * count
 
@@ -1825,7 +1823,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                mFlags.ZF = If(mVic20, If(tmpUVal1 = 0, 0, 1), 0) ' This is the test the BIOS uses to detect a VIC20 (8018x)
+                mFlags.ZF = If(mV20, If(tmpUVal1 = 0, 0, 1), 0) ' This is the test the BIOS uses to detect a V20 (8018x)
 
             Case 5 ' IMUL
                 Dim m1 As UInt32
@@ -1886,7 +1884,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
-                If Not mVic20 Then mFlags.ZF = 0
+                If Not mV20 Then mFlags.ZF = 0
 
             Case 6 ' DIV
                 Dim div As UInt32

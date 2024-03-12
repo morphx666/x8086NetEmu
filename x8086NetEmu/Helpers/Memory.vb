@@ -356,8 +356,7 @@ Partial Public Class X8086
     End Function
 
     Public Shared Function SegmentOffetToAbsolute(segment As UInt16, offset As UInt16) As UInt32
-        'Return ((CUInt(segment) << 4) + offset)
-        Return ((CUInt(segment) << 4) + offset) And &HF_FFFF ' This seems to improve (not much) AIDA16 compatibility
+        Return ((CUInt(segment) << 4) + offset) And &HF_FFFF
     End Function
 
     Public Shared Function AbsoluteToSegment(address As UInt32) As UInt16
@@ -370,9 +369,6 @@ Partial Public Class X8086
 
     Public Property RAM(address As UInt32, Optional ignoreHooks As Boolean = False) As Byte
         Get
-            'If DebugMode Then RaiseEvent MemoryAccess(Me, New MemoryAccessEventArgs(address, MemoryAccessEventArgs.AccessModes.Read))
-            'Return FromPreftch(address)
-
             If Not ignoreHooks Then
                 For i As Integer = 0 To memHooks.Count - 1
                     If memHooks(i).Invoke(address, tmpUVal1, MemHookMode.Read) Then Return tmpUVal1
@@ -382,12 +378,6 @@ Partial Public Class X8086
             Return Memory(address And &HF_FFFF) ' "Call 5" Legacy Interface: http://www.os2museum.com/wp/?p=734
         End Get
         Set(value As Byte)
-            ' For edit.com:
-            ' Create a breakpoint when writing to address AS:0380
-            ' As should be 4F0A
-            'Dim tmp = SegmentOffetToAbsolute(&H4F0A, &H380)
-            'If tmp = address Then DebugMode = True
-
             If Not ignoreHooks Then
                 For i As Integer = 0 To memHooks.Count - 1
                     If memHooks(i).Invoke(address, value, MemHookMode.Write) Then Exit Property

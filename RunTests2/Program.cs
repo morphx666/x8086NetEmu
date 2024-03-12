@@ -5,7 +5,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using x8086NetEmu;
 
@@ -22,10 +21,9 @@ namespace RunTests2 {
 
             cpu = new X8086(false, false, null, X8086.Models.IBMPC_5150) {
                 Clock = 47700000,
-                SimulationMultiplier = 2,
             };
 
-            int skipCount = 278+45;
+            int skipCount = 0;
             string[] skipOpCodes = {"0F",                           // POP CS
 
                                                                     // These opcodes seem to have bugs
@@ -37,7 +35,6 @@ namespace RunTests2 {
                                                                     // IDIV, (Group 3 | flags & results!)
                                                                     // CALL SP (Group 4/5 | flags)
                                     "D4", "D5",                     // AAM, AAD
-
                             
                                                                     // Skip IN and OUT b/c of conflicts with the attached peripherals
                                     "E4", "E5", "E6", "E7", "EC",   // IN, OUT
@@ -48,47 +45,50 @@ namespace RunTests2 {
                                     "65", "66", "67", "68", "69",   // JNZ, JBE, JNBE, JS, JNS
                                     "6A", "6B", "6C", "6D", "6E",   // JP, JNP, JL, JNL, JLE
                                     "6F", "C0", "C1", "C8", "C9",   // JNLE, RETN, RETN 
-                                    "D0.6", "D1.6", "D2.6", "D3.6"}; 
+                                    "D0.6", "D1.6", "D2.6", "D3.6"};
 
-            foreach(FileInfo f in new DirectoryInfo(Path.Combine("8088_ProcessorTests", "v1")).GetFiles("*.gz")) {
-                if(skipCount-- > 0) continue;
-
-                string fileName = f.Name.Replace(f.Extension,"").Replace(".json","");
+            FileInfo[] files = new DirectoryInfo(Path.Combine("8088_ProcessorTests", "v1")).GetFiles("*.gz");
+            for(int i = skipCount; i < files.Length; i++) {
+                string fileName = files[i].Name.Replace(files[i].Extension, "").Replace(".json", "");
                 if(skipOpCodes.Contains(fileName)) continue;
 
-                Test[] tests = JsonConvert.DeserializeObject<Test[]>(ExtractTest(f));
+                Test[] tests = JsonConvert.DeserializeObject<Test[]>(ExtractTest(files[i]));
 
-                for(int i = 0; i < tests.Length; i++) {
-                    Console.WriteLine($"[{(100.0 * i) / tests.Length,6:F2}%] 0x{fileName}: {tests[i].name}");
-                    currentTest = tests[i];
+                for(int j = 0; j < tests.Length; j++) {
+                    Console.WriteLine($"[{(i + 1),3:N0} | {(100.0 * j) / tests.Length,5:F2}%] 0x{fileName}: {tests[j].name}");
+                    currentTest = tests[j];
 
-                    LoadRam(tests[i].initial.ram);
-                    cpu.Registers.AX = tests[i].initial.regs.ax;
-                    cpu.Registers.BX = tests[i].initial.regs.bx;
-                    cpu.Registers.CX = tests[i].initial.regs.cx;
-                    cpu.Registers.DX = tests[i].initial.regs.dx;
-                    cpu.Registers.SI = tests[i].initial.regs.si;
-                    cpu.Registers.DI = tests[i].initial.regs.di;
-                    cpu.Registers.BP = tests[i].initial.regs.bp;
-                    cpu.Registers.SP = tests[i].initial.regs.sp;
-                    cpu.Registers.IP = tests[i].initial.regs.ip;
-                    cpu.Registers.CS = tests[i].initial.regs.cs;
-                    cpu.Registers.DS = tests[i].initial.regs.ds;
-                    cpu.Registers.ES = tests[i].initial.regs.es;
-                    cpu.Registers.SS = tests[i].initial.regs.ss;
-                    cpu.Flags.EFlags = tests[i].initial.regs.flags;
+                    LoadRam(tests[j].initial.ram);
+                    cpu.Registers.AX = tests[j].initial.regs.ax;
+                    cpu.Registers.BX = tests[j].initial.regs.bx;
+                    cpu.Registers.CX = tests[j].initial.regs.cx;
+                    cpu.Registers.DX = tests[j].initial.regs.dx;
+                    cpu.Registers.SI = tests[j].initial.regs.si;
+                    cpu.Registers.DI = tests[j].initial.regs.di;
+                    cpu.Registers.BP = tests[j].initial.regs.bp;
+                    cpu.Registers.SP = tests[j].initial.regs.sp;
+                    cpu.Registers.IP = tests[j].initial.regs.ip;
+                    cpu.Registers.CS = tests[j].initial.regs.cs;
+                    cpu.Registers.DS = tests[j].initial.regs.ds;
+                    cpu.Registers.ES = tests[j].initial.regs.es;
+                    cpu.Registers.SS = tests[j].initial.regs.ss;
+                    cpu.Flags.EFlags = tests[j].initial.regs.flags;
 
-//                    if(tests[i].test_hash == "32f8f22db991f65764f2d6dfae0c2ce8c266ab188138c670bffb69ced869c987") Debugger.Break();
+                    if(tests[j].test_hash == "f3ef4c234a03ea06418e005be082e2079157917c0f25ffbe2aa76b4882e01c74") Debugger.Break();
 
                     Task.Run(async () => {
-                        //while(cpu.Registers.IP != tests[i].final.regs.ip) {
-                        while(cpu.Memory[X8086.SegmentOffetToAbsolute(cpu.Registers.CS, cpu.Registers.IP)] != NOP) {
+                        bool isNOP = tests[j].name == "nop";
+                        bool isLOOP = tests[j].name.StartsWith("loop");
+                        do {
                             cpu.PreExecute();
                             cpu.Execute_DEBUG();
                             cpu.PostExecute();
 
                             await Task.Delay(0);
-                        }
+
+                            // Hack to terminate tests that put data in the CS
+                            if(!isLOOP && cpu.Registers.IP == tests[j].final.regs.ip) break;
+                        } while(isNOP || cpu.Memory[X8086.SegmentOffetToAbsolute(cpu.Registers.CS, cpu.Registers.IP)] != NOP);
                     }).Wait();
                     AnalyzeResult(currentTest);
                 }
@@ -117,7 +117,7 @@ namespace RunTests2 {
                 Console.WriteLine($"\tFlags: {cpu.Flags.EFlags} != {s.regs.flags}");
 
                 Console.WriteLine("\t          CZSOPAID");
-                Console.WriteLine($"\tCPU:      {cpu.Flags.CF}{cpu.Flags.ZF}{cpu.Flags.SF}{cpu.Flags.OF}{cpu.Flags.PF}{cpu.Flags.AF}{cpu.Flags.IF}{cpu.Flags.DF}");
+                Console.WriteLine($"\tEmulator: {cpu.Flags.CF}{cpu.Flags.ZF}{cpu.Flags.SF}{cpu.Flags.OF}{cpu.Flags.PF}{cpu.Flags.AF}{cpu.Flags.IF}{cpu.Flags.DF}");
                 cpu.Flags.EFlags = s.regs.flags;
                 Console.WriteLine($"\tExpected: {cpu.Flags.CF}{cpu.Flags.ZF}{cpu.Flags.SF}{cpu.Flags.OF}{cpu.Flags.PF}{cpu.Flags.AF}{cpu.Flags.IF}{cpu.Flags.DF}");
 

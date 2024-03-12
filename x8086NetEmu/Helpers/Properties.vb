@@ -3,7 +3,7 @@
 
     Private mMPIs As Double
     Private mEmulateINT13 As Boolean = True
-    Private mVic20 As Boolean
+    Private mV20 As Boolean
 
     Private mVideoAdapter As VideoAdapter
     Private mKeyboard As KeyboardAdapter
@@ -18,7 +18,7 @@
 
     Public ReadOnly Property V20 As Boolean
         Get
-            Return mVic20
+            Return mV20
         End Get
     End Property
 
