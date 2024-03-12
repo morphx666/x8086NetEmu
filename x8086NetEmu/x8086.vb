@@ -1151,7 +1151,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9C ' PUSHF
-                PushIntoStack(If(mModel = Models.IBMPC_5150, &HFFF, &HFFFF) And mFlags.EFlags)
+                PushIntoStack(mFlags.EFlags)
                 clkCyc += 10
 
             Case &H9D ' POPF
