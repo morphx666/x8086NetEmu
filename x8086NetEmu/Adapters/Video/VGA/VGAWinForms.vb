@@ -203,10 +203,9 @@
         Dim intensity As Integer = ((portRAM(&H3D9) >> 4) And 1) << 3
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
 
-
         ' For modes &h12 and &h13
         Dim planeMode As Boolean = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (VGA_SC(4) And 6) <> 0, False)
-        Dim vgaPage As UInteger = If(mVideoMode <= 7 OrElse MyBase.mVideoMode = &H12 OrElse MyBase.mVideoMode = &H13, (CUInt(VGA_CRTC(&HC)) << 8) + VGA_CRTC(&HD), 0)
+        Dim vgaPage As UInteger = If(mVideoMode <= 7 OrElse mVideoMode = &H12 OrElse mVideoMode = &H13, (CUInt(VGA_CRTC(&HC)) << 8) + VGA_CRTC(&HD), 0)
 
         Dim address As UInteger
         Dim h1 As UInt32
@@ -244,7 +243,7 @@
             For x As Integer = 0 To GraphicsResolution.Width - 1
                 Select Case mVideoMode
                     Case 4, 5
-                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> 2))
+                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * (mTextResolution.Width << 2)) + ((y And 1) * &H2000) + (x >> 2))
                         Select Case x And 3
                             Case 3 : b0 = b0 And 3
                             Case 2 : b0 = (b0 >> 2) And 3
@@ -289,7 +288,7 @@
                         videoBMP.Pixel(x, y) = vgaPalette(b0)
 
                     Case &H12
-                        address = (y * mTextResolution.Width) + (x / 8)
+                        address = (y * (mTextResolution.Width << 1)) + (x >> 3)
                         h1 = (Not x) And 7
                         b0 = (vRAM(address) >> h1) And 1
                         b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1

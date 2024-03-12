@@ -588,6 +588,7 @@ Public MustInherit Class VGAAdapter
             ValidPortAddress.Add(i)
         Next
         ValidPortAddress.Add(&H3DA)
+        'ValidPortAddress.Add(&H3BA)
 
         For i As Integer = 0 To VGABasePalette.Length - 1
             vgaPalette(i) = VGABasePalette(i)
@@ -611,6 +612,7 @@ Public MustInherit Class VGAAdapter
                                                                 Select Case mode
                                                                     Case X8086.MemHookMode.Read
                                                                         value = VideoRAM(address - mStartGraphicsVideoAddress)
+
                                                                     Case X8086.MemHookMode.Write
                                                                         VideoRAM(address - mStartGraphicsVideoAddress) = value
                                                                 End Select
@@ -660,18 +662,14 @@ Public MustInherit Class VGAAdapter
 
     Public Property VideoRAM(address As UInt16) As Byte
         Get
-            If Not mUseVRAM Then
-                Return mCPU.Memory(address + ramOffset)
-            ElseIf (VGA_SC(4) And 6) = 0 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 AndAlso mVideoMode <> &H12 Then
+            If Not mUseVRAM OrElse (VGA_SC(4) And 6) = 0 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 AndAlso mVideoMode <> &H12 Then
                 Return mCPU.Memory(address + ramOffset)
             Else
                 Return Read(address)
             End If
         End Get
         Set(value As Byte)
-            If Not mUseVRAM Then
-                mCPU.Memory(address + ramOffset) = value
-            ElseIf (VGA_SC(4) And 6) = 0 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 AndAlso mVideoMode <> &H12 Then
+            If Not mUseVRAM OrElse (VGA_SC(4) And 6) = 0 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 AndAlso mVideoMode <> &H12 Then
                 mCPU.Memory(address + ramOffset) = value
             Else
                 Write(address, value)
@@ -684,6 +682,10 @@ Public MustInherit Class VGAAdapter
             Return mVideoMode
         End Get
         Set(value As UInt32)
+            For i As Integer = 0 To VGABasePalette.Length - 1
+                vgaPalette(i) = VGABasePalette(i)
+            Next
+
             Select Case value >> 8 ' Mode is in AH
                 Case 0 ' Set video mode
                     value = value And &H7F ' http://stanislavs.org/helppc/ports.html
@@ -816,7 +818,7 @@ Public MustInherit Class VGAAdapter
                         Case &H12 ' 640x480 16-color
                             mStartTextVideoAddress = &HA0000
                             mStartGraphicsVideoAddress = &HA0000
-                            mTextResolution = New Size(80, 30)
+                            mTextResolution = New Size(40, 25)
                             mVideoResolution = New Size(640, 480)
                             mCellSize = New Size(8, 16)
                             mMainMode = MainModes.Graphics
@@ -898,12 +900,12 @@ Public MustInherit Class VGAAdapter
 
             Case &H3C9
                 Select Case latchReadRGB
-                    Case 0 ' B
-                        tmpRGB = vgaPalette(latchReadPal).ToArgb() >> 2
+                    Case 0 ' R
+                        tmpRGB = (vgaPalette(latchReadPal).ToArgb() >> 18) And &H3F
                     Case 1 ' G
-                        tmpRGB = vgaPalette(latchReadPal).ToArgb() >> 10
-                    Case 2 ' R
-                        tmpRGB = vgaPalette(latchReadPal).ToArgb() >> 18
+                        tmpRGB = (vgaPalette(latchReadPal).ToArgb() >> 10) And &H3F
+                    Case 2 ' B
+                        tmpRGB = (vgaPalette(latchReadPal).ToArgb() >> 2) And &H3F
                         latchReadPal += 1
                         latchReadRGB = -1
                 End Select
@@ -911,7 +913,7 @@ Public MustInherit Class VGAAdapter
                 Return tmpRGB And &H3F
 
             Case &H3DA
-                flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
+                'flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
                 Return MyBase.In(port)
 
         End Select
@@ -950,13 +952,12 @@ Public MustInherit Class VGAAdapter
                 Dim cv As UInt32 = value And &H3F
                 Select Case latchWriteRGB
                     Case 0 ' R
-                        tmpRGB = cv << 2
+                        tmpRGB = cv << 18
                     Case 1 ' G
                         tmpRGB = tmpRGB Or (cv << 10)
                     Case 2 ' B
-                        tmpRGB = tmpRGB Or (cv << 18)
+                        tmpRGB = tmpRGB Or (cv << 2)
                         vgaPalette(latchWritePal) = Color.FromArgb(tmpRGB)
-                        vgaPalette(latchWritePal) = Color.FromArgb(255, vgaPalette(latchWritePal))
                         latchWritePal += 1
                 End Select
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
@@ -969,8 +970,8 @@ Public MustInherit Class VGAAdapter
                 VGA_CRTC(portRAM(&H3D4)) = value
                 MyBase.Out(port, value)
 
-            Case &H3CE ' VGA graphics index
-                portRAM(port) = value Mod &H8 ' FIXME: This is one fugly hack!
+            'Case &H3CE ' VGA graphics index
+            '    portRAM(port) = value Mod &H8 ' FIXME: This is one fugly hack!
 
             Case &H3CF
                 VGA_GC(portRAM(&H3CE)) = value
@@ -1022,7 +1023,7 @@ Public MustInherit Class VGAAdapter
 
         MyBase.InitVideoMemory(clearScreen)
 
-        mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + 128 * 1024 ' 128KB
+        mEndGraphicsVideoAddress = &HBFFFF ' mStartGraphicsVideoAddress + 128 * 1024 ' 128KB
         ramOffset = If(mMainMode = MainModes.Text, mStartTextVideoAddress, mStartGraphicsVideoAddress)
 
         AutoSize()

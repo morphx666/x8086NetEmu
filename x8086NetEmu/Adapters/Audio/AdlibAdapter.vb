@@ -130,7 +130,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         waveOut.Play()
 
         Dim unused = Task.Run(action:=Async Sub()
-                                          Dim maxTicks As Long = Scheduler.HOSTCLOCK \ SpeakerAdpater.SampleRate
+                                          Dim maxTicks As Long = Scheduler.HOSTCLOCK / SpeakerAdpater.SampleRate
                                           Dim curTick As Long
                                           Dim lastTick As Long
 
@@ -152,7 +152,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
                                                   Next
                                               End If
 
-                                              Await Task.Delay(30)
+                                              Await Task.Delay(5)
                                           Loop While waveOut.PlaybackState = PlaybackState.Playing
                                       End Sub)
     End Sub
