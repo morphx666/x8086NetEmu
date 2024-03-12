@@ -2,8 +2,6 @@
 ' https://pdos.csail.mit.edu/6.828/2007/readings/hardware/vgadoc/VGABIOS.TXT
 ' http://stanislavs.org/helppc/ports.html
 
-Imports System.Runtime.InteropServices
-
 Public MustInherit Class VGAAdapter
     Inherits CGAAdapter
 
@@ -626,7 +624,7 @@ Public MustInherit Class VGAAdapter
         mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
                                                           Select Case mCPU.Registers.AH
                                                               Case &H0
-                                                                  VideoMode = mCPU.Registers.AL
+                                                                  VideoMode = mCPU.Registers.AL And &H7F
                                                                   VGA_SC(4) = 0
                                                                   Return useROM ' When using ROM, prevent the BIOS from handling this function
                                                               Case &H10
@@ -647,7 +645,7 @@ Public MustInherit Class VGAAdapter
                                                               Case &H1A
                                                                   mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
                                                                   mCPU.Registers.BL = &H8
-                                                                  Return True
+                                                                  Return False
                                                           End Select
 
                                                           Return False
@@ -752,11 +750,11 @@ Public MustInherit Class VGAAdapter
                                 portRAM(&H3D9) = 0
                             End If
 
-                        Case 6 ' 640x200 2 Colors
+                        Case 6 ' 640x400 2 Colors
                             mStartTextVideoAddress = &HB8000
                             mStartGraphicsVideoAddress = &HB8000
                             mTextResolution = New Size(80, 25)
-                            mVideoResolution = New Size(640, 200)
+                            mVideoResolution = New Size(640, 400)
                             mCellSize = New Size(8, 8)
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 2
@@ -784,11 +782,11 @@ Public MustInherit Class VGAAdapter
                             mUseVRAM = False
                             portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-                        Case &HD ' 320x200 16 Colors
+                        Case &HD ' 640x400 16 Colors
                             mStartTextVideoAddress = &HA0000
                             mStartGraphicsVideoAddress = &HA0000
                             mTextResolution = New Size(40, 25)
-                            mVideoResolution = New Size(320, 200)
+                            mVideoResolution = New Size(640, 400)
                             mCellSize = New Size(8, 8)
                             mMainMode = MainModes.Graphics
                             mPixelsPerByte = 4
@@ -815,7 +813,7 @@ Public MustInherit Class VGAAdapter
                             mPixelsPerByte = 4
                             mUseVRAM = True
 
-                        Case &H12
+                        Case &H12 ' 640x480 16-color
                             mStartTextVideoAddress = &HA0000
                             mStartGraphicsVideoAddress = &HA0000
                             mTextResolution = New Size(80, 30)
@@ -826,7 +824,7 @@ Public MustInherit Class VGAAdapter
                             mUseVRAM = True
                             portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-                        Case &H13
+                        Case &H13 ' 320x200 256-color
                             mStartTextVideoAddress = &HA0000
                             mStartGraphicsVideoAddress = &HA0000
                             mTextResolution = New Size(40, 25)
@@ -952,11 +950,13 @@ Public MustInherit Class VGAAdapter
                 Dim cv As UInt32 = value And &H3F
                 Select Case latchWriteRGB
                     Case 0 ' R
-                        tmpRGB = cv << 18
+                        tmpRGB = cv << 2
                     Case 1 ' G
                         tmpRGB = tmpRGB Or (cv << 10)
                     Case 2 ' B
-                        vgaPalette(latchWritePal) = Color.FromArgb(tmpRGB Or (cv << 2))
+                        tmpRGB = tmpRGB Or (cv << 18)
+                        vgaPalette(latchWritePal) = Color.FromArgb(tmpRGB)
+                        vgaPalette(latchWritePal) = Color.FromArgb(255, vgaPalette(latchWritePal))
                         latchWritePal += 1
                 End Select
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
@@ -975,12 +975,9 @@ Public MustInherit Class VGAAdapter
             Case &H3CF
                 VGA_GC(portRAM(&H3CE)) = value
 
-                'Case &H3B8
-                '    portRAM(port) = value
-                '    MyBase.Out(port, value)
-
             Case Else
                 portRAM(port) = value
+                MyBase.Out(port, value)
 
         End Select
     End Sub

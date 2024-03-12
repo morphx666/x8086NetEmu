@@ -197,11 +197,12 @@
     End Sub
 
     Private Sub RenderGraphics()
-        Dim b0 As Byte
-        Dim b1 As Byte
-        Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
+        Dim b0 As UInt32
+        Dim b1 As UInt32
         Dim usePal As Integer = (portRAM(&H3D9) >> 5) And 1
         Dim intensity As Integer = ((portRAM(&H3D9) >> 4) And 1) << 3
+        Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
+
 
         ' For modes &h12 and &h13
         Dim planeMode As Boolean = If(mVideoMode = &H12 OrElse mVideoMode = &H13, (VGA_SC(4) And 6) <> 0, False)
@@ -229,7 +230,7 @@
                     Else
                         b1 = mCPU.Memory(address + 1) And 15
                     End If
-                    RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
+                    RenderChar(b0, videoBMP, brushCache(b1 And &HF), brushCache(((b1 >> 8) And &HF) And If(intensity, 7, &HF)), r.Location)
 
                     r.X += mCellSize.Width
                 Next
@@ -239,11 +240,11 @@
             Exit Sub
         End If
 
-        For y As Integer = 0 To GraphicsResolution.Height - 1
+        For y As Integer = 0 To GraphicsResolution.Height - 1 Step If(mVideoMode = 6, 2, 1)
             For x As Integer = 0 To GraphicsResolution.Width - 1
                 Select Case mVideoMode
                     Case 4, 5
-                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + (y * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> 3))
+                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> 2))
                         Select Case x And 3
                             Case 3 : b0 = b0 And 3
                             Case 2 : b0 = (b0 >> 2) And 3
@@ -255,15 +256,17 @@
                             If b0 = (usePal + intensity) Then b0 = 0
                         Else
                             b0 = b0 * &H3F
-                            b0 = b0 Mod CGAPalette.Length
+                            'b0 = b0 Mod CGAPalette.Length
                         End If
-                        videoBMP.Pixel(x, y) = CGAPalette(b0 Or b1)
+                        videoBMP.Pixel(x, y) = CGAPalette(b0)
 
                     Case 6
-                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> 3))
+                        h2 = y >> 1
+                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((h2 >> 1) * mTextResolution.Width) + ((h2 And 1) * &H2000) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
                         b0 *= 15
                         videoBMP.Pixel(x, y) = CGAPalette(b0)
+                        videoBMP.Pixel(x, y + 1) = CGAPalette(b0)
 
                     Case &HD, &HE
                         h1 = x >> 1

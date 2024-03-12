@@ -84,7 +84,7 @@
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         Dim m As MouseEventArgs = CType(e.Event, MouseEventArgs)
-        Dim p As New Point(m.X - MidPointOffset.X, m.Y - MidPointOffset.Y)
+        Dim p As New Point(m.X - MidPointOffset.X, (m.Y - MidPointOffset.Y) / 1.2)
 
         Dim highBits As Byte = 0
         If p.X < 0 Then highBits = &B11
