@@ -323,11 +323,13 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _0F() ' POP CS
-        If Not mVic20 Then
+        If mVic20 Then
+            PopFromStack()
+        Else
             mRegisters.CS = PopFromStack()
-            ignoreINTs = True
-            clkCyc += 8
         End If
+        ignoreINTs = True
+        clkCyc += 8
     End Sub
 
     Private Sub _10_13() ' ADC Gv Ev
@@ -895,7 +897,7 @@ AddressOf _FE_FF}
             Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Test, addrMode.Size)
             clkCyc += 3
         Else
-            Eval(addrMode.IndMem, mRegisters.Val(addrMode.Dst), Operation.Test, addrMode.Size)
+            Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Test, addrMode.Size)
             clkCyc += 9
         End If
     End Sub

@@ -1019,7 +1019,7 @@ Public Class X8086
                     Eval(mRegisters.Val(addrMode.Dst), mRegisters.Val(addrMode.Src), Operation.Test, addrMode.Size)
                     clkCyc += 3
                 Else
-                    Eval(addrMode.IndMem, mRegisters.Val(addrMode.Dst), Operation.Test, addrMode.Size)
+                    Eval(addrMode.IndMem, mRegisters.Val(addrMode.Src), Operation.Test, addrMode.Size)
                     clkCyc += 9
                 End If
 
