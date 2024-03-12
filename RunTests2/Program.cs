@@ -25,7 +25,7 @@ namespace RunTests2 {
                 SimulationMultiplier = 2,
             };
 
-            int skipCount = 156;
+            int skipCount = 164;
             string[] skipOpCodes = { "0F", "27", "2F", "37", "3F",  // POP CS, DAA, DAS, AAA, AAS
                                      "60", "61", "62", "63", "64",  // JO, JNO, JB, JNB, JZ
                                      "65", "66", "67", "68", "69",  // JNZ, JBE, JNBE, JS, JNS
@@ -60,7 +60,7 @@ namespace RunTests2 {
                     cpu.Registers.SS = tests[i].initial.regs.ss;
                     cpu.Flags.EFlags = tests[i].initial.regs.flags;
 
-                    if(tests[i].test_hash == "29be32703fd646663db9d9d2406aa8604e6828133089024ca41d5356f0f29448") Debugger.Break();
+                    if(tests[i].test_hash == "4a4ca3acf81600026f62dd5d9241987974a48a1e2f4af0072ebcc9bcdf6f60a9") Debugger.Break();
 
                     Task.Run(async () => {
                         while(cpu.Registers.IP != tests[i].final.regs.ip) {

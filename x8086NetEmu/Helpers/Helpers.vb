@@ -83,7 +83,7 @@
     End Sub
 
     Private Sub SetRegister2ToSegReg()
-        addrMode.Register2 = addrMode.Reg + GPRegisters.RegistersTypes.ES
+        addrMode.Register2 = (addrMode.Reg And &H3) + GPRegisters.RegistersTypes.ES
         addrMode.Size = DataSize.Word
     End Sub
 
