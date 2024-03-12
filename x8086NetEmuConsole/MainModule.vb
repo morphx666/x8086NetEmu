@@ -26,6 +26,7 @@ Module MainModule
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
         cpu.Adapters.Add(New AdlibAdapter(cpu))
+        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 #End If
 
         LoadSettings()

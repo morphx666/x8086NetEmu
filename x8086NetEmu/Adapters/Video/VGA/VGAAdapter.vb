@@ -581,7 +581,7 @@ Public MustInherit Class VGAAdapter
         'If useROM Then mCPU.LoadBIN("roms\ET4000(1-10-92).BIN", &HC000, &H0)
         'If useROM Then mCPU.LoadBIN("..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\videorom.bin", &HC000, &H0)
         'If useROM Then mCPU.LoadBIN("..\Other Emulators & Resources\PCemV0.7\roms\TRIDENT.BIN", &HC000, &H0)
-        If useROM Then mCPU.LoadBIN("roms\ET4000(4-7-93).BIN", &HC000, &H0)
+        If useROM Then mCPU.LoadBIN("roms\et4000(4-7-93).BIN", &HC000, &H0)
 
         ValidPortAddress.Clear()
         For i As UInt32 = &H3C0 To &H3CF ' EGA/VGA
@@ -1023,8 +1023,14 @@ Public MustInherit Class VGAAdapter
 
         MyBase.InitVideoMemory(clearScreen)
 
-        mEndGraphicsVideoAddress = &HBFFFF ' mStartGraphicsVideoAddress + 128 * 1024 ' 128KB
+        mEndGraphicsVideoAddress = mStartGraphicsVideoAddress + &H4000
         ramOffset = If(mMainMode = MainModes.Text, mStartTextVideoAddress, mStartGraphicsVideoAddress)
+
+        If mCPU IsNot Nothing Then
+            For i As Integer = 0 To (mEndGraphicsVideoAddress - mStartTextVideoAddress) - 1
+                VideoRAM(i) = 0
+            Next
+        End If
 
         AutoSize()
     End Sub

@@ -64,7 +64,7 @@ Public Class CGAConsole
     End Sub
 
     Protected Overrides Sub ResizeRenderControl()
-#If Win32 Then
+
         Select Case MainMode
             Case MainModes.Text
                 Console.SetWindowSize(TextResolution.Width, TextResolution.Height)
@@ -81,7 +81,7 @@ Public Class CGAConsole
         End Select
         'Console.SetBufferSize(TextResolution.Width, TextResolution.Height)
         Array.Clear(buffer, 0, buffer.Length)
-#End If
+
     End Sub
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)

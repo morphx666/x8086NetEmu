@@ -243,7 +243,9 @@
             For x As Integer = 0 To GraphicsResolution.Width - 1
                 Select Case mVideoMode
                     Case 4, 5
-                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * (mTextResolution.Width << 2)) + ((y And 1) * &H2000) + (x >> 2))
+                        b0 = mCPU.Memory(mStartGraphicsVideoAddress +
+                                         ((y >> 1) * (mTextResolution.Width << 1)) +
+                                         ((y And 1) * &H2000) + (x >> 2))
                         Select Case x And 3
                             Case 3 : b0 = b0 And 3
                             Case 2 : b0 = (b0 >> 2) And 3
