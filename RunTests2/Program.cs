@@ -25,7 +25,7 @@ namespace RunTests2 {
                 SimulationMultiplier = 2,
             };
 
-            int skipCount = 278+12;
+            int skipCount = 278+45;
             string[] skipOpCodes = {"0F",                           // POP CS
 
                                                                     // These opcodes seem to have bugs
@@ -33,7 +33,9 @@ namespace RunTests2 {
                                     "D2.0", "D2.1", "D2.2", "D2.3", // Group 2
                                     "D2.4", "D2.5", "D2.7",         // LOOPNE, LOOPE, LOOP
                                     "D3.0", "D3.1", "D3.2", "D3.3", // CALL, JMP (on some cases)
-                                    "D3.4", "D3.5", "D3.7",
+                                    "D3.4", "D3.5", "D3.7",         // MUL, IMUL, DIV (Group 3 | flags)
+                                                                    // IDIV, (Group 3 | flags & results!)
+                                                                    // CALL SP (Group 4/5 | flags)
                                     "D4", "D5",                     // AAM, AAD
 
                             
@@ -76,7 +78,7 @@ namespace RunTests2 {
                     cpu.Registers.SS = tests[i].initial.regs.ss;
                     cpu.Flags.EFlags = tests[i].initial.regs.flags;
 
-                    //if(tests[i].test_hash == "3029050ee0c43649fa54b2a1784a759c9428dc7d762984fe98e0596f9424f691") Debugger.Break();
+//                    if(tests[i].test_hash == "32f8f22db991f65764f2d6dfae0c2ce8c266ab188138c670bffb69ced869c987") Debugger.Break();
 
                     Task.Run(async () => {
                         //while(cpu.Registers.IP != tests[i].final.regs.ip) {
@@ -134,9 +136,8 @@ namespace RunTests2 {
 
             if(!passed) {
                 Console.WriteLine($"\tTest Hash: {currentTest.test_hash}");
-                Console.ReadKey();
+                Console.ReadKey(true);
             }
-            //waiter.Set();
         }
 
         private static void LoadRam(int[][] ram) {

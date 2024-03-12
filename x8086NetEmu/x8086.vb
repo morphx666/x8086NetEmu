@@ -1918,14 +1918,14 @@ Public Class X8086
 
                 If addrMode.Size = DataSize.Byte Then
                     If result > &HFF Then
-                        HandleInterrupt(0, True)
+                        HandleInterrupt(0, False)
                         Exit Select
                     End If
                     mRegisters.AL = result
                     mRegisters.AH = remain
                 Else
                     If result > &HFFFF Then
-                        HandleInterrupt(0, True)
+                        HandleInterrupt(0, False)
                         Exit Select
                     End If
                     mRegisters.AX = result
@@ -2069,7 +2069,7 @@ Public Class X8086
                 mRegisters.CS = RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2)
                 clkCyc += 24
 
-            Case 6 ' PUSH Ev
+            Case 6, 7 ' PUSH Ev
                 If addrMode.IsDirect Then
                     If addrMode.Register2 = GPRegisters.RegistersTypes.SP Then
                         PushIntoStack(mRegisters.SP - 2)

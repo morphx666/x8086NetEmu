@@ -1054,7 +1054,8 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _9C() ' PUSHF
-        PushIntoStack(If(mModel = Models.IBMPC_5150, &HFFF, &HFFFF) And mFlags.EFlags)
+        PushIntoStack(mFlags.EFlags)
+        'PushIntoStack(If(mModel = Models.IBMPC_5150, &HFFF, &HFFFF) And mFlags.EFlags)
         clkCyc += 10
     End Sub
 

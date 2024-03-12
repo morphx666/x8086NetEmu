@@ -262,15 +262,15 @@ Public Class FormEmulator
         videoPort.Focus()
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
-        cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
-        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
+        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
+        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         cpu.Adapters.Add(New MouseAdapter(cpu)) ' This breaks many things (For example, MINIX and ELKS won't start, PC Tools' PCShell doesn't respond)
 
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
         cpu.Adapters.Add(New AdlibAdapter(cpu))
-        'cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
+        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 #End If
 
 #If DEBUG Then
