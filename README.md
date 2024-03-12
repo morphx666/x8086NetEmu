@@ -22,9 +22,12 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2018/01/debugger.png)
 
-Development is currently stalled due to a breaking bug (or bugs?) which prevent the emulator from working correctly.
+~~Development is currently stalled due to a breaking bug (or bugs?) which prevent the emulator from working correctly.
 The bug can be reproduced by booting into DOS 6.x and running EDIT, QBASIC, DEFRAG or MEMMAKER.
-Quite probably, this is the same bug that also prevents it from running Windows 1.01 (although Windows 2.03 *almost* works).
+Quite probably, this is the same bug that also prevents it from running Windows 1.01 (although Windows 2.03 *almost* works).~~
+
+Thanks to the amazing work by [@TomHarte](https://github.com/TomHarte/ProcessorTests/tree/main/8088) I was able to finally find the bug that was affecting so many programs!
+So it happens that the `TEST` opcode (0x84) was using the incorrect register when in indirect mode. That was it... fixing that stupid mistake has solved all the bugs mentioned above.
 
 Portions of the code in the emulator were adapted or inspired from '[fake86](https://github.com/rubbermallet/fake86)' (CGA emulation), '[PCE - PC Emulator](http://www.hampa.ch/pce/)' ([Group 2](http://www.mlsite.net/8086/), DIV, IDIV, MUL and IMUL opcodes emulation and flags management) and '[retro](http://jorisvr.nl/article/retro)' (Scheduler, chipset and keyboard handling).
 
