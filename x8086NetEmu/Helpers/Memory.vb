@@ -357,7 +357,7 @@ Partial Public Class X8086
 
     Public Shared Function SegmentOffetToAbsolute(segment As UInt16, offset As UInt16) As UInt32
         'Return ((CUInt(segment) << 4) + offset)
-        Return ((CUInt(segment) << 4) + offset) And &HFFFFF ' This seems to improve (not much) AIDA16 compatibility
+        Return ((CUInt(segment) << 4) + offset) And &HF_FFFF ' This seems to improve (not much) AIDA16 compatibility
     End Function
 
     Public Shared Function AbsoluteToSegment(address As UInt32) As UInt16
@@ -411,13 +411,20 @@ Partial Public Class X8086
 
     Public Property RAM16(segment As UInt16, offset As UInt16, Optional inc As Byte = 0, Optional ignoreHooks As Boolean = False) As UInt16
         Get
-            address = SegmentOffetToAbsolute(segment, offset + inc)
-            Return (CUInt(RAM(address + 1, ignoreHooks)) << 8) Or RAM(address, ignoreHooks)
+            Dim a1 As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
+            Dim a2 As UInt32 = SegmentOffetToAbsolute(segment, offset + inc + 1)
+            Return (CUInt(RAM(a2, ignoreHooks)) << 8) Or RAM(a1, ignoreHooks)
+            'address = SegmentOffetToAbsolute(segment, offset + inc)
+            'Return (CUInt(RAM(address + 1, ignoreHooks)) << 8) Or RAM(address, ignoreHooks)
         End Get
         Set(value As UInt16)
-            address = SegmentOffetToAbsolute(segment, offset + inc)
-            RAM(address, ignoreHooks) = value
-            RAM(address + 1, ignoreHooks) = value >> 8
+            Dim a1 As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
+            Dim a2 As UInt32 = SegmentOffetToAbsolute(segment, offset + inc + 1)
+            RAM(a1, ignoreHooks) = value
+            RAM(a2, ignoreHooks) = value >> 8
+            'address = SegmentOffetToAbsolute(segment, offset + inc)
+            'RAM(address, ignoreHooks) = value
+            'RAM(address + 1, ignoreHooks) = value >> 8
         End Set
     End Property
 

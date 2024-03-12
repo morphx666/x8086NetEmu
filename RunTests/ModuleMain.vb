@@ -27,6 +27,7 @@ Module ModuleMain
                                                 AddInstruction("--------- -----  ------------")
                                                 AddInstruction("")
                                             End If
+
                                             waiter.Set()
                                         End Sub
 

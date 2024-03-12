@@ -116,10 +116,13 @@
     End Property
 
     Private mIsHalted As Boolean
-    Public ReadOnly Property IsHalted As Boolean
+    Public Property IsHalted As Boolean
         Get
             Return mIsHalted
         End Get
+        Set(value As Boolean)
+            mIsHalted = value
+        End Set
     End Property
 
     Public ReadOnly Property IsPaused As Boolean

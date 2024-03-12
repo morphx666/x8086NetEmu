@@ -6,6 +6,7 @@
 ' https://c9x.me/x86/
 
 Imports System.Threading
+Imports System.Threading.Tasks
 
 Public Class X8086
     Public Enum Models
@@ -122,14 +123,16 @@ Public Class X8086
     End Sub
 
     Private Sub Init()
+        StopAllThreads()
+
         Sched = New Scheduler(Me)
 
-        'FPU = New x8087(Me)
-        PIC = New PIC8259(Me)
-        DMA = New DMAI8237(Me)
-        PIT = New PIT8254(Me, PIC.GetIrqLine(0))
-        PPI = New PPI8255(Me, PIC.GetIrqLine(1))
-        RTC = New RTC(Me, PIC.GetIrqLine(8))
+        ' If FPU Is Nothing Then FPU = New x8087(Me)
+        If PIC Is Nothing Then PIC = New PIC8259(Me)
+        If DMA Is Nothing Then DMA = New DMAI8237(Me)
+        If PIT Is Nothing Then PIT = New PIT8254(Me, PIC.GetIrqLine(0))
+        If PPI Is Nothing Then PPI = New PPI8255(Me, PIC.GetIrqLine(1))
+        If RTC Is Nothing Then RTC = New RTC(Me, PIC.GetIrqLine(8))
 
         'mPorts.Add(FPU)
         mPorts.Add(PIC)
@@ -142,8 +145,6 @@ Public Class X8086
 
         Array.Clear(Memory, 0, Memory.Length)
 
-        StopAllThreads()
-
         If mipsWaiter Is Nothing Then
             mipsWaiter = New AutoResetEvent(False)
             mipsThread = New Thread(AddressOf MIPSCounterLoop)
@@ -151,6 +152,9 @@ Public Class X8086
         End If
 
         portsCache.Clear()
+
+        AddInternalHooks()
+        LoadBIOS()
 
         mIsHalted = False
         mIsExecuting = False
@@ -183,9 +187,6 @@ Public Class X8086
         mRegisters.DI = 0
 
         mFlags.EFlags = 0
-
-        AddInternalHooks()
-        LoadBIOS()
     End Sub
 
     Private Sub SetupSystem()
@@ -266,6 +267,33 @@ Public Class X8086
         PPI.PutKeyData(Keys.Delete, False)
     End Sub
 
+    Public Sub FastHardReset()
+        Sched.Stop()
+
+        Task.Run(Sub()
+                     Do
+                         If Not mDoReSchedule OrElse mIsExecuting Then
+                             Thread.Sleep(1)
+                         Else
+                             Exit Do
+                         End If
+                     Loop
+                 End Sub).Wait()
+
+        mIsHalted = False
+        mIsExecuting = False
+        mEnableExceptions = False
+        mIsPaused = False
+        mDoReSchedule = False
+
+        ignoreINTs = False
+        mRepeLoopMode = REPLoopModes.None
+        IPAddrOffet = 0
+        useIPAddrOffset = False
+
+        mRegisters.ResetActiveSegment()
+    End Sub
+
     Public Sub HardReset()
         Close()
         If restartCallback IsNot Nothing Then
@@ -326,17 +354,14 @@ Public Class X8086
     End Sub
 
     Public Sub Pause()
-        If mIsExecuting Then
-            mIsPaused = True
+        'Do
+        '    Thread.Sleep(10)
+        'Loop While mIsExecuting
 
-            Do
-                Thread.Sleep(10)
-            Loop While mIsExecuting
-
+        mIsPaused = True
 #If Win32 Then
-            If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
+        If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
 #End If
-        End If
     End Sub
 
     Public Sub [Resume]()
@@ -416,7 +441,7 @@ Public Class X8086
         If clkCyc > 0 OrElse DoReschedule Then FlushCycles()
     End Sub
 
-    Private Sub PreExecute()
+    Public Sub PreExecute()
         If mFlags.TF = 1 Then
             ' The addition of the "If ignoreINTs Then" not only fixes the dreaded "Interrupt Check" in CheckIt,
             ' but it even allows it to pass it successfully!!!
@@ -434,7 +459,9 @@ Public Class X8086
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
     End Sub
 
-    Private Sub Execute_DEBUG()
+    Public Sub Execute_DEBUG()
+        'If opCode >= &H60 AndAlso opCode <= &H6F Then opCode += &H10
+
         Select Case opCode
             Case &H0 To &H3 ' ADD Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
@@ -488,11 +515,13 @@ Public Class X8086
                 clkCyc += 10
 
             Case &HF ' POP CS
-                If Not mVic20 Then
+                If mVic20 Then
+                    PopFromStack()
+                Else
                     mRegisters.CS = PopFromStack()
-                    ignoreINTs = True
-                    clkCyc += 8
                 End If
+                ignoreINTs = True
+                clkCyc += 8
 
             Case &H10 To &H13 ' ADC Eb Gb | Ev Gv | Gb Eb | Gv Ev
                 SetAddressing()
@@ -1490,7 +1519,7 @@ Public Class X8086
         End Select
     End Sub
 
-    Private Sub PostExecute()
+    Public Sub PostExecute()
         If useIPAddrOffset Then
             mRegisters.IP = IPAddrOffet
         Else
@@ -1633,7 +1662,7 @@ Public Class X8086
             Case &HC0, &HC1 : count = Param(ParamIndex.Second,  , DataSize.Byte)
         End Select
 
-        ' 80186/V20 class CPUs limit shift count to 31
+        ' 80186/V20 class CPUs limit shift count to 31 (&H1F)
         If mVic20 Then count = count And &H1F
         If count = 0 Then Exit Sub
         clkCyc += 4 * count

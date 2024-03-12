@@ -176,6 +176,7 @@ Public Class Scheduler
 
         pq.Clear()
         nextTime = STOPPING
+
         ' Kick simulation thread
         mCPU.DoReschedule = True
     End Sub

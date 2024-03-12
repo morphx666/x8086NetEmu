@@ -254,6 +254,8 @@ ModelManifest.xml
 **/Release/*.config
 **/Release/*.manifest
 **/Release/states/
+**/80186_tests/
+**/8088_ProcessorTests/
 
 **/Release/disks/*
 !**/Release/disks/hd0-dist.img
