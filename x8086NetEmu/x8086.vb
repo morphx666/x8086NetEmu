@@ -1663,7 +1663,7 @@ Public Class X8086
         End Select
 
         ' 80186/V20 class CPUs limit shift count to 31 (&H1F)
-        If mVic20 Then count = count And &H1F
+        If mVic20 Then count = count And &H3F '&H1F
         If count = 0 Then Exit Sub
         clkCyc += 4 * count
 
@@ -1766,7 +1766,7 @@ Public Class X8086
         SetAddressing()
 
         Select Case addrMode.Reg
-            Case 0 ' TEST Eb Ib | Ev Iv
+            Case 0, 1 ' TEST Eb Ib | Ev Iv
                 If addrMode.IsDirect Then
                     Eval(mRegisters.Val(addrMode.Register2), Param(ParamIndex.First, opCodeSize), Operation.Test, addrMode.Size)
                     clkCyc += 5
