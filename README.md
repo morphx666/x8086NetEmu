@@ -19,6 +19,7 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - Hard disk and floppy images inspector / Disk Explorer (FAT12, FAT16, and FAT16B/BIGDOS support only)
 - Support to drag & drop files to/from the Disk Explorer and the host
 - Support to copy/paste text to/from the emulator and the host
+- Emulator menu can be accessed by right-clicking the window title bar (Windows) or by pressing RightCtrl+Home (Non-Windows OSs)
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2018/01/debugger.png)
 
