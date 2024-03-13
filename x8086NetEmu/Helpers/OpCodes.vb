@@ -1327,7 +1327,7 @@ Private Sub _D0_D3
 Private Sub _D4' AAM I0
                                     tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
                 If tmpUVal1 = 0 Then
-                    HandleInterrupt(0, True)
+                    HandleInterrupt(0, False)
                     Exit Sub
                 End If
                 mRegisters.AH = mRegisters.AL \ tmpUVal1

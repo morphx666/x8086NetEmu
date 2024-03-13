@@ -1332,7 +1332,7 @@ Public Class X8086
             Case &HD4 ' AAM I0
                 tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
                 If tmpUVal1 = 0 Then
-                    HandleInterrupt(0, True)
+                    HandleInterrupt(0, False)
                     Exit Select
                 End If
                 mRegisters.AH = mRegisters.AL \ tmpUVal1
@@ -1817,7 +1817,7 @@ Public Class X8086
                 End If
                 mRegisters.AX = tmpUVal1
 
-                SetSZPFlags(tmpUVal1, addrMode.Size)
+                SetSZPFlags(mRegisters.AX, addrMode.Size)
                 If (tmpUVal1 And If(addrMode.Size = DataSize.Byte, &HFF00, &HFFFF_0000UI)) <> 0 Then
                     mFlags.CF = 1
                     mFlags.OF = 1
@@ -1825,6 +1825,7 @@ Public Class X8086
                     mFlags.CF = 0
                     mFlags.OF = 0
                 End If
+                mFlags.SF = 0
                 mFlags.ZF = If(mV20, If(tmpUVal1 = 0, 0, 1), 0) ' This is the test the BIOS uses to detect a V20 (8018x)
 
             Case 5 ' IMUL
@@ -1909,12 +1910,14 @@ Public Class X8086
                 End If
 
                 If div = 0 Then
-                    HandleInterrupt(0, True)
+                    HandleInterrupt(0, False)
                     Exit Select
                 End If
 
                 result = num \ div
                 remain = num Mod div
+
+                'SetSZPFlags(result, addrMode.Size)
 
                 If addrMode.Size = DataSize.Byte Then
                     If result > &HFF Then
@@ -1987,7 +1990,7 @@ Public Class X8086
                 End If
 
                 If div = 0 Then
-                    HandleInterrupt(0, True)
+                    HandleInterrupt(0, False)
                     Exit Select
                 End If
 
@@ -1996,13 +1999,13 @@ Public Class X8086
 
                 If signN <> signD Then
                     If result > If(addrMode.Size = DataSize.Byte, &H80, &H8000) Then
-                        HandleInterrupt(0, True)
+                        HandleInterrupt(0, False)
                         Exit Select
                     End If
                     result = (Not result) + 1
                 Else
                     If result > If(addrMode.Size = DataSize.Byte, &H7F, &H7FFF) Then
-                        HandleInterrupt(0, True)
+                        HandleInterrupt(0, False)
                         Exit Select
                     End If
                 End If
