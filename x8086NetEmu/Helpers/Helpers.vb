@@ -258,7 +258,7 @@
                 If(size = DataSize.Byte,
                     To16bitsWithSign(Param(ParamIndex.First, , size)),
                     Param(ParamIndex.First, , size)) +
-                opCodeSize
+                    opCodeSize
     End Function
 
     Private Function Eval(v1 As UInt32, v2 As UInt32, opMode As Operation, size As DataSize) As UInt16

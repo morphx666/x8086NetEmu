@@ -1517,7 +1517,7 @@ Public Class X8086
         End Select
     End Sub
 
-    Public Sub PostExecute()
+    Public Function PostExecute() As Byte
         If useIPAddrOffset Then
             mRegisters.IP = IPAddrOffet
         Else
@@ -1533,7 +1533,9 @@ Public Class X8086
         Else
             newPrefixLast += 1
         End If
-    End Sub
+
+        Return opCodeSize
+    End Function
 
     Private Sub ExecuteGroup1() ' &H80 To &H83
         SetAddressing()

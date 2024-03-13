@@ -74,21 +74,18 @@ namespace RunTests2 {
                     cpu.Registers.SS = tests[j].initial.regs.ss;
                     cpu.Flags.EFlags = tests[j].initial.regs.flags;
 
-                    if(tests[j].test_hash == "f3ef4c234a03ea06418e005be082e2079157917c0f25ffbe2aa76b4882e01c74") Debugger.Break();
+                    //if(tests[j].test_hash == "f3ef4c234a03ea06418e005be082e2079157917c0f25ffbe2aa76b4882e01c74") Debugger.Break();
+                    //if(tests[j].test_hash == "ea992edd83569772bb153a140a3b070ab46d57db5c72dac2c84c5d02fc104d30") Debugger.Break();
 
                     Task.Run(async () => {
-                        bool isNOP = tests[j].name == "nop";
-                        bool isLOOP = tests[j].name.StartsWith("loop");
-                        do {
+                        int ic = 0;
+                        while(ic < tests[j].bytes.Length) {
                             cpu.PreExecute();
                             cpu.Execute_DEBUG();
-                            cpu.PostExecute();
+                            ic += cpu.PostExecute();
 
                             await Task.Delay(0);
-
-                            // Hack to terminate tests that put data in the CS
-                            if(!isLOOP && cpu.Registers.IP == tests[j].final.regs.ip) break;
-                        } while(isNOP || cpu.Memory[X8086.SegmentOffetToAbsolute(cpu.Registers.CS, cpu.Registers.IP)] != NOP);
+                        };
                     }).Wait();
                     AnalyzeResult(currentTest);
                 }
