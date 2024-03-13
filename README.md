@@ -7,16 +7,16 @@ A VB.NET implementation of an almost working 8086 emulator.
 
 Although it still has some bugs, it is a fairly stable and capable 8088/86/186 emulator:
 
-- Full 8086 architecture emulation: CPU, Memory, Flags, Registers and Stack
+- Full 8086 architecture emulation: CPU, Memory, Flags, Registers, and Stack
 - Peripherals: PIC/8259, PIT/8254, DMA/8237 and PPI/8255
 - Mostly working Adapters: CGA, Speaker and Keyboard
-- Partially working Adapters: VGA, Adlib and Mouse
+- Partially working Adapters: VGA, Adlib, SoundBlaster and Mouse
 - Integrated Debugger and Console
-- No BIOS hacks required
+- No BIOS hacks are required
 - WinForms and Console samples included
-- Cross-platform support through Mono (the emulator has been tested under Windows, [MacOS, Linux and RaspberryPi](https://whenimbored.xfx.net/2013/10/x8086netemu-linux-mac-os-x-raspberry-pi/))
+- Cross-platform support through Mono (the emulator has been tested under Windows, [MacOS, Linux, and RaspberryPi](https://whenimbored.xfx.net/2013/10/x8086netemu-linux-mac-os-x-raspberry-pi/))
 - Support for both Floppy and Hard Disk images
-- Hard disk and floppy images inspector / Disk Explorer (FAT12, FAT16 and FAT16B/BIGDOS support only)
+- Hard disk and floppy images inspector / Disk Explorer (FAT12, FAT16, and FAT16B/BIGDOS support only)
 - Support to drag & drop files to/from the Disk Explorer and the host
 - Support to copy/paste text to/from the emulator and the host
 
@@ -29,7 +29,7 @@ Quite probably, this is the same bug that also prevents it from running Windows 
 Thanks to the amazing work by [@TomHarte](https://github.com/TomHarte/ProcessorTests/tree/main/8088) I was able to finally find the bug that was affecting so many programs!
 So it happens that the `TEST` opcode (0x84) was using the incorrect register when in indirect mode. That was it... fixing that stupid mistake has solved all the bugs mentioned above.
 
-Portions of the code in the emulator were adapted or inspired from '[fake86](https://github.com/rubbermallet/fake86)' (CGA emulation), '[PCE - PC Emulator](http://www.hampa.ch/pce/)' ([Group 2](http://www.mlsite.net/8086/), DIV, IDIV, MUL and IMUL opcodes emulation and flags management) and '[retro](http://jorisvr.nl/article/retro)' (Scheduler, chipset and keyboard handling).
+Portions of the code in the emulator were adapted or inspired from '[fake86](https://github.com/rubbermallet/fake86)' (CGA/VGA/Adlib and SoundBlaster emulation), '[PCE - PC Emulator](http://www.hampa.ch/pce/)' ([Group 2](http://www.mlsite.net/8086/), DIV, IDIV, MUL and IMUL opcodes emulation and flags management) and '[retro](http://jorisvr.nl/article/retro)' (Scheduler, chipset and keyboard handling).
 
 Precompiled binaries can now be downloaded from the [releases](https://github.com/morphx666/x8086NetEmu/releases) section.
 
