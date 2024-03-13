@@ -606,22 +606,34 @@ Public Class X8086
                 clkCyc += 2
 
             Case &H27 ' DAA
+                Dim oldAL As Byte = mRegisters.AL
+                Dim tmpAL As Byte = If(mFlags.AF = 1, &H9F, &H99)
+                Dim oldCF As Byte = mFlags.CF
+
+                mFlags.CF = 0
+                mFlags.OF = 0
+                If oldCF = 1 Then
+                    If mRegisters.AL >= &H1A AndAlso mRegisters.AL <= &H7F Then
+                        mFlags.OF = 1
+                    End If
+                ElseIf mRegisters.AL >= &H7A AndAlso mRegisters.AL <= &H7F Then
+                    mFlags.OF = 1
+                End If
+
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    tmpUVal1 = CUInt(mRegisters.AL) + 6
                     mRegisters.AL += 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) = 0, 0, 1)
                 Else
                     mFlags.AF = 0
                 End If
-                If (mRegisters.AL And &HF0) > &H90 OrElse mFlags.CF = 1 Then
-                    tmpUVal1 = CUInt(mRegisters.AL) + &H60
+                If oldAL > tmpAL OrElse oldCF = 1 Then
                     mRegisters.AL += &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                SetSZPFlags(tmpUVal1, DataSize.Byte)
+
+                SetSZPFlags(mRegisters.AX, DataSize.Byte)
                 clkCyc += 4
 
             Case &H28 To &H2B ' SUB Eb Gb | Ev Gv | Gb Eb | Gv Ev
@@ -644,23 +656,34 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H2F ' DAS
-                tmpUVal2 = mRegisters.AL
+                Dim oldAL As Byte = mRegisters.AL
+                Dim tmpAL As Byte = If(mFlags.AF = 1, &H9F, &H99)
+                Dim oldCF As Byte = mFlags.CF
+                Dim oldAF As Byte = mFlags.AF
+
+                mFlags.CF = 0
+                mFlags.OF = 0
+                If oldAF = 0 AndAlso oldCF = 0 AndAlso mRegisters.AL >= &H9A AndAlso mRegisters.AL <= &HDF Then mFlags.OF = 1
+                If oldAF = 1 AndAlso oldCF = 0 AndAlso mRegisters.AL >= &H80 AndAlso mRegisters.AL <= &H85 Then mFlags.OF = 1
+                If oldAF = 1 AndAlso oldCF = 0 AndAlso mRegisters.AL >= &HA0 AndAlso mRegisters.AL <= &HE5 Then mFlags.OF = 1
+                If oldAF = 0 AndAlso oldCF = 1 AndAlso mRegisters.AL >= &H80 AndAlso mRegisters.AL <= &HDF Then mFlags.OF = 1
+                If oldAF = 1 AndAlso oldCF = 1 AndAlso mRegisters.AL >= &H80 AndAlso mRegisters.AL <= &HE5 Then mFlags.OF = 1
+
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    tmpUVal1 = mRegisters.AL - 6
                     mRegisters.AL -= 6
                     mFlags.AF = 1
-                    mFlags.CF = mFlags.CF Or If((tmpUVal1 And &HFF00) = 0, 0, 1)
                 Else
                     mFlags.AF = 0
                 End If
-                If tmpUVal2 > &H99 OrElse mFlags.CF = 1 Then
-                    tmpUVal1 = mRegisters.AL - &H60
+
+                If oldAL > tmpAL OrElse oldCF = 1 Then
                     mRegisters.AL -= &H60
                     mFlags.CF = 1
                 Else
                     mFlags.CF = 0
                 End If
-                SetSZPFlags(tmpUVal1, DataSize.Byte)
+
+                SetSZPFlags(mRegisters.AX, DataSize.Byte)
                 clkCyc += 4
 
             Case &H30 To &H33 ' XOR Eb Gb | Ev Gv | Gb Eb | Gv Ev
@@ -683,15 +706,29 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H37 ' AAA
+                Dim oldAL As Byte = mRegisters.AL
+
                 If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    mRegisters.AX += &H106
+                    mRegisters.AH += 1
+                    tmpUVal1 = (mRegisters.AL + 6) And &HFF
+                    mRegisters.AL = tmpUVal1 And &HF
                     mFlags.AF = 1
                     mFlags.CF = 1
                 Else
+                    tmpUVal1 = mRegisters.AL
+                    mRegisters.AL = mRegisters.AL And &HF
                     mFlags.AF = 0
                     mFlags.CF = 0
                 End If
-                mRegisters.AL = mRegisters.AL.LowNib()
+
+                SetSZPFlags(tmpUVal1, DataSize.Word)
+                mFlags.ZF = 0
+                mFlags.SF = 0
+                mFlags.OF = 0
+                If tmpUVal1 = 0 Then mFlags.ZF = 1
+                If oldAL >= &H7A AndAlso oldAL <= &H7F Then mFlags.OF = 1
+                If oldAL >= &H7A AndAlso oldAL <= &HF9 Then mFlags.SF = 1
+
                 clkCyc += 8
 
             Case &H38 To &H3B ' CMP Eb Gb | Ev Gv | Gb Eb | Gv Ev
@@ -714,15 +751,30 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H3F ' AAS
-                If mRegisters.AL.LowNib() > 9 OrElse mFlags.AF = 1 Then
-                    mRegisters.AX -= &H106
+                Dim oldAL As Byte = mRegisters.AL
+                Dim oldAF As Byte = mFlags.AF
+
+                If mRegisters.AL.LowNib() > 9 OrElse oldAF = 1 Then
+                    tmpUVal1 = (mRegisters.AL - 6) And &HFF
+                    mRegisters.AH -= 1
+                    mRegisters.AL = tmpUVal1 And &HF
                     mFlags.AF = 1
                     mFlags.CF = 1
                 Else
+                    tmpUVal1 = mRegisters.AL
+                    mRegisters.AL = mRegisters.AL And &HF
                     mFlags.AF = 0
                     mFlags.CF = 0
                 End If
-                mRegisters.AL = mRegisters.AL.LowNib()
+
+                SetSZPFlags(tmpUVal1, DataSize.Word)
+                mFlags.ZF = 0
+                mFlags.SF = 0
+                mFlags.OF = 0
+                If tmpUVal1 = 0 Then mFlags.ZF = 1
+                If oldAF = 1 AndAlso oldAL >= &H80 AndAlso oldAL <= &H85 Then mFlags.OF = 1
+                If oldAF = 0 AndAlso oldAL >= &H80 Then mFlags.SF = 1
+                If oldAF = 1 AndAlso oldAL <= &H5 OrElse oldAL >= &H86 Then mFlags.SF = 1
                 clkCyc += 8
 
             Case &H40 To &H47 ' INC AX | CX | DX | BX | SP | BP | SI | DI
@@ -1916,8 +1968,6 @@ Public Class X8086
 
                 result = num \ div
                 remain = num Mod div
-
-                'SetSZPFlags(result, addrMode.Size)
 
                 If addrMode.Size = DataSize.Byte Then
                     If result > &HFF Then

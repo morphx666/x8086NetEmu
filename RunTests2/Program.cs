@@ -24,30 +24,34 @@ namespace RunTests2 {
             };
 
             int skipCount = 298;
-            string[] skipOpCodes = {"0F",                           // POP CS
-
-                                                                    // These opcodes seem to have bugs
-                                    "27", "2F", "37", "3F",         // DAA, DAS, AAA, AAS,
-                                    "D2.0", "D2.1", "D2.2", "D2.3", // Group 2
-                                    "D2.4", "D2.5", "D2.7",         // LOOPNE, LOOPE, LOOP
-                                    "D3.0", "D3.1", "D3.2", "D3.3", // CALL, JMP (on some cases)
-                                    "D3.4", "D3.5", "D3.7",         // MUL, IMUL, DIV (Group 3 | flags)
-                                                                    // IDIV, (Group 3 | flags & results!)
-                                                                    // CALL SP (Group 4/5 | flags)
-                                    "D4", "D5",                     // AAM, AAD
-                            
-                                                                    // Skip IN and OUT b/c of conflicts with the attached peripherals
-                                    "E4", "E5", "E6", "E7", "EC",   // IN, OUT
-                                    "ED", "EE", "EF",
-
-                                                                    // We do not support these opcodes
-                                    "60", "61", "62", "63", "64",   // JO, JNO, JB, JNB, JZ
-                                    "65", "66", "67", "68", "69",   // JNZ, JBE, JNBE, JS, JNS
-                                    "6A", "6B", "6C", "6D", "6E",   // JP, JNP, JL, JNL, JLE
-                                    "6F", "C0", "C1", "C8", "C9",   // JNLE, RETN, RETN 
+            string[] skipOpCodes = {"0F",                             // POP CS
+                                                                      
+                                    /*
+                                                                      // These opcodes seem to have bugs
+                                    "27", "2F", "37", "3F",           // DAA, DAS, AAA, AAS
+                                    */
+                                                                                                                                           
+                                                                      // Skip IN and OUT b/c of conflicts with the attached peripherals
+                                    "E4", "E5", "E6", "E7", "EC",     // IN, OUT
+                                    "ED", "EE", "EF",                 
+                                                                      
+                                                                      // We do not support these opcodes
+                                    "60", "61", "62", "63", "64",     // JO, JNO, JB, JNB, JZ
+                                    "65", "66", "67", "68", "69",     // JNZ, JBE, JNBE, JS, JNS
+                                    "6A", "6B", "6C", "6D", "6E",     // JP, JNP, JL, JNL, JLE
+                                    "6F", "C0", "C1", "C8", "C9",     // JNLE, RETN, RETN 
                                     "D0.6", "D1.6", "D2.6", "D3.6"};
 
-            string[] ignoreFlags = { "F6.4", "F6.5" };              // MUL, IMUL, DIV (Group 3)
+            string[] ignoreFlags = {                                  // (Group 3)
+                                    "F6.4", "F6.5", "F6.6",           // MUL, IMUL, DIV
+
+                                                                      // (Group 2)
+                                    "D2.0", "D2.1", "D2.2", "D2.3",   // ROL, ROR, RCL, RCR
+                                    "D2.4", "D2.5", "D2.7",           // SHL, SHR, SAR, 
+                                    "D3.0", "D3.1", "D3.2", "D3.3",   // ROL, ROR, RCL, RCR
+                                    "D3.4", "D3.5", "D3.7",           // SHL, SHR, SAR
+
+                                    "D4", "D5"};                      // AAM, AAD
 
             FileInfo[] files = new DirectoryInfo(Path.Combine("8088_ProcessorTests", "v1")).GetFiles("*.gz");
             for(int i = skipCount; i < files.Length; i++) {
@@ -57,30 +61,32 @@ namespace RunTests2 {
                 Test[] tests = JsonConvert.DeserializeObject<Test[]>(ExtractTest(files[i]));
 
                 for(int j = 0; j < tests.Length; j++) {
-                    Console.WriteLine($"[{(i + 1),3:N0} | {(100.0 * j) / tests.Length,5:F2}%] 0x{fileName}: {tests[j].name}");
-                    currentTest = tests[j];
+                    Test test = tests[j];
 
-                    LoadRam(tests[j].initial.ram);
-                    cpu.Registers.AX = tests[j].initial.regs.ax;
-                    cpu.Registers.BX = tests[j].initial.regs.bx;
-                    cpu.Registers.CX = tests[j].initial.regs.cx;
-                    cpu.Registers.DX = tests[j].initial.regs.dx;
-                    cpu.Registers.SI = tests[j].initial.regs.si;
-                    cpu.Registers.DI = tests[j].initial.regs.di;
-                    cpu.Registers.BP = tests[j].initial.regs.bp;
-                    cpu.Registers.SP = tests[j].initial.regs.sp;
-                    cpu.Registers.IP = tests[j].initial.regs.ip;
-                    cpu.Registers.CS = tests[j].initial.regs.cs;
-                    cpu.Registers.DS = tests[j].initial.regs.ds;
-                    cpu.Registers.ES = tests[j].initial.regs.es;
-                    cpu.Registers.SS = tests[j].initial.regs.ss;
-                    cpu.Flags.EFlags = tests[j].initial.regs.flags;
+                    Console.WriteLine($"[{(i + 1),3:N0} | {(100.0 * j) / tests.Length,5:F2}%] 0x{fileName}: {test.name}");
+                    currentTest = test;
 
-                    //if(tests[j].test_hash == "0b6d9bff01de645c3fdf85a52c5f802dbfbfc72e4062369d437863a03aeb2e19") Debugger.Break();
+                    LoadRam(test.initial.ram);
+                    cpu.Registers.AX = test.initial.regs.ax;
+                    cpu.Registers.BX = test.initial.regs.bx;
+                    cpu.Registers.CX = test.initial.regs.cx;
+                    cpu.Registers.DX = test.initial.regs.dx;
+                    cpu.Registers.SI = test.initial.regs.si;
+                    cpu.Registers.DI = test.initial.regs.di;
+                    cpu.Registers.BP = test.initial.regs.bp;
+                    cpu.Registers.SP = test.initial.regs.sp;
+                    cpu.Registers.IP = test.initial.regs.ip;
+                    cpu.Registers.CS = test.initial.regs.cs;
+                    cpu.Registers.DS = test.initial.regs.ds;
+                    cpu.Registers.ES = test.initial.regs.es;
+                    cpu.Registers.SS = test.initial.regs.ss;
+                    cpu.Flags.EFlags = test.initial.regs.flags;
+
+                    //if(test.test_hash == "8e76df7c51964a72c27c9648cc2e059e27cd3876a47f858e8c6aa0bda0c255b6") Debugger.Break();
 
                     Task.Run(async () => {
                         int ic = 0;
-                        while(ic < tests[j].bytes.Length) {
+                        while(ic < test.bytes.Length) {
                             cpu.PreExecute();
                             cpu.Execute_DEBUG();
                             ic += cpu.PostExecute();
@@ -88,7 +94,7 @@ namespace RunTests2 {
                             await Task.Delay(0);
                         };
                     }).Wait();
-                    AnalyzeResult(currentTest,ignoreFlags.Contains(fileName));
+                    AnalyzeResult(currentTest, ignoreFlags.Contains(fileName));
                 }
                 Console.WriteLine("\n-------------------------------------------\n");
             }
@@ -96,35 +102,45 @@ namespace RunTests2 {
 
         private static void AnalyzeResult(Test currentTest, bool ignoreFlags) {
             bool passed = true;
-            State s = currentTest.final;
+            State sf = currentTest.final;
 
-            if(cpu.Registers.AX != s.regs.ax) { Console.WriteLine($"\tAX: {cpu.Registers.AX} != {s.regs.ax}"); passed = false; }
-            if(cpu.Registers.BX != s.regs.bx) { Console.WriteLine($"\tBX: {cpu.Registers.BX} != {s.regs.bx}"); passed = false; }
-            if(cpu.Registers.CX != s.regs.cx) { Console.WriteLine($"\tCX: {cpu.Registers.CX} != {s.regs.cx}"); passed = false; }
-            if(cpu.Registers.DX != s.regs.dx) { Console.WriteLine($"\tDX: {cpu.Registers.DX} != {s.regs.dx}"); passed = false; }
-            if(cpu.Registers.SI != s.regs.si) { Console.WriteLine($"\tSI: {cpu.Registers.SI} != {s.regs.si}"); passed = false; }
-            if(cpu.Registers.DI != s.regs.di) { Console.WriteLine($"\tDI: {cpu.Registers.DI} != {s.regs.di}"); passed = false; }
-            if(cpu.Registers.BP != s.regs.bp) { Console.WriteLine($"\tBP: {cpu.Registers.BP} != {s.regs.bp}"); passed = false; }
-            if(cpu.Registers.SP != s.regs.sp) { Console.WriteLine($"\tSP: {cpu.Registers.SP} != {s.regs.sp}"); passed = false; }
-            if(cpu.Registers.IP != s.regs.ip) { Console.WriteLine($"\tIP: {cpu.Registers.IP} != {s.regs.ip}"); passed = false; }
-            if(cpu.Registers.CS != s.regs.cs) { Console.WriteLine($"\tCS: {cpu.Registers.CS} != {s.regs.cs}"); passed = false; }
-            if(cpu.Registers.DS != s.regs.ds) { Console.WriteLine($"\tDS: {cpu.Registers.DS} != {s.regs.ds}"); passed = false; }
-            if(cpu.Registers.ES != s.regs.es) { Console.WriteLine($"\tES: {cpu.Registers.ES} != {s.regs.es}"); passed = false; }
-            if(cpu.Registers.SS != s.regs.ss) { Console.WriteLine($"\tSS: {cpu.Registers.SS} != {s.regs.ss}"); passed = false; }
-            if(!ignoreFlags && cpu.Flags.EFlags != s.regs.flags) {
-                Console.WriteLine($"\tFlags: {cpu.Flags.EFlags} != {s.regs.flags}");
+            if(cpu.Registers.AX != sf.regs.ax) { Console.WriteLine($"\tAX: {cpu.Registers.AX} != {sf.regs.ax}"); passed = false; }
+            if(cpu.Registers.BX != sf.regs.bx) { Console.WriteLine($"\tBX: {cpu.Registers.BX} != {sf.regs.bx}"); passed = false; }
+            if(cpu.Registers.CX != sf.regs.cx) { Console.WriteLine($"\tCX: {cpu.Registers.CX} != {sf.regs.cx}"); passed = false; }
+            if(cpu.Registers.DX != sf.regs.dx) { Console.WriteLine($"\tDX: {cpu.Registers.DX} != {sf.regs.dx}"); passed = false; }
+            if(cpu.Registers.SI != sf.regs.si) { Console.WriteLine($"\tSI: {cpu.Registers.SI} != {sf.regs.si}"); passed = false; }
+            if(cpu.Registers.DI != sf.regs.di) { Console.WriteLine($"\tDI: {cpu.Registers.DI} != {sf.regs.di}"); passed = false; }
+            if(cpu.Registers.BP != sf.regs.bp) { Console.WriteLine($"\tBP: {cpu.Registers.BP} != {sf.regs.bp}"); passed = false; }
+            if(cpu.Registers.SP != sf.regs.sp) { Console.WriteLine($"\tSP: {cpu.Registers.SP} != {sf.regs.sp}"); passed = false; }
+            if(cpu.Registers.IP != sf.regs.ip) { Console.WriteLine($"\tIP: {cpu.Registers.IP} != {sf.regs.ip}"); passed = false; }
+            if(cpu.Registers.CS != sf.regs.cs) { Console.WriteLine($"\tCS: {cpu.Registers.CS} != {sf.regs.cs}"); passed = false; }
+            if(cpu.Registers.DS != sf.regs.ds) { Console.WriteLine($"\tDS: {cpu.Registers.DS} != {sf.regs.ds}"); passed = false; }
+            if(cpu.Registers.ES != sf.regs.es) { Console.WriteLine($"\tES: {cpu.Registers.ES} != {sf.regs.es}"); passed = false; }
+            if(cpu.Registers.SS != sf.regs.ss) { Console.WriteLine($"\tSS: {cpu.Registers.SS} != {sf.regs.ss}"); passed = false; }
+            if(!ignoreFlags && cpu.Flags.EFlags != sf.regs.flags) {
+                Console.WriteLine($"\tFlags: {cpu.Flags.EFlags} != {sf.regs.flags}");
 
                 Console.WriteLine("\t          CZSOPAID");
                 Console.WriteLine($"\tEmulator: {cpu.Flags.CF}{cpu.Flags.ZF}{cpu.Flags.SF}{cpu.Flags.OF}{cpu.Flags.PF}{cpu.Flags.AF}{cpu.Flags.IF}{cpu.Flags.DF}");
-                cpu.Flags.EFlags = s.regs.flags;
+                cpu.Flags.EFlags = sf.regs.flags;
                 Console.WriteLine($"\tExpected: {cpu.Flags.CF}{cpu.Flags.ZF}{cpu.Flags.SF}{cpu.Flags.OF}{cpu.Flags.PF}{cpu.Flags.AF}{cpu.Flags.IF}{cpu.Flags.DF}");
 
                 passed = false;
             }
 
-            for(int i = 0; i < s.ram.Length; i++) {
-                int address = s.ram[i][0];
-                byte value = (byte)s.ram[i][1];
+            if(ignoreFlags) { // Also ignore stack
+                UInt32 sssp = X8086.SegmentOffetToAbsolute(sf.regs.ss, sf.regs.sp);
+                for(int i = 0; i < sf.ram.Length; i++) {
+                    if(sf.ram[i][0] == sssp) {
+                        cpu.Memory[sssp] = (byte)sf.ram[i][1];
+                        sssp++;
+                    }
+                }
+            }
+
+            for(int i = 0; i < sf.ram.Length; i++) {
+                int address = sf.ram[i][0];
+                byte value = (byte)sf.ram[i][1];
                 if((cpu.Memory[address] != value) &&
                    (cpu.Memory[address] != HLT &&
                     cpu.Memory[address] != NOP)) {

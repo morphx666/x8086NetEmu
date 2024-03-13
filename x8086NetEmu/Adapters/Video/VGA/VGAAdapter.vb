@@ -1027,8 +1027,9 @@ Public MustInherit Class VGAAdapter
         ramOffset = If(mMainMode = MainModes.Text, mStartTextVideoAddress, mStartGraphicsVideoAddress)
 
         If mCPU IsNot Nothing Then
-            For i As Integer = 0 To (mEndGraphicsVideoAddress - mStartTextVideoAddress) - 1
+            For i As Integer = 0 To (mEndGraphicsVideoAddress - mStartTextVideoAddress) - 1 Step 1
                 VideoRAM(i) = 0
+                VideoRAM(i + 1) = 7
             Next
         End If
 
