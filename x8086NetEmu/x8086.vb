@@ -2098,9 +2098,10 @@ Public Class X8086
                 End If
 
             Case 2 ' CALL Ev
+                tmpUVal1 = mRegisters.Val(addrMode.Register2)
                 PushIntoStack(mRegisters.IP + opCodeSize)
                 IPAddrOffet = If(addrMode.IsDirect,
-                                    mRegisters.Val(addrMode.Register2),
+                                    tmpUVal1,
                                     addrMode.IndMem)
                 clkCyc += 11
 

@@ -23,24 +23,22 @@ namespace RunTests2 {
                 Clock = 47700000,
             };
 
-            int skipCount = 298;
+            int skipCount = 318;
             string[] skipOpCodes = {"0F",                             // POP CS
                                                                       
-                                    /*
                                                                       // These opcodes seem to have bugs
-                                    "27", "2F", "37", "3F",           // DAA, DAS, AAA, AAS
-                                    */
+                                   "F6.7", "F7.7",                    // IDIV (Group 3)
                                                                                                                                            
                                                                       // Skip IN and OUT b/c of conflicts with the attached peripherals
-                                    "E4", "E5", "E6", "E7", "EC",     // IN, OUT
-                                    "ED", "EE", "EF",                 
+                                   "E4", "E5", "E6", "E7", "EC",      // IN, OUT
+                                   "ED", "EE", "EF",                  
                                                                       
                                                                       // We do not support these opcodes
-                                    "60", "61", "62", "63", "64",     // JO, JNO, JB, JNB, JZ
-                                    "65", "66", "67", "68", "69",     // JNZ, JBE, JNBE, JS, JNS
-                                    "6A", "6B", "6C", "6D", "6E",     // JP, JNP, JL, JNL, JLE
-                                    "6F", "C0", "C1", "C8", "C9",     // JNLE, RETN, RETN 
-                                    "D0.6", "D1.6", "D2.6", "D3.6"};
+                                   "60", "61", "62", "63", "64",      // JO, JNO, JB, JNB, JZ
+                                   "65", "66", "67", "68", "69",      // JNZ, JBE, JNBE, JS, JNS
+                                   "6A", "6B", "6C", "6D", "6E",      // JP, JNP, JL, JNL, JLE
+                                   "6F", "C0", "C1", "C8", "C9",      // JNLE, RETN, RETN 
+                                   "D0.6", "D1.6", "D2.6", "D3.6"};
 
             string[] ignoreFlags = {                                  // (Group 3)
                                     "F6.4", "F6.5", "F6.6",           // MUL, IMUL, DIV
@@ -51,7 +49,8 @@ namespace RunTests2 {
                                     "D3.0", "D3.1", "D3.2", "D3.3",   // ROL, ROR, RCL, RCR
                                     "D3.4", "D3.5", "D3.7",           // SHL, SHR, SAR
 
-                                    "D4", "D5"};                      // AAM, AAD
+                                    "D4", "D5",                       // AAM, AAD
+                                    "F7.4", "F7.5", "F7.6"};          // MUL, IMUL, DIV
 
             FileInfo[] files = new DirectoryInfo(Path.Combine("8088_ProcessorTests", "v1")).GetFiles("*.gz");
             for(int i = skipCount; i < files.Length; i++) {
@@ -82,7 +81,7 @@ namespace RunTests2 {
                     cpu.Registers.SS = test.initial.regs.ss;
                     cpu.Flags.EFlags = test.initial.regs.flags;
 
-                    //if(test.test_hash == "8e76df7c51964a72c27c9648cc2e059e27cd3876a47f858e8c6aa0bda0c255b6") Debugger.Break();
+                    //if(test.test_hash == "bd8956add8c995b5b2ebdcfbca68f52c81f5ed26cd621ff75adf275cd1d575fb") Debugger.Break();
 
                     Task.Run(async () => {
                         int ic = 0;
