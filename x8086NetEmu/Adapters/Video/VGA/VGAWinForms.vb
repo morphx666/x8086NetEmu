@@ -77,7 +77,8 @@
                     fontSourceMode = FontSources.TrueType
                 End If
             Case FontSources.ROM
-                VideoChar.BuildFontBitmapsFromROM(8, 16, 14, &HC0000 + &H3310, mCPU.Memory)
+                MyBase.CellSize = New Size(8, 14)
+                VideoChar.BuildFontBitmapsFromROM(8, 14, 14, &HC0000 + &H3310, mCPU.Memory)
         End Select
 
         If fontSourceMode = FontSources.TrueType Then
@@ -352,11 +353,15 @@
             b0 = VideoRAM(address)
             b1 = VideoRAM(address + 1)
 
-            If mVideoMode = 7 OrElse mVideoMode = 127 Then
-                If (b1 And &H70) <> 0 Then
-                    b1 = If(b0 = 0, 7, 0)
-                Else
-                    b1 = If(b0 = 0, 0, 7)
+            If BlinkCharOn AndAlso (b1 And &B1000_0000) <> 0 Then
+                If blinkCounter < BlinkRate Then b0 = 0
+            Else
+                If mVideoMode = 7 OrElse mVideoMode = 127 Then
+                    If (b1 And &H70) <> 0 Then
+                        b1 = If(b0 = 0, 7, 0)
+                    Else
+                        b1 = If(b0 = 0, 0, 7)
+                    End If
                 End If
             End If
 

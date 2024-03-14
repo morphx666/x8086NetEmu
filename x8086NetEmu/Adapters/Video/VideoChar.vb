@@ -24,8 +24,6 @@
 
     Public Sub Render(w As Integer, h As Integer)
         If mBitmap Is Nothing Then
-            w = 8
-            h = 16
             mBitmap = New DirectBitmap(w, h)
             w4s = w * 4
 
@@ -74,32 +72,33 @@
         Dim dataH As Integer = romFontHeight
 
         Dim romSize As Integer = rom.Length
-        Dim offset As Integer = romOffset
+        Dim offset As Integer = romOffset + dataW
         ReDim VideoChar.FontBitmaps(fw * fh * 512 - 1)
 
-        Dim tempCount As Integer = 0
-        Dim base As Integer = 0
-        Dim row As Integer = 0
-        Dim mask As Integer = &H80
+        Dim tempCount As Integer
+        Dim base As Integer
+        Dim row As Integer
+        Dim mask As Integer
 
-        Dim x As Integer = 0
-        Dim y As Integer = 0
+        Dim x As Integer
+        Dim y As Integer
+        Dim b As Byte
 
         For i As Integer = 0 To 512 - 1
-            While base < fh
+            While base < romFontHeight
                 While tempCount < dataW
-                    While mask <> 0
-                        If (rom((base + (tempCount * dataH) + (row * dataW * dataH) + offset) Mod romSize) And mask) <> 0 Then
-                            VideoChar.FontBitmaps(i * fw * fh + y * fw + x) = 1
-                        Else
-                            VideoChar.FontBitmaps(i * fw * fh + y * fw + x) = 0
-                        End If
-                        x += 1
-                        mask = mask >> 1
-                    End While
-                    tempCount += 1
                     mask = &H80
+
+                    While mask <> 0
+                        b = (rom((base + (tempCount * dataH) + (row * dataW * dataH) + offset) Mod romSize) And mask)
+                        VideoChar.FontBitmaps(i * fw * fh + y * fw + x) = If(b = 0, 0, 1)
+                        x += 1
+                        mask >>= 1
+                    End While
+
+                    tempCount += 1
                 End While
+
                 tempCount = 0
                 base += 1
                 x = 0

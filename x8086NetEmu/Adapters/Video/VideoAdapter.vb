@@ -114,10 +114,13 @@
         End Get
     End Property
 
-    Public ReadOnly Property CellSize As Size
+    Public Property CellSize As Size
         Get
             Return mCellSize
         End Get
+        Protected Set(value As Size)
+            mCellSize = value
+        End Set
     End Property
 
     'Public Property IsDirty(address As UInt32) As Boolean

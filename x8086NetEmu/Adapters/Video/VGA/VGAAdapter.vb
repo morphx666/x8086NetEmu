@@ -575,21 +575,21 @@ Public MustInherit Class VGAAdapter
     Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True, Optional enableWebUI As Boolean = False)
         MyBase.New(cpu, useInternalTimer, enableWebUI)
         mCPU = cpu
+        mCellSize = New Size(8, 16) ' Temporary hack until we can stretch the fonts' bitmaps
 
         MyBase.vidModeChangeFlag = 0 ' Prevent the CGA adapter from changing video modes
 
         mCPU.LoadBIN("roms\et4000(4-7-93).BIN", &HC000, &H0)
 
-        'ValidPortAddress.Clear()
+        ValidPortAddress.Clear()
         For i As UInt32 = &H3C0 To &H3CF ' EGA/VGA
             ValidPortAddress.Add(i)
         Next
-        'ValidPortAddress.Add(&H3B8)
-
-        'ValidPortAddress.Add(&H3D4)
-        'ValidPortAddress.Add(&H3D5)
-
-        'ValidPortAddress.Add(&H3DA)
+        ValidPortAddress.Add(&H3D4)
+        ValidPortAddress.Add(&H3D8)
+        ValidPortAddress.Add(&H3D5)
+        ValidPortAddress.Add(&H3DA)
+        ValidPortAddress.Add(&H3DB)
 
         For i As Integer = 0 To VGABasePalette.Length - 1
             vgaPalette(i) = VGABasePalette(i)
@@ -627,9 +627,13 @@ Public MustInherit Class VGAAdapter
         mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
                                                           Select Case mCPU.Registers.AH
                                                               Case &H0
-                                                                  SetVideoMode()
-                                                                  VGA_SC(4) = 0
-                                                                  Return mCPU.Registers.AL > 5
+                                                                  If mVideoMode <> mCPU.Registers.AL And &H7F Then
+                                                                      SetVideoMode()
+                                                                      VGA_SC(4) = 0
+                                                                      Return mUseVRAM
+                                                                  Else
+                                                                      Return True
+                                                                  End If
 
                                                               Case &H10
                                                                   Select Case mCPU.Registers.AL
@@ -710,55 +714,55 @@ Public MustInherit Class VGAAdapter
         X8086.Notify($"VGA Video Mode: {CShort(mVideoMode):X2}", X8086.NotificationReasons.Info)
 
         Select Case mVideoMode
-            Case 0 ' 40x25 Mono Text
+            Case 0 ' TEXT 40x25 Mono Text
                 mStartTextVideoAddress = &HB8000
                 mStartGraphicsVideoAddress = &HB8000
                 mTextResolution = New Size(40, 25)
                 mVideoResolution = New Size(360, 400)
-                mCellSize = New Size(9, 16)
+                'mCellSize = New Size(9, 16)
                 mMainMode = MainModes.Text
-                mPixelsPerByte = 4
+                mPixelsPerByte = 1
                 mUseVRAM = False
 
-            Case 1 ' 40x25 Color Text
+            Case 1 ' TEXT 40x25 Color Text
                 mStartTextVideoAddress = &HB8000
                 mStartGraphicsVideoAddress = &HB8000
                 mTextResolution = New Size(40, 25)
                 mVideoResolution = New Size(360, 400)
-                mCellSize = New Size(9, 16)
+                'mCellSize = New Size(9, 16)
                 mMainMode = MainModes.Text
                 mPixelsPerByte = 4
                 mUseVRAM = False
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-            Case 2 ' 80x25 Mono Text
+            Case 2 ' TEXT 80x25 Mono Text
                 mStartTextVideoAddress = &HB8000
                 mStartGraphicsVideoAddress = &HB8000
                 mTextResolution = New Size(80, 25)
                 mVideoResolution = New Size(640, 400)
-                mCellSize = New Size(9, 16)
+                'mCellSize = New Size(9, 16)
                 mMainMode = MainModes.Graphics
-                mPixelsPerByte = 4
+                mPixelsPerByte = 1
                 mUseVRAM = False
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-            Case 3 ' 80x25 Color Text
+            Case 3 ' TEXT 80x25 Color Text
                 mStartTextVideoAddress = &HB8000
                 mStartGraphicsVideoAddress = &HB8000
                 mTextResolution = New Size(80, 25)
                 mVideoResolution = New Size(720, 400)
-                mCellSize = New Size(9, 16)
+                'mCellSize = New Size(9, 16)
                 mMainMode = MainModes.Text
                 mPixelsPerByte = 4
                 mUseVRAM = False
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-            Case 4, 5 ' 320x200 4 Colors
+            Case 4, 5 ' CGA 320x200 4 Colors
                 mStartTextVideoAddress = &HB8000
                 mStartGraphicsVideoAddress = &HB8000
                 mTextResolution = New Size(40, 25)
                 mVideoResolution = New Size(320, 200)
-                mCellSize = New Size(8, 8)
+                'mCellSize = New Size(8, 8)
                 mMainMode = MainModes.Graphics
                 mPixelsPerByte = 4
                 mUseVRAM = False
@@ -769,67 +773,87 @@ Public MustInherit Class VGAAdapter
                     portRAM(&H3D9) = 0
                 End If
 
-            Case 6 ' 640x400 2 Colors
+            Case 6 ' CGA 640x400 2 Colors
                 mStartTextVideoAddress = &HB8000
                 mStartGraphicsVideoAddress = &HB8000
                 mTextResolution = New Size(80, 25)
                 mVideoResolution = New Size(640, 400)
-                mCellSize = New Size(8, 8)
+                'mCellSize = New Size(8, 8)
                 mMainMode = MainModes.Graphics
                 mPixelsPerByte = 2
                 mUseVRAM = False
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-            Case 7 ' 640x200 2 Colors
+            Case 7 ' MDA 640x200 2 Colors
                 mStartTextVideoAddress = &HB0000
                 mStartGraphicsVideoAddress = &HB0000
                 mTextResolution = New Size(80, 25)
                 mVideoResolution = New Size(720, 400)
-                mCellSize = New Size(9, 16)
+                'mCellSize = New Size(9, 16)
                 mMainMode = MainModes.Text
                 mPixelsPerByte = 1
                 mUseVRAM = False
 
-            Case 9 ' 320x200 16 Colors
+            Case 9 ' PCjr 320x200 16 Colors
                 mStartTextVideoAddress = &HB8000
                 mStartGraphicsVideoAddress = &HB8000
                 mTextResolution = New Size(40, 25)
                 mVideoResolution = New Size(320, 200)
-                mCellSize = New Size(8, 8)
+                'mCellSize = New Size(8, 8)
                 mMainMode = MainModes.Graphics
                 mPixelsPerByte = 4
                 mUseVRAM = False
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-            Case &HD ' 640x400 16 Colors
+            Case &HD ' EGA 640x400 16 Colors
                 mStartTextVideoAddress = &HA0000
                 mStartGraphicsVideoAddress = &HA0000
                 mTextResolution = New Size(40, 25)
                 mVideoResolution = New Size(640, 400)
-                mCellSize = New Size(8, 8)
+                'mCellSize = New Size(8, 8)
                 mMainMode = MainModes.Graphics
                 mPixelsPerByte = 4
                 mUseVRAM = True
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-            Case &HE ' 640x200 16 Colors
+            Case &HE ' EGA 640x200 16 Colors
                 mStartTextVideoAddress = &HA0000
                 mStartGraphicsVideoAddress = &HA0000
                 mTextResolution = New Size(80, 25)
                 mVideoResolution = New Size(640, 200)
-                mCellSize = New Size(8, 8)
+                'mCellSize = New Size(8, 8)
                 mMainMode = MainModes.Graphics
                 mPixelsPerByte = 4
                 mUseVRAM = True
 
-            Case &H10 ' 640x350 4 Colors
+            Case &HF ' EGA 640x350 16 Colors
                 mStartTextVideoAddress = &HA0000
                 mStartGraphicsVideoAddress = &HA0000
                 mTextResolution = New Size(80, 25)
                 mVideoResolution = New Size(640, 350)
-                mCellSize = New Size(8, 14)
+                'mCellSize = New Size(8, 14)
                 mMainMode = MainModes.Graphics
                 mPixelsPerByte = 4
+                mUseVRAM = True
+
+            Case &H10 ' EGA 640x350 Mono
+                mStartTextVideoAddress = &HA0000
+                mStartGraphicsVideoAddress = &HA0000
+                mTextResolution = New Size(80, 25)
+                mVideoResolution = New Size(640, 350)
+                'mCellSize = New Size(8, 14)
+                mMainMode = MainModes.Graphics
+                mPixelsPerByte = 1
+                mUseVRAM = True
+
+            Case &H11 ' VGA 640*480 Mono
+                mStartTextVideoAddress = &HA0000
+                mStartGraphicsVideoAddress = &HA0000
+                mTextResolution = New Size(80, 25)
+                mVideoResolution = New Size(640, 480)
+                'mCellSize = New Size(8, 14)
+                mMainMode = MainModes.Graphics
+                mPixelsPerByte = 1
                 mUseVRAM = True
 
             Case &H12 ' 640x480 16-color
@@ -837,18 +861,18 @@ Public MustInherit Class VGAAdapter
                 mStartGraphicsVideoAddress = &HA0000
                 mTextResolution = New Size(40, 25)
                 mVideoResolution = New Size(640, 480)
-                mCellSize = New Size(8, 16)
+                'mCellSize = New Size(8, 16)
                 mMainMode = MainModes.Graphics
                 mPixelsPerByte = 4
                 mUseVRAM = True
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
-            Case &H13 ' 320x200 256-color
+            Case &H13 ' VGA 320x200 256-color
                 mStartTextVideoAddress = &HA0000
                 mStartGraphicsVideoAddress = &HA0000
                 mTextResolution = New Size(40, 25)
                 mVideoResolution = New Size(320, 200)
-                mCellSize = New Size(8, 8)
+                'mCellSize = New Size(8, 8)
                 mMainMode = MainModes.Graphics
                 mPixelsPerByte = 4
                 mUseVRAM = True
@@ -859,7 +883,7 @@ Public MustInherit Class VGAAdapter
                 mStartGraphicsVideoAddress = &HB0000
                 mTextResolution = New Size(80, 25)
                 mVideoResolution = New Size(720, 400)
-                mCellSize = New Size(8, 16)
+                'mCellSize = New Size(8, 16)
                 mMainMode = MainModes.Text
                 mPixelsPerByte = 1
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
@@ -886,7 +910,6 @@ Public MustInherit Class VGAAdapter
 
         End Select
 
-        mCellSize = New Size(8, 16) ' Temporary hack until we can stretch the fonts' bitmaps
         mCPU.Memory(&H449) = mVideoMode
         mCPU.Memory(&H44A) = mTextResolution.Width
         mCPU.Memory(&H44B) = 0
@@ -933,7 +956,7 @@ Public MustInherit Class VGAAdapter
                 Return MyBase.In(port)
 
             Case Else
-                'If MyBase.ValidPortAddress.Contains(port) Then Return MyBase.In(port)
+                If MyBase.ValidPortAddress.Contains(port) Then Return MyBase.In(port)
                 Return portRAM(port)
         End Select
     End Function
@@ -1006,7 +1029,7 @@ Public MustInherit Class VGAAdapter
                 VGA_GC(portRAM(&H3CE)) = value
 
             Case Else
-                'If MyBase.ValidPortAddress.Contains(port) Then MyBase.Out(port, value)
+                If MyBase.ValidPortAddress.Contains(port) Then MyBase.Out(port, value)
                 portRAM(port) = value
 
         End Select
