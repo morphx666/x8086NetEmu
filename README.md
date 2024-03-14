@@ -18,7 +18,8 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - Hard disk and floppy images inspector / Disk Explorer (FAT12, FAT16, and FAT16B/BIGDOS support only)
 - Support to drag & drop files to/from the Disk Explorer and the host
 - Support to copy/paste text to/from the emulator and the host
-- The Emulator's menu can be accessed by pressing RCtrl+Home. Under Windows you can also right-click the window's title bar. No menu is available in the Console version. To change the emulator's settings for the Console version you can edit the `settings.dat` file using any text editor
+- The Emulator's menu can be accessed by pressing RCtrl+Home. Under Windows, you can also right-click the window's title bar. No menu is available in the Console version. To change the emulator's settings for the Console version you can edit the `settings.dat` file using any text editor
+- Support to use TrueType Mono fonts, a user-provided font bitmap file, or if using a video ROM file, use the charset provided in such ROM.
 - Integrated Debugger and Console
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2018/01/debugger.png)
