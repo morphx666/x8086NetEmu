@@ -11,7 +11,6 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - Peripherals: PIC/8259, PIT/8254, DMA/8237 and PPI/8255
 - Mostly working Adapters: CGA, Speaker and Keyboard
 - Partially working Adapters: VGA, Adlib, SoundBlaster and Mouse
-- Integrated Debugger and Console
 - No BIOS hacks are required
 - WinForms and Console samples included
 - Cross-platform support through Mono (the emulator has been tested under Windows, [MacOS, Linux, and RaspberryPi](https://whenimbored.xfx.net/2013/10/x8086netemu-linux-mac-os-x-raspberry-pi/))
@@ -19,6 +18,8 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - Hard disk and floppy images inspector / Disk Explorer (FAT12, FAT16, and FAT16B/BIGDOS support only)
 - Support to drag & drop files to/from the Disk Explorer and the host
 - Support to copy/paste text to/from the emulator and the host
+- The Emulator's menu can be accessed by right-clicking the window title bar (Windows) or by pressing RightCtrl+Home (Non-Windows OSs). No menu is available in the Console version. To change the emulator's settings for the Console version you can edit the `settings.dat` file using any text editor
+- Integrated Debugger and Console
 
 ![Integrated Debugger](http://whenimbored.xfx.net/wp-content/uploads/2018/01/debugger.png)
 
