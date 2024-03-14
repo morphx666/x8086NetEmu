@@ -236,48 +236,6 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public Overrides ReadOnly Property Name As String
-        Get
-            Return "CGA"
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property Description As String
-        Get
-            Return "CGA (6845) Emulator"
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property Vendor As String
-        Get
-            Return "xFX JumpStart"
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property VersionMajor As Integer
-        Get
-            Return 0
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property VersionMinor As Integer
-        Get
-            Return 4
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property VersionRevision As Integer
-        Get
-            Return 7
-        End Get
-    End Property
-
-    Public Overrides ReadOnly Property Type As Adapter.AdapterType
-        Get
-            Return AdapterType.Video
-        End Get
-    End Property
-
     Public ReadOnly Property CursorCol As Integer
         Get
             Return mCursorCol
@@ -460,7 +418,6 @@ Public MustInherit Class CGAAdapter
             Case &H3B8
                 If (value And 2) = 2 AndAlso mVideoMode <> VideoModes.Mode7_Text_BW_80x25 Then
                     VideoMode = VideoModes.Mode7_Text_BW_80x25
-
                 End If
 
             Case &H3D0, &H3D2, &H3D4, &H3D6,
@@ -602,4 +559,46 @@ Public MustInherit Class CGAAdapter
             a(i) = (value And 2 ^ i) <> 0
         Next
     End Sub
+
+    Public Overrides ReadOnly Property Name As String
+        Get
+            Return "CGA"
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property Description As String
+        Get
+            Return "CGA (6845) Emulator"
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property Vendor As String
+        Get
+            Return "xFX JumpStart"
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property VersionMajor As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property VersionMinor As Integer
+        Get
+            Return 4
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property VersionRevision As Integer
+        Get
+            Return 7
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property Type As Adapter.AdapterType
+        Get
+            Return AdapterType.Video
+        End Get
+    End Property
 End Class

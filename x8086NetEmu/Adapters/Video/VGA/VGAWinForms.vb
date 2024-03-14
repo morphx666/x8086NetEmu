@@ -346,7 +346,7 @@
         ' FIXME: Dummy workaround to support the cursor; Haven't found a better way yet...
         mCursorCol = mCPU.Memory(&H450)
         mCursorRow = mCPU.Memory(&H451)
-        mCursorVisible = True
+        'mCursorVisible = True
 
         For address As Integer = 0 To MEMSIZE - 2 Step 2
             b0 = VideoRAM(address)

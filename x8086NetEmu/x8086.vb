@@ -26,7 +26,7 @@ Public Class X8086
     Public Delegate Function MemHandler(address As UInt32, ByRef value As UInt16, mode As MemHookMode) As Boolean
     Private ReadOnly memHooks As New List(Of MemHandler)
     Public Delegate Function IntHandler() As Boolean
-    Private ReadOnly intHooks As New Dictionary(Of Byte, IntHandler)
+    Protected Friend ReadOnly intHooks As New Dictionary(Of Byte, IntHandler)
 
     Private opCode As Byte
     Private opCodeSize As Byte

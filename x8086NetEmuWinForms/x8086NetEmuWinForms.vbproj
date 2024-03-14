@@ -292,6 +292,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Tools\FormConsole.resx">
       <DependentUpon>FormConsole.vb</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="FormEmulator.resx">
       <DependentUpon>FormEmulator.vb</DependentUpon>
