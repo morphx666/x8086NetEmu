@@ -1,4 +1,6 @@
-﻿Public Class VGAWinForms
+﻿Imports System.Runtime.CompilerServices
+
+Public Class VGAWinForms
     Inherits VGAAdapter
 
     Private blinkCounter As Integer
@@ -353,7 +355,10 @@
             b0 = VideoRAM(address)
             b1 = VideoRAM(address + 1)
 
-            If BlinkCharOn AndAlso (b1 And &B1000_0000) <> 0 Then
+            'If False AndAlso (BlinkCharOn AndAlso (b1 And &B1000_0000) <> 0) Then 
+
+            ' http://www.osdever.net/FreeVGA/vga/attrreg.htm
+            If False AndAlso ((VGA_ATTR(&H10) And &B0000_1000) <> 0) AndAlso (b1 And &B1000_0000) <> 0 Then ' FIXME: This doesn't work
                 If blinkCounter < BlinkRate Then b0 = 0
             Else
                 If mVideoMode = 7 OrElse mVideoMode = 127 Then

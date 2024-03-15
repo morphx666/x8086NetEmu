@@ -741,7 +741,7 @@ Public MustInherit Class VGAAdapter
                 mTextResolution = New Size(80, 25)
                 mVideoResolution = New Size(640, 400)
                 'mCellSize = New Size(9, 16)
-                mMainMode = MainModes.Graphics
+                mMainMode = MainModes.Text
                 mPixelsPerByte = 1
                 mUseVRAM = False
                 portRAM(&H3D8) = portRAM(&H3D8) And &HFE
