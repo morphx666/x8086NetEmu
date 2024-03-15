@@ -23,7 +23,7 @@ namespace RunTests2 {
                 Clock = 47700000,
             };
 
-            int skipCount = 318;
+            int skipCount = 0;
             string[] skipOpCodes = {"0F",                             // POP CS
                                                                       
                                                                       // These opcodes seem to have bugs
@@ -53,7 +53,9 @@ namespace RunTests2 {
                                     "F7.4", "F7.5", "F7.6"};          // MUL, IMUL, DIV
 
             FileInfo[] files = new DirectoryInfo(Path.Combine("8088_ProcessorTests", "v1")).GetFiles("*.gz");
-            for(int i = skipCount; i < files.Length; i++) {
+
+            int fl = files.Length;
+            for(int i = skipCount; i < fl; i++) {
                 string fileName = files[i].Name.Replace(files[i].Extension, "").Replace(".json", "");
                 if(skipOpCodes.Contains(fileName)) continue;
 
@@ -62,7 +64,7 @@ namespace RunTests2 {
                 for(int j = 0; j < tests.Length; j++) {
                     Test test = tests[j];
 
-                    Console.WriteLine($"[{(i + 1),3:N0} | {(100.0 * j) / tests.Length,5:F2}%] 0x{fileName}: {test.name}");
+                    Console.WriteLine($"[{(100.0 * i / fl) ,5:F2}%] 0x{fileName}: {test.name}");
                     currentTest = test;
 
                     LoadRam(test.initial.ram);

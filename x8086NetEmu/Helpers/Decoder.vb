@@ -519,20 +519,20 @@
             Case &H84 To &H85 ' test reg with reg/mem
                 SetDecoderAddressing()
                 If decoderAddrMode.IsDirect Then
-                    opCodeASM = "TEST " + decoderAddrMode.Register1.ToString() + ", " + decoderAddrMode.Register2.ToString()
+                    opCodeASM = "TEST " + decoderAddrMode.Dst.ToString() + ", " + decoderAddrMode.Src.ToString()
                     decoderClkCyc += 3
                 Else
-                    opCodeASM = "TEST " + indASM + ", " + decoderAddrMode.Register2.ToString()
+                    opCodeASM = "TEST " + indASM + ", " + decoderAddrMode.Src.ToString()
                     decoderClkCyc += 9
                 End If
 
             Case &H86 To &H87 ' xchg reg/mem with reg
                 SetDecoderAddressing()
                 If decoderAddrMode.IsDirect Then
-                    opCodeASM = "XCHG " + decoderAddrMode.Register1.ToString() + ", " + decoderAddrMode.Register2.ToString()
+                    opCodeASM = "XCHG " + decoderAddrMode.Dst.ToString() + ", " + decoderAddrMode.Register2.ToString()
                     decoderClkCyc += 4
                 Else
-                    opCodeASM = "XCHG " + indASM + ", " + decoderAddrMode.Register1.ToString()
+                    opCodeASM = "XCHG " + indASM + ", " + decoderAddrMode.Dst.ToString()
                     decoderClkCyc += 17
                 End If
 
