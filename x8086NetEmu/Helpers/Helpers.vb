@@ -175,7 +175,7 @@
         Return If(addrMode.Size = DataSize.Byte, To16bitsWithSign(v), To32bitsWithSign(v))
     End Function
 
-    Private Sub SendToPort(portAddress As UInt32, value As UInt32)
+    Private Sub SendToPort(portAddress As UInt32, value As Byte)
         DoReschedule = True
 
         If portsCache.ContainsKey(portAddress) Then
@@ -205,7 +205,7 @@
         NoIOPort(portAddress)
     End Sub
 
-    Private Function ReceiveFromPort(portAddress As UInt32) As UInt32
+    Private Function ReceiveFromPort(portAddress As UInt32) As Byte
         DoReschedule = True
 
         If portsCache.ContainsKey(portAddress) Then

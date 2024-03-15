@@ -627,13 +627,9 @@ Public MustInherit Class VGAAdapter
         mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
                                                           Select Case mCPU.Registers.AH
                                                               Case &H0
-                                                                  If mVideoMode <> mCPU.Registers.AL And &H7F Then
-                                                                      SetVideoMode()
-                                                                      VGA_SC(4) = 0
-                                                                      Return mUseVRAM
-                                                                  Else
-                                                                      Return True
-                                                                  End If
+                                                                  SetVideoMode()
+                                                                  VGA_SC(4) = 0
+                                                                  Return mUseVRAM
 
                                                               Case &H10
                                                                   Select Case mCPU.Registers.AL

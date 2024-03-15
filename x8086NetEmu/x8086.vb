@@ -1468,7 +1468,9 @@ Public Class X8086
                 clkCyc += 10
 
             Case &HE5 ' IN AX Ib
-                mRegisters.AX = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
+                tmpUVal1 = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
+                mRegisters.AL = tmpUVal1
+                mRegisters.AH = tmpUVal1
                 clkCyc += 10
 
             Case &HE6  ' OUT Ib AL
@@ -1476,7 +1478,9 @@ Public Class X8086
                 clkCyc += 10
 
             Case &HE7  ' OUT Ib AX
-                SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AX)
+                tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
+                SendToPort(tmpUVal1, mRegisters.AL)
+                SendToPort(tmpUVal1 + 1, mRegisters.AH)
                 clkCyc += 10
 
             Case &HE8 ' CALL Jv
@@ -1502,7 +1506,9 @@ Public Class X8086
                 clkCyc += 8
 
             Case &HED ' IN AX DX
-                mRegisters.AX = ReceiveFromPort(mRegisters.DX)
+                tmpUVal1 = ReceiveFromPort(mRegisters.DX)
+                mRegisters.AL = tmpUVal1
+                mRegisters.AH = tmpUVal1
                 clkCyc += 8
 
             Case &HEE ' OUT DX AL
@@ -1510,7 +1516,8 @@ Public Class X8086
                 clkCyc += 8
 
             Case &HEF ' OUT DX AX
-                SendToPort(mRegisters.DX, mRegisters.AX)
+                SendToPort(mRegisters.DX, mRegisters.AL)
+                SendToPort(mRegisters.DX + 1, mRegisters.AH)
                 clkCyc += 8
 
             Case &HF0 ' LOCK

@@ -1473,7 +1473,9 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _E5() ' IN AX Ib
-        mRegisters.AX = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
+        tmpUVal1 = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
+        mRegisters.AL = tmpUVal1
+        mRegisters.AH = tmpUVal1
         clkCyc += 10
     End Sub
 
@@ -1483,7 +1485,9 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _E7() ' OUT Ib AX
-        SendToPort(Param(ParamIndex.First, , DataSize.Byte), mRegisters.AX)
+        tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
+        SendToPort(tmpUVal1, mRegisters.AL)
+        SendToPort(tmpUVal1 + 1, mRegisters.AH)
         clkCyc += 10
     End Sub
 
@@ -1515,7 +1519,9 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _ED() ' IN AX DX
-        mRegisters.AX = ReceiveFromPort(mRegisters.DX)
+        tmpUVal1 = ReceiveFromPort(mRegisters.DX)
+        mRegisters.AL = tmpUVal1
+        mRegisters.AH = tmpUVal1
         clkCyc += 8
     End Sub
 
@@ -1525,7 +1531,8 @@ AddressOf _FE_FF}
     End Sub
 
     Private Sub _EF() ' OUT DX AX
-        SendToPort(mRegisters.DX, mRegisters.AX)
+        SendToPort(mRegisters.DX, mRegisters.AL)
+        SendToPort(mRegisters.DX + 1, mRegisters.AH)
         clkCyc += 8
     End Sub
 

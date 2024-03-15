@@ -19,19 +19,15 @@ namespace RunTests2 {
         public static void Main(string[] args) {
             Test currentTest = null;
 
-            cpu = new X8086(false, false, null, X8086.Models.IBMPC_5150) {
-                Clock = 47700000,
-            };
+            cpu = new X8086(false, false, null, X8086.Models.IBMPC_5150);
+            cpu.Adapters.Clear();
+            cpu.Ports.Clear();
 
             int skipCount = 0;
             string[] skipOpCodes = {"0F",                             // POP CS
                                                                       
                                                                       // These opcodes seem to have bugs
                                    "F6.7", "F7.7",                    // IDIV (Group 3)
-                                                                                                                                           
-                                                                      // Skip IN and OUT b/c of conflicts with the attached peripherals
-                                   "E4", "E5", "E6", "E7", "EC",      // IN, OUT
-                                   "ED", "EE", "EF",                  
                                                                       
                                                                       // We do not support these opcodes
                                    "60", "61", "62", "63", "64",      // JO, JNO, JB, JNB, JZ
@@ -64,7 +60,7 @@ namespace RunTests2 {
                 for(int j = 0; j < tests.Length; j++) {
                     Test test = tests[j];
 
-                    Console.WriteLine($"[{(100.0 * i / fl) ,5:F2}%] 0x{fileName}: {test.name}");
+                    Console.WriteLine($"[{i,3} | {(100.0 * i / fl),5:F2}%] 0x{fileName}: {test.name}");
                     currentTest = test;
 
                     LoadRam(test.initial.ram);
@@ -83,7 +79,7 @@ namespace RunTests2 {
                     cpu.Registers.SS = test.initial.regs.ss;
                     cpu.Flags.EFlags = test.initial.regs.flags;
 
-                    //if(test.test_hash == "bd8956add8c995b5b2ebdcfbca68f52c81f5ed26cd621ff75adf275cd1d575fb") Debugger.Break();
+                    //if(test.test_hash == "4f70ca3ff06c0596c12d6a21f9babb155673037181576f19f25fecb64b0280bf") Debugger.Break();
 
                     Task.Run(async () => {
                         int ic = 0;

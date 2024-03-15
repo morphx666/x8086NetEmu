@@ -15,6 +15,9 @@
     End Sub
 
     Public Sub Clear() Implements ICollection(Of Adapter).Clear
+        For Each adapter In list
+            adapter.CloseAdapter()
+        Next
         list.Clear()
     End Sub
 
