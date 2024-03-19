@@ -1,5 +1,4 @@
-﻿Imports System.Runtime.CompilerServices
-Imports System.Runtime.InteropServices
+﻿Imports System.Runtime.InteropServices
 
 Partial Public Class X8086
     Public Const MemSize As UInt32 = &H10_0000UI  ' 1MB

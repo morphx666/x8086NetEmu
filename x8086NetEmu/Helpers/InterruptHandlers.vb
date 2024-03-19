@@ -5,12 +5,12 @@ Partial Public Class X8086
     Private lastAH(256 - 1) As UInt16
     Private lastCF(256 - 1) As Byte
 
-    Public Sub HandleHardwareInterrupt(intNum As Byte)
-        HandleInterrupt(intNum, True)
+    Public Sub HandleHardwareInterrupt(intNum As Byte, Optional ignoreHooks As Boolean = False)
+        HandleInterrupt(intNum, True, ignoreHooks)
         mRegisters.IP = IPAddrOffet
     End Sub
 
-    Private Sub HandlePendingInterrupt()
+    Private Sub HandlePendingInterrupt(Optional ignoreHooks As Boolean = False)
         ' Lesson 5 (mRegisters.ActiveSegmentChanged = False)
         ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
 
@@ -27,13 +27,13 @@ Partial Public Class X8086
                     ' https://docs.oracle.com/cd/E19455-01/806-3773/instructionset-130/index.html
                     'mRegisters.IP += 1 ' Is this right???
                 End If
-                HandleHardwareInterrupt(pendingIntNum)
+                HandleHardwareInterrupt(pendingIntNum, ignoreHooks)
             End If
         End If
     End Sub
 
-    Private Sub HandleInterrupt(intNum As Byte, isHard As Boolean)
-        If Not (intHooks.ContainsKey(intNum) AndAlso intHooks(intNum).Invoke()) Then
+    Public Sub HandleInterrupt(intNum As Byte, isHard As Boolean, Optional ignoreHooks As Boolean = False)
+        If Not ((Not ignoreHooks) AndAlso intHooks.ContainsKey(intNum) AndAlso intHooks(intNum).Invoke()) Then
             PushIntoStack(mFlags.EFlags)
             PushIntoStack(mRegisters.CS)
             PushIntoStack(mRegisters.IP + If(isHard, -newPrefixLast, opCodeSize))

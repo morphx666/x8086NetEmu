@@ -4,6 +4,7 @@
 ' The Intel 8086 / 8088/ 80186 / 80286 / 80386 / 80486 Instruction Set: http://zsmith.co/intel.html
 ' http://www.felixcloutier.com/x86/
 ' https://c9x.me/x86/
+' http://www.o3one.org/hwdocs/vga/vga_app.html
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -208,7 +209,8 @@ Public Class X8086
         '                                        │ │ └──────────────────── unused, internal modem (PS/2)
         '                                        └─┴───────────────────── number of printer ports
 
-        If mVideoAdapter IsNot Nothing AndAlso TypeOf mVideoAdapter Is VGAAdapter Then equipmentByte = equipmentByte And &B11111111111001111
+        If mVideoAdapter IsNot Nothing AndAlso
+            TypeOf mVideoAdapter Is VGAAdapter Then equipmentByte = equipmentByte And &B11111111111001111
         If FPU IsNot Nothing Then equipmentByte = equipmentByte Or &B10
         If PPI IsNot Nothing Then PPI.SwitchData = equipmentByte
     End Sub
@@ -225,6 +227,8 @@ Public Class X8086
         'LoadBIN("..\Other Emulators & Resources\award-2.05.rom", &HFE00, &H0)
         'LoadBIN("..\Other Emulators & Resources\phoenix-2.51.rom", &HFE00, &H0)
         'LoadBIN("..\Other Emulators & Resources\PCE - PC Emulator\bin\rom\ibm-pc-1982.rom", &HFE00, &H0)
+        'LoadBIN("C:\Users\XavierFlix\Downloads\MartyPC_win64_0_1_3\roms\GLABIOS_0.2.5_8XC.ROM", &HFE00, &H0)
+        'LoadBIN("C:\Users\XavierFlix\Downloads\MartyPC_win64_0_1_3\roms\GLABIOS_0.2.5_8PC.ROM", &HFE00, &H0)
 
         ' BASIC C1.10
         LoadBIN("roms\basicc11.bin", &HF600, &H0)
@@ -236,7 +240,7 @@ Public Class X8086
         ' Lots of ROMs: http://www.hampa.ch/pce/download.html
 
         ' XT IDE
-        'LoadBIN("roms\ide_xt.bin", &HC800, &H0)
+        'LoadBIN("roms\ide_xt.bin", &HD000, &H0)
     End Sub
 
     Public Sub Close()
@@ -1384,7 +1388,7 @@ Public Class X8086
             Case &HD4 ' AAM I0
                 tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
                 If tmpUVal1 = 0 Then
-                    HandleInterrupt(0, False)
+                    HandleInterrupt(0, True)
                     Exit Select
                 End If
                 mRegisters.AH = mRegisters.AL \ tmpUVal1
@@ -1969,7 +1973,7 @@ Public Class X8086
                 End If
 
                 If div = 0 Then
-                    HandleInterrupt(0, False)
+                    HandleInterrupt(0, True)
                     Exit Select
                 End If
 
@@ -1978,14 +1982,14 @@ Public Class X8086
 
                 If addrMode.Size = DataSize.Byte Then
                     If result > &HFF Then
-                        HandleInterrupt(0, False)
+                        HandleInterrupt(0, True)
                         Exit Select
                     End If
                     mRegisters.AL = result
                     mRegisters.AH = remain
                 Else
                     If result > &HFFFF Then
-                        HandleInterrupt(0, False)
+                        HandleInterrupt(0, True)
                         Exit Select
                     End If
                     mRegisters.AX = result
@@ -2047,7 +2051,7 @@ Public Class X8086
                 End If
 
                 If div = 0 Then
-                    HandleInterrupt(0, False)
+                    HandleInterrupt(0, True)
                     Exit Select
                 End If
 
@@ -2056,13 +2060,13 @@ Public Class X8086
 
                 If signN <> signD Then
                     If result > If(addrMode.Size = DataSize.Byte, &H80, &H8000) Then
-                        HandleInterrupt(0, False)
+                        HandleInterrupt(0, True)
                         Exit Select
                     End If
                     result = (Not result) + 1
                 Else
                     If result > If(addrMode.Size = DataSize.Byte, &H7F, &H7FFF) Then
-                        HandleInterrupt(0, False)
+                        HandleInterrupt(0, True)
                         Exit Select
                     End If
                 End If

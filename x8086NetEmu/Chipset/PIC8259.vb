@@ -51,7 +51,7 @@
     Public Sub New(cpu As X8086, Optional master As PIC8259 = Nothing)
         If master Is Nothing Then
             For i As Integer = &H20 To &H2F
-                ValidPortAddress.Add(i)
+                RegisteredPorts.Add(i)
             Next
 
             'cascadeId = 0
@@ -59,7 +59,7 @@
             'slave(cascadeId).SetMaster(Me, 2)
         Else
             For i As Integer = &H30 To &H3F
-                ValidPortAddress.Add(i)
+                RegisteredPorts.Add(i)
             Next
         End If
 

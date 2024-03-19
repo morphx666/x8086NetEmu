@@ -1,4 +1,5 @@
-﻿Imports System.Runtime.CompilerServices
+﻿Imports System.Net
+Imports System.Security.Cryptography
 
 Public Class VGAWinForms
     Inherits VGAAdapter
@@ -11,7 +12,7 @@ Public Class VGAWinForms
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
     Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
-    Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
+    Private ReadOnly brushCache(cgaPalette.Length - 1) As Color
 
     Private ReadOnly fontSourceMode As FontSources
     Private g As Graphics
@@ -164,7 +165,7 @@ Public Class VGAWinForms
     End Sub
 
     Protected Overrides Sub Render()
-        If VideoEnabled Then
+        If mVideoEnabled Then
             Try
                 SyncLock chars
                     Select Case MainMode
@@ -213,8 +214,8 @@ Public Class VGAWinForms
             For x As Integer = 0 To GraphicsResolution.Width - 1
                 Select Case mVideoMode
                     Case 4, 5
-                        b0 = VideoRAM(((y >> 1) * (mTextResolution.Width << 1)) +
-                                      ((y And 1) * &H2000) + (x >> 2))
+                        b0 = CPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * (mTextResolution.Width << 1)) +
+                                                                     ((y And 1) * &H2000) + (x >> 2))
                         Select Case x And 3
                             Case 3 : b0 = b0 And 3
                             Case 2 : b0 = (b0 >> 2) And 3
@@ -227,21 +228,20 @@ Public Class VGAWinForms
                         Else
                             b0 = (b0 * &H3F) And &HF
                         End If
-                        videoBMP.Pixel(x, y) = CGAPalette(b0)
+                        videoBMP.Pixel(x, y) = cgaPalette(b0)
 
                     Case 6
                         h2 = y >> 1
-                        b0 = VideoRAM(((h2 >> 1) * mTextResolution.Width) + ((h2 And 1) * &H2000) + (x >> 3))
+                        b0 = CPU.Memory(mStartGraphicsVideoAddress + ((h2 >> 1) * mTextResolution.Width) +
+                                                                     ((h2 And 1) * &H2000) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
                         b0 *= 15
-                        videoBMP.Pixel(x, y) = CGAPalette(b0)
-                        videoBMP.Pixel(x, y + 1) = CGAPalette(b0)
+                        videoBMP.Pixel(x, y) = cgaPalette(b0)
+                        videoBMP.Pixel(x, y + 1) = cgaPalette(b0)
 
                     Case &HD
-                        h1 = x
-                        h2 = y
-                        address = h2 * mTextResolution.Width + (h1 >> 3)
-                        h1 = 7 - (h1 And 7)
+                        address = y * mTextResolution.Width + (x >> 3)
+                        h1 = 7 - (x And 7)
                         b0 = (vRAM(address) >> h1) And 1
                         b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b0 = b0 Or ((vRAM(address + &H20000) >> h1) And 1) << 2
@@ -249,6 +249,17 @@ Public Class VGAWinForms
                         videoBMP.Pixel(x, y) = vgaPalette(b0)
 
                     Case &HE
+                        h1 = x >> 1
+                        h2 = y >> 1
+                        address = h2 * (mTextResolution.Width << 1) + (h1 >> 3)
+                        h1 = 7 - (h1 And 7)
+                        b0 = (vRAM(address) >> h1) And 1
+                        b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1
+                        b0 = b0 Or ((vRAM(address + &H20000) >> h1) And 1) << 2
+                        b0 = b0 Or ((vRAM(address + &H30000) >> h1) And 1) << 3
+                        videoBMP.Pixel(x, y) = vgaPalette(b0)
+
+                    Case &HF
                         h1 = x >> 1
                         h2 = y >> 1
                         address = h2 * (mTextResolution.Width << 1) + (h1 >> 3)
@@ -279,11 +290,11 @@ Public Class VGAWinForms
 
                     Case &H13
                         ' This "fixes" PETSCII Robots
-                        'CPU.RAM8(CPU.Registers.SS, &H1151) = 0
-                        'CPU.RAM8(CPU.Registers.SS, &H1153) = 0
+                        CPU.RAM8(CPU.Registers.SS, &H1151) = 0
+                        CPU.RAM8(CPU.Registers.SS, &H1153) = 0
 
                         Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
-                        Dim vgaPage As UInt32 = (CUInt(VGA_SC(&HC)) << 8) + VGA_CRTC(&HD)
+                        Dim vgaPage As UInt32 = CUInt(VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
                         If planeMode Then
                             address = y * mVideoResolution.Width + x
                             address = (address >> 2) + (x And 3) * &H10000
@@ -297,7 +308,7 @@ Public Class VGAWinForms
                     Case 127
                         b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y And 3) << 13) + ((y >> 2) * 90) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
-                        videoBMP.Pixel(x, y) = CGAPalette(b0)
+                        videoBMP.Pixel(x, y) = cgaPalette(b0)
 
                     Case Else
                         b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> xDiv))
@@ -311,7 +322,7 @@ Public Class VGAWinForms
                         Else
                             b0 = (b0 >> (7 - (x And 7))) And 1
                         End If
-                        videoBMP.Pixel(x, y) = CGAPalette(b0)
+                        videoBMP.Pixel(x, y) = cgaPalette(b0)
 
                 End Select
             Next
@@ -322,68 +333,72 @@ Public Class VGAWinForms
         Dim b0 As Byte
         Dim b1 As Byte
 
-        Dim col As Integer = 0
-        Dim row As Integer = 0
-
         Dim r As New Rectangle(Point.Empty, CellSize)
 
         Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
         Dim intensity As Boolean = (portRAM(&H3D8) And &H80) <> 0
         Dim mode As Boolean = (portRAM(&H3D8) = 9) AndAlso (portRAM(&H3D4) = 9)
 
-        ' FIXME: Dummy workaround to support the cursor; Haven't found a better way yet...
-        mCursorCol = mCPU.Memory(&H450)
-        mCursorRow = mCPU.Memory(&H451)
-        'mCursorVisible = True
+        If mVideoMode = 7 OrElse mVideoMode = 127 Then
+            ' FIXME: Dummy workaround to support the cursor; Haven't found a better way yet...
+            mCursorCol = mCPU.Memory(&H450)
+            mCursorRow = mCPU.Memory(&H451)
 
-        For address As Integer = mStartTextVideoAddress To mEndTextVideoAddress - 2 Step 2
-            If mode Then ' TODO: vgaPage mode not implemented
-                Stop
-            End If
+            mCursorStart = mCPU.Memory(&H461) And &B0001_1111
+            mCursorEnd = mCPU.Memory(&H460) And &B0001_1111
 
-            b0 = CPU.Memory(address)
-            b1 = CPU.Memory(address + 1)
-            ' http://www.osdever.net/FreeVGA/vga/attrreg.htm
-            If False AndAlso ((VGA_ATTR(&H10) And &B0000_1000) <> 0) AndAlso (b1 And &B1000_0000) <> 0 Then ' FIXME: This doesn't work
-                If blinkCounter < BlinkRate Then b0 = 0
-            Else
-                If mVideoMode = 7 OrElse mVideoMode = 127 Then
-                    If (b1 And &H70) <> 0 Then
-                        b1 = If(b0 = 0, 7, 0)
+            mCursorVisible = True
+        End If
+
+        Dim address As UInt32
+        For y = 0 To mTextResolution.Height - 1
+            For x = 0 To mTextResolution.Width - 1
+                address = mStartTextVideoAddress + (y * mTextResolution.Width + x) * 2
+
+                If mode Then ' TODO: vgaPage mode not implemented
+                    Stop
+                Else
+                    b0 = CPU.Memory(address)
+                    b1 = CPU.Memory(address + 1)
+                End If
+
+                ' http://www.osdever.net/FreeVGA/vga/attrreg.htm
+                ' FIXME: This doesn't work
+                'If ((VGA_ATTR(&H10) And &B0000_1000) <> 0) AndAlso (b1 And &B1000_0000) <> 0 Then 
+                '    If blinkCounter < BlinkRate Then b0 = 0
+                'End If
+
+                ' Force B&W
+                'If mVideoMode = 7 OrElse mVideoMode = 127 Then
+                '    If (b1 And &H70) <> 0 Then
+                '        b1 = If(b0 = 0, 7, 0)
+                '    Else
+                '        b1 = If(b0 = 0, 0, 7)
+                '    End If
+                'End If
+
+                r.X = x * CellSize.Width
+                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
+                cursorAddress.Remove(address)
+
+                If mCursorVisible AndAlso y = mCursorRow AndAlso x = mCursorCol Then
+                    If blinkCounter < mBlinkRate Then
+                        videoBMP.FillRectangle(brushCache(b1.LowNib()),
+                                               r.X + 0, r.Y - 1 + mCellSize.Height - (mCursorEnd - mCursorStart) - 1,
+                                               mCellSize.Width, mCursorEnd - mCursorStart + 1)
+                        cursorAddress.Add(address)
+                    End If
+
+                    If blinkCounter >= 2 * mBlinkRate Then
+                        blinkCounter = 0
                     Else
-                        b1 = If(b0 = 0, 0, 7)
+                        blinkCounter += 1
                     End If
                 End If
-            End If
+            Next
 
-            RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
-            cursorAddress.Remove(address)
-
-            If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
-                If blinkCounter < BlinkRate Then
-                    videoBMP.FillRectangle(brushCache(b1.LowNib()),
-                                           r.X + 0, r.Y - 1 + CellSize.Height - (CursorEnd - CursorStart) - 1,
-                                           CellSize.Width, CursorEnd - CursorStart + 1)
-                    cursorAddress.Add(address)
-                End If
-
-                If blinkCounter >= 2 * BlinkRate Then
-                    blinkCounter = 0
-                Else
-                    blinkCounter += 1
-                End If
-            End If
-
-            r.X += CellSize.Width
-            col += 1
-            If col = TextResolution.Width Then
-                col = 0
-                row += 1
-                If row = TextResolution.Height Then Exit For
-
-                r.X = 0
-                r.Y += CellSize.Height
-            End If
+            r.X = 0
+            r.Y += mCellSize.Height
         Next
     End Sub
 
@@ -425,8 +440,8 @@ Public Class VGAWinForms
         MyBase.OnPaletteRegisterChanged()
 
         If brushCache IsNot Nothing Then
-            For i As Integer = 0 To CGAPalette.Length - 1
-                brushCache(i) = CGAPalette(i)
+            For i As Integer = 0 To cgaPalette.Length - 1
+                brushCache(i) = cgaPalette(i)
             Next
         End If
     End Sub

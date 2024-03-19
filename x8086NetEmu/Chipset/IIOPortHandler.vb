@@ -1,5 +1,5 @@
 ﻿Public Interface IIOPortHandler
-    ReadOnly Property ValidPortAddress As List(Of UInt32)
+    ReadOnly Property RegisteredPorts As List(Of UInt32)
 
     Sub Out(port As UInt16, value As Byte)
     Function [In](port As UInt16) As Byte

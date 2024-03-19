@@ -2,16 +2,15 @@
 Public MustInherit Class IOPortHandler
     Implements IInterruptController, IIOPortHandler
 
-    Private mEmulator As X8086
-    Private mValidPortAddresses As List(Of UInt32)
+    Private mRegisteredPorts As List(Of UInt32)
 
     Public Sub New()
-        mValidPortAddresses = New List(Of UInt32)
+        mRegisteredPorts = New List(Of UInt32)
     End Sub
 
-    Public ReadOnly Property ValidPortAddress As List(Of UInt32) Implements IIOPortHandler.ValidPortAddress
+    Public ReadOnly Property RegisteredPorts As List(Of UInt32) Implements IIOPortHandler.RegisteredPorts
         Get
-            Return mValidPortAddresses
+            Return mRegisteredPorts
         End Get
     End Property
 

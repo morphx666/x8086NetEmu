@@ -46,7 +46,7 @@
 
     Public Sub New(cpu As X8086, irq As InterruptRequest)
         For i As Integer = &H60 To &H6F
-            ValidPortAddress.Add(i)
+            RegisteredPorts.Add(i)
         Next
 
         'PPISystemControl = x8086.WordToBitsArray(&HA5, PPISystemControl.Length)

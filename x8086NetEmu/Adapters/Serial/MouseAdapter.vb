@@ -22,7 +22,7 @@
         If MyBase.CPU.PIC IsNot Nothing Then irq = MyBase.CPU.PIC.GetIrqLine(4)
 
         For i As UInt32 = &H3F8 To &H3F8 + 7
-            ValidPortAddress.Add(i)
+            RegisteredPorts.Add(i)
         Next
     End Sub
 

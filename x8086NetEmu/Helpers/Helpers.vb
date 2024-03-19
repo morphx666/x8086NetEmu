@@ -184,7 +184,7 @@
             Exit Sub
         Else
             For Each p As IOPortHandler In mPorts
-                If p.ValidPortAddress.Contains(portAddress) Then
+                If p.RegisteredPorts.Contains(portAddress) Then
                     p.Out(portAddress, value)
                     'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
                     portsCache.Add(portAddress, p)
@@ -193,7 +193,7 @@
             Next
 
             For Each a As Adapter In mAdapters
-                If a.ValidPortAddress.Contains(portAddress) Then
+                If a.RegisteredPorts.Contains(portAddress) Then
                     a.Out(portAddress, value)
                     'X8086.Notify(String.Format("Write {0} to Port {1} on Adapter '{2}'", value.ToString("X2"), portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
                     portsCache.Add(portAddress, a)
@@ -213,7 +213,7 @@
             Return portsCache(portAddress).In(portAddress)
         Else
             For Each p As IOPortHandler In mPorts
-                If p.ValidPortAddress.Contains(portAddress) Then
+                If p.RegisteredPorts.Contains(portAddress) Then
                     'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), p.Name), NotificationReasons.Info)
                     portsCache.Add(portAddress, p)
                     Return p.In(portAddress)
@@ -221,7 +221,7 @@
             Next
 
             For Each a As Adapter In mAdapters
-                If a.ValidPortAddress.Contains(portAddress) Then
+                If a.RegisteredPorts.Contains(portAddress) Then
                     'X8086.Notify(String.Format("Read From Port {0} on Adapter '{1}'", portAddress.ToString("X4"), a.Name), NotificationReasons.Info)
                     portsCache.Add(portAddress, a)
                     Return a.In(portAddress)

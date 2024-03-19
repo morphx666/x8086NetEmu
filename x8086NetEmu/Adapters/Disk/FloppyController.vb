@@ -132,7 +132,7 @@ Public Class FloppyControllerAdapter
         ctlNonDma = False
 
         For i As UInt32 = &H3F0 To &H3F7
-            ValidPortAddress.Add(i)
+            RegisteredPorts.Add(i)
         Next
     End Sub
 

@@ -1,4 +1,5 @@
 ﻿Imports System.Threading
+Imports System.Threading.Tasks
 
 Public MustInherit Class CGAAdapter
     Inherits VideoAdapter
@@ -51,7 +52,7 @@ Public MustInherit Class CGAAdapter
 
     ' http://www.htl-steyr.ac.at/~morg/pcinfo/hardware/interrupts/inte6l9s.htm
 
-    Protected CGAPalette(16 - 1) As Color
+    Protected cgaPalette(16 - 1) As Color
 
     Protected Friend Enum CGAModeControlRegisters
         blink_enabled = 5
@@ -141,9 +142,9 @@ Public MustInherit Class CGAAdapter
         If enableWebUI Then wui = New WebUI(cpu, videoBMP, chars)
 
         For i As UInt32 = &H3D0 To &H3DF ' CGA
-            ValidPortAddress.Add(i)
+            RegisteredPorts.Add(i)
         Next
-        ValidPortAddress.Add(&H3B8)
+        RegisteredPorts.Add(&H3B8)
 
         For i As Integer = 0 To 255
             If i >= 32 AndAlso i < 255 Then
@@ -154,10 +155,35 @@ Public MustInherit Class CGAAdapter
         Next
 
         Reset()
-
-        'VideoMode = VideoModes.Mode7_Text_BW_80x25
-
         UpdateClock()
+
+        'Task.Run(Sub()
+        '             Dim lastScanLineTick As Long = Now.Ticks
+        '             Dim scanLineTiming As Long = (Scheduler.HOSTCLOCK / 31500) / 1_000_000 ' 31.5KHz
+        '             Dim curScanLine As Integer = 0
+
+        '             While True
+        '                 Dim curTick As Long = Now.Ticks
+
+        '                 If curTick >= (lastScanLineTick + scanLineTiming) Then
+
+        '                     'Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
+        '                     'Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
+
+        '                     curScanLine = (curScanLine + 1) Mod 525
+        '                     If curScanLine > 479 Then
+        '                         CGAStatusRegister(CGAStatusRegisters.display_enable) = True
+        '                         CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = True
+        '                     Else
+        '                         CGAStatusRegister(CGAStatusRegisters.display_enable) = False
+        '                         CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = False
+        '                     End If
+        '                     If (curScanLine And 1) <> 0 Then CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = True
+
+        '                     lastScanLineTick = curTick
+        '                 End If
+        '             End While
+        '         End Sub)
     End Sub
 
     Public Overrides Sub UpdateClock()
@@ -467,8 +493,8 @@ Public MustInherit Class CGAAdapter
             End If
         End If
 
-        mCursorStart = CRT6845DataRegister(&HA) And &B11111
-        mCursorEnd = CRT6845DataRegister(&HB) And &B11111
+        mCursorStart = CRT6845DataRegister(&HA) And &B0001_1111
+        mCursorEnd = CRT6845DataRegister(&HB) And &B0001_1111
 
         mBlinkCharOn = CGAModeControlRegister(CGAModeControlRegisters.blink_enabled)
     End Sub
@@ -485,7 +511,7 @@ Public MustInherit Class CGAAdapter
 
     Protected Overridable Sub OnPaletteRegisterChanged()
         If MainMode = MainModes.Text Then
-            CGAPalette = CType(CGABasePalette.Clone(), Color())
+            cgaPalette = CType(CGABasePalette.Clone(), Color())
         Else
             Dim colors() As Color = Nothing
             Dim cgaModeReg As UInt32 = CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
@@ -512,15 +538,15 @@ Public MustInherit Class CGAAdapter
 
             If colors IsNot Nothing Then
                 For i As Integer = 0 To colors.Length - 1
-                    CGAPalette(i) = colors(i)
+                    cgaPalette(i) = colors(i)
                 Next
             End If
         End If
     End Sub
 
     Private Sub UpdateStatusRegister()
-        ' Determine current retrace state
-        Dim t As Long = MyBase.CPU.Sched.CurrentTime
+        Dim t As Long = CPU.Sched.CurrentTime
+
         Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
         Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
 

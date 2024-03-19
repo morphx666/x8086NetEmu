@@ -43,11 +43,6 @@ Public Class FormEmulator
 
     Private runningApp As String
 
-    Private Sub FormEmulator_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
-        SaveSettings()
-        StopEmulation()
-    End Sub
-
     Private Sub FormEmulator_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.BackColor = Color.Black
 
@@ -64,6 +59,60 @@ Public Class FormEmulator
 
         SetupEventHandlers()
         SetTitleText()
+    End Sub
+
+    Private Sub StartEmulation()
+        cpu = New X8086(v20Emulation,
+                        int13Emulation,
+                        Sub()
+                            SaveSettings()
+                            StartEmulation()
+                        End Sub,
+                        X8086.Models.IBMPC_5160)
+
+        cpuState = New EmulatorState(cpu)
+
+        If videoPort IsNot Nothing Then
+            Me.Controls.Remove(videoPort)
+            videoPort.Dispose()
+        End If
+
+        videoPort = New RenderCtrlGDI() With {.Dock = DockStyle.Fill}
+        Me.Controls.Add(videoPort)
+        videoPort.Focus()
+
+        cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
+
+        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
+        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
+
+        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
+        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
+
+        cpu.Adapters.Add(New KeyboardAdapter(cpu))
+        cpu.Adapters.Add(New MouseAdapter(cpu))
+
+#If Win32 Then
+        cpu.Adapters.Add(New SpeakerAdpater(cpu))
+        cpu.Adapters.Add(New AdlibAdapter(cpu))
+        'cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
+#End If
+
+#If DEBUG Then
+        X8086.LogToConsole = False
+#Else
+        X8086.LogToConsole = False
+#End If
+
+        'cpu.LoadBIN("80186_tests\segpr.bin", &HF000, &H0)
+        'cpu.Run(True, &HF000, 0)
+        cpu.Run(False)
+        If cpu.DebugMode Then ShowDebugger()
+
+        SetupVideoPortEventHandlers()
+        SetupCpuEventHandlers()
+        AddCustomHooks()
+        LoadSettings(True)
     End Sub
 
     Private Sub SetupEventHandlers()
@@ -242,57 +291,6 @@ Public Class FormEmulator
             cpu.Close()
             cpu = Nothing
         End If
-    End Sub
-
-    Private Sub StartEmulation()
-        cpu = New X8086(v20Emulation, int13Emulation, Sub()
-                                                          SaveSettings()
-                                                          StartEmulation()
-                                                      End Sub,
-                        X8086.Models.IBMPC_5160)
-        cpuState = New EmulatorState(cpu)
-
-        If videoPort IsNot Nothing Then
-            Me.Controls.Remove(videoPort)
-            videoPort.Dispose()
-        End If
-
-        videoPort = New RenderCtrlGDI() With {.Dock = DockStyle.Fill}
-        Me.Controls.Add(videoPort)
-        videoPort.Focus()
-
-        cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
-
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
-
-        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
-
-        cpu.Adapters.Add(New KeyboardAdapter(cpu))
-        cpu.Adapters.Add(New MouseAdapter(cpu))
-
-#If Win32 Then
-        cpu.Adapters.Add(New SpeakerAdpater(cpu))
-        cpu.Adapters.Add(New AdlibAdapter(cpu))
-        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
-#End If
-
-#If DEBUG Then
-        X8086.LogToConsole = False
-#Else
-        X8086.LogToConsole = False
-#End If
-
-        'cpu.LoadBIN("80186_tests\segpr.bin", &HF000, &H0)
-        'cpu.Run(True, &HF000, 0)
-        cpu.Run(False)
-        If cpu.DebugMode Then ShowDebugger()
-
-        SetupVideoPortEventHandlers()
-        SetupCpuEventHandlers()
-        AddCustomHooks()
-        LoadSettings(True)
     End Sub
 
     ' Code demonstration on how to attach custom hooks
@@ -959,6 +957,11 @@ Public Class FormEmulator
             End If
         Next
         Exit Sub
+    End Sub
+
+    Private Sub FormEmulator_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        SaveSettings()
+        StopEmulation()
     End Sub
 End Class
 

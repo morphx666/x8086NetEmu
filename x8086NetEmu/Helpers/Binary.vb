@@ -43,41 +43,43 @@
 
     Public Shared Function TryParse(value As String, ByRef result As Long) As Boolean
         Try
-            Select Case value.Last()
-                Case "d"
-                    result = Long.Parse(value.TrimEnd("d"))
-                    Return True
-                Case "h"
-                    result = Convert.ToInt32(value.TrimEnd("h"), 16)
-                    Return True
-                Case "b"
-                    result = Convert.ToInt32(value.TrimEnd("b"), 2)
-                    Return True
-                Case "o"
-                    result = Convert.ToInt32(value.TrimEnd("o"), 8)
-                    Return True
-                Case Else
-                    Dim base As Integer = 2
-                    For Each c As Char In value
-                        If c <> "0" AndAlso c <> "1" Then
-                            If c >= "A" AndAlso c <= "F" Then
-                                base = 16
-                            ElseIf c < "0" OrElse c > "F" Then
-                                base = -1
-                                Exit For
-                            ElseIf base <> 16 Then
-                                base = 10
-                            End If
-                        End If
-                    Next
-
-                    If base = -1 Then
-                        Return False
-                    Else
-                        result = Convert.ToInt32(value, base)
+            If value.Length > 1 Then
+                Select Case value.Last()
+                    Case "d"
+                        result = Long.Parse(value.TrimEnd("d"))
                         Return True
+                    Case "h"
+                        result = Convert.ToInt32(value.TrimEnd("h"), 16)
+                        Return True
+                    Case "b"
+                        result = Convert.ToInt32(value.TrimEnd("b"), 2)
+                        Return True
+                    Case "o"
+                        result = Convert.ToInt32(value.TrimEnd("o"), 8)
+                        Return True
+                End Select
+            End If
+
+            Dim base As Integer = 2
+            For Each c As Char In value
+                If c <> "0" AndAlso c <> "1" Then
+                    If c >= "A" AndAlso c <= "F" Then
+                        base = 16
+                    ElseIf c < "0" OrElse c > "F" Then
+                        base = -1
+                        Exit For
+                    ElseIf base <> 16 Then
+                        base = 10
                     End If
-            End Select
+                End If
+            Next
+
+            If base = -1 Then
+                Return False
+            Else
+                result = Convert.ToInt32(value, base)
+                Return True
+            End If
         Catch
             Return False
         End Try

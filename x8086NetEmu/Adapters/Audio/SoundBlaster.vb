@@ -57,7 +57,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         blaster.Dma = dmaChannel
 
         For i As UInt32 = port To port + &HE
-            ValidPortAddress.Add(i)
+            RegisteredPorts.Add(i)
         Next
     End Sub
 

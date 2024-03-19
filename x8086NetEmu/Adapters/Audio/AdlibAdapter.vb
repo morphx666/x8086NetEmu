@@ -91,8 +91,8 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             ReDim Opl(i)(2 - 1)
         Next
 
-        ValidPortAddress.Add(&H388)
-        ValidPortAddress.Add(&H389)
+        RegisteredPorts.Add(&H388)
+        RegisteredPorts.Add(&H389)
 
         ReDim Preserve attackTable(16 - 1)
         ReDim Preserve decayTable(16 - 1)

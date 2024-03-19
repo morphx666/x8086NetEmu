@@ -41,12 +41,6 @@
     'Public MustOverride ReadOnly Property Description As String Implements IIOPortHandler.Description
     'Public MustOverride ReadOnly Property Name As String Implements IIOPortHandler.Name
 
-    Public Overloads ReadOnly Property ValidPortAddress As List(Of UInt32)
-        Get
-            Return MyBase.ValidPortAddress
-        End Get
-    End Property
-
     Public MustOverride Overrides ReadOnly Property Description As String
     Public MustOverride Overrides Function [In](port As UInt16) As Byte
     Public MustOverride Overrides Sub Out(port As UInt16, value As Byte)

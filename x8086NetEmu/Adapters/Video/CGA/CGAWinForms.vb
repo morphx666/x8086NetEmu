@@ -10,7 +10,7 @@ Public Class CGAWinForms
     Private blinkCounter As Integer
     Private frameRate As Integer = 30
 
-    Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
+    Private ReadOnly brushCache(cgaPalette.Length - 1) As Color
 
     Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
@@ -196,8 +196,8 @@ Public Class CGAWinForms
         MyBase.OnPaletteRegisterChanged()
 
         If brushCache IsNot Nothing Then
-            For i As Integer = 0 To CGAPalette.Length - 1
-                brushCache(i) = CGAPalette(i)
+            For i As Integer = 0 To cgaPalette.Length - 1
+                brushCache(i) = cgaPalette(i)
             Next
 
             charsCache.Clear()
@@ -283,7 +283,7 @@ Public Class CGAWinForms
                     b = (b >> (7 - (x And 7))) And 1
                 End If
 
-                videoBMP.Pixel(x, y) = CGAPalette(b)
+                videoBMP.Pixel(x, y) = cgaPalette(b)
             Next
         Next
     End Sub

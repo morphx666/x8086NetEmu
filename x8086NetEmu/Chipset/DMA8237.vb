@@ -124,8 +124,8 @@
         ch0NextTrigger = -1
 
         For i As Integer = &H0 To &HF
-            ValidPortAddress.Add(i)
-            ValidPortAddress.Add(&H80 Or i)
+            RegisteredPorts.Add(i)
+            RegisteredPorts.Add(&H80 Or i)
         Next
     End Sub
 

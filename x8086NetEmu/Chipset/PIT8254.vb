@@ -569,7 +569,7 @@
         mChannels(1).Gate = True
 
         For i As Integer = &H40 To &H43
-            ValidPortAddress.Add(i)
+            RegisteredPorts.Add(i)
         Next
 
         UpdateClock()

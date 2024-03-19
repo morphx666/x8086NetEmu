@@ -44,11 +44,11 @@
         Me.irq = irq
 
         For i As Integer = &H70 To &H71
-            ValidPortAddress.Add(i)
+            RegisteredPorts.Add(i)
         Next
 
         For i As Integer = &H240 To &H24F
-            ValidPortAddress.Add(i)
+            RegisteredPorts.Add(i)
         Next
 
         ' FIXME: Although this works, when pausing the emulation causes the internal timers to get out of sync:
