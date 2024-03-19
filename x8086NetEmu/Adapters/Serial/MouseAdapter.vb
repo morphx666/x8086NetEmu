@@ -46,9 +46,9 @@
             Case &H3FD ' Line Status Register - LSR
                 tmp = If(sm.bufPtr > 0, 1, 0)
 
-                Return tmp
+                'Return tmp
                 'Return &H60 Or tmp
-                'Return &H1
+                Return &H1
         End Select
 
         Return sm.reg(port And 7)
@@ -84,19 +84,23 @@
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         Dim m As MouseEventArgs = CType(e.Event, MouseEventArgs)
-        Dim p As New Point(m.X - MidPointOffset.X, (m.Y - MidPointOffset.Y) / 1.2)
+
+        Dim x As Integer = m.X - MidPointOffset.X
+        Dim y As Integer = m.Y - MidPointOffset.Y
+        x = Math.Max(Math.Min(x, 2), -2)
+        y = Math.Max(Math.Min(y, 2), -2)
 
         Dim highBits As Byte = 0
-        If p.X < 0 Then highBits = &B11
-        If p.Y < 0 Then highBits = highBits Or &B1100
+        If x < 0 Then highBits = &B11
+        If y < 0 Then highBits = highBits Or &B1100
 
         Dim btns As Byte = 0
         If (m.Button And MouseButtons.Left) = MouseButtons.Left Then btns = btns Or 2
         If (m.Button And MouseButtons.Right) = MouseButtons.Right Then btns = btns Or 1
 
         BufSerMouseData(&H40 Or (btns << 4) Or highBits)
-        BufSerMouseData(p.X And &H3F)
-        BufSerMouseData(p.Y And &H3F)
+        BufSerMouseData(x And &H3F)
+        BufSerMouseData(y And &H3F)
     End Sub
 
     Public Overrides Sub CloseAdapter()

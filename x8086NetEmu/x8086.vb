@@ -1201,7 +1201,7 @@ Public Class X8086
                 clkCyc += 4
 
             Case &H9C ' PUSHF
-                PushIntoStack(mFlags.EFlags)
+                PushIntoStack(If(mModel = Models.IBMPC_5150, &HFFF, &HFFFF) And mFlags.EFlags)
                 clkCyc += 10
 
             Case &H9D ' POPF
@@ -1722,7 +1722,7 @@ Public Class X8086
         End Select
 
         ' 80186/V20 class CPUs limit shift count to 31 (&H1F)
-        If mV20 Then count = count And &H3F '&H1F
+        If mV20 Then count = count And &H1F
         If count = 0 Then Exit Sub
         clkCyc += 4 * count
 

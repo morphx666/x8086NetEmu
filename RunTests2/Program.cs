@@ -19,7 +19,7 @@ namespace RunTests2 {
         public static void Main(string[] args) {
             Test currentTest = null;
 
-            cpu = new X8086(false, false, null, X8086.Models.IBMPC_5150);
+            cpu = new X8086(false, false, null, X8086.Models.IBMPC_5160);
             cpu.Adapters.Clear();
             cpu.Ports.Clear();
 
@@ -27,7 +27,7 @@ namespace RunTests2 {
             string[] skipOpCodes = {"0F",                             // POP CS
                                                                       
                                                                       // These opcodes seem to have bugs
-                                   "F6.7", "F7.7",                    // IDIV (Group 3)
+                                   "-F6.7", "-F7.7",                  // IDIV (Group 3)
                                                                       
                                                                       // We do not support these opcodes
                                    "60", "61", "62", "63", "64",      // JO, JNO, JB, JNB, JZ
@@ -38,6 +38,7 @@ namespace RunTests2 {
 
             string[] ignoreFlags = {                                  // (Group 3)
                                     "F6.4", "F6.5", "F6.6",           // MUL, IMUL, DIV
+                                    "F6.7", "F7.7",                   // IDIV
 
                                                                       // (Group 2)
                                     "D2.0", "D2.1", "D2.2", "D2.3",   // ROL, ROR, RCL, RCR

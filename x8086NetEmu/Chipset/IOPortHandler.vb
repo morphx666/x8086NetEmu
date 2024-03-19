@@ -25,10 +25,10 @@ Public MustInherit Class IOPortHandler
         Return -1
     End Function
 
-    Public Overridable Function Read(address As UInt32) As UInt16
+    Public Overridable Function Read(address As UInt32) As Byte
         Return 0
     End Function
 
-    Public Overridable Sub Write(address As UInt32, value As UInt16)
+    Public Overridable Sub Write(address As UInt32, value As Byte)
     End Sub
 End Class
