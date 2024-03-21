@@ -200,8 +200,8 @@ Public Class VGAWinForms
     Private Sub RenderGraphics()
         Dim b0 As UInt32
         Dim b1 As UInt32
-        Dim usePal As Integer = (portRAM(&H3D9) >> 5) And 1
-        Dim intensity As Integer = ((portRAM(&H3D9) >> 4) And 1) << 3
+        Dim usePal As Integer = If(mVideoMode = 5, 1, (portRAM(&H3D9) >> 5) And 1)
+        Dim intensity As Integer = If(mVideoMode = 5, 8, ((portRAM(&H3D9) >> 4) And 1) << 3)
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
 
         Dim address As UInt32
@@ -222,13 +222,9 @@ Public Class VGAWinForms
                             Case 1 : b0 = (b0 >> 4) And 3
                             Case 0 : b0 = (b0 >> 6) And 3
                         End Select
-                        If mVideoMode = 4 Then
-                            b0 = b0 * 2 + usePal + intensity
-                            If b0 = (usePal + intensity) Then b0 = 0
-                        Else
-                            b0 = (b0 * &H3F) And &HF
-                        End If
-                        videoBMP.Pixel(x, y) = cgaPalette(b0)
+                        b0 = b0 * 2 + usePal + intensity
+                        If b0 = (usePal + intensity) Then b0 = 0
+                        videoBMP.Pixel(x, y) = cgaPalette(b0 And &HF)
 
                     Case 6
                         h2 = y >> 1
@@ -437,7 +433,11 @@ Public Class VGAWinForms
     End Property
 
     Protected Overrides Sub OnPaletteRegisterChanged()
+        Dim vm As Integer = mVideoMode
+
+        If vm = 5 Then mVideoMode = 6
         MyBase.OnPaletteRegisterChanged()
+        mVideoMode = vm
 
         If brushCache IsNot Nothing Then
             For i As Integer = 0 To cgaPalette.Length - 1

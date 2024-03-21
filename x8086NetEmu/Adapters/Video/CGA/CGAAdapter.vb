@@ -517,11 +517,13 @@ Public MustInherit Class CGAAdapter
             Dim cgaModeReg As UInt32 = CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
             Dim cgaColorReg As UInt32 = CGAAdapter.BitsArrayToWord(CGAPaletteRegister)
 
-            Select Case VideoMode
-                Case VideoModes.Mode4_Graphic_Color_320x200
+            Select Case mVideoMode
+                Case VideoModes.Mode4_Graphic_Color_320x200, VideoModes.Mode5_Graphic_BW_320x200
                     Dim intense As Integer = (cgaColorReg And &H10) >> 1
                     Dim pal1 As Integer = (cgaColorReg >> 5) And (Not cgaModeReg >> 2) And 1
                     Dim pal2 As Integer = ((Not cgaColorReg) >> 5) And (Not cgaModeReg >> 2) And 1
+
+                    If mVideoMode = VideoModes.Mode5_Graphic_BW_320x200 Then pal1 = 1
 
                     colors = New Color() {
                             CGABasePalette(cgaColorReg And &HF),

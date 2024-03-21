@@ -952,7 +952,7 @@ Public MustInherit Class VGAAdapter
                 flip3C0 = Not flip3C0
 
             Case &H3C4 ' Sequence controller index
-                portRAM(&H3C4) = value 'Mod 4
+                portRAM(&H3C4) = value Mod 4 ' FIXME: Fugly hack that fixes many things
 
             Case &H3C5 ' Sequence controller data
                 VGA_SC(portRAM(&H3C4)) = value
@@ -985,7 +985,7 @@ Public MustInherit Class VGAAdapter
                 latchWriteRGB = (latchWriteRGB + 1) Mod 3
 
             Case &H3B4, &H3D4 ' CRT Controller index register
-                portRAM(&H3D4) = value
+                portRAM(&H3D4) = value Mod &H18
 
             Case &H3B5, &H3D5 ' CRT Controller data register
                 'If VGA_CRTC(&H11) And &B1000_0000 Then
@@ -1003,7 +1003,7 @@ Public MustInherit Class VGAAdapter
             '    portRAM(&H3DA) = value Or (portRAM(&H3DA) And &B0000_1001)
 
             Case &H3CE ' Graphics Registers index
-                portRAM(&H3CE) = value Mod 8
+                portRAM(&H3CE) = value Mod 8 ' FIXME: Fugly hack that fixes many things
 
             Case &H3CF ' Graphics Registers
                 VGA_GC(portRAM(&H3CE)) = value
