@@ -129,32 +129,35 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         waveOut.Init(audioProvider)
         waveOut.Play()
 
-        Dim unused = Task.Run(action:=Async Sub()
-                                          Dim maxTicks As Long = Scheduler.HOSTCLOCK / SpeakerAdpater.SampleRate
-                                          Dim curTick As Long
-                                          Dim lastTick As Long
+        Task.Run(action:=Async Sub()
+                             Dim maxTicks As Long = (Scheduler.HOSTCLOCK / SpeakerAdpater.SampleRate) / 100
+                             Dim curTick As Long
+                             Dim lastTick As Long
 
-                                          Do
-                                              curTick = CPU.Sched.CurrentTime
+                             Do
+                                 curTick = Now.Ticks
 
-                                              If curTick >= (lastTick + maxTicks) Then
-                                                  lastTick = curTick - (curTick - (lastTick + maxTicks))
+                                 If curTick >= (lastTick + maxTicks) Then
+                                     TickAdLib()
+                                     lastTick = curTick - (curTick - (lastTick + maxTicks))
+                                 End If
 
-                                                  For currentChannel As Byte = 0 To 9 - 1
-                                                      If Frequency(currentChannel) <> 0 Then
-                                                          If attack2(currentChannel) Then
-                                                              envelope(currentChannel) *= decay(currentChannel)
-                                                          Else
-                                                              envelope(currentChannel) *= attack(currentChannel)
-                                                              If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
-                                                          End If
-                                                      End If
-                                                  Next
-                                              End If
+                                 Await Task.Delay(1)
+                             Loop While waveOut.PlaybackState = PlaybackState.Playing
+                         End Sub)
+    End Sub
 
-                                              Await Task.Delay(5)
-                                          Loop While waveOut.PlaybackState = PlaybackState.Playing
-                                      End Sub)
+    Private Sub TickAdLib()
+        For currentChannel As Byte = 0 To 9 - 1
+            If Frequency(currentChannel) <> 0 Then
+                If attack2(currentChannel) Then
+                    envelope(currentChannel) *= decay(currentChannel)
+                Else
+                    envelope(currentChannel) *= attack(currentChannel)
+                    If envelope(currentChannel) >= 1.0 Then attack2(currentChannel) = True
+                End If
+            End If
+        Next
     End Sub
 
     Private Sub FillAudioBuffer(buffer() As Byte)

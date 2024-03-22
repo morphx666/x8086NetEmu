@@ -119,20 +119,12 @@ Public Class SpeakerAdpater
             currentStep += 1
             If currentStep >= waveLength Then currentStep = 0
         Next
-
-        'mAudioBuffer = buffer
     End Sub
 
     Public Overrides Sub CloseAdapter()
         If waveOut.PlaybackState = PlaybackState.Playing Then waveOut.Stop()
         waveOut.Dispose()
     End Sub
-
-    Public Overrides ReadOnly Property Description As String
-        Get
-            Return "PC Speaker"
-        End Get
-    End Property
 
     Public Overrides Sub InitiAdapter()
         waveOut = New WaveOut() With {
@@ -190,6 +182,12 @@ Public Class SpeakerAdpater
     Public Overrides ReadOnly Property VersionRevision As Integer
         Get
             Return 1
+        End Get
+    End Property
+
+    Public Overrides ReadOnly Property Description As String
+        Get
+            Return "PC Speaker"
         End Get
     End Property
 End Class

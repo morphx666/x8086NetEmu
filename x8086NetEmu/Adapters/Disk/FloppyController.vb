@@ -794,7 +794,7 @@ Public Class FloppyControllerAdapter
         End Get
     End Property
 
-    Public Sub DMARead(v As Byte) Implements IDMADevice.DMARead
+    Public Sub DMARead(Optional v As Byte = 0) Implements IDMADevice.DMARead
         If state = States.TRANSFER_IN Then
             databuf(dataptr) = v
             dataptr += 1

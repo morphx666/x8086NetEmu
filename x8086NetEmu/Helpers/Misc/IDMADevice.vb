@@ -8,7 +8,7 @@
     ' channel.dmaEop() to indicate that no more bytes should be transferred
     ' in the current transaction.
     ' @param v data byte
-    Sub DMARead(v As Byte)
+    Sub DMARead(Optional v As Byte = 0)
 
     ' Transfers a byte from the device to memory.
     ' This method is called one or more times by the DMA controller

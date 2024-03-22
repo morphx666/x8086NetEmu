@@ -81,7 +81,7 @@
         Public WriteMode As Integer
 
         ' Page (address bits 16 - 23) for this channel.
-        Public Page As Integer
+        Public Page As UInt32
 
         ' Device with which this channel is currently associated.
         Public Device As IDMADevice
@@ -94,8 +94,11 @@
 
         Private PortDevice As DMAI8237
 
+        Private cpu As X8086
+
         ' Constructs channel.
-        Public Sub New(dmaDev As DMAI8237)
+        Public Sub New(cpu As X8086, dmaDev As DMAI8237)
+            Me.cpu = cpu
             Me.PortDevice = dmaDev
         End Sub
 
@@ -118,7 +121,7 @@
         Me.cpu = cpu
         ReDim channels(4 - 1)
         For i As Integer = 0 To 4 - 1
-            channels(i) = New Channel(Me)
+            channels(i) = New Channel(cpu, Me)
         Next
         maskReg = &HF ' Mask all channels
         ch0NextTrigger = -1
@@ -230,8 +233,8 @@
         ' Just decided to start a transfer on channel i
         Dim chan As Channel = channels(i)
         Dim dev As IDMADevice = chan.Device
-        Dim mode As Integer = chan.Mode
-        Dim page As Integer = chan.Page
+        Dim mode As UInt16 = chan.Mode
+        Dim page As UInt32 = chan.Page
 
         ' Update dynamic priority
         If (cmdReg And 10) <> 0 Then prioChannel = (i + 1) And 3
@@ -249,10 +252,10 @@
             ' Prepare for transfer
             Dim blockMode As Boolean = (mode And &HC0) = &H80
             Dim singleMode As Boolean = (mode And &HC0) = &H40
-            Dim curCount As Integer = chan.CurrentCount
-            Dim maxLen As Integer = curCount + 1
-            Dim curAddr As Integer = chan.CurrentAddress
-            Dim addrStep As Integer = If((chan.Mode And &H20) = 0, 1, -1)
+            Dim curCount As UInt16 = chan.CurrentCount
+            Dim maxLen As UInt16 = curCount + 1
+            Dim curAddr As UInt16 = chan.CurrentAddress
+            Dim addrStep As UInt16 = If((chan.Mode And &H20) = 0, 1, -1)
             chan.ExternalEop = False
 
             ' Don't combine too much single transfers in one atomic action
@@ -264,7 +267,7 @@
                     ' DMA verify
                     curCount -= maxLen
                     curAddr = (curAddr + maxLen * addrStep) And &HFFFF
-                    transferTime += 3 * maxLen * Scheduler.HOSTCLOCK
+                    transferTime += 3 * maxLen * Scheduler.HOSTCLOCK / cpu.Clock
                 Case &H4
                     ' DMA write
                     While (maxLen > 0) AndAlso (Not chan.ExternalEop) AndAlso (blockMode OrElse chan.PendingRequest)
@@ -272,7 +275,7 @@
                         maxLen -= 1
                         curCount -= 1
                         curAddr = (curAddr + addrStep) And &HFFFF
-                        transferTime += 3 * Scheduler.HOSTCLOCK
+                        transferTime += 3 * Scheduler.HOSTCLOCK / cpu.Clock
                     End While
                 Case &H8
                     ' DMA read
@@ -281,7 +284,7 @@
                         maxLen -= 1
                         curCount -= 1
                         curAddr = (curAddr + addrStep) And &HFFFF
-                        transferTime += 3 * Scheduler.HOSTCLOCK
+                        transferTime += 3 * Scheduler.HOSTCLOCK / cpu.Clock
                     End While
             End Select
 
@@ -316,6 +319,7 @@
 
     Public Overrides Function [In](port As UInt16) As Byte
         UpdateCh0()
+
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel status
             Dim chan As Channel = channels((port >> 1) And 3)
@@ -340,6 +344,7 @@
 
     Public Overrides Sub Out(port As UInt16, value As Byte)
         UpdateCh0()
+
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel setup
             Dim chan As Channel = channels((port >> 1) And 3)
@@ -359,8 +364,8 @@
             Dim p As Boolean = msbFlipFlop
             msbFlipFlop = Not p
             If p Then
-                x = (x And &HFF) Or ((value << 8) And &HFF00)
-                y = (y And &HFF) Or ((value << 8) And &HFF00)
+                x = (x And &HFF) Or ((CUInt(value) << 8) And &HFF00)
+                y = (y And &HFF) Or ((CUInt(value) << 8) And &HFF00)
             Else
                 x = (x And &HFF00) Or (value And &HFF)
                 y = (y And &HFF00) Or (value And &HFF)

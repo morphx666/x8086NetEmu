@@ -53,9 +53,9 @@ Public Class CGAWinForms
 
         AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, e)
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
-                                                 If MyBase.CPU.Mouse?.IsCaptured Then
+                                                 If cpu.Mouse?.IsCaptured Then
                                                      OnMouseMove(Me, e)
-                                                     Cursor.Position = mRenderControl.PointToScreen(MyBase.CPU.Mouse.MidPointOffset)
+                                                     Cursor.Position = mRenderControl.PointToScreen(cpu.Mouse.MidPointOffset)
                                                  End If
                                              End Sub
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, e)
@@ -79,7 +79,7 @@ Public Class CGAWinForms
                 End If
             Case FontSources.ROM
                 MyBase.CellSize = New Size(8, 4)
-                VideoChar.BuildFontBitmapsFromROM(8, 4, 4, &HFE000 + &H1A6D, MyBase.CPU.Memory)
+                VideoChar.BuildFontBitmapsFromROM(8, 4, 4, &HFE000 + &H1A6D, cpu.Memory)
                 mCellSize = New Size(8, 8)
         End Select
 
@@ -189,7 +189,7 @@ Public Class CGAWinForms
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         OnPostRender(sender, e)
 
-        'RenderWaveform(g)
+        RenderWaveform(g)
     End Sub
 
     Protected Overrides Sub OnPaletteRegisterChanged()
@@ -310,19 +310,19 @@ Public Class CGAWinForms
 
     Private Sub RenderWaveform(g As Graphics)
 #If Win32 Then
-        If MyBase.CPU.PIT?.Speaker IsNot Nothing Then
+        If CPU.PIT?.Speaker IsNot Nothing Then
             g.ResetTransform()
 
             Dim h As Integer = mRenderControl.Height * 0.6
             Dim h2 As Integer = h / 2
-            Dim p1 As Point = New Point(0, MyBase.CPU.PIT.Speaker.AudioBuffer(0) / Byte.MaxValue * h + h * 0.4)
+            Dim p1 As Point = New Point(0, CPU.PIT.Speaker.AudioBuffer(0) / Byte.MaxValue * h + h * 0.4)
             Dim p2 As Point
-            Dim len As Integer = MyBase.CPU.PIT.Speaker.AudioBuffer.Length
+            Dim len As Integer = CPU.PIT.Speaker.AudioBuffer.Length
 
             Using p As New Pen(Brushes.Red, 3)
                 For i As Integer = 1 To len - 1
                     Try
-                        p2 = New Point(i / len * mRenderControl.Width, MyBase.CPU.PIT.Speaker.AudioBuffer(i) / Byte.MaxValue * h + h * 0.4)
+                        p2 = New Point(i / len * mRenderControl.Width, CPU.PIT.Speaker.AudioBuffer(i) / Byte.MaxValue * h + h * 0.4)
                         g.DrawLine(p, p1, p2)
                         p1 = p2
                     Catch
