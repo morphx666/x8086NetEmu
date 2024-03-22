@@ -286,8 +286,8 @@ Public Class VGAWinForms
 
                     Case &H13
                         ' This "fixes" PETSCII Robots
-                        CPU.RAM8(CPU.Registers.SS, &H1151) = 0
-                        CPU.RAM8(CPU.Registers.SS, &H1153) = 0
+                        'CPU.RAM8(CPU.Registers.SS, &H1151) = 0
+                        'CPU.RAM8(CPU.Registers.SS, &H1153) = 0
 
                         Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
                         Dim vgaPage As UInt32 = CUInt(VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)

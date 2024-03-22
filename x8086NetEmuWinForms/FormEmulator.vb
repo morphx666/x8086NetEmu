@@ -95,7 +95,7 @@ Public Class FormEmulator
 #If Win32 Then
         cpu.Adapters.Add(New SpeakerAdpater(cpu))
         cpu.Adapters.Add(New AdlibAdapter(cpu))
-        'cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
+        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 #End If
 
 #If DEBUG Then
