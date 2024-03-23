@@ -131,7 +131,7 @@ Public Class FloppyControllerAdapter
         ctlHeadLoadTime = 0
         ctlNonDma = False
 
-        For i As UInt32 = &H3F0 To &H3F7
+        For i As UInt16 = &H3F0 To &H3F7
             RegisteredPorts.Add(i)
         Next
     End Sub

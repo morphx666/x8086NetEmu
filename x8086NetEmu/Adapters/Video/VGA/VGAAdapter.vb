@@ -582,7 +582,7 @@ Public MustInherit Class VGAAdapter
         mCPU.LoadBIN("roms\et4000(4-7-93).BIN", &HC000, &H0)
 
         RegisteredPorts.Clear()
-        For i As UInt32 = &H3C0 To &H3CF ' EGA/VGA
+        For i As UInt16 = &H3C0 To &H3CF ' EGA/VGA
             RegisteredPorts.Add(i)
         Next
         RegisteredPorts.Add(&H3B4)
@@ -634,10 +634,11 @@ Public MustInherit Class VGAAdapter
         Dim waitHandle As New EventWaitHandle(False, EventResetMode.AutoReset)
         Task.Run(Sub()
                      Dim scanLineTiming As Long = (Scheduler.HOSTCLOCK / 31500) / 1_000_000 ' 31.5KHz
+                     Dim delay As TimeSpan = TimeSpan.FromTicks(scanLineTiming)
                      Dim curScanLine As Integer = 0
 
                      While True
-                         waitHandle.WaitOne(TimeSpan.FromTicks(scanLineTiming))
+                         waitHandle.WaitOne(delay)
 
                          curScanLine = (curScanLine + 1) Mod 525
                          If curScanLine > 479 Then

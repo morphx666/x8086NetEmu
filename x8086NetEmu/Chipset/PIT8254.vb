@@ -568,7 +568,7 @@
         mChannels(0).Gate = True
         mChannels(1).Gate = True
 
-        For i As Integer = &H40 To &H43
+        For i As UInt16 = &H40 To &H43
             RegisteredPorts.Add(i)
         Next
 

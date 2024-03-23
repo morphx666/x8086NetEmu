@@ -141,7 +141,7 @@ Public MustInherit Class CGAAdapter
 
         If enableWebUI Then wui = New WebUI(cpu, videoBMP, chars)
 
-        For i As UInt32 = &H3D0 To &H3DF ' CGA
+        For i As UInt16 = &H3D0 To &H3DF ' CGA
             RegisteredPorts.Add(i)
         Next
         RegisteredPorts.Add(&H3B8)

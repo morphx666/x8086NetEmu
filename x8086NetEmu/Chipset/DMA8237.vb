@@ -126,7 +126,7 @@
         maskReg = &HF ' Mask all channels
         ch0NextTrigger = -1
 
-        For i As Integer = &H0 To &HF
+        For i As UInt16 = &H0 To &HF
             RegisteredPorts.Add(i)
             RegisteredPorts.Add(&H80 Or i)
         Next

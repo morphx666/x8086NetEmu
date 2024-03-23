@@ -50,7 +50,7 @@
 
     Public Sub New(cpu As X8086, Optional master As PIC8259 = Nothing)
         If master Is Nothing Then
-            For i As Integer = &H20 To &H2F
+            For i As UInt16 = &H20 To &H2F
                 RegisteredPorts.Add(i)
             Next
 
@@ -58,7 +58,7 @@
             'slave(cascadeId) = New PIC8259(cpu, Me)
             'slave(cascadeId).SetMaster(Me, 2)
         Else
-            For i As Integer = &H30 To &H3F
+            For i As UInt16 = &H30 To &H3F
                 RegisteredPorts.Add(i)
             Next
         End If

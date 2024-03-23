@@ -258,7 +258,9 @@
     <Compile Include="Tools\FormConsole.Designer.vb">
       <DependentUpon>FormConsole.vb</DependentUpon>
     </Compile>
-    <Compile Include="Tools\FormConsole.vb" />
+    <Compile Include="Tools\FormConsole.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="FormEmulator.Designer.vb">
       <DependentUpon>FormEmulator.vb</DependentUpon>
     </Compile>

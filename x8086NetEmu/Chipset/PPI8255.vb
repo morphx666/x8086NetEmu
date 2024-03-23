@@ -45,7 +45,7 @@
     Public Property SwitchData As Byte
 
     Public Sub New(cpu As X8086, irq As InterruptRequest)
-        For i As Integer = &H60 To &H6F
+        For i As UInt16 = &H60 To &H6F
             RegisteredPorts.Add(i)
         Next
 

@@ -43,11 +43,11 @@
     Public Sub New(cpu As X8086, irq As InterruptRequest)
         Me.irq = irq
 
-        For i As Integer = &H70 To &H71
+        For i As UInt16 = &H70 To &H71
             RegisteredPorts.Add(i)
         Next
 
-        For i As Integer = &H240 To &H24F
+        For i As UInt16 = &H240 To &H24F
             RegisteredPorts.Add(i)
         Next
 
