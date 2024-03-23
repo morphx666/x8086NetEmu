@@ -81,7 +81,7 @@
         Public WriteMode As Integer
 
         ' Page (address bits 16 - 23) for this channel.
-        Public Page As UInt32
+        Public Page As UInt16
 
         ' Device with which this channel is currently associated.
         Public Device As IDMADevice
@@ -234,7 +234,7 @@
         Dim chan As Channel = channels(i)
         Dim dev As IDMADevice = chan.Device
         Dim mode As UInt16 = chan.Mode
-        Dim page As UInt32 = chan.Page
+        Dim page As UInt16 = chan.Page
 
         ' Update dynamic priority
         If (cmdReg And 10) <> 0 Then prioChannel = (i + 1) And 3
@@ -353,7 +353,6 @@
             Dim y As UInt16
 
             If (port And 1) = 0 Then
-                ' base/current address
                 x = chan.BaseAddress
                 y = chan.CurrentAddress
             Else

@@ -2,6 +2,7 @@
 ' https://pdos.csail.mit.edu/6.828/2007/readings/hardware/vgadoc/VGABIOS.TXT
 ' http://stanislavs.org/helppc/ports.html
 
+Imports System.Threading
 Imports System.Threading.Tasks
 
 Public MustInherit Class VGAAdapter
@@ -630,25 +631,21 @@ Public MustInherit Class VGAAdapter
                                                           Return False
                                                       End Function))
 
+        Dim waitHandle As New EventWaitHandle(False, EventResetMode.AutoReset)
         Task.Run(Sub()
-                     Dim lastScanLineTick As Long = Now.Ticks
                      Dim scanLineTiming As Long = (Scheduler.HOSTCLOCK / 31500) / 1_000_000 ' 31.5KHz
                      Dim curScanLine As Integer = 0
 
                      While True
-                         Dim curTick As Long = Now.Ticks
+                         waitHandle.WaitOne(TimeSpan.FromTicks(scanLineTiming))
 
-                         If curTick >= (lastScanLineTick + scanLineTiming) Then
-                             curScanLine = (curScanLine + 1) Mod 525
-                             If curScanLine > 479 Then
-                                 portRAM(&H3DA) = portRAM(&H3DA) Or &B0000_1000
-                             Else
-                                 portRAM(&H3DA) = portRAM(&H3DA) And &B1111_0110
-                             End If
-                             If (curScanLine And 1) <> 0 Then portRAM(&H3DA) = portRAM(&H3DA) Or &H1
-
-                             lastScanLineTick = curTick
+                         curScanLine = (curScanLine + 1) Mod 525
+                         If curScanLine > 479 Then
+                             portRAM(&H3DA) = portRAM(&H3DA) Or &B0000_1000
+                         Else
+                             portRAM(&H3DA) = portRAM(&H3DA) And &B1111_0110
                          End If
+                         If (curScanLine And 1) <> 0 Then portRAM(&H3DA) = portRAM(&H3DA) Or &H1
                      End While
                  End Sub)
     End Sub

@@ -1,5 +1,6 @@
 ﻿#If Win32 Then
 Imports NAudio.Wave
+Imports System.Threading
 Imports System.Threading.Tasks
 
 Public Class AdlibAdapter ' Based on fake86's implementation
@@ -7,7 +8,6 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Private waveOut As WaveOut
     Private audioProvider As SpeakerAdpater.CustomBufferProvider
-    Private ReadOnly mAudioBuffer() As Byte
 
     Private ReadOnly waveForm()() As Byte = {
         New Byte() {1, 8, 13, 20, 25, 32, 36, 42, 46, 50, 54, 57, 60, 61, 62, 64, 63, 65, 61, 61, 58, 55, 51, 49, 44, 38, 34, 28, 23, 16, 11, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -60,14 +60,14 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     End Structure
     Private Opl(9 - 1)() As OplStruct
 
-    Private Structure ChanStruct
+    Private Structure Channel
         Public Frequency As UInt16
         Public ConvFreq As Double
         Public KeyOn As Boolean
         Public Octave As UInt16
         Public WaveformSelect As Byte
     End Structure
-    Private ReadOnly channel(9 - 1) As ChanStruct
+    Private ReadOnly channels(9 - 1) As Channel
 
     Private ReadOnly attackTable() As Double = {1.0003, 1.00025, 1.0002, 1.00015, 1.0001, 1.00009, 1.00008, 1.00007, 1.00006, 1.00005, 1.00004, 1.00003, 1.00002, 1.00001, 1.000005}
     Private ReadOnly decayTable() As Double = {0.99999, 0.999985, 0.99998, 0.999975, 0.99997, 0.999965, 0.99996, 0.999955, 0.99995, 0.999945, 0.99994, 0.999935, 0.99994, 0.999925, 0.99992, 0.99991}
@@ -80,7 +80,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Private ReadOnly regMem(&HFF - 1) As UInt16
     Private address As UInt16 = 0
-    Private precussion As Boolean = False
+    Private percussion As Boolean = False
     Private status As Byte = 0
     Private ReadOnly oplSstep(9 - 1) As Double
 
@@ -108,12 +108,6 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         End Set
     End Property
 
-    Public ReadOnly Property AudioBuffer As Byte()
-        Get
-            Return mAudioBuffer
-        End Get
-    End Property
-
     Public Overrides Sub CloseAdapter()
         waveOut.Stop()
         waveOut.Dispose()
@@ -121,30 +115,23 @@ Public Class AdlibAdapter ' Based on fake86's implementation
 
     Public Overrides Sub InitiAdapter()
         waveOut = New WaveOut() With {
-            .NumberOfBuffers = 16,
-            .DesiredLatency = 200
+            .NumberOfBuffers = 16
         }
 
         audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
         waveOut.Init(audioProvider)
         waveOut.Play()
 
-        Task.Run(action:=Async Sub()
-                             Dim maxTicks As Long = (Scheduler.HOSTCLOCK / SpeakerAdpater.SampleRate) / 100
-                             Dim curTick As Long
-                             Dim lastTick As Long
+        Dim waitHandle As New EventWaitHandle(False, EventResetMode.AutoReset)
+        Task.Run(Sub()
+                     Dim maxTicks As Long = Scheduler.HOSTCLOCK / SpeakerAdpater.SampleRate
 
-                             Do
-                                 curTick = Now.Ticks
+                     Do
+                         waitHandle.WaitOne(TimeSpan.FromTicks(maxTicks))
 
-                                 If curTick >= (lastTick + maxTicks) Then
-                                     TickAdLib()
-                                     lastTick = curTick - (curTick - (lastTick + maxTicks))
-                                 End If
-
-                                 Await Task.Delay(1)
-                             Loop While waveOut.PlaybackState = PlaybackState.Playing
-                         End Sub)
+                         TickAdLib()
+                     Loop While waveOut.PlaybackState = PlaybackState.Playing
+                 End Sub)
     End Sub
 
     Private Sub TickAdLib()
@@ -188,7 +175,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
                     regMem(4) = 0
                 End If
             Case &HBD
-                precussion = (value And &H10) <> 0
+                percussion = (value And &H10) <> 0
         End Select
 
         If port >= &H60 AndAlso port <= &H75 Then ' Attack / Decay
@@ -197,27 +184,28 @@ Public Class AdlibAdapter ' Based on fake86's implementation
             decay(port) = decayTable(value And 15)
         ElseIf port >= &HA0 AndAlso port <= &HB8 Then ' Octave / Frequency / Key On
             port = (port And 15) Mod 9
-            If Not channel(port).KeyOn AndAlso ((regMem(&HB0 + port) >> 5) And 1) = 1 Then
+            If Not channels(port).KeyOn AndAlso ((regMem(&HB0 + port) >> 5) And 1) = 1 Then
                 attack2(port) = False
                 envelope(port) = 0.0025
             End If
 
-            channel(port).Frequency = regMem(&HA0 + port) Or ((regMem(&HB0 + port) And 3) << 8)
-            channel(port).ConvFreq = channel(port).Frequency * 0.7626459
-            channel(port).KeyOn = ((regMem(&HB0 + port) >> 5) And 1) = 1
-            channel(port).Octave = (regMem(&HB0 + port) >> 2) And 7
-        ElseIf port >= &HE0 And port <= &HF5 Then ' Waveform select
-            channel((port And 15) Mod 9).WaveformSelect = value And 3
+            channels(port).Frequency = regMem(&HA0 + port) Or ((regMem(&HB0 + port) And 3) << 8)
+            channels(port).ConvFreq = channels(port).Frequency * 0.7626459
+            channels(port).KeyOn = ((regMem(&HB0 + port) >> 5) And 1) = 1
+            channels(port).Octave = (regMem(&HB0 + port) >> 2) And 7
+        ElseIf port >= &HE0 AndAlso port <= &HF5 Then ' Waveform Select
+            port = port And 15
+            If port < 9 Then channels(port).WaveformSelect = value And 3
         End If
     End Sub
 
     Private Function Frequency(chanNum As Byte) As UInt16
         Dim tmpFreq As UInt16
 
-        If Not channel(chanNum).KeyOn Then Return 0
-        tmpFreq = channel(chanNum).ConvFreq
+        If Not channels(chanNum).KeyOn Then Return 0
+        tmpFreq = channels(chanNum).ConvFreq
 
-        Select Case channel(chanNum).Octave
+        Select Case channels(chanNum).Octave
             Case 0 : tmpFreq >>= 4
             Case 1 : tmpFreq >>= 3
             Case 2 : tmpFreq >>= 2
@@ -231,12 +219,12 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     End Function
 
     Private Function Sample(chanNum As Byte) As Int32
-        If precussion AndAlso chanNum >= 6 AndAlso chanNum <= 8 Then Return 0
-        If Frequency(chanNum) = 0 Then Return 0
+        If percussion AndAlso chanNum >= 6 AndAlso chanNum <= 8 Then Return 0
+        'If Frequency(chanNum) = 0 Then Return 0
 
-        Dim fullStep As UInt16 = SpeakerAdpater.SampleRate \ Frequency(chanNum)
-        Dim idx As Byte = (oplSstep(chanNum) / (fullStep / 256.0)) Mod 255
-        Dim tmpSample As UInt32 = oplWave(channel(chanNum).WaveformSelect)(idx)
+        Dim fullStep As UInt16 = SpeakerAdpater.SampleRate / Frequency(chanNum)
+        Dim idx As Byte = oplSstep(chanNum) / (fullStep / 256.0)
+        Dim tmpSample As UInt32 = oplWave(channels(chanNum).WaveformSelect)(idx)
         Dim tmpStep As Double = envelope(chanNum)
         If tmpStep > 1.0 Then tmpStep = 1.0
         tmpSample = tmpSample * tmpStep * 12.0
@@ -247,10 +235,11 @@ Public Class AdlibAdapter ' Based on fake86's implementation
     End Function
 
     Private Function GenerateSample() As Int16
-        Dim accumulator As Int32 = 0
+        Dim accumulator As Int16 = 0
         For chanNum As Byte = 0 To 9 - 1
-            If Frequency(chanNum) <> 0 Then accumulator += Sample(chanNum)
+            If Frequency(chanNum) <> 0 Then accumulator += Convert.ToInt16(Sample(chanNum))
         Next
+
         Return accumulator
     End Function
 

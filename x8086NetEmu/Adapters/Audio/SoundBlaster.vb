@@ -48,6 +48,8 @@ Public Class SoundBlaster ' Based on fake86's implementation
 
     Private adLib As AdlibAdapter
 
+    Private waitHandle As New EventWaitHandle(False, EventResetMode.AutoReset)
+
     Public Sub New(cpu As X8086, adlib As AdlibAdapter, Optional port As UInt16 = &H220, Optional irq As Byte = 5, Optional dmaChannel As Byte = 1)
         MyBase.New(cpu)
         Me.adLib = adlib
@@ -70,15 +72,43 @@ Public Class SoundBlaster ' Based on fake86's implementation
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            blaster.SampleTicks = Scheduler.HOSTCLOCK / blaster.SampleRate
+            blaster.SampleTicks = (Scheduler.HOSTCLOCK / blaster.SampleRate) / 1_000
             If blaster.SampleRate <> audioProvider.WaveFormat.SampleRate Then
                 waveOut.Dispose()
 
                 audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, blaster.SampleRate, 8, 1)
                 waveOut.Init(audioProvider)
                 waveOut.Play()
+
+                waitHandle.Set()
             End If
         End If
+    End Sub
+
+    Public Overrides Sub InitiAdapter()
+        blaster.DspMaj = 2 ' Emulate a Sound Blaster Pro 2.0
+        blaster.DspMin = 0
+        MixerReset()
+
+        waveOut = New WaveOut() With {
+            .NumberOfBuffers = 16
+        }
+
+        audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
+        waveOut.Init(audioProvider)
+        waveOut.Play()
+
+        Task.Run(Sub()
+                     Do
+                         If blaster.SampleTicks = 0 Then
+                             waitHandle.WaitOne()
+                         Else
+                             waitHandle.WaitOne(TimeSpan.FromTicks(blaster.SampleTicks))
+                         End If
+
+                         If blaster.SampleRate > 0 Then TickBlaster()
+                     Loop While True ' waveOut.PlaybackState = PlaybackState.Playing
+                 End Sub)
     End Sub
 
     Private Sub CmdBlaster(value As Byte)
@@ -187,36 +217,6 @@ Public Class SoundBlaster ' Based on fake86's implementation
         End Select
     End Sub
 
-    Public Overrides Sub InitiAdapter()
-        blaster.DspMaj = 2 ' Emulate a Sound Blaster Pro 2.0
-        blaster.DspMin = 0
-        MixerReset()
-
-        waveOut = New WaveOut() With {
-            .NumberOfBuffers = 16,
-            .DesiredLatency = 200
-        }
-
-        audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
-        waveOut.Init(audioProvider)
-        waveOut.Play()
-
-        Task.Run(Sub()
-                     Dim curTick As Long
-                     Dim lastTick As Long
-
-                     Do
-                         curTick = Now.Ticks
-
-                         If blaster.SampleRate > 0 AndAlso curTick >= (lastTick + blaster.SampleTicks) Then
-                             TickBlaster()
-                             lastTick = curTick - (curTick - (lastTick + blaster.SampleTicks))
-                         End If
-
-                     Loop While True ' waveOut.PlaybackState = PlaybackState.Playing
-                 End Sub)
-    End Sub
-
     Public Overrides Sub CloseAdapter()
         waveOut.Stop()
         waveOut.Dispose()
@@ -306,7 +306,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
     Private Sub TickBlaster()
         If Not blaster.UsingDma Then Exit Sub
 
-        DMARead()
+        ReadDMA()
         blaster.BlockStep += 1
         If blaster.BlockStep >= blaster.BlockSize Then
             blaster.Irq.Raise(True)
@@ -319,7 +319,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         End If
     End Sub
 
-    Public Sub DMARead(Optional v As Byte = 0) Implements IDMADevice.DMARead
+    Public Sub ReadDMA()
         If dmaChannel.Masked <> 0 Then blaster.Sample = 128
         If dmaChannel.AutoInit <> 0 AndAlso dmaChannel.CurrentCount > dmaChannel.BaseCount Then dmaChannel.CurrentCount = 0
         If dmaChannel.CurrentCount > dmaChannel.BaseCount Then blaster.Sample = 128
@@ -335,14 +335,6 @@ Public Class SoundBlaster ' Based on fake86's implementation
         dmaChannel.CurrentCount += 1
     End Sub
 
-    Public Function DMAWrite() As Byte Implements IDMADevice.DMAWrite
-        Return blaster.Mem(blaster.MemPtr)
-    End Function
-
-    Public Sub DMAEOP() Implements IDMADevice.DMAEOP
-        dmaChannel.DMARequest(False)
-    End Sub
-
     Public Overrides ReadOnly Property Type As AdapterType
         Get
             Return AdapterType.AudioDevice
@@ -351,6 +343,18 @@ Public Class SoundBlaster ' Based on fake86's implementation
 
     Public Overrides Sub Run()
         X8086.Notify($"{Name} Running", X8086.NotificationReasons.Info)
+    End Sub
+
+    Public Sub DMARead(b As Byte) Implements IDMADevice.DMARead
+        Throw New NotImplementedException()
+    End Sub
+
+    Public Function DMAWrite() As Byte Implements IDMADevice.DMAWrite
+        Throw New NotImplementedException()
+    End Function
+
+    Public Sub DMAEOP() Implements IDMADevice.DMAEOP
+        Throw New NotImplementedException()
     End Sub
 
     Public Overrides ReadOnly Property Vendor As String
