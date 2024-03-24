@@ -106,9 +106,9 @@ Public Class Scheduler
         End Get
     End Property
 
-    Public ReadOnly Property CurrentTimeMs As Long
+    Private ReadOnly Property CurrentTimeMs As Long
         Get
-            Return Now.Ticks / 10_000
+            Return Stopwatch.GetTimestamp()
         End Get
     End Property
 

@@ -189,7 +189,7 @@ Public Class CGAWinForms
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         OnPostRender(sender, e)
 
-        RenderWaveform(g)
+        'RenderWaveform(g)
     End Sub
 
     Protected Overrides Sub OnPaletteRegisterChanged()

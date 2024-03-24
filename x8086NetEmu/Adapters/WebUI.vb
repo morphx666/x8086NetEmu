@@ -65,7 +65,7 @@ Public Class WebUI
                             End If
 
                             Select Case resource
-                                Case "/" : sndData = Text.UTF8Encoding.UTF8.GetBytes(GetUI())
+                                Case "/" : sndData = Text.Encoding.UTF8.GetBytes(GetUI())
                                 Case "/frame" : sndData = GetFrame() : cntType = "image/png"
                                 Case "/keyDown"
                                     Dim k As Keys = params.Split("=")(1)

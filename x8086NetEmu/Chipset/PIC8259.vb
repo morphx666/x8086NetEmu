@@ -35,8 +35,8 @@
     Public Class IRQLine
         Inherits InterruptRequest
 
-        Private mPic As PIC8259
-        Private mIrq As Byte
+        Private ReadOnly mPic As PIC8259
+        Private ReadOnly mIrq As Byte
 
         Public Sub New(pic As PIC8259, irq As Byte)
             mPic = pic

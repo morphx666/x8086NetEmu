@@ -1,7 +1,4 @@
-﻿Imports System.Net
-Imports System.Security.Cryptography
-
-Public Class VGAWinForms
+﻿Public Class VGAWinForms
     Inherits VGAAdapter
 
     Private blinkCounter As Integer

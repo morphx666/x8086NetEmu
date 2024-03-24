@@ -158,12 +158,12 @@ Public MustInherit Class CGAAdapter
         UpdateClock()
 
         'Task.Run(Sub()
-        '             Dim lastScanLineTick As Long = Now.Ticks
-        '             Dim scanLineTiming As Long = (Scheduler.HOSTCLOCK / 31500) / 1_000_000 ' 31.5KHz
+        '             Dim lastScanLineTick As Long = Stopwatch.GetTimestamp()
+        '             Dim scanLineTiming As Long = (Scheduler.HOSTCLOCK / 31500) ' 31.5KHz
         '             Dim curScanLine As Integer = 0
 
         '             While True
-        '                 Dim curTick As Long = Now.Ticks
+        '                 Dim curTick As Long = Stopwatch.GetTimestamp()
 
         '                 If curTick >= (lastScanLineTick + scanLineTiming) Then
 

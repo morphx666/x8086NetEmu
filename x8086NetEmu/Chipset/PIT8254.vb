@@ -577,8 +577,14 @@
 
     Public Sub UpdateClock()
         ' https://wiki.osdev.org/Programmable_Interval_Timer
-        countRate = 1_193_180 ' 1.19318 MHz
-        speakerBaseFrequency = countRate * Scheduler.HOSTCLOCK / X8086.MHz
+        Dim magicFactor As Integer = 30 ' WTF?!?!
+
+#If DEBUG Then
+        magicFactor = 5
+#End If
+
+        countRate = 1_193_180 / magicFactor ' 1.19318 MHz
+        speakerBaseFrequency = 1_193_180 * magicFactor * Scheduler.HOSTCLOCK / X8086.MHz
     End Sub
 
     Public Function GetOutput(c As Integer) As Boolean

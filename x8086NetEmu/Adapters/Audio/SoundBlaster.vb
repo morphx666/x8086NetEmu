@@ -48,9 +48,6 @@ Public Class SoundBlaster ' Based on fake86's implementation
 
     Private adLib As AdlibAdapter
 
-    Private waitHandle As New EventWaitHandle(False, EventResetMode.AutoReset)
-    Private delay As TimeSpan
-
     Public Sub New(cpu As X8086, adlib As AdlibAdapter, Optional port As UInt16 = &H220, Optional irq As Byte = 5, Optional dmaChannel As Byte = 1)
         MyBase.New(cpu)
         Me.adLib = adlib
@@ -58,10 +55,10 @@ Public Class SoundBlaster ' Based on fake86's implementation
         ReDim blaster.Mem(1024 - 1)
         ReDim blaster.MixerData.Reg(256 - 1)
 
-        blaster.Irq = MyBase.CPU.PIC?.GetIrqLine(irq)
+        blaster.Irq = cpu.PIC?.GetIrqLine(irq)
         blaster.Dma = dmaChannel
 
-        Me.dmaChannel = MyBase.CPU.DMA.GetChannel(blaster.Dma)
+        Me.dmaChannel = cpu.DMA.GetChannel(blaster.Dma)
         cpu.DMA.BindChannel(blaster.Dma, Me)
 
         For i As UInt16 = port To port + &HE
@@ -73,8 +70,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            blaster.SampleTicks = (Scheduler.HOSTCLOCK / blaster.SampleRate)
-            delay = TimeSpan.FromTicks(blaster.SampleTicks)
+            blaster.SampleTicks = Scheduler.HOSTCLOCK / blaster.SampleRate
 
             If blaster.SampleRate <> audioProvider.WaveFormat.SampleRate Then
                 waveOut.Dispose()
@@ -82,8 +78,6 @@ Public Class SoundBlaster ' Based on fake86's implementation
                 audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, blaster.SampleRate, 8, 1)
                 waveOut.Init(audioProvider)
                 waveOut.Play()
-
-                waitHandle.Set()
             End If
         End If
     End Sub
@@ -100,18 +94,6 @@ Public Class SoundBlaster ' Based on fake86's implementation
         audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
         waveOut.Init(audioProvider)
         waveOut.Play()
-
-        'Task.Run(Sub()
-        '             Do
-        '                 If blaster.SampleTicks = 0 Then
-        '                     waitHandle.WaitOne()
-        '                 Else
-        '                     waitHandle.WaitOne(delay)
-        '                 End If
-
-        '                 If blaster.SampleRate > 0 Then TickBlaster()
-        '             Loop While True ' waveOut.PlaybackState = PlaybackState.Playing
-        '         End Sub)
     End Sub
 
     Private Sub CmdBlaster(value As Byte)

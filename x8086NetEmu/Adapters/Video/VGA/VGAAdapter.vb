@@ -633,20 +633,24 @@ Public MustInherit Class VGAAdapter
 
         Dim waitHandle As New EventWaitHandle(False, EventResetMode.AutoReset)
         Task.Run(Sub()
-                     Dim scanLineTiming As Long = (Scheduler.HOSTCLOCK / 31500) / 1_000_000 ' 31.5KHz
-                     Dim delay As TimeSpan = TimeSpan.FromTicks(scanLineTiming)
+                     Dim scanLineTiming As Long = Scheduler.HOSTCLOCK / 31_500 ' 31.5KHz
+                     Dim lastTick As Long = Stopwatch.GetTimestamp()
                      Dim curScanLine As Integer = 0
 
                      While True
-                         waitHandle.WaitOne(delay)
+                         Dim curTick As Long = Stopwatch.GetTimestamp()
 
-                         curScanLine = (curScanLine + 1) Mod 525
-                         If curScanLine > 479 Then
-                             portRAM(&H3DA) = portRAM(&H3DA) Or &B0000_1000
-                         Else
-                             portRAM(&H3DA) = portRAM(&H3DA) And &B1111_0110
+                         If curTick >= (lastTick + scanLineTiming) Then
+                             curScanLine = (curScanLine + 1) Mod 525
+                             If curScanLine > 479 Then
+                                 portRAM(&H3DA) = portRAM(&H3DA) Or &B0000_1000
+                             Else
+                                 portRAM(&H3DA) = portRAM(&H3DA) And &B1111_0110
+                             End If
+                             If (curScanLine And 1) <> 0 Then portRAM(&H3DA) = portRAM(&H3DA) Or &H1
+
+                             lastTick = curTick
                          End If
-                         If (curScanLine And 1) <> 0 Then portRAM(&H3DA) = portRAM(&H3DA) Or &H1
                      End While
                  End Sub)
     End Sub
