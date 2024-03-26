@@ -212,7 +212,7 @@
         For j As Integer = 0 To 4 - 1
             If channels(j).PendingRequest Then rbits = rbits Or (1 << j)
         Next
-        statusReg = (statusReg And &HF) Or (rbits << 4)
+        statusReg = (statusReg And &HF) Or rbits << 4
 
         ' Don't start a transfer during dead time after a previous transfer
         If pendingTask Then Exit Sub
@@ -271,7 +271,7 @@
                 Case &H4
                     ' DMA write
                     While (maxLen > 0) AndAlso (Not chan.ExternalEop) AndAlso (blockMode OrElse chan.PendingRequest)
-                        If dev IsNot Nothing Then cpu.Memory((page << 16) Or curAddr) = dev.DMAWrite()
+                        If dev IsNot Nothing Then cpu.Memory((CUInt(page) << 16) Or curAddr) = dev.DMAWrite()
                         maxLen -= 1
                         curCount -= 1
                         curAddr = (curAddr + addrStep) And &HFFFF
@@ -280,7 +280,7 @@
                 Case &H8
                     ' DMA read
                     While maxLen > 0 AndAlso Not chan.ExternalEop AndAlso (blockMode OrElse chan.PendingRequest)
-                        If dev IsNot Nothing Then dev.DMARead(cpu.Memory((page << 16) Or curAddr))
+                        If dev IsNot Nothing Then dev.DMARead(cpu.Memory((CUInt(page) << 16) Or curAddr))
                         maxLen -= 1
                         curCount -= 1
                         curAddr = (curAddr + addrStep) And &HFFFF

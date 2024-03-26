@@ -1,6 +1,4 @@
 ﻿#If Win32 Then
-Imports System.Threading
-Imports System.Threading.Tasks
 Imports NAudio.Wave
 
 Public Class SoundBlaster ' Based on fake86's implementation
@@ -295,8 +293,9 @@ Public Class SoundBlaster ' Based on fake86's implementation
         If Not blaster.UsingDma Then Exit Sub
 
         ReadDMA()
+
         blaster.BlockStep += 1
-        If blaster.BlockStep >= blaster.BlockSize Then
+        If blaster.BlockStep > blaster.BlockSize Then
             blaster.Irq.Raise(True)
 
             If blaster.UseAutoInit Then
@@ -316,9 +315,9 @@ Public Class SoundBlaster ' Based on fake86's implementation
         ' addr = 38686
         ' count = 0
         If dmaChannel.Direction = 0 Then
-            blaster.Sample = CPU.Memory((dmaChannel.Page << 16) + dmaChannel.CurrentAddress + dmaChannel.CurrentCount)
+            blaster.Sample = CPU.Memory((CUInt(dmaChannel.Page) << 16) + dmaChannel.CurrentAddress + dmaChannel.CurrentCount)
         Else
-            blaster.Sample = CPU.Memory((dmaChannel.Page << 16) + dmaChannel.CurrentAddress - dmaChannel.CurrentCount)
+            blaster.Sample = CPU.Memory((CUInt(dmaChannel.Page) << 16) + dmaChannel.CurrentAddress - dmaChannel.CurrentCount)
         End If
         dmaChannel.CurrentCount += 1
     End Sub
