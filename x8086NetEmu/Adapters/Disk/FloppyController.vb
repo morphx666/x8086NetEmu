@@ -136,7 +136,7 @@ Public Class FloppyControllerAdapter
         Next
     End Sub
 
-    Public Overrides Sub InitiAdapter()
+    Public Overrides Sub InitAdapter()
         Reset()
     End Sub
 

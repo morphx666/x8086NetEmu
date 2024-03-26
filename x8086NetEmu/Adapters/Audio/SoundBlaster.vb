@@ -80,7 +80,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         End If
     End Sub
 
-    Public Overrides Sub InitiAdapter()
+    Public Overrides Sub InitAdapter()
         blaster.DspMaj = 2 ' Emulate a Sound Blaster Pro 2.0
         blaster.DspMin = 0
         MixerReset()
@@ -99,10 +99,10 @@ Public Class SoundBlaster ' Based on fake86's implementation
 
         If blaster.WaitForArg <> 0 Then
             Select Case blaster.LastCmdVal
-                Case &H10 ' direct 8-bit sample output
+                Case &H10 ' Direct 8-bit Sample Output
                     blaster.Sample = value
 
-                Case &H14, &H24, &H91 ' 8-bit single block DMA output
+                Case &H14, &H24, &H91 ' 8-bit Single Block DMA Output
                     If blaster.WaitForArg = 2 Then
                         blaster.BlockSize = (blaster.BlockSize And &HFF00) Or value
                         blaster.WaitForArg = 3
@@ -116,11 +116,11 @@ Public Class SoundBlaster ' Based on fake86's implementation
                         blaster.Paused8 = False
                         blaster.OutputEnabled = True
                     End If
-                Case &H40 ' set time constant
+                Case &H40 ' Set Time Constant
                     blaster.SampleRate = 1000000 / (256 - value)
                     SetSampleTicks()
 
-                Case &H48 ' set DSP block transfer size
+                Case &H48 ' Set DSP Block Transfer Size
                     If blaster.WaitForArg = 2 Then
                         blaster.BlockSize = (blaster.BlockSize And &HFF00) Or value
                         blaster.WaitForArg = 3
@@ -130,11 +130,11 @@ Public Class SoundBlaster ' Based on fake86's implementation
                         blaster.BlockStep = 0
                     End If
 
-                Case &HE0 ' DSP identification for Sound Blaster 2.0 and newer (invert each bit and put in read buffer)
-                    BufNewData(Not value)
+                Case &HE0 ' DSP Identification For Sound Blaster 2.0 And Newer (Invert Each Bit And Put In Read Buffer)
+                    WriteBuffer(Not value)
 
-                Case &HE4 ' DSP write test, put data value into read buffer
-                    BufNewData(value)
+                Case &HE4 ' DSP Write Test, Put Data Value Into Read Buffer
+                    WriteBuffer(value)
                     blaster.LastTestVal = value
 
                 Case Else
@@ -149,53 +149,53 @@ Public Class SoundBlaster ' Based on fake86's implementation
             Case &H10, &H40, &HE0, &HE4
                 blaster.WaitForArg = 1
 
-            Case &H14, &H24, &H48, &H91 ' 8-bit single block DMA output
+            Case &H14, &H24, &H48, &H91 ' 8-bit Single Block DMA Output
                 blaster.WaitForArg = 2
 
-            Case &H1C, &H2C ' 8-bit auto-init DMA output
+            Case &H1C, &H2C ' 8-bit Auto-Init DMA Output
                 blaster.UsingDma = True
                 blaster.BlockStep = 0
                 blaster.UseAutoInit = True
                 blaster.Paused8 = False
                 blaster.OutputEnabled = True
 
-            Case &HD0 ' pause 8-bit DMA I/O
+            Case &HD0 ' Pause 8-bit DMA I/O
                 blaster.Paused8 = True
 
-            Case &HD1 ' speaker output on
+            Case &HD1 ' Speaker Output On
                 blaster.OutputEnabled = True
 
-            Case &HD3 ' speaker output off
+            Case &HD3 ' Speaker Output Off
                 blaster.OutputEnabled = True
 
-            Case &HD4 ' continue 8-bit DMA I/O
+            Case &HD4 ' Continue 8-bit DMA I/O
                 blaster.Paused8 = False
 
-            Case &HD8 ' get speaker status
+            Case &HD8 ' Get Speaker Status
                 If blaster.OutputEnabled Then
-                    BufNewData(&HFF)
+                    WriteBuffer(&HFF)
                 Else
-                    BufNewData(&H0)
+                    WriteBuffer(&H0)
                 End If
 
-            Case &HDA ' exit 8-bit auto-init DMA I/O mode
+            Case &HDA ' Exit 8-bit Auto-Init DMA I/O Mode
                 blaster.UsingDma = False
 
-            Case &HE1   ' get DSP version info
+            Case &HE1   ' Get DSP Version Info
                 blaster.MemPtr = 0
-                BufNewData(blaster.DspMaj)
-                BufNewData(blaster.DspMin)
+                WriteBuffer(blaster.DspMaj)
+                WriteBuffer(blaster.DspMin)
 
-            Case &HE8 ' DSP read test
+            Case &HE8 ' DSP Read Test
                 blaster.MemPtr = 0
-                BufNewData(blaster.LastTestVal)
+                WriteBuffer(blaster.LastTestVal)
 
-            Case &HF2 ' force 8-bit IRQ
+            Case &HF2 ' Force 8-bit IRQ
                 blaster.Irq.Raise(True)
 
-            Case &HF8 ' undocumented command, clears in-buffer And inserts a null byte
+            Case &HF8 ' Undocumented Command, Clears In-Buffer And Inserts A Null Byte
                 blaster.MemPtr = 0
-                BufNewData(0)
+                WriteBuffer(0)
 
         End Select
     End Sub
@@ -228,7 +228,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         Return CUInt(blaster.Sample) - 128
     End Function
 
-    Private Sub BufNewData(value As Byte)
+    Private Sub WriteBuffer(value As Byte)
         If blaster.MemPtr < blaster.Mem.Length Then
             blaster.Mem(blaster.MemPtr) = value
             blaster.MemPtr += 1
@@ -277,7 +277,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
                     blaster.UsingDma = False
                     blaster.BlockSize = 65535
                     blaster.BlockStep = 0
-                    BufNewData(&HAA)
+                    WriteBuffer(&HAA)
                     For i As Integer = 0 To mixer.Length - 1 : mixer(i) = &HEE : Next
                 End If
                 blaster.LastResetVal = value

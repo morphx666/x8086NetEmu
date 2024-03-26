@@ -19,7 +19,7 @@
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
-        Threading.Tasks.Task.Run(AddressOf InitiAdapter)
+        Threading.Tasks.Task.Run(AddressOf InitAdapter)
     End Sub
 
     Public ReadOnly Property CPU As X8086
@@ -28,7 +28,7 @@
         End Get
     End Property
 
-    Public MustOverride Sub InitiAdapter()
+    Public MustOverride Sub InitAdapter()
     Public MustOverride Sub CloseAdapter()
     Public MustOverride ReadOnly Property Type As AdapterType
     Public MustOverride ReadOnly Property Vendor As String

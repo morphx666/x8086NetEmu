@@ -274,7 +274,7 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public Overrides Sub InitiAdapter()
+    Public Overrides Sub InitAdapter()
         isInit = MyBase.CPU IsNot Nothing
         If isInit AndAlso useInternalTimer Then Tasks.Task.Run(AddressOf MainLoop)
     End Sub

@@ -126,7 +126,7 @@ Public Class CGAWinForms
             '    sdlCtrl.Init(Me, mFont.FontFamily.Name, mFont.Size)
             'End If
 
-            InitiAdapter()
+            InitAdapter()
 
             AddHandler mRenderControl.Paint, AddressOf Paint
         End Set

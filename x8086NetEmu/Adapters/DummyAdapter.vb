@@ -45,7 +45,7 @@ Public Class DummyAdapter
         End Get
     End Property
 
-    Public Overrides Sub InitiAdapter()
+    Public Overrides Sub InitAdapter()
     End Sub
 
     Public Overrides Sub CloseAdapter()

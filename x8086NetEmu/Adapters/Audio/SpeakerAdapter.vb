@@ -126,7 +126,7 @@ Public Class SpeakerAdpater
         waveOut.Dispose()
     End Sub
 
-    Public Overrides Sub InitiAdapter()
+    Public Overrides Sub InitAdapter()
         waveOut = New WaveOut() With {
             .NumberOfBuffers = 16
         }

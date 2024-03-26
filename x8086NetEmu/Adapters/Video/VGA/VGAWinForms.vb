@@ -117,7 +117,7 @@
             DetachRenderControl()
             mRenderControl = value
 
-            InitiAdapter()
+            InitAdapter()
 
             AddHandler mRenderControl.Paint, AddressOf Paint
         End Set

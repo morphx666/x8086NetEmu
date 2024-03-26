@@ -254,7 +254,9 @@
     <Compile Include="Tools\FormMediaManager.Designer.vb">
       <DependentUpon>FormMediaManager.vb</DependentUpon>
     </Compile>
-    <Compile Include="Tools\FormMediaManager.vb" />
+    <Compile Include="Tools\FormMediaManager.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Tools\FormConsole.Designer.vb">
       <DependentUpon>FormConsole.vb</DependentUpon>
     </Compile>

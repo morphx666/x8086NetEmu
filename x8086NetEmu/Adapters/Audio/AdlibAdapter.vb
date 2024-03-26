@@ -108,7 +108,7 @@ Public Class AdlibAdapter ' Based on fake86's implementation
         waveOut.Dispose()
     End Sub
 
-    Public Overrides Sub InitiAdapter()
+    Public Overrides Sub InitAdapter()
         waveOut = New WaveOut() With {
             .NumberOfBuffers = 16
         }

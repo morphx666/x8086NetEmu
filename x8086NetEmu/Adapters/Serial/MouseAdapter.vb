@@ -107,7 +107,7 @@
 
     End Sub
 
-    Public Overrides Sub InitiAdapter()
+    Public Overrides Sub InitAdapter()
 
     End Sub
 
