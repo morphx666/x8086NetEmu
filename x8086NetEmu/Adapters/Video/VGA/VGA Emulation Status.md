@@ -25,6 +25,7 @@ VGA Mode | Status | Notes
 &nbsp;|	[many issues]				|	d:\banner\banner.exe
 &nbsp;|	[VGA corrupted video]		|	d:\win3\win.com
 &nbsp;|	[wrong colors/no mouse]		|	d:\orcad\orcad.bat
+&nbsp;|	[many issues]				|	d:\vistapro\vistapro.exe
 0x13  |	:+1:						|	d:\games\prince\prince.exe
 &nbsp;|	:+1:						|	d:\games\prince2\prince.exe
 &nbsp;|	[corrupted video/halts]		|	d:\games\wolf3d\wolf8086.exe

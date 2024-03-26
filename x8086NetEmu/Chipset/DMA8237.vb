@@ -17,7 +17,7 @@
     Private reqReg As Byte
 
     ' Channel with highest priority
-    Private prioChannel As Integer
+    Private priorityChannel As Integer
 
     ' Four DMA channels in the I8237 chip
     Private ReadOnly channels() As Channel
@@ -81,7 +81,7 @@
         Public WriteMode As Integer
 
         ' Page (address bits 16 - 23) for this channel.
-        Public Page As UInt16
+        Public Page As UInt32
 
         ' Device with which this channel is currently associated.
         Public Device As IDMADevice
@@ -225,38 +225,38 @@
         rbits = rbits And (Not 1) ' never select channel 0
         If rbits = 0 Then Exit Sub
 
-        Dim i As Integer = prioChannel
-        While ((rbits >> i) And 1) = 0
-            i = (i + 1) And 3
+        Dim channelIndex As Integer = priorityChannel
+        While ((rbits >> channelIndex) And 1) = 0
+            channelIndex = (channelIndex + 1) And 3
         End While
 
         ' Just decided to start a transfer on channel i
-        Dim chan As Channel = channels(i)
-        Dim dev As IDMADevice = chan.Device
-        Dim mode As UInt16 = chan.Mode
-        Dim page As UInt16 = chan.Page
+        Dim channel As Channel = channels(channelIndex)
+        Dim device As IDMADevice = channel.Device
+        Dim mode As UInt16 = channel.Mode
+        Dim page As UInt32 = channel.Page
 
         ' Update dynamic priority
-        If (cmdReg And 10) <> 0 Then prioChannel = (i + 1) And 3
+        If (cmdReg And 10) <> 0 Then priorityChannel = (channelIndex + 1) And 3
 
         ' Block further transactions until this one completes
         pendingTask = True
         Dim transferTime As Long = 0
 
         If (mode And &HC0) = &HC0 Then
-            'log.warn("Cascade mode not implemented (channel " + i + ")")
+            ' Cascade mode not implemented
             Stop
         ElseIf (mode And &HC) = &HC Then
-            'log.warn("Invalid mode on channel " + i)
+            ' Invalid mode on channel
         Else
             ' Prepare for transfer
             Dim blockMode As Boolean = (mode And &HC0) = &H80
             Dim singleMode As Boolean = (mode And &HC0) = &H40
-            Dim curCount As UInt16 = chan.CurrentCount
-            Dim maxLen As UInt16 = curCount + 1
-            Dim curAddr As UInt16 = chan.CurrentAddress
-            Dim addrStep As UInt16 = If((chan.Mode And &H20) = 0, 1, -1)
-            chan.ExternalEop = False
+            Dim currentCount As UInt16 = channel.CurrentCount
+            Dim maxLen As UInt16 = currentCount + 1
+            Dim currentAddress As UInt16 = channel.CurrentAddress
+            Dim addressStep As UInt16 = If((channel.Mode And &H20) = 0, 1, -1)
+            channel.ExternalEop = False
 
             ' Don't combine too much single transfers in one atomic action
             If singleMode AndAlso maxLen > 25 Then maxLen = 25
@@ -265,52 +265,52 @@
             Select Case mode And &HC
                 Case &H0
                     ' DMA verify
-                    curCount -= maxLen
-                    curAddr = (curAddr + maxLen * addrStep) And &HFFFF
+                    currentCount -= maxLen
+                    currentAddress = (currentAddress + maxLen * addressStep) And &HFFFF
                     transferTime += 3 * maxLen * Scheduler.HOSTCLOCK / cpu.Clock
                 Case &H4
                     ' DMA write
-                    While (maxLen > 0) AndAlso (Not chan.ExternalEop) AndAlso (blockMode OrElse chan.PendingRequest)
-                        If dev IsNot Nothing Then cpu.Memory((CUInt(page) << 16) Or curAddr) = dev.DMAWrite()
+                    While (maxLen > 0) AndAlso (Not channel.ExternalEop) AndAlso (blockMode OrElse channel.PendingRequest)
+                        If device IsNot Nothing Then cpu.Memory(page Or currentAddress) = device.DMAWrite()
                         maxLen -= 1
-                        curCount -= 1
-                        curAddr = (curAddr + addrStep) And &HFFFF
+                        currentCount -= 1
+                        currentAddress = (currentAddress + addressStep) And &HFFFF
                         transferTime += 3 * Scheduler.HOSTCLOCK / cpu.Clock
                     End While
                 Case &H8
                     ' DMA read
-                    While maxLen > 0 AndAlso Not chan.ExternalEop AndAlso (blockMode OrElse chan.PendingRequest)
-                        If dev IsNot Nothing Then dev.DMARead(cpu.Memory((CUInt(page) << 16) Or curAddr))
+                    While maxLen > 0 AndAlso Not channel.ExternalEop AndAlso (blockMode OrElse channel.PendingRequest)
+                        If device IsNot Nothing Then device.DMARead(cpu.Memory(page Or currentAddress))
                         maxLen -= 1
-                        curCount -= 1
-                        curAddr = (curAddr + addrStep) And &HFFFF
+                        currentCount -= 1
+                        currentAddress = (currentAddress + addressStep) And &HFFFF
                         transferTime += 3 * Scheduler.HOSTCLOCK / cpu.Clock
                     End While
             End Select
 
             ' Update registers
-            Dim termCount As Boolean = curCount < 0
-            chan.CurrentCount = If(termCount, &HFFFF, curCount)
-            chan.CurrentAddress = curAddr
+            Dim termCount As Boolean = currentCount < 0
+            channel.CurrentCount = If(termCount, &HFFFF, currentCount)
+            channel.CurrentAddress = currentAddress
 
             ' Handle terminal count or external EOP
-            If termCount OrElse chan.ExternalEop Then
+            If termCount OrElse channel.ExternalEop Then
                 If (mode And &H10) = 0 Then
                     ' Set mask bit
-                    maskReg = maskReg Or (1 << i)
+                    maskReg = maskReg Or (1 << channelIndex)
                 Else
                     ' Auto-initialize
-                    chan.CurrentCount = chan.BaseCount
-                    chan.CurrentAddress = chan.BaseAddress
+                    channel.CurrentCount = channel.BaseCount
+                    channel.CurrentAddress = channel.BaseAddress
                 End If
                 ' Clear software request
-                reqReg = reqReg And Not (1 << i)
+                reqReg = reqReg And Not (1 << channelIndex)
                 ' Set TC bit in status register
-                statusReg = statusReg Or (1 << i)
+                statusReg = statusReg Or (1 << channelIndex)
             End If
 
             ' Send EOP to device
-            If termCount AndAlso (Not chan.ExternalEop) AndAlso dev IsNot Nothing Then dev.DMAEOP()
+            If termCount AndAlso (Not channel.ExternalEop) AndAlso device IsNot Nothing Then device.DMAEOP()
         End If
 
         ' Schedule a task to run when the simulated DMA transfer completes
@@ -330,11 +330,11 @@
         ElseIf (port And &HFFF8) = &H8 Then
             ' DMA controller: operation registers
             Select Case port
-                Case 8 ' read status register
+                Case 8 ' Read status register
                     Dim sr As Byte = statusReg
                     statusReg = statusReg And &HF0
                     Return sr
-                Case 13 ' read temporary register
+                Case 13 ' Read temporary register
                     Return tempReg
             End Select
         End If
@@ -346,18 +346,18 @@
         UpdateCh0()
 
         If (port And &HFFF8) = 0 Then
-            ' DMA controller: channel setup
-            Dim chan As Channel = channels((port >> 1) And 3)
+            ' DMA Controller: Channel Setup
+            Dim channel As Channel = channels((port >> 1) And 3)
 
             Dim x As UInt16
             Dim y As UInt16
 
             If (port And 1) = 0 Then
-                x = chan.BaseAddress
-                y = chan.CurrentAddress
+                x = channel.BaseAddress
+                y = channel.CurrentAddress
             Else
-                x = chan.BaseCount
-                y = chan.CurrentCount
+                x = channel.BaseCount
+                y = channel.CurrentCount
             End If
 
             Dim p As Boolean = msbFlipFlop
@@ -370,47 +370,47 @@
                 y = (y And &HFF00) Or (value And &HFF)
             End If
             If (port And 1) = 0 Then
-                chan.BaseAddress = x
-                chan.CurrentAddress = y
+                channel.BaseAddress = x
+                channel.CurrentAddress = y
             Else
-                chan.BaseCount = x
-                chan.CurrentCount = y
+                channel.BaseCount = x
+                channel.CurrentCount = y
             End If
         ElseIf (port And &HFFF8) = &H8 Then
-            ' DMA controller: operation registers
+            ' DMA Controller: Operation Registers
             Select Case port And &HF
-                Case 8 ' write command register
+                Case 8 ' Write Command Register
                     cmdReg = value
-                    If (value And &H10) = 0 Then prioChannel = 0 ' enable fixed priority
+                    If (value And &H10) = 0 Then priorityChannel = 0 ' Enable Fixed Priority
                     If (value And 1) = 1 Then cpu.RaiseException("DMA8237: Memory-to-memory transfer not implemented")
 
-                Case 9 ' set/reset request register
+                Case 9 ' Set/Reset Request Register
                     If (value And 4) = 0 Then
-                        reqReg = reqReg And (Not 1 << (value And 3)) ' reset request bit
+                        reqReg = reqReg And (Not 1 << (value And 3)) ' Reset Request Bit
                     Else
-                        reqReg = reqReg Or (1 << (value And 3))  ' set request bit
+                        reqReg = reqReg Or (1 << (value And 3))  ' Set Request Bit
                     End If
                     If (value And 7) = 4 Then cpu.RaiseException("DMA8237: Software request on channel 0 not implemented")
 
-                Case 10 ' set/reset mask register
+                Case 10 ' Set/Reset Mask Register
                     If (value And 4) = 0 Then
-                        maskReg = maskReg And Not (1 << (value And 3)) ' reset mask bit
+                        maskReg = maskReg And Not (1 << (value And 3)) ' Reset Mask Bit
                     Else
-                        maskReg = maskReg Or (1 << (value And 3))  ' set mask bit
+                        maskReg = maskReg Or (1 << (value And 3))  ' Set Mask Bit
                     End If
                     channels(value And 3).Masked = (value >> 2) And 1
 
-                Case 11 ' write mode register
+                Case 11 ' Write Mode Register
                     channels(value And 3).Mode = value
                     channels(value And 3).Direction = (value >> 5) And 1
                     channels(value And 3).AutoInit = (value >> 4) And 1
                     channels(value And 3).WriteMode = (value >> 2) And 1
                     If (value And 3) = 0 AndAlso (value And &HDC) <> &H58 Then cpu.RaiseException("DMA8237: Unsupported mode on channel 0")
 
-                Case 12 ' clear msb flipflop
+                Case 12 ' Clear MSB FlipFlop
                     msbFlipFlop = False
 
-                Case 13 ' master clear
+                Case 13 ' Master Clear
                     msbFlipFlop = False
                     cmdReg = 0
                     statusReg = 0
@@ -418,21 +418,21 @@
                     tempReg = 0
                     maskReg = &HF
 
-                Case 14 ' clear mask register
+                Case 14 ' Clear Mask Register
                     maskReg = 0
 
-                Case 15 ' write mask register
+                Case 15 ' Write Mask Register
                     maskReg = value
             End Select
             TryHandleRequest()
 
         ElseIf (port And &HFFF8) = &H80 Then
-            ' DMA page registers
+            ' DMA Page Registers
             Select Case port
-                Case &H81 : channels(2).Page = value
-                Case &H82 : channels(3).Page = value
-                Case &H83 : channels(1).Page = value
-                Case &H87 : channels(0).Page = value
+                Case &H81 : channels(2).Page = CUInt(value) << 16
+                Case &H82 : channels(3).Page = CUInt(value) << 16
+                Case &H83 : channels(1).Page = CUInt(value) << 16
+                Case &H87 : channels(0).Page = CUInt(value) << 16
             End Select
         End If
     End Sub
