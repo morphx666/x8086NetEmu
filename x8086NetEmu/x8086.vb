@@ -17,8 +17,8 @@ Public Class X8086
 
     Private mModel As Models = Models.IBMPC_5160
 
-    Private mRegisters As GPRegisters = New GPRegisters()
-    Private mFlags As GPFlags = New GPFlags()
+    Private mRegisters As New GPRegisters()
+    Private mFlags As New GPFlags()
 
     Public Enum MemHookMode
         Read
@@ -40,7 +40,7 @@ Public Class X8086
 
     Private mipsThread As Thread
     Private mipsWaiter As AutoResetEvent
-    Private instrucionsCounter As UInt32
+    Private instructionsCounter As UInt32
     Private newPrefix As Boolean = False
     Private newPrefixLast As Integer = 0
 
@@ -108,7 +108,7 @@ Public Class X8086
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
                    Optional model As Models = Models.IBMPC_5160)
 
-        Scheduler.HOSTCLOCK = Stopwatch.Frequency  ' GetCpuSpeed() * X8086.MHz
+        Scheduler.HOSTCLOCK = Stopwatch.Frequency ' GetCpuSpeed() * X8086.MHz
 
         mV20 = v20
         mEmulateINT13 = int13
@@ -117,6 +117,8 @@ Public Class X8086
 
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
+
+        audioSubSystem = New AudioSubSystem()
 
         BuildSZPTables()
         BuildDecoderCache()
@@ -349,8 +351,8 @@ Public Class X8086
         Do
             mipsWaiter.WaitOne(delay)
 
-            mMPIs = (instrucionsCounter / delay / 1000)
-            instrucionsCounter = 0
+            mMPIs = (instructionsCounter / delay / 1000)
+            instructionsCounter = 0
 
             If cancelAllThreads Then Exit Do
             RaiseEvent MIPsUpdated()
@@ -457,7 +459,7 @@ Public Class X8086
 
         opCodeSize = 1
         newPrefix = False
-        instrucionsCounter += 1
+        instructionsCounter += 1
 
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
     End Sub
@@ -2180,7 +2182,7 @@ Public Class X8086
     End Sub
 
     Private Function ExecStringOpCode() As Boolean
-        instrucionsCounter += 1
+        instructionsCounter += 1
 
         Select Case opCode
             Case &HA4 ' MOVSB

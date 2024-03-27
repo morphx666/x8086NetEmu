@@ -109,9 +109,7 @@
                 ppiB = value
                 If (timer IsNot Nothing) AndAlso ((oldv Xor value) And 1) <> 0 Then
                     timer.SetCh2Gate((ppiB And 1) <> 0)
-#If Win32 Then
                     If timer.Speaker IsNot Nothing Then timer.Speaker.Enabled = (value And 1) = 1
-#End If
                 End If
 
         End Select

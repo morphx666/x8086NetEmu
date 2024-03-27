@@ -341,17 +341,19 @@
         mFlags.AF = If(((v1 Xor v2 Xor result) And &H10) = 0, 0, 1)
     End Sub
 
-    Protected Friend Sub SetUpAdapter(adptr As Adapter)
-        Select Case adptr.Type
+    Protected Friend Sub SetUpAdapter(adapter As Adapter)
+        Select Case adapter.Type
             Case Adapter.AdapterType.Keyboard
-                mKeyboard = adptr
+                mKeyboard = adapter
             Case Adapter.AdapterType.SerialMouseCOM1
-                mMouse = adptr
+                mMouse = adapter
             Case Adapter.AdapterType.Video
-                mVideoAdapter = adptr
+                mVideoAdapter = adapter
                 SetupSystem()
             Case Adapter.AdapterType.Floppy
-                mFloppyController = adptr
+                mFloppyController = adapter
+            Case Adapter.AdapterType.AudioDevice
+                audioSubSystem.Providers.Add(adapter)
         End Select
     End Sub
 

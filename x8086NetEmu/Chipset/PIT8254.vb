@@ -526,7 +526,7 @@
     Private irq As InterruptRequest
 
     ' Speaker Adapter connected to channel 2
-    Private mSpeaker As SpeakerAdpater
+    Private mSpeaker As SpeakerAdapter
 
     ' Current time mirrored from Scheduler
     Private currentTime As Long
@@ -586,6 +586,12 @@
         countRate = 1_193_180 / magicFactor ' 1.19318 MHz
         speakerBaseFrequency = 1_193_180 * magicFactor * Scheduler.HOSTCLOCK / X8086.MHz
     End Sub
+
+    Public ReadOnly Property Channels(index As Integer) As Counter
+        Get
+            Return mChannels(index)
+        End Get
+    End Property
 
     Public Function GetOutput(c As Integer) As Boolean
         Return mChannels(c).GetOutput()
@@ -684,16 +690,14 @@
         '    End If
         'End If
 
-#If Win32 Then
         If mSpeaker IsNot Nothing Then
             Dim period As Long = mChannels(2).GetSquareWavePeriod()
             If period = 0 Then
                 mSpeaker.Frequency = 0
             Else
-                mSpeaker.Frequency = speakerBaseFrequency \ period
+                mSpeaker.Frequency = speakerBaseFrequency / period
             End If
         End If
-#End If
     End Sub
 
     Public Function TimeToClocks(t As Long) As Long
@@ -706,11 +710,11 @@
                ((c Mod countRate) * Scheduler.HOSTCLOCK + countRate - 1) \ countRate
     End Function
 
-    Public Property Speaker As SpeakerAdpater
+    Public Property Speaker As SpeakerAdapter
         Get
             Return mSpeaker
         End Get
-        Set(value As SpeakerAdpater)
+        Set(value As SpeakerAdapter)
             mSpeaker = value
         End Set
     End Property

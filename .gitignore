@@ -265,3 +265,6 @@ ModelManifest.xml
 !**/Release/roms/pcxtbios.rom
 
 **/settings.dat
+
+# Include Bass libraries
+!**/Bass/**

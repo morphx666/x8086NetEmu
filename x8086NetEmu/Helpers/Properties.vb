@@ -10,6 +10,7 @@
     Private mMouse As MouseAdapter
     Private mFloppyController As FloppyControllerAdapter
     Private mAdapters As Adapters = New Adapters(Me)
+    Private audioSubSystem As AudioSubSystem
     Private mPorts As IOPorts = New IOPorts(Me)
     Private mEnableExceptions As Boolean
 

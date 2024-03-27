@@ -242,8 +242,8 @@
     </WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NAudio, Version=1.10.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\NAudio.1.10.0\lib\net35\NAudio.dll</HintPath>
+    <Reference Include="ManagedBass, Version=3.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ManagedBass.3.1.1\lib\net45\ManagedBass.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -270,6 +270,8 @@
     <Compile Include="Adapters\Adapter.vb" />
     <Compile Include="Adapters\Adapters.vb" />
     <Compile Include="Adapters\Audio\AdlibAdapter.vb" />
+    <Compile Include="Adapters\Audio\AudioProvider.vb" />
+    <Compile Include="Adapters\Audio\AudioSubSystem.vb" />
     <Compile Include="Adapters\Audio\SoundBlaster.vb" />
     <Compile Include="Adapters\Audio\SpeakerAdapter.vb" />
     <Compile Include="Adapters\Disk\FileSystem\FileSystemStructs.vb" />
@@ -290,8 +292,11 @@
     <Compile Include="Adapters\Video\VideoChar.vb" />
     <Compile Include="Adapters\WebUI.vb" />
     <Compile Include="Chipset\RTC.vb" />
+    <Compile Include="Helpers\Bass\BassHelpers.vb" />
+    <Compile Include="Helpers\Bass\BufferProvider.vb" />
     <Compile Include="Helpers\Binary.vb" />
     <Compile Include="Helpers\Exceptions.vb" />
+    <Compile Include="Helpers\Misc\Runtime.vb" />
     <Compile Include="Helpers\OpCodes.vb" />
     <Compile Include="Helpers\ConsoleCrayon.vb" />
     <Compile Include="Helpers\Decoder.vb" />
@@ -358,9 +363,30 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Adapters\Video\VGA\VGA Emulation Status.md" />
+    <None Include="Bass\arm\hardfp\libbass.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bass\arm\softfp\libbass.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bass\linux\x64\libbass.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bass\linux\x86\libbass.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bass\macosx\x64\libbass.dylib">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="Bass\windows\x64\bass.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Bass\windows\x86\bass.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="My Project\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -397,7 +423,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
