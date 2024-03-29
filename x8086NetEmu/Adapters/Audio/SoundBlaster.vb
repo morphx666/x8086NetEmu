@@ -1,12 +1,6 @@
-﻿#If Win32 Then
-Imports NAudio.Wave
-
-Public Class SoundBlaster ' Based on fake86's implementation
-    Inherits Adapter
+﻿Public Class SoundBlaster ' Based on fake86's implementation
+    Inherits AudioProvider
     Implements IDMADevice
-
-    Private waveOut As WaveOut
-    Private audioProvider As SpeakerAdpater.CustomBufferProvider
 
     Private Structure BlasterData
         Public Mem() As Byte
@@ -70,28 +64,17 @@ Public Class SoundBlaster ' Based on fake86's implementation
         Else
             blaster.SampleTicks = Scheduler.HOSTCLOCK / blaster.SampleRate
 
-            If blaster.SampleRate <> audioProvider.WaveFormat.SampleRate Then
-                waveOut.Dispose()
-
-                audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, blaster.SampleRate, 8, 1)
-                waveOut.Init(audioProvider)
-                waveOut.Play()
-            End If
+            SampleTicks = blaster.SampleTicks
+            LastTick = Stopwatch.GetTimestamp()
         End If
     End Sub
+
+    Public Overrides Property Volume As Double = 0.4
 
     Public Overrides Sub InitAdapter()
         blaster.DspMajor = 2 ' Emulate a Sound Blaster Pro 2.0
         blaster.DspMinor = 0
         MixerReset()
-
-        waveOut = New WaveOut() With {
-            .NumberOfBuffers = 16
-        }
-
-        audioProvider = New SpeakerAdpater.CustomBufferProvider(AddressOf FillAudioBuffer, SpeakerAdpater.SampleRate, 8, 1)
-        waveOut.Init(audioProvider)
-        waveOut.Play()
     End Sub
 
     Private Sub ProcessCommand(value As Byte)
@@ -201,8 +184,6 @@ Public Class SoundBlaster ' Based on fake86's implementation
     End Sub
 
     Public Overrides Sub CloseAdapter()
-        waveOut.Stop()
-        waveOut.Dispose()
     End Sub
 
     Private Sub MixerReset()
@@ -214,18 +195,9 @@ Public Class SoundBlaster ' Based on fake86's implementation
         blaster.Mixer.Register(&H26) = v
     End Sub
 
-    Private Sub FillAudioBuffer(buffer() As Byte)
-        If blaster.SampleRate > 0 Then
-            For i As Integer = 0 To buffer.Length - 1
-                TickBlaster()
-                buffer(i) = GetBlasterSample()
-            Next
-        End If
-    End Sub
-
-    Private Function GetBlasterSample() As UInt16
-        If Not blaster.OutputEnabled Then Return 128
-        Return CUInt(blaster.Sample) - 128
+    Public Overrides Function GetSample() As Int16
+        If Not blaster.OutputEnabled Then Return 0
+        Return blaster.Sample
     End Function
 
     Private Sub WriteByteToBuffer(value As Byte)
@@ -290,7 +262,7 @@ Public Class SoundBlaster ' Based on fake86's implementation
         End Select
     End Sub
 
-    Private Sub TickBlaster()
+    Public Overrides Sub Tick()
         If Not blaster.UsingDma Then Exit Sub
 
         ReadDMA()
@@ -383,4 +355,3 @@ Public Class SoundBlaster ' Based on fake86's implementation
         End Get
     End Property
 End Class
-#End If

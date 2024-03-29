@@ -13,6 +13,8 @@ Public Class BassHelpers
             platform = "arm"
         End If
 
+        Console.WriteLine($"Platform: {platform} {architecture}")
+
         Dim path As String = IO.Path.GetFullPath(IO.Path.Combine("Bass", platform, architecture))
 
         If x8086NetEmu.Runtime.Platform = x8086NetEmu.Runtime.Platforms.MacOSX Then

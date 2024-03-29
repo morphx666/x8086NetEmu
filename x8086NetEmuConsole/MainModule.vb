@@ -23,11 +23,9 @@ Module MainModule
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         ' cpu.Adapters.Add(New MouseAdapter(cpu)) ' So far, useless in Console mode
 
-#If Win32 Then
-        cpu.Adapters.Add(New SpeakerAdpater(cpu))
-        cpu.Adapters.Add(New AdlibAdapter(cpu))
-        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
-#End If
+        cpu.Adapters.Add(New SpeakerAdapter(cpu))
+        'cpu.Adapters.Add(New AdlibAdapter(cpu))
+        'cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 
         LoadSettings()
 

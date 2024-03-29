@@ -24,7 +24,11 @@
         If MyBase.CPU.PIT IsNot Nothing Then MyBase.CPU.PIT.Speaker = Me
     End Sub
 
+    Public Overrides Property Volume As Double = 0.1
+
     Public Overrides Sub InitAdapter()
+        SampleTicks = Scheduler.HOSTCLOCK / SpeakerAdapter.SampleRate
+        LastTick = Stopwatch.GetTimestamp()
     End Sub
 
     Public Property Frequency As Double
@@ -62,7 +66,7 @@
     Public Overrides Sub CloseAdapter()
     End Sub
 
-    Public Overrides Function GenerateSample() As Int16
+    Public Overrides Function GetSample() As Int16
         Dim value As Double
         Select Case waveForm
             Case WaveForms.Squared
@@ -88,6 +92,9 @@
 
         Return value
     End Function
+
+    Public Overrides Sub Tick()
+    End Sub
 
 #Disable Warning BC42353
     Public Overrides Function [In](port As UInt16) As Byte

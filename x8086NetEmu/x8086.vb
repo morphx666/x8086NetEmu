@@ -118,8 +118,6 @@ Public Class X8086
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
 
-        audioSubSystem = New AudioSubSystem()
-
         BuildSZPTables()
         BuildDecoderCache()
         Init()
@@ -158,6 +156,8 @@ Public Class X8086
 
         AddInternalHooks()
         LoadBIOS()
+
+        audioSubSystem = New AudioSubSystem()
 
         mIsHalted = False
         mIsExecuting = False
@@ -262,6 +262,8 @@ Public Class X8086
 
         memHooks.Clear()
         intHooks.Clear()
+
+        audioSubSystem.Dispose()
 
         Sched = Nothing
         mipsWaiter = Nothing
