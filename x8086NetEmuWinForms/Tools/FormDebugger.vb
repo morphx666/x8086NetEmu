@@ -1,7 +1,6 @@
 ﻿Imports System.Threading
 Imports x8086NetEmu
 Imports System.Text
-Imports x8086NetEmuWinForms
 
 Public Class FormDebugger
     Public Enum LastInstructionMode

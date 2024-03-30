@@ -1,7 +1,4 @@
-﻿Imports System.Threading
-Imports System.Runtime.InteropServices
-
-Public Class FloppyControllerAdapter
+﻿Public Class FloppyControllerAdapter
     Inherits Adapter
     Implements IDMADevice
 
@@ -95,7 +92,7 @@ Public Class FloppyControllerAdapter
     End Enum
 
     Private Class TaskSC
-        Inherits Scheduler.Task
+        Inherits Scheduler.SchTask
 
         Public Sub New(owner As IOPortHandler)
             MyBase.New(owner)
@@ -111,7 +108,7 @@ Public Class FloppyControllerAdapter
             End Get
         End Property
     End Class
-    Private task As Scheduler.Task = New TaskSC(Me)
+    Private sTask As New TaskSC(Me)
 
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)
@@ -167,18 +164,18 @@ Public Class FloppyControllerAdapter
         If irq IsNot Nothing Then irq.Raise(False)
         If dma IsNot Nothing Then dma.DMARequest(False)
         state = States.IDLE
-        task?.Cancel()
+        sTask?.Cancel()
     End Sub
 
     ' Prepare to transfer next byte(s)
     Public Sub KickTransfer()
         If ctlNonDma Then
             ' prepare to transfer next byte in non-DMA mode
-            sched.RunTaskAfter(task, BYTEDELAY)
+            sched.RunTaskAfter(sTask, BYTEDELAY)
             If irq IsNot Nothing Then irq.Raise(True)
         Else
             ' prepare to transfer multiple bytes in DMA mode
-            sched.RunTaskAfter(task, SECTORDELAY)
+            sched.RunTaskAfter(sTask, SECTORDELAY)
             If dma IsNot Nothing Then dma.DMARequest(True)
         End If
     End Sub
@@ -236,33 +233,33 @@ Public Class FloppyControllerAdapter
         Select Case cmdCmd
             Case Commands.READ, Commands.READ_DEL '  READ: go to EXECUTE state
                 state = States.EXECUTE
-                sched.RunTaskAfter(task, COMMANDDELAY)
+                sched.RunTaskAfter(sTask, COMMANDDELAY)
 
             Case Commands.WRITE, Commands.WRITE_DEL ' WRITE: go to EXECUTE state
                 state = States.EXECUTE
-                sched.RunTaskAfter(task, COMMANDDELAY)
+                sched.RunTaskAfter(sTask, COMMANDDELAY)
 
             Case Commands.READ_TRACK  ' READ TRACK: go to EXECUTE state
                 state = States.EXECUTE
-                sched.RunTaskAfter(task, COMMANDDELAY)
+                sched.RunTaskAfter(sTask, COMMANDDELAY)
 
             Case Commands.READ_ID ' READ ID: go to execute state
                 state = States.EXECUTE
-                sched.RunTaskAfter(task, COMMANDDELAY)
+                sched.RunTaskAfter(sTask, COMMANDDELAY)
 
             Case Commands.FORMAT ' FORMAT: go to EXECUTE state
                 state = States.EXECUTE
-                sched.RunTaskAfter(task, COMMANDDELAY)
+                sched.RunTaskAfter(sTask, COMMANDDELAY)
 
             Case Commands.SCAN_EQ, Commands.SCAN_LE, Commands.SCAN_GE ' SCAN: go to EXECUTE state
                 state = States.EXECUTE
-                sched.RunTaskAfter(task, COMMANDDELAY)
+                sched.RunTaskAfter(sTask, COMMANDDELAY)
 
             Case Commands.CALIBRATE ' CALIBRATE: go to EXECUTE state
                 cmdCylinder = 0
                 driveSeeking = driveSeeking Or (1 << cmdDrive)
                 state = States.EXECUTE
-                sched.RunTaskAfter(task, COMMANDDELAY)
+                sched.RunTaskAfter(sTask, COMMANDDELAY)
 
             Case Commands.SENSE_INT   ' SENSE INTERRUPT: respond immediately
                 If irq IsNot Nothing Then irq.Raise(False)
@@ -309,7 +306,7 @@ Public Class FloppyControllerAdapter
             Case Commands.SEEK        ' SEEK: go to EXECUTE state
                 driveSeeking = driveSeeking Or CByte(1 << cmdDrive)
                 state = States.EXECUTE
-                sched.RunTaskAfter(task, COMMANDDELAY)
+                sched.RunTaskAfter(sTask, COMMANDDELAY)
 
             Case Else ' INVALID: respond immediately
                 regSt0 = &H80

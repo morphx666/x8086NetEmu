@@ -36,9 +36,29 @@
     'Private mixer(256 - 1) As Byte
     'Private mixerIndex As Byte
 
-    Private dmaChannel As DMAI8237.Channel
+    Private ReadOnly dmaChannel As DMAI8237.Channel
 
     Private adLib As AdlibAdapter
+    Private mVolume As Double
+
+    Private Class TaskSC
+        Inherits Scheduler.SchTask
+
+        Public Sub New(owner As IOPortHandler)
+            MyBase.New(owner)
+        End Sub
+
+        Public Overrides Sub Run()
+            Owner.Run()
+        End Sub
+
+        Public Overrides ReadOnly Property Name As String
+            Get
+                Return Owner.Name
+            End Get
+        End Property
+    End Class
+    Private ReadOnly task As New TaskSC(Me)
 
     Public Sub New(cpu As X8086, adlib As AdlibAdapter, Optional port As UInt16 = &H220, Optional irq As Byte = 5, Optional dmaChannel As Byte = 1)
         MyBase.New(cpu)
@@ -62,19 +82,19 @@
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            blaster.SampleTicks = Scheduler.HOSTCLOCK / blaster.SampleRate
+            blaster.SampleTicks = 10 * Scheduler.HOSTCLOCK \ blaster.SampleRate
 
-            SampleTicks = blaster.SampleTicks
-            LastTick = Stopwatch.GetTimestamp()
+            task.Cancel()
+            CPU.Sched.RunTaskEach(task, blaster.SampleTicks)
         End If
     End Sub
-
-    Public Overrides Property Volume As Double = 0.4
 
     Public Overrides Sub InitAdapter()
         blaster.DspMajor = 2 ' Emulate a Sound Blaster Pro 2.0
         blaster.DspMinor = 0
         MixerReset()
+
+        mVolume = 1.0
     End Sub
 
     Private Sub ProcessCommand(value As Byte)
@@ -195,10 +215,24 @@
         blaster.Mixer.Register(&H26) = v
     End Sub
 
-    Public Overrides Function GetSample() As Int16
+    Public Function GetSample() As Int16
         If Not blaster.OutputEnabled Then Return 0
         Return blaster.Sample
     End Function
+
+    Public Overrides ReadOnly Property Sample As Int16
+        Get
+            Dim s = GetSample()
+
+            'If s <= 0 Then
+            '    s = 128 + s
+            'Else
+            '    s += 127
+            'End If
+
+            Return s * mVolume
+        End Get
+    End Property
 
     Private Sub WriteByteToBuffer(value As Byte)
         If blaster.MemPtr < blaster.Mem.Length Then
@@ -262,19 +296,19 @@
         End Select
     End Sub
 
-    Public Overrides Sub Tick()
-        If Not blaster.UsingDma Then Exit Sub
+    Public Overrides Sub Run()
+        If blaster.UsingDma Then
+            ReadDMA()
 
-        ReadDMA()
+            blaster.BlockStep += 1
+            If blaster.BlockStep > blaster.BlockSize Then
+                blaster.Irq.Raise(True)
 
-        blaster.BlockStep += 1
-        If blaster.BlockStep > blaster.BlockSize Then
-            blaster.Irq.Raise(True)
-
-            If blaster.UseAutoInit Then
-                blaster.BlockStep = 0
-            Else
-                blaster.UsingDma = False
+                If blaster.UseAutoInit Then
+                    blaster.BlockStep = 0
+                Else
+                    blaster.UsingDma = False
+                End If
             End If
         End If
     End Sub
@@ -302,10 +336,6 @@
             Return AdapterType.AudioDevice
         End Get
     End Property
-
-    Public Overrides Sub Run()
-        X8086.Notify($"{Name} Running", X8086.NotificationReasons.Info)
-    End Sub
 
     Public Sub DMARead(b As Byte) Implements IDMADevice.DMARead
         Throw New NotImplementedException()

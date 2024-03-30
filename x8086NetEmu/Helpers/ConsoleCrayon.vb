@@ -58,24 +58,30 @@ Public NotInheritable Class ConsoleCrayon
             If col < 0 OrElse col >= ConsoleWidth OrElse
                row < 0 OrElse row >= ConsoleHeight Then Exit Sub
 
-            If ConsoleCrayon.XtermColors Then
-                Console.Write(ESC + (row + 1).ToString() + ";" + (col + 1).ToString() + "H" +
-                                  GetAnsiColorControlCode(foreColor, True) +
-                                  GetAnsiColorControlCode(backColor, False) +
-                                  text)
+            'If ConsoleCrayon.XtermColors Then
+            '    Console.Write(ESC + (row + 1).ToString() + ";" + (col + 1).ToString() + "H" +
+            '                      GetAnsiColorControlCode(foreColor, True) +
+            '                      GetAnsiColorControlCode(backColor, False) +
+            '                      text)
+            'Else
+            If Console.CursorLeft <> col Then Console.CursorLeft = col
+            If Console.CursorTop <> row Then Console.CursorTop = row
+
+            If foreColor <> Console.ForegroundColor Then Console.ForegroundColor = foreColor
+            If backColor <> Console.BackgroundColor Then Console.BackgroundColor = backColor
+
+            If col + text.Length > ConsoleWidth Then
+                Console.Write(text.Substring(0, ConsoleWidth - col))
+                WriteFast(text.Substring(ConsoleWidth - col), foreColor, backColor, 0, row + 1)
             Else
-                If Console.CursorLeft <> col Then Console.CursorLeft = col
-                If Console.CursorTop <> row Then Console.CursorTop = row
-
-                If foreColor <> Console.ForegroundColor Then Console.ForegroundColor = foreColor
-                If backColor <> Console.BackgroundColor Then Console.BackgroundColor = backColor
-
                 Dim index As Integer = col + row * ConsoleWidth
                 Dim size As Integer = ConsoleWidth * ConsoleHeight
                 If index + text.Length >= size Then text = text.Substring(0, size - index - 1)
 
                 Console.Write(text)
             End If
+
+            'End If
         End SyncLock
     End Sub
 

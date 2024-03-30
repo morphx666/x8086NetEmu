@@ -1,4 +1,3 @@
-Imports System
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 
@@ -8,12 +7,12 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("x8086NetEmuConsole")> 
-<Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("")> 
+<Assembly: AssemblyTitle("x8086NetEmuConsole")>
+<Assembly: AssemblyDescription("")>
+<Assembly: AssemblyCompany("")>
 <Assembly: AssemblyProduct("x8086NetEmuConsole")>
 <Assembly: AssemblyCopyright("Copyright ©  2017")>
-<Assembly: AssemblyTrademark("")> 
+<Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>
 
@@ -31,7 +30,7 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("2024.3.30.1906")>
-<Assembly: AssemblyFileVersion("2024.3.30.1901")>
+<Assembly: AssemblyVersion("2024.4.3.1982")>
+<Assembly: AssemblyFileVersion("2024.4.3.1977")>
 
-<assembly: AssemblyInformationalVersion("2024.3.30")>
+<assembly: AssemblyInformationalVersion("2024.4.3")>

@@ -108,7 +108,8 @@ Public Class X8086
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
                    Optional model As Models = Models.IBMPC_5160)
 
-        Scheduler.HOSTCLOCK = Stopwatch.Frequency ' GetCpuSpeed() * X8086.MHz
+        Scheduler.HOSTCLOCK = Stopwatch.Frequency
+        'Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
 
         mV20 = v20
         mEmulateINT13 = int13
@@ -157,7 +158,7 @@ Public Class X8086
         AddInternalHooks()
         LoadBIOS()
 
-        audioSubSystem = New AudioSubSystem()
+        audioSubSystem = New AudioSubsystem(Me)
 
         mIsHalted = False
         mIsExecuting = False
@@ -321,10 +322,8 @@ Public Class X8086
         mDebugMode = debugMode
         cancelAllThreads = False
 
-#If Win32 Then
         If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = True
         If mVideoAdapter IsNot Nothing Then mVideoAdapter.Reset()
-#End If
 
         If debugMode Then RaiseEvent InstructionDecoded()
 
@@ -332,6 +331,7 @@ Public Class X8086
         mRegisters.IP = ip
 
         Sched.Start()
+        audioSubSystem.Init()
     End Sub
 
     Private Sub StopAllThreads()
@@ -367,9 +367,8 @@ Public Class X8086
         'Loop While mIsExecuting
 
         mIsPaused = True
-#If Win32 Then
         If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
-#End If
+
     End Sub
 
     Public Sub [Resume]()
@@ -400,8 +399,8 @@ Public Class X8086
                                 (Scheduler.HOSTCLOCK \ 100),
                                 (Scheduler.HOSTCLOCK \ 1000) * mSimulationMultiplier)
 
-        PIT?.UpdateClock()
-        VideoAdapter?.UpdateClock()
+        'PIT?.UpdateClock()
+        'VideoAdapter?.UpdateClock()
     End Sub
 
     Public Sub RunEmulation()
@@ -409,7 +408,7 @@ Public Class X8086
 
         Dim maxRunTime As Long = Sched.GetTimeToNextEvent()
         If maxRunTime > Scheduler.HOSTCLOCK Then maxRunTime = Scheduler.HOSTCLOCK
-        Dim maxRunCycl As Long = (maxRunTime * BASECLOCK - leftCycleFrags + Scheduler.HOSTCLOCK - 1) / Scheduler.HOSTCLOCK
+        Dim maxRunCycl As Long = (maxRunTime * BASECLOCK - leftCycleFrags + Scheduler.HOSTCLOCK - 1) \ Scheduler.HOSTCLOCK
 
         DoReschedule = False
 

@@ -10,7 +10,7 @@
 
     Private Const ToRad As Double = Math.PI / 180
 
-    Public Const SampleRate As Integer = 48000
+    Public Const SampleRate As Integer = 44100
 
     Private mEnabled As Boolean
 
@@ -19,16 +19,15 @@
     Private halfWaveLength As Integer
     Private currentStep As Integer
 
+    Private mVolume As Double
+
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)
         If MyBase.CPU.PIT IsNot Nothing Then MyBase.CPU.PIT.Speaker = Me
     End Sub
 
-    Public Overrides Property Volume As Double = 0.1
-
     Public Overrides Sub InitAdapter()
-        SampleTicks = Scheduler.HOSTCLOCK / SpeakerAdapter.SampleRate
-        LastTick = Stopwatch.GetTimestamp()
+        mVolume = 0.2
     End Sub
 
     Public Property Frequency As Double
@@ -63,11 +62,15 @@
         halfWaveLength = waveLength / 2
     End Sub
 
+    Public Overrides Sub Run()
+    End Sub
+
     Public Overrides Sub CloseAdapter()
     End Sub
 
-    Public Overrides Function GetSample() As Int16
+    Private Function GenSample() As Int16
         Dim value As Double
+
         Select Case waveForm
             Case WaveForms.Squared
                 If mEnabled Then
@@ -93,8 +96,11 @@
         Return value
     End Function
 
-    Public Overrides Sub Tick()
-    End Sub
+    Public Overrides ReadOnly Property Sample As Int16
+        Get
+            Return GenSample() * mVolume
+        End Get
+    End Property
 
 #Disable Warning BC42353
     Public Overrides Function [In](port As UInt16) As Byte
@@ -109,10 +115,6 @@
             Return "Speaker"
         End Get
     End Property
-
-    Public Overrides Sub Run()
-        X8086.Notify("Speaker Running", X8086.NotificationReasons.Info)
-    End Sub
 
     Public Overrides ReadOnly Property Type As Adapter.AdapterType
         Get

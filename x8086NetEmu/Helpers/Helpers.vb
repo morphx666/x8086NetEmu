@@ -442,13 +442,13 @@
     End Property
 
     Public Shared Function FixPath(fileName As String) As String
-#If Win32 Then
-        Return fileName
-#Else
-        Return If(Environment.OSVersion.Platform = PlatformID.Unix,
+        If HostRuntime.Platform = HostRuntime.Platforms.Windows Then
+            Return fileName
+        Else
+            Return If(Environment.OSVersion.Platform = PlatformID.Unix,
                     fileName.Replace("\", IO.Path.DirectorySeparatorChar),
                     fileName)
-#End If
+        End If
     End Function
 
     Private Sub PrintOpCodes(n As UInt16)

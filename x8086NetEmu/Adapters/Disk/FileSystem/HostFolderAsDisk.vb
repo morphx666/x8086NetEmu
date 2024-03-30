@@ -1,6 +1,4 @@
-﻿Imports System.Runtime.InteropServices
-
-Public Class HostFolderAsDisk
+﻿Public Class HostFolderAsDisk
     Inherits DiskImage
 
     Private mDiskSize As Integer = 32 * 1024 * 1204 ' 32MB

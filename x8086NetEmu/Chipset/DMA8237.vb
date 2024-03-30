@@ -35,7 +35,7 @@
     Private maskReg As Byte
 
     Private Class TaskSC
-        Inherits Scheduler.Task
+        Inherits Scheduler.SchTask
 
         Public Sub New(owner As IOPortHandler)
             MyBase.New(owner)
@@ -51,7 +51,7 @@
             End Get
         End Property
     End Class
-    Private ReadOnly task As Scheduler.Task = New TaskSC(Me)
+    Private ReadOnly task As New TaskSC(Me)
 
     ' Scheduler time stamp for the first channel 0 DREQ trigger
     ' that has not yet been accounted for, or -1 to disable
@@ -267,7 +267,7 @@
                     ' DMA verify
                     currentCount -= maxLen
                     currentAddress = (currentAddress + maxLen * addressStep) And &HFFFF
-                    transferTime += 3 * maxLen * Scheduler.HOSTCLOCK / cpu.Clock
+                    transferTime += 3 * maxLen * Scheduler.HOSTCLOCK \ cpu.Clock
                 Case &H4
                     ' DMA write
                     While (maxLen > 0) AndAlso (Not channel.ExternalEop) AndAlso (blockMode OrElse channel.PendingRequest)
@@ -275,7 +275,7 @@
                         maxLen -= 1
                         currentCount -= 1
                         currentAddress = (currentAddress + addressStep) And &HFFFF
-                        transferTime += 3 * Scheduler.HOSTCLOCK / cpu.Clock
+                        transferTime += 3 * Scheduler.HOSTCLOCK \ cpu.Clock
                     End While
                 Case &H8
                     ' DMA read
@@ -284,7 +284,7 @@
                         maxLen -= 1
                         currentCount -= 1
                         currentAddress = (currentAddress + addressStep) And &HFFFF
-                        transferTime += 3 * Scheduler.HOSTCLOCK / cpu.Clock
+                        transferTime += 3 * Scheduler.HOSTCLOCK \ cpu.Clock
                     End While
             End Select
 

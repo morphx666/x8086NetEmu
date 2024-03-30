@@ -45,4 +45,6 @@
     Public MustOverride Overrides Function [In](port As UInt16) As Byte
     Public MustOverride Overrides Sub Out(port As UInt16, value As Byte)
     Public MustOverride Overrides ReadOnly Property Name As String
+
+    Public SampleTicks As Long
 End Class

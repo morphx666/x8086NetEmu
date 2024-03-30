@@ -24,8 +24,8 @@ Module MainModule
         ' cpu.Adapters.Add(New MouseAdapter(cpu)) ' So far, useless in Console mode
 
         cpu.Adapters.Add(New SpeakerAdapter(cpu))
-        'cpu.Adapters.Add(New AdlibAdapter(cpu))
-        'cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
+        cpu.Adapters.Add(New AdlibAdapter(cpu))
+        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
 
         LoadSettings()
 

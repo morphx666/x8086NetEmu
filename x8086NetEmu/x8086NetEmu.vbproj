@@ -182,7 +182,7 @@
     <Compile Include="Adapters\Adapters.vb" />
     <Compile Include="Adapters\Audio\AdlibAdapter.vb" />
     <Compile Include="Adapters\Audio\AudioProvider.vb" />
-    <Compile Include="Adapters\Audio\AudioSubSystem.vb" />
+    <Compile Include="Adapters\Audio\AudioSubsystem.vb" />
     <Compile Include="Adapters\Audio\SoundBlaster.vb" />
     <Compile Include="Adapters\Audio\SpeakerAdapter.vb" />
     <Compile Include="Adapters\Disk\FileSystem\FileSystemStructs.vb" />
@@ -207,7 +207,7 @@
     <Compile Include="Helpers\Bass\BufferProvider.vb" />
     <Compile Include="Helpers\Binary.vb" />
     <Compile Include="Helpers\Exceptions.vb" />
-    <Compile Include="Helpers\Misc\Runtime.vb" />
+    <Compile Include="Helpers\Misc\HostRuntime.vb" />
     <Compile Include="Helpers\OpCodes.vb" />
     <Compile Include="Helpers\ConsoleCrayon.vb" />
     <Compile Include="Helpers\Decoder.vb" />

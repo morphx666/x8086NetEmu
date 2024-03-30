@@ -24,7 +24,7 @@ Public Class CGAWinForms
     Private mRenderControl As Control
 
     Private Class TaskSC
-        Inherits Scheduler.Task
+        Inherits Scheduler.SchTask
 
         Public Sub New(owner As IOPortHandler)
             MyBase.New(owner)
@@ -371,10 +371,6 @@ Public Class CGAWinForms
             Return "CGA WinForms"
         End Get
     End Property
-
-    Public Overrides Sub Run()
-        If mRenderControl IsNot Nothing Then mRenderControl.Invalidate()
-    End Sub
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
         MyBase.InitVideoMemory(clearScreen)

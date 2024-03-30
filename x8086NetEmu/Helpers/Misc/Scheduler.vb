@@ -1,4 +1,5 @@
 ﻿Imports System.Threading
+Imports System.Threading.Tasks
 
 ' This code is a port from the "Scheduler" class in Retro 0.4
 
@@ -9,7 +10,7 @@ Public Class Scheduler
     Private Const STOPPING As Long = Long.MinValue
 
     ' Number of scheduler time units per simulated second (~1.0 GHz)
-    Public Shared HOSTCLOCK As ULong = 1.19318 * X8086.GHz
+    Public Shared HOSTCLOCK As ULong = 1_193_182
 
     ' Current simulation time in scheduler time units (ns)
     Private mCurrentTime As Long
@@ -50,7 +51,7 @@ Public Class Scheduler
 
     ' A Task represents a pending discrete event, and is queued for
     ' execution at a particular point in simulated time.
-    Public MustInherit Class Task
+    Public MustInherit Class SchTask
         Inherits Runnable
         Public Const NOSCHED As Long = Long.MinValue
         Public Property LastTime As Long
@@ -96,8 +97,8 @@ Public Class Scheduler
         pq = New PriorityQueue()
         pendingInput = New ArrayList()
 
-        syncQuantum = HOSTCLOCK / 20
-        syncSimTimePerWallMs = HOSTCLOCK / 1000
+        syncQuantum = HOSTCLOCK \ 20
+        syncSimTimePerWallMs = HOSTCLOCK \ 1000
     End Sub
 
     Public ReadOnly Property CurrentTime As Long
@@ -125,24 +126,29 @@ Public Class Scheduler
         syncWallTimeMs = CurrentTimeMs
     End Sub
 
-    Public Sub RunTaskAt(tsk As Task, t As Long)
+    Public Function RunTaskAt(tsk As SchTask, t As Long) As Boolean
         SyncLock tsk
 #If DEBUG Then
-            If tsk.NextTime <> Task.NOSCHED Then Throw New Exception("Task already scheduled")
+            If tsk.NextTime <> SchTask.NOSCHED Then
+                'Throw New Exception("Task already scheduled")
+                Return False
+            End If
 #End If
             tsk.NextTime = t
         End SyncLock
 
         pq.Add(tsk, t)
         If t < nextTime Then nextTime = t
-    End Sub
 
-    Public Sub RunTaskAfter(tsk As Task, d As Long)
+        Return True
+    End Function
+
+    Public Sub RunTaskAfter(tsk As SchTask, d As Long)
         Dim t As Long = mCurrentTime + d
 
         SyncLock tsk
 #If DEBUG Then
-            If tsk.NextTime <> Task.NOSCHED Then Throw New Exception("Task already scheduled")
+            If tsk.NextTime <> SchTask.NOSCHED Then Throw New Exception("Task already scheduled")
 #End If
             tsk.NextTime = t
         End SyncLock
@@ -151,12 +157,12 @@ Public Class Scheduler
         If t < nextTime Then nextTime = t
     End Sub
 
-    Public Sub RunTaskEach(tsk As Task, interval As Long)
+    Public Sub RunTaskEach(tsk As SchTask, interval As Long)
         Dim t As Long = mCurrentTime + interval
 
         SyncLock tsk
 #If DEBUG Then
-            If tsk.NextTime <> Task.NOSCHED Then Throw New Exception("Task already scheduled")
+            If tsk.NextTime <> SchTask.NOSCHED Then Throw New Exception("Task already scheduled")
 #End If
             tsk.NextTime = t
             tsk.Interval = interval
@@ -167,9 +173,9 @@ Public Class Scheduler
     End Sub
 
     Public Sub [Stop]()
-        Dim tsk As Task
+        Dim tsk As SchTask
         Do
-            tsk = CType(pq.RemoveFirst(), Task)
+            tsk = CType(pq.RemoveFirst(), SchTask)
             If tsk Is Nothing Then Exit Do
             tsk.Cancel()
         Loop
@@ -274,15 +280,15 @@ Public Class Scheduler
         mCurrentTime = nextTime
     End Sub
 
-    Public Function NextTask() As Task
+    Public Function NextTask() As SchTask
         If nextTime > mCurrentTime OrElse nextTime = STOPPING Then Return Nothing
 
-        Dim tsk As Task = CType(pq.RemoveFirst(), Task)
+        Dim tsk As SchTask = CType(pq.RemoveFirst(), SchTask)
         nextTime = pq.MinPriority()
         If tsk Is Nothing Then Return Nothing
 
         SyncLock tsk
-            If (tsk.NextTime = Task.NOSCHED) OrElse (tsk.NextTime > mCurrentTime) Then
+            If (tsk.NextTime = SchTask.NOSCHED) OrElse (tsk.NextTime > mCurrentTime) Then
                 ' Canceled or rescheduled
                 tsk = Nothing
             Else
@@ -296,7 +302,7 @@ Public Class Scheduler
                     If t < nextTime Then nextTime = t
                 Else
                     ' Done with this task
-                    tsk.NextTime = Task.NOSCHED
+                    tsk.NextTime = SchTask.NOSCHED
                 End If
             End If
         End SyncLock
@@ -316,7 +322,7 @@ Public Class Scheduler
     Private Sub Run()
         Dim cleanInputBuf As New ArrayList()
         Dim inputBuf As New ArrayList()
-        Dim tsk As Task = Nothing
+        Dim tsk As SchTask = Nothing
         Dim evt As ExternalInputEvent
 
         While True

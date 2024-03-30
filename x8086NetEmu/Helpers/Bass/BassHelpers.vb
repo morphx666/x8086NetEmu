@@ -5,7 +5,7 @@ Imports ManagedBass
 Public Class BassHelpers
     Public Shared Function Setup() As Boolean
         Dim result As Boolean = False
-        Dim platform As String = x8086NetEmu.Runtime.Platform.ToString().ToLower()
+        Dim platform As String = HostRuntime.Platform.ToString().ToLower()
         Dim architecture = RuntimeInformation.ProcessArchitecture.ToString().ToLower()
 
         If platform.StartsWith("arm") Then
@@ -13,28 +13,13 @@ Public Class BassHelpers
             platform = "arm"
         End If
 
-        Console.WriteLine($"Platform: {platform} {architecture}")
-
         Dim path As String = IO.Path.GetFullPath(IO.Path.Combine("Bass", platform, architecture))
-
-        If x8086NetEmu.Runtime.Platform = x8086NetEmu.Runtime.Platforms.MacOSX Then
-            ' CHECK: This is probably wrong
-            path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-            path = IO.Path.GetFullPath(IO.Path.Combine(path, "../MacOS/Bass", platform, architecture))
-        End If
 
         Dim bassLib As FileInfo = Nothing
         Try
             bassLib = New DirectoryInfo(path).GetFiles()(0)
             If bassLib.Exists Then
                 Dim fileName As String = IO.Path.GetFullPath(IO.Path.Combine(bassLib.Name))
-
-                If x8086NetEmu.Runtime.Platform = x8086NetEmu.Runtime.Platforms.MacOSX Then
-                    ' CHECK: This is probably wrong
-                    path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                    fileName = IO.Path.GetFullPath(IO.Path.Combine(path, bassLib.Name))
-                End If
-
                 If Not File.Exists(fileName) Then File.Copy(bassLib.FullName, fileName, False)
                 result = True
             Else

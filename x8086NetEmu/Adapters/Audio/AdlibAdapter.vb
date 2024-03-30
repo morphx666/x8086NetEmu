@@ -75,6 +75,29 @@
     Private percussion As Boolean = False
     Private ReadOnly oplStep(9 - 1) As UInt64
 
+    Private status As Byte
+
+    Private mVolume As Double
+
+    Private Class TaskSC
+        Inherits Scheduler.SchTask
+
+        Public Sub New(owner As IOPortHandler)
+            MyBase.New(owner)
+        End Sub
+
+        Public Overrides Sub Run()
+            Owner.Run()
+        End Sub
+
+        Public Overrides ReadOnly Property Name As String
+            Get
+                Return Owner.Name
+            End Get
+        End Property
+    End Class
+    Private ReadOnly task As New TaskSC(Me)
+
     Public Sub New(cpu As X8086)
         MyBase.New(cpu)
 
@@ -86,18 +109,18 @@
         RegisteredPorts.Add(&H389)
     End Sub
 
-    Public Overrides Property Volume As Double = 0.025
-
     Public Overrides Sub InitAdapter()
-        SampleTicks = Scheduler.HOSTCLOCK / SpeakerAdapter.SampleRate
-        LastTick = Stopwatch.GetTimestamp()
+        SampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
+        mVolume = 0.08
+
+        CPU.Sched.RunTaskEach(task, SampleTicks)
     End Sub
 
     Public Overrides Sub CloseAdapter()
     End Sub
 
-    Public Overrides Sub Tick()
-        For channel As Byte = 0 To 9 - 1
+    Public Overrides Sub Run()
+        For channel As Integer = 0 To 9 - 1
             If Frequency(channel) <> 0 Then
                 If attack2(channel) Then
                     envelope(channel) *= decay(channel)
@@ -110,7 +133,7 @@
     End Sub
 
     Public Overrides Function [In](port As UInt16) As Byte
-        Dim status As Byte = If(regMem(4) <> 0, &H80, 0)
+        status = If(regMem(4) <> 0, &H80, 0)
         status += (regMem(4) And 1) * &H40 + (regMem(4) And 2) * &H10
         Return status
     End Function
@@ -176,10 +199,12 @@
         Return tmpFreq
     End Function
 
-    Private Function Sample(channel As Byte) As Int32
+    Private Function AdLibSample(channel As Byte) As Int32
         If percussion AndAlso channel >= 6 AndAlso channel <= 8 Then Return 0
 
-        Dim fullStep As UInt64 = SpeakerAdapter.SampleRate / Frequency(channel)
+        channel = channel Mod 9
+
+        Dim fullStep As UInt64 = SpeakerAdapter.SampleRate \ Frequency(channel)
         Dim idx As Byte = oplStep(channel) / (fullStep / 256.0)
         Dim tmpSample As Int32 = oplWave(channels(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = envelope(channel)
@@ -192,18 +217,24 @@
         Return tmpSample
     End Function
 
-    Public Overrides Function GetSample() As Int16
+    Private Function GenSample() As Int16
         Dim accumulator As Int16 = 0
         For channel As Byte = 0 To 9 - 1
-            If Frequency(channel) <> 0 Then accumulator += Sample(channel)
+            If Frequency(channel) <> 0 Then accumulator += AdLibSample(channel)
         Next
 
-        Return accumulator
+        Return accumulator - 32_768
     End Function
+
+    Public Overrides ReadOnly Property Sample As Int16
+        Get
+            Return GenSample() * mVolume
+        End Get
+    End Property
 
     Public Overrides ReadOnly Property Name As String
         Get
-            Return "Adlib OPL2" ' FM OPerator Type-L
+            Return "Adlib OPL2" ' FM Operator Type-L
         End Get
     End Property
 
@@ -212,10 +243,6 @@
             Return "Yamaha YM3526"
         End Get
     End Property
-
-    Public Overrides Sub Run()
-        X8086.Notify($"{Name} Running", X8086.NotificationReasons.Info)
-    End Sub
 
     Public Overrides ReadOnly Property Type As Adapter.AdapterType
         Get

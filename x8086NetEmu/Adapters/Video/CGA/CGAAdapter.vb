@@ -1,5 +1,4 @@
 ﻿Imports System.Threading
-Imports System.Threading.Tasks
 
 Public MustInherit Class CGAAdapter
     Inherits VideoAdapter
@@ -135,6 +134,25 @@ Public MustInherit Class CGAAdapter
 
     Protected wui As WebUI
 
+    Private Class TaskSC
+        Inherits Scheduler.SchTask
+
+        Public Sub New(owner As IOPortHandler)
+            MyBase.New(owner)
+        End Sub
+
+        Public Overrides Sub Run()
+            Owner.Run()
+        End Sub
+
+        Public Overrides ReadOnly Property Name As String
+            Get
+                Return Owner.Name
+            End Get
+        End Property
+    End Class
+    Private ReadOnly task As New TaskSC(Me)
+
     Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True, Optional enableWebUI As Boolean = False)
         MyBase.New(cpu)
         Me.useInternalTimer = useInternalTimer
@@ -157,40 +175,27 @@ Public MustInherit Class CGAAdapter
         Reset()
         UpdateClock()
 
-        'Task.Run(Sub()
-        '             Dim lastScanLineTick As Long = Stopwatch.GetTimestamp()
-        '             Dim scanLineTiming As Long = (Scheduler.HOSTCLOCK / 31500) ' 31.5KHz
-        '             Dim curScanLine As Integer = 0
+        cpu.Sched.RunTaskEach(task, SampleTicks)
+    End Sub
 
-        '             While True
-        '                 Dim curTick As Long = Stopwatch.GetTimestamp()
+    Public Overrides Sub Run()
+        Dim t As Long = CPU.Sched.CurrentTime
 
-        '                 If curTick >= (lastScanLineTick + scanLineTiming) Then
+        Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
+        Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
 
-        '                     'Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
-        '                     'Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
+        CGAStatusRegister(CGAStatusRegisters.display_enable) = hRetrace
+        CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = vRetrace
+    End Sub
 
-        '                     curScanLine = (curScanLine + 1) Mod 525
-        '                     If curScanLine > 479 Then
-        '                         CGAStatusRegister(CGAStatusRegisters.display_enable) = True
-        '                         CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = True
-        '                     Else
-        '                         CGAStatusRegister(CGAStatusRegisters.display_enable) = False
-        '                         CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = False
-        '                     End If
-        '                     If (curScanLine And 1) <> 0 Then CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = True
+    Public Overrides Sub InitAdapter()
+        isInit = MyBase.CPU IsNot Nothing
+        If isInit AndAlso useInternalTimer Then Tasks.Task.Run(AddressOf MainLoop)
 
-        '                     lastScanLineTick = curTick
-        '                 End If
-        '             End While
-        '         End Sub)
+        SampleTicks = Scheduler.HOSTCLOCK \ 31_500 ' 31.5KHz
     End Sub
 
     Public Overrides Sub UpdateClock()
-        'Dim f = CPU.Clock / X8086.BASECLOCK
-
-        'ht = f * (BASECLOCK \ HORIZSYNC)
-        'vt = ht * (HORIZSYNC \ VERTSYNC)
     End Sub
 
     Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
@@ -274,15 +279,10 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public Overrides Sub InitAdapter()
-        isInit = MyBase.CPU IsNot Nothing
-        If isInit AndAlso useInternalTimer Then Tasks.Task.Run(AddressOf MainLoop)
-    End Sub
-
     Private Sub MainLoop()
         Dim multiplier As Integer = If(TypeOf MyBase.CPU.VideoAdapter Is CGAConsole, 2, 2)
         Do
-            waiter.WaitOne(multiplier * 1000 \ VERTSYNC)
+            waiter.WaitOne(multiplier * 1000 / VERTSYNC)
             Render()
 
             'RaiseEvent VideoRefreshed(Me)
@@ -428,10 +428,6 @@ Public MustInherit Class CGAAdapter
                 UpdateStatusRegister()
                 Return CGAAdapter.BitsArrayToWord(CGAStatusRegister)
 
-            Case &H3DF ' CRT/CPU page register  (PCjr only)
-#If DEBUG Then
-                'stop
-#End If
             Case Else
                 MyBase.CPU.RaiseException("CGA: Unknown In Port: " + port.ToString("X4"))
         End Select
@@ -547,13 +543,13 @@ Public MustInherit Class CGAAdapter
     End Sub
 
     Private Sub UpdateStatusRegister()
-        Dim t As Long = CPU.Sched.CurrentTime
+        'Dim t As Long = CPU.Sched.CurrentTime
 
-        Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
-        Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
+        'Dim vRetrace As Boolean = (t Mod vt) <= (vt \ 10)
+        'Dim hRetrace As Boolean = (t Mod ht) <= (ht \ 10)
 
-        CGAStatusRegister(CGAStatusRegisters.display_enable) = hRetrace
-        CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = vRetrace
+        'CGAStatusRegister(CGAStatusRegisters.display_enable) = hRetrace
+        'CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = vRetrace
     End Sub
 
     Public Overrides Property Zoom As Double
