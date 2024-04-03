@@ -35,7 +35,7 @@
     Public MustOverride Property Zoom As Double
 
     Public MustOverride Overrides Sub CloseAdapter()
-    Public MustOverride Overrides Sub InitiAdapter()
+    Public MustOverride Overrides Sub InitAdapter()
     Public MustOverride Overrides Sub Out(port As UInt16, value As Byte)
     Public MustOverride Overrides Function [In](port As UInt16) As Byte
     Public MustOverride Overrides Sub Run()

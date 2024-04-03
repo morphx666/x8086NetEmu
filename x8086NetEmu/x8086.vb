@@ -17,8 +17,8 @@ Public Class X8086
 
     Private mModel As Models = Models.IBMPC_5160
 
-    Private mRegisters As GPRegisters = New GPRegisters()
-    Private mFlags As GPFlags = New GPFlags()
+    Private mRegisters As New GPRegisters()
+    Private mFlags As New GPFlags()
 
     Public Enum MemHookMode
         Read
@@ -40,7 +40,7 @@ Public Class X8086
 
     Private mipsThread As Thread
     Private mipsWaiter As AutoResetEvent
-    Private instrucionsCounter As UInt32
+    Private instructionsCounter As UInt32
     Private newPrefix As Boolean = False
     Private newPrefixLast As Integer = 0
 
@@ -108,7 +108,8 @@ Public Class X8086
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
                    Optional model As Models = Models.IBMPC_5160)
 
-        Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
+        Scheduler.HOSTCLOCK = Stopwatch.Frequency
+        'Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
 
         mV20 = v20
         mEmulateINT13 = int13
@@ -156,6 +157,8 @@ Public Class X8086
 
         AddInternalHooks()
         LoadBIOS()
+
+        audioSubSystem = New AudioSubsystem(Me)
 
         mIsHalted = False
         mIsExecuting = False
@@ -261,6 +264,8 @@ Public Class X8086
         memHooks.Clear()
         intHooks.Clear()
 
+        audioSubSystem.Dispose()
+
         Sched = Nothing
         mipsWaiter = Nothing
     End Sub
@@ -317,10 +322,8 @@ Public Class X8086
         mDebugMode = debugMode
         cancelAllThreads = False
 
-#If Win32 Then
         If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = True
         If mVideoAdapter IsNot Nothing Then mVideoAdapter.Reset()
-#End If
 
         If debugMode Then RaiseEvent InstructionDecoded()
 
@@ -328,6 +331,7 @@ Public Class X8086
         mRegisters.IP = ip
 
         Sched.Start()
+        audioSubSystem.Init()
     End Sub
 
     Private Sub StopAllThreads()
@@ -349,8 +353,8 @@ Public Class X8086
         Do
             mipsWaiter.WaitOne(delay)
 
-            mMPIs = (instrucionsCounter / delay / 1000)
-            instrucionsCounter = 0
+            mMPIs = (instructionsCounter / delay / 1000)
+            instructionsCounter = 0
 
             If cancelAllThreads Then Exit Do
             RaiseEvent MIPsUpdated()
@@ -363,9 +367,8 @@ Public Class X8086
         'Loop While mIsExecuting
 
         mIsPaused = True
-#If Win32 Then
         If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
-#End If
+
     End Sub
 
     Public Sub [Resume]()
@@ -384,22 +387,20 @@ Public Class X8086
 
     Private Sub FlushCycles()
         Dim t As Long = clkCyc * Scheduler.HOSTCLOCK + leftCycleFrags
-        Sched.AdvanceTime(t \ mClock)
-        leftCycleFrags = t Mod mClock
+        Sched.AdvanceTime(t \ BASECLOCK)
+        leftCycleFrags = t Mod BASECLOCK
 
         clkCyc = 0
         DoReschedule = True
     End Sub
 
     Private Sub SetSynchronization()
-        ' Adjust simTimePerWallMs based on virtual processor speed (mCyclesPerSecond)
-        Dim f As Integer = Math.Ceiling(mClock / BASECLOCK)
         Sched.SetSynchronization(True,
                                 (Scheduler.HOSTCLOCK \ 100),
                                 (Scheduler.HOSTCLOCK \ 1000) * mSimulationMultiplier)
 
-        PIT?.UpdateClock()
-        VideoAdapter?.UpdateClock()
+        'PIT?.UpdateClock()
+        'VideoAdapter?.UpdateClock()
     End Sub
 
     Public Sub RunEmulation()
@@ -407,7 +408,8 @@ Public Class X8086
 
         Dim maxRunTime As Long = Sched.GetTimeToNextEvent()
         If maxRunTime > Scheduler.HOSTCLOCK Then maxRunTime = Scheduler.HOSTCLOCK
-        Dim maxRunCycl As Long = (maxRunTime * mClock - leftCycleFrags + Scheduler.HOSTCLOCK - 1) / Scheduler.HOSTCLOCK
+        Dim maxRunCycl As Long = (maxRunTime * BASECLOCK - leftCycleFrags + Scheduler.HOSTCLOCK - 1) \ Scheduler.HOSTCLOCK
+
         DoReschedule = False
 
         If DebugMode Then
@@ -458,7 +460,7 @@ Public Class X8086
 
         opCodeSize = 1
         newPrefix = False
-        instrucionsCounter += 1
+        instructionsCounter += 1
 
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
     End Sub
@@ -2181,7 +2183,7 @@ Public Class X8086
     End Sub
 
     Private Function ExecStringOpCode() As Boolean
-        instrucionsCounter += 1
+        instructionsCounter += 1
 
         Select Case opCode
             Case &HA4 ' MOVSB

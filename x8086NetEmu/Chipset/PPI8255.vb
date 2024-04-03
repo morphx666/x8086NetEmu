@@ -16,7 +16,7 @@
     Private cpu As X8086
 
     Private Class TaskSC
-        Inherits Scheduler.Task
+        Inherits Scheduler.SchTask
 
         Public Sub New(owner As IOPortHandler)
             MyBase.New(owner)
@@ -32,7 +32,7 @@
             End Get
         End Property
     End Class
-    Private task As Scheduler.Task = New TaskSC(Me)
+    Private sTask As New TaskSC(Me)
 
     ' Set configuration switch data to be reported by PPI.
     ' bit 0: diskette drive present
@@ -109,9 +109,7 @@
                 ppiB = value
                 If (timer IsNot Nothing) AndAlso ((oldv Xor value) And 1) <> 0 Then
                     timer.SetCh2Gate((ppiB And 1) <> 0)
-#If Win32 Then
                     If timer.Speaker IsNot Nothing Then timer.Speaker.Enabled = (value And 1) = 1
-#End If
                 End If
 
         End Select
@@ -179,7 +177,7 @@
                 ' wait .5 msec before going to the next byte
                 If Not keyShiftPending Then
                     keyShiftPending = True
-                    sched.RunTaskAfter(task, 500_000)
+                    sched.RunTaskAfter(sTask, 500_000)
                 End If
             End If
         End SyncLock

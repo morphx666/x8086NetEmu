@@ -1,10 +1,7 @@
-﻿Imports System.Collections.Generic
-Imports System.IO
-Imports System.Windows.Forms
+﻿Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
 Imports System.Security.Permissions
-Imports x8086NetEmu
 
 ' HUGE kudos to http://stackoverflow.com/questions/1008984/implement-file-dragging-to-the-desktop-from-a-net-winforms-application
 

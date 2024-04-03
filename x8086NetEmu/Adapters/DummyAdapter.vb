@@ -1,6 +1,4 @@
-﻿Imports x8086NetEmu
-
-Public Class DummyAdapter
+﻿Public Class DummyAdapter
     Inherits Adapter
 
     Public Overrides ReadOnly Property Type As AdapterType
@@ -45,7 +43,7 @@ Public Class DummyAdapter
         End Get
     End Property
 
-    Public Overrides Sub InitiAdapter()
+    Public Overrides Sub InitAdapter()
     End Sub
 
     Public Overrides Sub CloseAdapter()

@@ -1,4 +1,6 @@
-﻿Partial Public Class X8086
+﻿Imports System.Text.RegularExpressions
+
+Partial Public Class X8086
     Public Shared Property LogToConsole As Boolean
 
     Private mMPIs As Double
@@ -10,6 +12,7 @@
     Private mMouse As MouseAdapter
     Private mFloppyController As FloppyControllerAdapter
     Private mAdapters As Adapters = New Adapters(Me)
+    Private audioSubSystem As AudioSubsystem
     Private mPorts As IOPorts = New IOPorts(Me)
     Private mEnableExceptions As Boolean
 
@@ -149,13 +152,51 @@
         End Get
     End Property
 
-    Private Function GetCpuSpeed() As UInt32
-#If Win32 Then
-        Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
-            Return managementObject("CurrentClockSpeed")
-        End Using
-#Else
-        Return 1000
-#End If
+    Private Shared mHostCpuSpeed As UInt16 = 0
+    Public Shared Function GetCpuSpeed() As UInt16
+        If mHostCpuSpeed = 0 Then
+            Select Case HostRuntime.Platform
+                Case HostRuntime.Platforms.Windows
+                    Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
+                        mHostCpuSpeed = managementObject("CurrentClockSpeed")
+                    End Using
+
+                Case HostRuntime.Platforms.Linux,
+                     HostRuntime.Platforms.ARMHard,
+                     HostRuntime.Platforms.ARMSoft
+                    Dim p As New Process()
+                    p.StartInfo.FileName = "cat"
+                    p.StartInfo.Arguments = "/proc/cpuinfo"
+                    p.StartInfo.UseShellExecute = False
+                    p.StartInfo.RedirectStandardOutput = True
+                    p.Start()
+
+                    Dim output As String = p.StandardOutput.ReadToEnd()
+                    p.WaitForExit()
+
+                    Dim m As Match = Regex.Match(output, "cpu MHz\s+:\s+(\d+)")
+                    mHostCpuSpeed = If(m.Success, Convert.ToUInt16(m.Groups(1).Value), 1_000)
+
+                Case HostRuntime.Platforms.MacOSX
+                    Dim p As New Process()
+                    p.StartInfo.FileName = "sysctl"
+                    p.StartInfo.Arguments = "hw.cpufrequency"
+                    p.StartInfo.UseShellExecute = False
+                    p.StartInfo.RedirectStandardOutput = True
+                    p.Start()
+
+                    Dim output As String = p.StandardOutput.ReadToEnd()
+                    p.WaitForExit()
+
+                    Dim m As Match = Regex.Match(output, "hw.cpufrequency:\s+(\d+)")
+                    mHostCpuSpeed = If(m.Success, Convert.ToUInt32(m.Groups(1).Value) / 1_000_000, 1_000)
+
+                Case Else
+                    mHostCpuSpeed = 1_000
+
+            End Select
+        End If
+
+        Return mHostCpuSpeed
     End Function
 End Class

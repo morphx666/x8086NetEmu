@@ -22,7 +22,7 @@
     Private Const baseFrequency As Integer = 32.768 * X8086.KHz
 
     Private Class TaskSC
-        Inherits Scheduler.Task
+        Inherits Scheduler.SchTask
 
         Public Sub New(owner As IOPortHandler)
             MyBase.New(owner)
@@ -38,7 +38,7 @@
             End Get
         End Property
     End Class
-    Private task As Scheduler.Task = New TaskSC(Me)
+    Private sTask As New TaskSC(Me)
 
     Public Sub New(cpu As X8086, irq As InterruptRequest)
         Me.irq = irq
@@ -56,8 +56,9 @@
         ' So the x8086.Resume method should perform a re-sync setting the new tick values into 46C.
         ' It also appears that the x8086.Resume method should also advance the time...
 
+        Dim epoch As Date = New Date(Now.Year, Now.Month, Now.Day, 0, 0, 0)
         cpu.TryAttachHook(&H8, New X8086.IntHandler(Function()
-                                                        Dim ticks As UInteger = (Now - New Date(Now.Year, Now.Month, Now.Day, 0, 0, 0)).Ticks / 10000000 * 18.206
+                                                        Dim ticks As UInteger = (Now - epoch).Ticks / 10000000 * 18.206
                                                         cpu.RAM16(&H40, &H6E) = (ticks >> 16) And &HFFFF
                                                         cpu.RAM16(&H40, &H6C) = ticks And &HFFFF
                                                         cpu.RAM8(&H40, &H70) = 0

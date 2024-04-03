@@ -2,11 +2,9 @@
 Imports System.Threading
 
 Public Class FormConsole
-#If Win32 Then
     <Runtime.InteropServices.DllImport("user32.dll")>
     Public Shared Function LockWindowUpdate(hWndLock As IntPtr) As Boolean
     End Function
-#End If
 
     Private mEmulator As X8086
 
@@ -19,7 +17,7 @@ Public Class FormConsole
                                           "\red080\green080\blue255;" +
                                           "}%\par}"
     Private rtfText As String = ""
-    Private lastMesssage As String = ""
+    Private lastMessage As String = ""
     Private repeatCount As Integer = 0
     Private lastArg() As Object = {""}
     Private ReadOnly refreshTimer As New Timer(New TimerCallback(AddressOf UpdateRtf), Nothing, Timeout.Infinite, Timeout.Infinite)
@@ -59,11 +57,11 @@ Public Class FormConsole
     End Property
 
     Private Sub Output(message As String, reason As X8086.NotificationReasons, arg() As Object)
-        If lastMesssage = message AndAlso HasSameArguments(arg) Then
+        If lastMessage = message AndAlso HasSameArguments(arg) Then
             repeatCount += 1
             Exit Sub
         End If
-        lastMesssage = message
+        lastMessage = message
         lastArg = arg
 
         If repeatCount > 0 Then
@@ -103,15 +101,17 @@ Public Class FormConsole
     Private Sub UpdateRtf()
         Me.BeginInvoke(Sub()
                            SyncLock Me
-#If Win32 Then
-                               LockWindowUpdate(RichTextBoxConsole.Handle)
-#End If
+                               If HostRuntime.Platform = HostRuntime.Platforms.Windows Then
+                                   LockWindowUpdate(RichTextBoxConsole.Handle)
+                               End If
+
                                RichTextBoxConsole.Rtf = rtfTextStd.Replace("%", rtfText)
                                RichTextBoxConsole.SelectionStart = RichTextBoxConsole.TextLength
                                RichTextBoxConsole.ScrollToCaret()
-#If Win32 Then
-                               LockWindowUpdate(0)
-#End If
+
+                               If HostRuntime.Platform = HostRuntime.Platforms.Windows Then
+                                   LockWindowUpdate(0)
+                               End If
                            End SyncLock
                        End Sub)
     End Sub

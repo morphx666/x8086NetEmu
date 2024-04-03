@@ -1,4 +1,3 @@
-Imports System
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 
@@ -8,12 +7,12 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("x8086NetEmuWinForms")> 
-<Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("")> 
+<Assembly: AssemblyTitle("x8086NetEmuWinForms")>
+<Assembly: AssemblyDescription("")>
+<Assembly: AssemblyCompany("")>
 <Assembly: AssemblyProduct("x8086NetEmuWinForms")>
 <Assembly: AssemblyCopyright("Copyright ©  2017")>
-<Assembly: AssemblyTrademark("")> 
+<Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>
 
@@ -31,7 +30,7 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("2024.3.23.9949")>
-<Assembly: AssemblyFileVersion("2024.3.23.9947")>
+<Assembly: AssemblyVersion("2024.4.3.10948")>
+<Assembly: AssemblyFileVersion("2024.4.3.10946")>
 
-<assembly: AssemblyInformationalVersion("2024.3.23")>
+<assembly: AssemblyInformationalVersion("2024.4.3")>

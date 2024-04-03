@@ -1,4 +1,3 @@
-Imports System
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 
@@ -8,14 +7,14 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("x8086NetEmu")> 
-<Assembly: AssemblyDescription("")> 
-<Assembly: AssemblyCompany("xFX JumpStart")> 
+<Assembly: AssemblyTitle("x8086NetEmu")>
+<Assembly: AssemblyDescription("")>
+<Assembly: AssemblyCompany("xFX JumpStart")>
 <Assembly: AssemblyProduct("x8086NetEmu")>
 <Assembly: AssemblyCopyright("Copyright � xFX JumpStart 2017")>
-<Assembly: AssemblyTrademark("")> 
+<Assembly: AssemblyTrademark("")>
 
-<Assembly: ComVisible(False)> 
+<Assembly: ComVisible(False)>
 
 'The following GUID is for the ID of the typelib if this project is exposed to COM
 <Assembly: Guid("9a60ea10-4695-4180-9d5a-540a50939607")>
@@ -31,7 +30,7 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("2024.3.23.12170")>
-<Assembly: AssemblyFileVersion("2024.3.23.12163")>
+<Assembly: AssemblyVersion("2024.4.3.13197")>
+<Assembly: AssemblyFileVersion("2024.4.3.13190")>
 
-<assembly: AssemblyInformationalVersion("2024.3.23")>
+<assembly: AssemblyInformationalVersion("2024.4.3")>

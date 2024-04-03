@@ -1,5 +1,4 @@
-﻿Imports System.Net
-Imports System.Security.Cryptography
+﻿Imports System.Threading.Tasks
 
 Public Class VGAWinForms
     Inherits VGAAdapter
@@ -22,25 +21,6 @@ Public Class VGAWinForms
     Private mCPU As X8086
     Private mRenderControl As Control
     Private mHideHostCursor As Boolean = True
-
-    Private Class TaskSC
-        Inherits Scheduler.Task
-
-        Public Sub New(owner As IOPortHandler)
-            MyBase.New(owner)
-        End Sub
-
-        Public Overrides Sub Run()
-            Owner.Run()
-        End Sub
-
-        Public Overrides ReadOnly Property Name As String
-            Get
-                Return Owner.Name
-            End Get
-        End Property
-    End Class
-    Private task As Scheduler.Task = New TaskSC(Me)
 
     Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu, , enableWebUI)
@@ -101,13 +81,12 @@ Public Class VGAWinForms
                                    StringFormatFlags.FitBlackBox Or
                                    StringFormatFlags.NoClip
 
-        Dim tmp As New Threading.Thread(Sub()
-                                            Do
-                                                Threading.Thread.Sleep(1000 \ frameRate)
-                                                mRenderControl.Invalidate()
-                                            Loop Until cancelAllThreads
-                                        End Sub)
-        tmp.Start()
+        Task.Run(action:=Async Sub()
+                             Do
+                                 Await Task.Delay(1000 / frameRate)
+                                 mRenderControl.Invalidate()
+                             Loop Until cancelAllThreads
+                         End Sub)
 
         InitVideoMemory(False)
     End Sub
@@ -120,7 +99,7 @@ Public Class VGAWinForms
             DetachRenderControl()
             mRenderControl = value
 
-            InitiAdapter()
+            InitAdapter()
 
             AddHandler mRenderControl.Paint, AddressOf Paint
         End Set
@@ -504,9 +483,5 @@ Public Class VGAWinForms
                 g = Graphics.FromImage(videoBMP)
             End If
         End If
-    End Sub
-
-    Public Overrides Sub Run()
-        If mRenderControl IsNot Nothing Then mRenderControl.Invalidate()
     End Sub
 End Class

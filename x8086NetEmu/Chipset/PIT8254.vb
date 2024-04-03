@@ -33,7 +33,7 @@
         Private statusLatched As Boolean
 
         ' Signal on gate input pin
-        Private mGgate As Boolean
+        Private mGate As Boolean
 
         ' True if triggered after the last clock was processed
         Private trigger As Boolean
@@ -52,7 +52,7 @@
             Me.owner = owner
 
             ' assume no gate signal
-            mGgate = False
+            mGate = False
             ' set undefined mode
             countMode = -1
             outputValue = False
@@ -108,7 +108,7 @@
             End If
         End Sub
 
-        Public Function GetByte()
+        Public Function GetByte() As Integer
             If countMode < 0 Then Return &HFF ' undefined state
 
             If statusLatched Then
@@ -170,16 +170,16 @@
 
         Public Property Gate As Boolean
             Get
-                Return mGgate
+                Return mGate
             End Get
             Set(value As Boolean)
                 If countMode >= 0 Then Update()
                 ' trigger on rising edge of the gate signal
-                If value AndAlso (Not mGgate) Then trigger = True
-                mGgate = value
+                If value AndAlso (Not mGate) Then trigger = True
+                mGate = value
                 ' mode 2 and mode 3: when gate goes low, output
                 ' is set high immediately
-                If (Not mGgate) AndAlso ((countMode = 2) OrElse (countMode = 3)) Then outputValue = True
+                If (Not mGate) AndAlso ((countMode = 2) OrElse (countMode = 3)) Then outputValue = True
             End Set
         End Property
 
@@ -198,7 +198,7 @@
             Select Case countMode
                 Case 0
                     ' output goes high on terminal count
-                    If active AndAlso mGgate AndAlso (Not outputValue) Then clocks = FromCounter(counterValue) + If(nullCount, 1, 0)
+                    If active AndAlso mGate AndAlso (Not outputValue) Then clocks = FromCounter(counterValue) + If(nullCount, 1, 0)
                 Case 1
                     ' output goes high on terminal count
                     If Not outputValue Then clocks = FromCounter(counterValue) + If(trigger, 1, 0)
@@ -206,19 +206,19 @@
                     If outputValue AndAlso trigger Then clocks = 1
                 Case 2
                     ' output goes high on reaching one
-                    If active AndAlso mGgate AndAlso outputValue Then clocks = FromCounter(counterValue) + If(trigger, 0, -1)
+                    If active AndAlso mGate AndAlso outputValue Then clocks = FromCounter(counterValue) + If(trigger, 0, -1)
                     ' strobe ends on next clock
                     If Not outputValue Then clocks = 1
                 Case 3
                     ' trigger pulls output high
                     If (Not outputValue) AndAlso trigger Then clocks = 1
                     ' output goes low on reaching zero
-                    If active AndAlso mGgate AndAlso outputValue Then clocks = FromCounter(counterValue) / 2 + If(trigger, 1, 0) + (countRegister And 1)
+                    If active AndAlso mGate AndAlso outputValue Then clocks = FromCounter(counterValue) / 2 + If(trigger, 1, 0) + (countRegister And 1)
                     ' output goes high on reaching zero
-                    If active AndAlso mGgate AndAlso (Not outputValue) AndAlso (Not trigger) Then clocks = FromCounter(counterValue) / 2
+                    If active AndAlso mGate AndAlso (Not outputValue) AndAlso (Not trigger) Then clocks = FromCounter(counterValue) / 2
                 Case 4
                     ' strobe starts on terminal count
-                    If active AndAlso mGgate AndAlso outputValue Then clocks = FromCounter(counterValue) + If(nullCount, 1, 0)
+                    If active AndAlso mGate AndAlso outputValue Then clocks = FromCounter(counterValue) + If(nullCount, 1, 0)
                     ' strobe ends on next clock
                     If Not outputValue Then clocks = 1
                 Case 5
@@ -238,14 +238,14 @@
         ' Returns the full period for mode 3 (square wave),
         ' or returns 0 in other modes.
         Public Function GetSquareWavePeriod() As Long
-            If (countMode <> 3) OrElse (Not active) OrElse (Not mGgate) Then Return 0
+            If (countMode <> 3) OrElse (Not active) OrElse (Not mGate) Then Return 0
             Update()
             Return owner.ClocksToTime(FromCounter(countRegister))
         End Function
 
         ' Returns the full period, or 0 if not enabled.
         Public Function GetPeriod() As Long
-            If (Not active) OrElse (Not mGgate) Then Return 0
+            If (Not active) OrElse (Not mGate) Then Return 0
             Update()
             Return owner.ClocksToTime(FromCounter(countRegister))
         End Function
@@ -279,8 +279,8 @@
             End If
         End Function
 
-        ' Substracts c from the counter and
-        ' returns true if the zero value was reached.
+        ' Subtracts c from the counter and
+        ' return true if the zero value was reached
         Private Function CountDown(c As Long) As Boolean
             Dim zero As Boolean
             If bcdMode Then
@@ -335,7 +335,7 @@
                 clocks -= 1
             End If
             If clocks < 0 Then Exit Sub
-            If active AndAlso mGgate Then
+            If active AndAlso mGate Then
                 ' count down, zero sets output high
                 If CountDown(clocks) Then outputValue = True
             End If
@@ -373,7 +373,7 @@
                 clocks -= 1
             End If
             If clocks < 0 Then Exit Sub
-            If active AndAlso mGgate Then
+            If active AndAlso mGate Then
                 ' count down
                 Dim v As Integer = FromCounter(counterValue)
                 If clocks < v Then
@@ -388,7 +388,7 @@
                 counterValue = ToCounter(v)
             End If
             ' output strobes low on decrement to 1
-            outputValue = Not mGgate OrElse counterValue <> 1
+            outputValue = Not mGate OrElse counterValue <> 1
         End Sub
 
         ' MODE 3 - SQUARE WAVE
@@ -405,7 +405,7 @@
                 clocks -= 1
             End If
             If clocks < 0 Then Return
-            If active AndAlso mGgate Then
+            If active AndAlso mGate Then
                 '  count down
                 Dim v As Integer = FromCounter(counterValue)
                 If (counterValue = 0) AndAlso outputValue AndAlso ((countRegister And 1) <> 0) Then v = 0
@@ -467,7 +467,7 @@
                 clocks -= 1
             End If
             If clocks < 0 Then Exit Sub
-            If mGgate Then
+            If mGate Then
                 '  count down
                 CountDown(clocks)
                 '  output strobes low on zero
@@ -516,8 +516,8 @@
         End Sub
     End Class
 
-    ' Global counter clock rate (1.19318 MHz) 
-    Private countRate As Long
+    ' Global counter clock rate (1.193182 MHz) 
+    Public COUNTRATE As Long = 1_193_182
 
     ' Three counters in the I8254 chip 
     Private ReadOnly mChannels(3 - 1) As Counter
@@ -526,17 +526,15 @@
     Private irq As InterruptRequest
 
     ' Speaker Adapter connected to channel 2
-    Private mSpeaker As SpeakerAdpater
+    Private mSpeaker As SpeakerAdapter
 
     ' Current time mirrored from Scheduler
     Private currentTime As Long
 
-    Private speakerBaseFrequency As Double
-
     Private cpu As X8086
 
     Private Class TaskSC
-        Inherits Scheduler.Task
+        Inherits Scheduler.SchTask
 
         Public Sub New(owner As IOPortHandler)
             MyBase.New(owner)
@@ -552,7 +550,7 @@
             End Get
         End Property
     End Class
-    Private task As Scheduler.Task = New TaskSC(Me)
+    Private sTask As New TaskSC(Me)
 
     Public Sub New(cpu As X8086, irq As InterruptRequest)
         Me.cpu = cpu
@@ -572,14 +570,19 @@
             RegisteredPorts.Add(i)
         Next
 
-        UpdateClock()
+        ' FIXME: WHY???!!!!
+#If DEBUG Then
+        COUNTRATE /= 4
+#Else
+        COUNTRATE /= 14
+#End If
     End Sub
 
-    Public Sub UpdateClock()
-        ' https://wiki.osdev.org/Programmable_Interval_Timer
-        countRate = 1_193_180 ' 1.19318 MHz
-        speakerBaseFrequency = countRate * Scheduler.HOSTCLOCK / X8086.MHz
-    End Sub
+    Public ReadOnly Property Channels(index As Integer) As Counter
+        Get
+            Return mChannels(index)
+        End Get
+    End Property
 
     Public Function GetOutput(c As Integer) As Boolean
         Return mChannels(c).GetOutput()
@@ -606,6 +609,7 @@
     Public Overrides Sub Out(port As UInt16, value As Byte)
         currentTime = cpu.Sched.CurrentTime
         Dim c As Integer = port And 3
+
         If c = 3 Then
             '  write Control Word
             Dim s As Integer
@@ -624,13 +628,13 @@
                     mChannels(c).LatchOutput()
                 Else
                     '  reprogram counter mode
-                    Dim countm As Integer = (value >> 1) And 7
-                    If countm > 5 Then countm = countm And 3
-                    Dim rwm As Integer = (value >> 4) And 3
-                    Dim bcdm As Boolean = (value And 1) <> 0
-                    mChannels(c).SetMode(countm, rwm, bcdm)
+                    Dim mode As Integer = (value >> 1) And 7
+                    If mode > 5 Then mode = mode And 3
+                    Dim format As Integer = (value >> 4) And 3
+                    Dim bcd As Boolean = (value And 1) <> 0
+                    mChannels(c).SetMode(mode, format, bcd)
                     Select Case c
-                        Case 0 : UpdateCh0()
+                        Case 0 : UpdateCh0(value)
                         Case 1 : UpdateCh1()
                         Case 2 : UpdateCh2(value)
                     End Select
@@ -640,7 +644,7 @@
             '  write to counter
             mChannels(c).PutByte(value)
             Select Case c
-                Case 0 : UpdateCh0()
+                Case 0 : UpdateCh0(value)
                 Case 1 : UpdateCh1()
                 Case 2 : UpdateCh2(value)
             End Select
@@ -653,11 +657,12 @@
         End Get
     End Property
 
-    Private Sub UpdateCh0()
+    Private Sub UpdateCh0(v As Integer)
         ' State of channel 0 may have changed
         ' Run the IRQ task immediately to take this into account
-        task.Cancel()
-        task.Start()
+
+        sTask.Cancel()
+        sTask.Start()
     End Sub
 
     Private Sub UpdateCh1()
@@ -678,33 +683,35 @@
         '    End If
         'End If
 
-#If Win32 Then
         If mSpeaker IsNot Nothing Then
             Dim period As Long = mChannels(2).GetSquareWavePeriod()
             If period = 0 Then
                 mSpeaker.Frequency = 0
             Else
-                mSpeaker.Frequency = speakerBaseFrequency \ period
+#If DEBUG Then
+                mSpeaker.Frequency = 138 * COUNTRATE / period
+#Else
+                mSpeaker.Frequency = 1700 * COUNTRATE / period
+#End If
             End If
         End If
-#End If
     End Sub
 
     Public Function TimeToClocks(t As Long) As Long
-        Return (t \ Scheduler.HOSTCLOCK) * countRate +
-               ((t Mod Scheduler.HOSTCLOCK) * countRate) \ Scheduler.HOSTCLOCK
+        Return (t \ Scheduler.HOSTCLOCK) * COUNTRATE +
+               ((t Mod Scheduler.HOSTCLOCK) * COUNTRATE) \ Scheduler.HOSTCLOCK
     End Function
 
     Public Function ClocksToTime(c As Long) As Long
-        Return (c \ countRate) * Scheduler.HOSTCLOCK +
-               ((c Mod countRate) * Scheduler.HOSTCLOCK + countRate - 1) \ countRate
+        Return (c \ COUNTRATE) * Scheduler.HOSTCLOCK +
+               ((c Mod COUNTRATE) * Scheduler.HOSTCLOCK + COUNTRATE - 1) \ COUNTRATE
     End Function
 
-    Public Property Speaker As SpeakerAdpater
+    Public Property Speaker As SpeakerAdapter
         Get
             Return mSpeaker
         End Get
-        Set(value As SpeakerAdpater)
+        Set(value As SpeakerAdapter)
             mSpeaker = value
         End Set
     End Property
@@ -722,9 +729,11 @@
     End Property
 
     Private lastChan0 As Boolean = False
+
     ' Scheduled task to drive IRQ 0 based on counter 0 output signal
     Public Overrides Sub Run()
         currentTime = cpu.Sched.CurrentTime
+
         ' Set IRQ 0 signal equal to counter 0 output
         Dim s As Boolean = mChannels(0).GetOutput()
         If s <> lastChan0 Then
@@ -734,8 +743,6 @@
 
         ' reschedule task for next output change
         Dim t As Long = mChannels(0).NextOutputChangeTime()
-        If t > 0 Then cpu.Sched.RunTaskAt(task, t)
-
-        'cpu.RTC?.Run()
+        If t > 0 Then cpu.Sched.RunTaskAt(sTask, t)
     End Sub
 End Class

@@ -24,7 +24,7 @@ Public Class CGAWinForms
     Private mRenderControl As Control
 
     Private Class TaskSC
-        Inherits Scheduler.Task
+        Inherits Scheduler.SchTask
 
         Public Sub New(owner As IOPortHandler)
             MyBase.New(owner)
@@ -126,7 +126,7 @@ Public Class CGAWinForms
             '    sdlCtrl.Init(Me, mFont.FontFamily.Name, mFont.Size)
             'End If
 
-            InitiAdapter()
+            InitAdapter()
 
             AddHandler mRenderControl.Paint, AddressOf Paint
         End Set
@@ -189,7 +189,7 @@ Public Class CGAWinForms
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         OnPostRender(sender, e)
 
-        RenderWaveform(g)
+        'RenderWaveform(g)
     End Sub
 
     Protected Overrides Sub OnPaletteRegisterChanged()
@@ -308,31 +308,29 @@ Public Class CGAWinForms
         End If
     End Sub
 
-    Private Sub RenderWaveform(g As Graphics)
-#If Win32 Then
-        If CPU.PIT?.Speaker IsNot Nothing Then
-            g.ResetTransform()
+    'Private Sub RenderWaveform(g As Graphics)
+    '    If CPU.PIT?.Speaker IsNot Nothing Then
+    '        g.ResetTransform()
 
-            Dim h As Integer = mRenderControl.Height * 0.6
-            Dim h2 As Integer = h / 2
-            Dim p1 As Point = New Point(0, CPU.PIT.Speaker.AudioBuffer(0) / Byte.MaxValue * h + h * 0.4)
-            Dim p2 As Point
-            Dim len As Integer = CPU.PIT.Speaker.AudioBuffer.Length
+    '        Dim h As Integer = mRenderControl.Height * 0.6
+    '        Dim h2 As Integer = h / 2
+    '        Dim p1 As Point = New Point(0, CPU.PIT.Speaker.AudioBuffer(0) / Byte.MaxValue * h + h * 0.4)
+    '        Dim p2 As Point
+    '        Dim len As Integer = CPU.PIT.Speaker.AudioBuffer.Length
 
-            Using p As New Pen(Brushes.Red, 3)
-                For i As Integer = 1 To len - 1
-                    Try
-                        p2 = New Point(i / len * mRenderControl.Width, CPU.PIT.Speaker.AudioBuffer(i) / Byte.MaxValue * h + h * 0.4)
-                        g.DrawLine(p, p1, p2)
-                        p1 = p2
-                    Catch
-                        Exit For
-                    End Try
-                Next
-            End Using
-        End If
-#End If
-    End Sub
+    '        Using p As New Pen(Brushes.Red, 3)
+    '            For i As Integer = 1 To len - 1
+    '                Try
+    '                    p2 = New Point(i / len * mRenderControl.Width, CPU.PIT.Speaker.AudioBuffer(i) / Byte.MaxValue * h + h * 0.4)
+    '                    g.DrawLine(p, p1, p2)
+    '                    p1 = p2
+    '                Catch
+    '                    Exit For
+    '                End Try
+    '            Next
+    '        End Using
+    '    End If
+    'End Sub
 
     Private Function MeasureChar(graphics As Graphics, code As Integer, text As Char, font As Font) As Size
         Dim size As Size
@@ -373,10 +371,6 @@ Public Class CGAWinForms
             Return "CGA WinForms"
         End Get
     End Property
-
-    Public Overrides Sub Run()
-        If mRenderControl IsNot Nothing Then mRenderControl.Invalidate()
-    End Sub
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
         MyBase.InitVideoMemory(clearScreen)
