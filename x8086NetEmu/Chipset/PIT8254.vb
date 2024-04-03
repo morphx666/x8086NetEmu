@@ -689,7 +689,7 @@
                 mSpeaker.Frequency = 0
             Else
 #If DEBUG Then
-                mSpeaker.Frequency = 138 * COUNTRATE / period
+                mSpeaker.Frequency = 134.07 * COUNTRATE / period
 #Else
                 mSpeaker.Frequency = 1700 * COUNTRATE / period
 #End If

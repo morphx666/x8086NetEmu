@@ -75,9 +75,9 @@
             Case WaveForms.Squared
                 If mEnabled Then
                     If currentStep <= halfWaveLength Then
-                        value = -128
+                        value = SByte.MinValue
                     Else
-                        value = 127
+                        value = SByte.MaxValue
                     End If
                 Else
                     value = 0

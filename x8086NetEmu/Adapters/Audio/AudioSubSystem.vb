@@ -59,7 +59,7 @@ Public Class AudioSubsystem
             sample += provider.Sample
         Next
 
-        audioBuffer(bufferIndex) = sample
+        audioBuffer(bufferIndex) = sample + 128
         bufferIndex += 1
     End Sub
 

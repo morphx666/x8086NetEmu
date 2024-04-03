@@ -111,7 +111,7 @@
 
     Public Overrides Sub InitAdapter()
         SampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
-        mVolume = 0.08
+        mVolume = 0.9
 
         CPU.Sched.RunTaskEach(task, SampleTicks)
     End Sub
@@ -223,12 +223,12 @@
             If Frequency(channel) <> 0 Then accumulator += AdLibSample(channel)
         Next
 
-        Return accumulator - 32_768
+        Return accumulator
     End Function
 
     Public Overrides ReadOnly Property Sample As Int16
         Get
-            Return GenSample() * mVolume
+            Return (GenSample() >> 4) * mVolume
         End Get
     End Property
 

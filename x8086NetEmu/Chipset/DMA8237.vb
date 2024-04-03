@@ -73,7 +73,7 @@
         Public CurrentCount As UInt16
 
         ' Mode register (bits 2-7)
-        Public Mode As UInt16
+        Public Mode As Byte
 
         Public Masked As Integer
         Public Direction As Integer
@@ -163,21 +163,21 @@
         ' these triggers.
 
         Dim t As Long = cpu.Sched.CurrentTime
-        Dim ntrigger As Long = 0
+        Dim nTrigger As Long = 0
         If ch0NextTrigger >= 0 AndAlso ch0NextTrigger <= t Then
             ' Rounding errors cause some divergence between DMA channel 0 and
             ' timer channel 1, but probably nobody will notice.
             If ch0TriggerPeriod > 0 Then
                 Dim d As Long = t - ch0NextTrigger
-                ntrigger = 1 + d / ch0TriggerPeriod
+                nTrigger = 1 + d \ ch0TriggerPeriod
                 ch0NextTrigger = t + ch0TriggerPeriod - (d Mod ch0TriggerPeriod)
             Else
-                ntrigger = 1
+                nTrigger = 1
                 ch0NextTrigger = -1
             End If
         End If
 
-        If ntrigger = 0 Then Exit Sub
+        If nTrigger = 0 Then Exit Sub
 
         ' Ignore triggers if DMA controller is disabled
         If (cmdReg And &H4) <> 0 Then Exit Sub
@@ -190,17 +190,17 @@
 
         ' Update count, address and status registers to account for
         ' the past triggers.
-        Dim addrstep As Integer = If((cmdReg And &H2) = 0, If((channels(0).Mode And &H20) = 0, 1, -1), 0)
-        If ntrigger <= channels(0).CurrentCount Then
+        Dim addrStep As Integer = If((cmdReg And &H2) = 0, If((channels(0).Mode And &H20) = 0, 1, -1), 0)
+        If nTrigger <= channels(0).CurrentCount Then
             ' no terminal count
-            Dim n As Integer = ntrigger
+            Dim n As Integer = nTrigger
             channels(0).CurrentCount -= n
-            channels(0).CurrentAddress = (channels(0).CurrentAddress + n * addrstep) And &HFFFF
+            channels(0).CurrentAddress = (channels(0).CurrentAddress + n * addrStep) And &HFFFF
         Else
             ' terminal count occurred
-            Dim n As Integer = (ntrigger - channels(0).CurrentCount - 1) Mod (channels(0).BaseCount + 1)
+            Dim n As Integer = (nTrigger - channels(0).CurrentCount - 1) Mod (channels(0).BaseCount + 1)
             channels(0).CurrentCount = channels(0).BaseCount - n
-            channels(0).CurrentAddress = (channels(0).BaseAddress + n * addrstep) And &HFFFF
+            channels(0).CurrentAddress = (channels(0).BaseAddress + n * addrStep) And &HFFFF
             statusReg = statusReg Or 1
         End If
     End Sub
@@ -208,11 +208,11 @@
     ' Try to start a new transaction on a channel with a pending request.
     Protected Sub TryHandleRequest()
         ' Update request bits in status register
-        Dim rbits As Byte = reqReg
-        For j As Integer = 0 To 4 - 1
-            If channels(j).PendingRequest Then rbits = rbits Or (1 << j)
+        Dim rBits As Byte = reqReg
+        For i As Integer = 0 To 4 - 1
+            If channels(i).PendingRequest Then rBits = rBits Or (1 << i)
         Next
-        statusReg = (statusReg And &HF) Or rbits << 4
+        statusReg = (statusReg And &HF) Or rBits << 4
 
         ' Don't start a transfer during dead time after a previous transfer
         If pendingTask Then Exit Sub
@@ -221,19 +221,19 @@
         If (cmdReg And &H4) <> 0 Then Exit Sub
 
         ' Select a channel with pending request
-        rbits = rbits And (Not maskReg)
-        rbits = rbits And (Not 1) ' never select channel 0
-        If rbits = 0 Then Exit Sub
+        rBits = rBits And (Not maskReg)
+        rBits = rBits And (Not 1) ' never select channel 0
+        If rBits = 0 Then Exit Sub
 
         Dim channelIndex As Integer = priorityChannel
-        While ((rbits >> channelIndex) And 1) = 0
+        While ((rBits >> channelIndex) And 1) = 0
             channelIndex = (channelIndex + 1) And 3
         End While
 
         ' Just decided to start a transfer on channel i
         Dim channel As Channel = channels(channelIndex)
         Dim device As IDMADevice = channel.Device
-        Dim mode As UInt16 = channel.Mode
+        Dim mode As Byte = channel.Mode
         Dim page As UInt32 = channel.Page
 
         ' Update dynamic priority
@@ -322,20 +322,24 @@
 
         If (port And &HFFF8) = 0 Then
             ' DMA controller: channel status
-            Dim chan As Channel = channels((port >> 1) And 3)
-            Dim x As UInt16 = If((port And 1) = 0, chan.CurrentAddress, chan.CurrentCount)
+            Dim channel As Channel = channels((port >> 1) And 3)
+            Dim x As UInt16 = If((port And 1) = 0, channel.CurrentAddress, channel.CurrentCount)
+
             Dim p As Boolean = msbFlipFlop
-            msbFlipFlop = Not p
+            msbFlipFlop = Not msbFlipFlop
+
             Return If(p, (x >> 8) And &HFF, x And &HFF)
         ElseIf (port And &HFFF8) = &H8 Then
             ' DMA controller: operation registers
             Select Case port
-                Case 8 ' Read status register
+                Case &H8 ' Read status register
                     Dim sr As Byte = statusReg
                     statusReg = statusReg And &HF0
                     Return sr
-                Case 13 ' Read temporary register
+
+                Case &HD ' Read temporary register
                     Return tempReg
+
             End Select
         End If
 
@@ -379,12 +383,12 @@
         ElseIf (port And &HFFF8) = &H8 Then
             ' DMA Controller: Operation Registers
             Select Case port And &HF
-                Case 8 ' Write Command Register
+                Case &H8 ' Write Command Register
                     cmdReg = value
                     If (value And &H10) = 0 Then priorityChannel = 0 ' Enable Fixed Priority
                     If (value And 1) = 1 Then cpu.RaiseException("DMA8237: Memory-to-memory transfer not implemented")
 
-                Case 9 ' Set/Reset Request Register
+                Case &H9 ' Set/Reset Request Register
                     If (value And 4) = 0 Then
                         reqReg = reqReg And (Not 1 << (value And 3)) ' Reset Request Bit
                     Else
@@ -392,7 +396,7 @@
                     End If
                     If (value And 7) = 4 Then cpu.RaiseException("DMA8237: Software request on channel 0 not implemented")
 
-                Case 10 ' Set/Reset Mask Register
+                Case &HA ' Set/Reset Mask Register
                     If (value And 4) = 0 Then
                         maskReg = maskReg And Not (1 << (value And 3)) ' Reset Mask Bit
                     Else
@@ -400,17 +404,17 @@
                     End If
                     channels(value And 3).Masked = (value >> 2) And 1
 
-                Case 11 ' Write Mode Register
+                Case &HB ' Write Mode Register
                     channels(value And 3).Mode = value
                     channels(value And 3).Direction = (value >> 5) And 1
                     channels(value And 3).AutoInit = (value >> 4) And 1
                     channels(value And 3).WriteMode = (value >> 2) And 1
                     If (value And 3) = 0 AndAlso (value And &HDC) <> &H58 Then cpu.RaiseException("DMA8237: Unsupported mode on channel 0")
 
-                Case 12 ' Clear MSB FlipFlop
+                Case &HC ' Clear MSB FlipFlop
                     msbFlipFlop = False
 
-                Case 13 ' Master Clear
+                Case &HD ' Master Clear
                     msbFlipFlop = False
                     cmdReg = 0
                     statusReg = 0
@@ -418,10 +422,10 @@
                     tempReg = 0
                     maskReg = &HF
 
-                Case 14 ' Clear Mask Register
+                Case &HE ' Clear Mask Register
                     maskReg = 0
 
-                Case 15 ' Write Mask Register
+                Case &HF ' Write Mask Register
                     maskReg = value
             End Select
             TryHandleRequest()

@@ -216,21 +216,13 @@
     End Sub
 
     Public Function GetSample() As Int16
-        If Not blaster.OutputEnabled Then Return 0
+        If Not blaster.OutputEnabled Then Return 128
         Return blaster.Sample
     End Function
 
     Public Overrides ReadOnly Property Sample As Int16
         Get
-            Dim s = GetSample()
-
-            'If s <= 0 Then
-            '    s = 128 + s
-            'Else
-            '    s += 127
-            'End If
-
-            Return s * mVolume
+            Return (GetSample() - 128) * mVolume
         End Get
     End Property
 
@@ -314,16 +306,28 @@
     End Sub
 
     Public Sub ReadDMA()
-        If dmaChannel.Masked <> 0 Then blaster.Sample = 128
+        If dmaChannel.Masked <> 0 Then
+            blaster.Sample = 128
+            Exit Sub
+        End If
         If dmaChannel.AutoInit <> 0 AndAlso dmaChannel.CurrentCount > dmaChannel.BaseCount Then dmaChannel.CurrentCount = 0
-        If dmaChannel.CurrentCount > dmaChannel.BaseCount Then blaster.Sample = 128
+        'If dmaChannel.CurrentCount > dmaChannel.BaseCount Then
+        '    blaster.Sample = 128
+        '    Exit Sub
+        'End If
 
+        dmaChannel.CurrentCount = dmaChannel.CurrentCount Mod dmaChannel.BaseCount
+
+        ' Prince of Persia
         ' page = 524288
         ' addr = 38686
         ' count = 0
+
+        ' SBTalker
+        ' page = 196608
+        ' addr = 55679
+        ' count = 0
         If dmaChannel.Direction = 0 Then
-            ' fake: 562974
-            ' ours: 568697
             blaster.Sample = CPU.Memory(dmaChannel.Page + dmaChannel.CurrentAddress + dmaChannel.CurrentCount)
         Else
             blaster.Sample = CPU.Memory(dmaChannel.Page + dmaChannel.CurrentAddress - dmaChannel.CurrentCount)
