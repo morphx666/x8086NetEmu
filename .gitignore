@@ -253,6 +253,7 @@ ModelManifest.xml
 **/Release/*.exe
 **/Release/*.config
 **/Release/*.manifest
+**/Release/libbass.*
 **/Release/states/
 **/80186_tests/
 **/8088_ProcessorTests/
@@ -267,4 +268,4 @@ ModelManifest.xml
 **/settings.dat
 
 # Include Bass libraries
-!**/Bass/**
+!**/x8086NetEmu/Bass/**
