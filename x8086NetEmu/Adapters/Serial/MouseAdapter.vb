@@ -94,11 +94,11 @@
         If x < 0 Then highBits = &B11
         If y < 0 Then highBits = highBits Or &B1100
 
-        Dim btns As Byte = 0
-        If (m.Button And MouseButtons.Left) = MouseButtons.Left Then btns = btns Or 2
-        If (m.Button And MouseButtons.Right) = MouseButtons.Right Then btns = btns Or 1
+        Dim buttons As Byte = 0
+        If (m.Button And MouseButtons.Left) = MouseButtons.Left Then buttons = buttons Or 2
+        If (m.Button And MouseButtons.Right) = MouseButtons.Right Then buttons = buttons Or 1
 
-        BufSerMouseData(&H40 Or (btns << 4) Or highBits)
+        BufSerMouseData(&H40 Or (buttons << 4) Or highBits)
         BufSerMouseData(x And &H3F)
         BufSerMouseData(y And &H3F)
     End Sub

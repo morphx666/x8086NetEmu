@@ -255,6 +255,7 @@ ModelManifest.xml
 **/Release/*.manifest
 **/Release/libbass.*
 **/Release/states/
+**/Release/Bass/
 **/80186_tests/
 **/8088_ProcessorTests/
 

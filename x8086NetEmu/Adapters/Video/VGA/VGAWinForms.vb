@@ -84,7 +84,8 @@ Public Class VGAWinForms
         Task.Run(action:=Async Sub()
                              Do
                                  Await Task.Delay(1000 / frameRate)
-                                 mRenderControl.Invalidate()
+                                 'mRenderControl.Invalidate()
+                                 mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
                              Loop Until cancelAllThreads
                          End Sub)
 

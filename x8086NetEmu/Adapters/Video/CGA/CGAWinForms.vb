@@ -107,7 +107,8 @@ Public Class CGAWinForms
                                      Dim delay As Integer = 1000 / frameRate
                                      Do
                                          Threading.Thread.Sleep(delay)
-                                         mRenderControl.Invalidate()
+                                         'mRenderControl.Invalidate()
+                                         mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
                                      Loop Until cancelAllThreads
                                  End Sub)
     End Sub
