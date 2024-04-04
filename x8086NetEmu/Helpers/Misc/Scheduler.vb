@@ -1,5 +1,4 @@
 ﻿Imports System.Threading
-Imports System.Threading.Tasks
 
 ' This code is a port from the "Scheduler" class in Retro 0.4
 

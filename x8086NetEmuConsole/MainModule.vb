@@ -1,4 +1,5 @@
-﻿Imports x8086NetEmu
+﻿Imports System.Threading
+Imports x8086NetEmu
 
 Module MainModule
     Private cpu As X8086
@@ -24,16 +25,20 @@ Module MainModule
         ' cpu.Adapters.Add(New MouseAdapter(cpu)) ' So far, useless in Console mode
 
         cpu.Adapters.Add(New SpeakerAdapter(cpu))
-        cpu.Adapters.Add(New AdlibAdapter(cpu))
-        cpu.Adapters.Add(New SoundBlaster(cpu, cpu.Adapters.Last()))
+
+        Dim adlib As New AdlibAdapter(cpu)
+        cpu.Adapters.Add(adlib)
+        cpu.Adapters.Add(New SoundBlaster(cpu, adlib))
 
         LoadSettings()
 
         cpu.Run()
 
         Do
-            Threading.Thread.Sleep(500)
+            Thread.Sleep(500)
         Loop
+
+        cpu.Close()
     End Sub
 
     Private Sub LoadSettings()

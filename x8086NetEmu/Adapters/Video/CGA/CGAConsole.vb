@@ -1,4 +1,5 @@
 ﻿Imports System.Threading
+Imports System.Threading.Tasks
 
 Public Class CGAConsole
     Inherits CGAAdapter
@@ -29,26 +30,26 @@ Public Class CGAConsole
             .ScanMode = Image2Ascii.ScanModes.Fast
         }
 
-        Tasks.Task.Run(Sub()
-                           Do
-                               Thread.Sleep(1000 \ frameRate)
+        Task.Run(action:=Async Sub()
+                             Do
+                                 Await Task.Delay(1000 \ frameRate)
 
-                               Try
-                                   If MainMode = MainModes.Graphics Then
-                                       i2a.ProcessImage(False)
+                                 Try
+                                     If MainMode = MainModes.Graphics Then
+                                         i2a.ProcessImage(False)
 
-                                       For y As Integer = 0 To TextResolution.Height - 1
-                                           For x As Integer = 0 To TextResolution.Width - 1
-                                               ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character,
+                                         For y As Integer = 0 To TextResolution.Height - 1
+                                             For x As Integer = 0 To TextResolution.Width - 1
+                                                 ConsoleCrayon.WriteFast(i2a.Canvas(x)(y).Character,
                                                                         Image2Ascii.ToConsoleColor(i2a.Canvas(x)(y).Color),
                                                                         ConsoleColor.Black,
                                                                         x, y)
-                                           Next
-                                       Next
-                                   End If
-                               Catch : End Try
-                           Loop
-                       End Sub)
+                                             Next
+                                         Next
+                                     End If
+                                 Catch : End Try
+                             Loop
+                         End Sub)
     End Sub
 
     Private Function HasModifier(v As ConsoleModifiers, t As ConsoleModifiers) As Boolean
@@ -64,12 +65,12 @@ Public Class CGAConsole
     End Sub
 
     Protected Overrides Sub ResizeRenderControl()
-
         Select Case MainMode
             Case MainModes.Text
                 Console.SetWindowSize(TextResolution.Width, TextResolution.Height)
                 ConsoleCrayon.ConsoleWidth = TextResolution.Width
                 ConsoleCrayon.ConsoleHeight = TextResolution.Height
+
             Case MainModes.Graphics
                 ratio = New Size(Math.Ceiling(GraphicsResolution.Width / Console.LargestWindowWidth),
                                  Math.Ceiling(GraphicsResolution.Height / Console.LargestWindowHeight))
@@ -78,45 +79,25 @@ Public Class CGAConsole
                 Console.SetWindowSize(i2a.CanvasSize.Width, i2a.CanvasSize.Height)
                 ConsoleCrayon.ConsoleWidth = i2a.CanvasSize.Width
                 ConsoleCrayon.ConsoleHeight = i2a.CanvasSize.Height
+
         End Select
+
         'Console.SetBufferSize(TextResolution.Width, TextResolution.Height)
         Array.Clear(buffer, 0, buffer.Length)
-
     End Sub
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
         MyBase.InitVideoMemory(clearScreen)
 
-        Console.Title = "x8086NetEmuConsole - " + VideoMode.ToString()
+        SetConsoleTitle()
 
         If MainMode = MainModes.Graphics Then ResetI2A()
+    End Sub
 
-        If mVideoMode <> &HFF Then
-            Dim lw As Integer = -1
-            Dim lh As Integer = -1
-            While Console.WindowWidth <> mTextResolution.Width OrElse Console.WindowHeight <> mTextResolution.Height
-                If lw <> Console.WindowWidth OrElse lh <> Console.WindowHeight Then
-                    lw = Console.WindowWidth
-                    lh = Console.WindowHeight
-
-                    Console.Clear()
-                    ConsoleCrayon.WriteFast("Unsupported Console Window Size", ConsoleColor.White, ConsoleColor.Red, 0, 0)
-                    ConsoleCrayon.ResetColor()
-                    Console.WriteLine()
-                    Console.WriteLine("The window console cannot be resized on this platform, which will cause the text to be rendered incorrectly")
-                    Console.WriteLine()
-                    Console.WriteLine($"Expected Resolution for Video Mode {mVideoMode:X2}: {mTextResolution.Width,4} x {mTextResolution.Height,4}")
-                    ConsoleCrayon.WriteFast($"Current console window resolution:     {Console.WindowWidth,4} x {Console.WindowHeight,4}", ConsoleColor.White, ConsoleColor.DarkRed, 0, Console.CursorTop)
-                    ConsoleCrayon.ResetColor()
-                    Console.WriteLine()
-                    Console.WriteLine("Manually resize the window to the appropriate resolution")
-                End If
-
-                Thread.Sleep(100)
-            End While
-            ConsoleCrayon.ResetColor()
-            Console.Clear()
-        End If
+    Private Sub SetConsoleTitle()
+        Console.Title = String.Format("x8086NetEmu [Menu: {0}] | {1}",
+                                "Shift + Alt + Home",
+                                $"{CPU.VideoAdapter?.Name.Split(" "c)(0)} Mode {CPU.VideoAdapter?.VideoMode:X2}{If(CPU.VideoAdapter?.MainMode = VideoAdapter.MainModes.Text, "T", "G")}")
     End Sub
 
     Private Sub ResetI2A()
@@ -139,7 +120,7 @@ Public Class CGAConsole
             lastModifiers = keyInfo.Modifiers
 
             MyBase.HandleKeyDown(Me, keyEvent)
-            Thread.Sleep(100)
+            Thread.Sleep(30)
             MyBase.HandleKeyUp(Me, keyEvent)
         End If
     End Sub
@@ -259,9 +240,6 @@ Public Class CGAConsole
             Console.SetCursorPosition(CursorCol, CursorRow)
             Console.CursorVisible = True
         End If
-    End Sub
-
-    Public Overrides Sub Run()
     End Sub
 
     Public Overrides ReadOnly Property Description As String
