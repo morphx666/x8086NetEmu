@@ -408,23 +408,35 @@
 
     ' If necessary, in future versions we could implement support for
     '   multiple hooks attached to the same interrupt and execute them based on some priority condition
+    ''' <summary>
+    ''' Attaches a hook to an interrupt number
+    ''' </summary>
     Public Function TryAttachHook(intNum As Byte, handler As IntHandler) As Boolean
         If intHooks.ContainsKey(intNum) Then intHooks.Remove(intNum)
         intHooks.Add(intNum, handler)
         Return True
     End Function
 
-    Public Function TryAttachHook(handler As MemHandler) As Boolean
-        memHooks.Add(handler)
+    ''' <summary>
+    ''' Attaches a hook to a memory handler
+    ''' </summary>
+    Public Function TryAttachHook(memHandler As MemHandler) As Boolean
+        memHooks.Add(memHandler)
         Return True
     End Function
 
+    ''' <summary>
+    ''' Detaches a hook from an interrupt number
+    ''' </summary>
     Public Function TryDetachHook(intNum As Byte) As Boolean
         If Not intHooks.ContainsKey(intNum) Then Return False
         intHooks.Remove(intNum)
         Return True
     End Function
 
+    ''' <summary>
+    ''' Detaches a hook from a memory handler
+    ''' </summary>
     Public Function TryDetachHook(memHandler As MemHandler) As Boolean
         If Not memHooks.Contains(memHandler) Then Return False
         memHooks.Remove(memHandler)

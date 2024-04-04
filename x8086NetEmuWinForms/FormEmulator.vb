@@ -1,10 +1,6 @@
 ﻿Imports x8086NetEmu
 
 Public Class FormEmulator
-    <Runtime.InteropServices.DllImport("user32.dll")>
-    Private Shared Function GetAsyncKeyState(vKey As Keys) As Short
-    End Function
-
     Private Const WM_NCRBUTTONDOWN As Long = &HA4
     Private Const WM_NCRBUTTONUP As Long = &HA5
 
@@ -156,45 +152,39 @@ Public Class FormEmulator
     End Sub
 
     Private Sub SetupCpuEventHandlers()
-        If HostRuntime.Platform = HostRuntime.Platforms.Windows Then
-            If cpu.VideoAdapter IsNot Nothing Then
-                AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
-                                                         If (e1.KeyData And Keys.Control) = Keys.Control AndAlso Convert.ToBoolean(GetAsyncKeyState(Keys.RControlKey)) Then
-                                                             Cursor.Clip = Rectangle.Empty
-                                                             CursorVisible = True
-                                                             If cpu.Mouse IsNot Nothing Then cpu.Mouse.IsCaptured = False
+        If cpu.VideoAdapter IsNot Nothing Then
+            AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
+                                                     If e1.Shift AndAlso e1.Alt Then
+                                                         Cursor.Clip = Rectangle.Empty
+                                                         CursorVisible = True
+                                                         If cpu.Mouse IsNot Nothing Then cpu.Mouse.IsCaptured = False
 
-                                                             Select Case e1.KeyCode
-                                                                 Case Keys.Home
-                                                                     ContextMenuStripMain.Show(Cursor.Position)
-                                                                 Case Keys.Add
-                                                                     Dim zoom = cpu.VideoAdapter.Zoom
-                                                                     If zoom < 4 Then SetZoomLevel(zoom + 0.25)
-                                                                 Case Keys.Subtract
-                                                                     Dim zoom = cpu.VideoAdapter.Zoom
-                                                                     If zoom > 0.25 Then SetZoomLevel(zoom - 0.25)
-                                                                 Case Keys.NumPad0
-                                                                     SetZoomLevel(1)
-                                                                 Case Keys.C
-                                                                     CopyTextFromEmulator()
-                                                                 Case Keys.V
-                                                                     PasteTextFromClipboard()
-                                                                 Case Keys.P
-                                                                     If cpu.IsPaused Then
-                                                                         cpu.Resume()
-                                                                     Else
-                                                                         cpu.Pause()
-                                                                     End If
-                                                             End Select
+                                                         Select Case e1.KeyCode
+                                                             Case Keys.Home
+                                                                 ContextMenuStripMain.Show(Cursor.Position)
+                                                             Case Keys.Add
+                                                                 Dim zoom = cpu.VideoAdapter.Zoom
+                                                                 If zoom < 4 Then SetZoomLevel(zoom + 0.25)
+                                                             Case Keys.Subtract
+                                                                 Dim zoom = cpu.VideoAdapter.Zoom
+                                                                 If zoom > 0.25 Then SetZoomLevel(zoom - 0.25)
+                                                             Case Keys.NumPad0
+                                                                 SetZoomLevel(1)
+                                                             Case Keys.C
+                                                                 CopyTextFromEmulator()
+                                                             Case Keys.V
+                                                                 PasteTextFromClipboard()
+                                                             Case Keys.P
+                                                                 If cpu.IsPaused Then
+                                                                     cpu.Resume()
+                                                                 Else
+                                                                     cpu.Pause()
+                                                                 End If
+                                                         End Select
 
-                                                             e1.Handled = True
-                                                         End If
-                                                     End Sub
-            End If
-        Else
-            AddHandler videoPort.MouseDown, Sub(s1 As Object, e1 As MouseEventArgs)
-                                                If e1.Button = Windows.Forms.MouseButtons.Middle Then ContextMenuStripMain.Show(Cursor.Position)
-                                            End Sub
+                                                         e1.Handled = True
+                                                     End If
+                                                 End Sub
         End If
 
         AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(Sub() SetTitleText())
@@ -261,16 +251,8 @@ Public Class FormEmulator
     End Sub
 
     Private Sub SetTitleText()
-        Dim sysMenuShortcut As String
-
-        If HostRuntime.Platform = HostRuntime.Platforms.Windows Then
-            sysMenuShortcut = "RCtrl + Home"
-        Else
-            sysMenuShortcut = "Ctrl + MButton"
-        End If
-
         Me.Text = String.Format("x8086NetEmu [Menu: {0}]  {1:F2}MHz ● {2}% | {3} | {4:N2} MIPs | {5} {6}",
-                                    sysMenuShortcut,
+                                    "Shift + Alt + Home",
                                     cpu.Clock / X8086.MHz,
                                     cpu.SimulationMultiplier * 100,
                                     $"{cpu.VideoAdapter?.Name.Split(" "c)(0)} Mode {cpu.VideoAdapter?.VideoMode:X2}{If(cpu.VideoAdapter?.MainMode = VideoAdapter.MainModes.Text, "T", "G")} | Zoom {cpu.VideoAdapter?.Zoom * 100}%",
@@ -895,65 +877,6 @@ Public Class FormEmulator
         cpu.DebugMode = Boolean.Parse(xml.<debugMode>.Value)
 
         cpu.VideoAdapter.VideoMode = [Enum].Parse(GetType(CGAAdapter.VideoModes), xml.<videoMode>.Value)
-    End Sub
-
-    Private Sub RunChecks()
-        cpu = New X8086(True, False)
-
-        Dim skipCount As Integer = 16
-        Dim failed As Boolean
-
-        For Each file In (New IO.DirectoryInfo("D:\Users\Xavier\Downloads\80186_tests\").GetFiles("*.bin")).ToList()
-            If file.Name = "datatrnf.bin" OrElse file.Name.StartsWith("res_") Then
-                Continue For
-            End If
-
-            If skipCount > 0 Then
-                skipCount -= 1
-                Continue For
-            End If
-
-            cpu.FPU = Nothing
-            cpu.PIC = Nothing
-            cpu.DMA = Nothing
-            cpu.PIT = Nothing
-            cpu.PPI = Nothing
-            cpu.Ports.Clear()
-            cpu.Adapters.Clear()
-
-            MsgBox($"Test Program: {file.Name}")
-
-            cpu.Run(True)
-            cpu.LoadBIN(file.FullName, &HF000, &H0)
-            cpu.Registers.CS = &HF000
-            cpu.Registers.IP = &H0
-            cpu.Flags.EFlags = 0
-            ShowDebugger()
-            Do
-                Application.DoEvents()
-            Loop Until cpu.IsHalted
-
-            Dim expectedFileName As String = IO.Path.Combine(file.DirectoryName, "res_" + file.Name)
-            If IO.File.Exists(expectedFileName) Then
-                failed = False
-                Dim expectedData() As Byte = IO.File.ReadAllBytes(expectedFileName)
-                For i As Integer = 0 To expectedData.Length - 1
-                    'If expectedData(i) <> 0 Then
-                    If expectedData(i) <> cpu.RAM8(0, i,, True) Then
-                        failed = True
-                        MsgBox($"{file.Name} failed at offset {i}{Environment.NewLine}Expected: {expectedData(i):X2}{Environment.NewLine}Found: {cpu.RAM8(0, i,, True):X2}")
-                    End If
-                    'End If
-                Next
-
-                If failed Then
-                    MsgBox($"{file.Name} failed to run correctly")
-                Else
-                    MsgBox($"{file.Name} has executed successfully")
-                End If
-            End If
-        Next
-        Exit Sub
     End Sub
 
     Private Sub FormEmulator_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
