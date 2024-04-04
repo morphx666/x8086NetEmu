@@ -324,11 +324,11 @@ Public Class Scheduler
         Dim tsk As SchTask = Nothing
         Dim evt As ExternalInputEvent
 
-        While True
+        Do
             ' Detect the end of the simulation run
             If nextTime = STOPPING Then
                 nextTime = pq.MinPriority()
-                Exit While
+                Exit Do
             End If
 
             If pendingInput.Count > 0 Then
@@ -338,7 +338,7 @@ Public Class Scheduler
             ElseIf nextTime <= mCurrentTime Then
                 ' Fetch the next pending task
                 tsk = NextTask()
-                If tsk Is Nothing Then Continue While ' This task was canceled, go round again
+                If tsk Is Nothing Then Continue Do ' This task was canceled, go round again
                 inputBuf.Clear()
             Else
                 tsk = Nothing
@@ -370,7 +370,7 @@ Public Class Scheduler
 
                 If mCPU.IsHalted() Then SkipToNextEvent() ' The CPU is halted, skip immediately to the next event
             End If
-        End While
+        Loop Until X8086.IsClosing
     End Sub
 
     Private Sub Wait(delay As Integer)

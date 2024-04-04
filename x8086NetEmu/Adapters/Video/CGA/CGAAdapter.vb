@@ -170,8 +170,6 @@ Public MustInherit Class CGAAdapter
 
         Reset()
         UpdateClock()
-
-        cpu.Sched.RunTaskEach(schTask, SampleTicks)
     End Sub
 
     Public Overrides Sub Run()
@@ -193,11 +191,14 @@ Public MustInherit Class CGAAdapter
                                      Render()
 
                                      'RaiseEvent VideoRefreshed(Me)
-                                 Loop
+                                 Loop Until X8086.IsClosing
                              End Sub)
         End If
 
         SampleTicks = Scheduler.HOSTCLOCK \ 31_500 ' 31.5KHz
+
+        schTask.Cancel()
+        CPU.Sched.RunTaskEach(schTask, SampleTicks)
     End Sub
 
     Public Overrides Sub UpdateClock()
@@ -208,7 +209,7 @@ Public MustInherit Class CGAAdapter
             MyBase.OnKeyDown(Me, e)
             If e.Handled Then Exit Sub
             'Debug.WriteLine($"KEY DOWN: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
-            If MyBase.CPU.Keyboard IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Keyboard, e, False))
+            If CPU.Keyboard IsNot Nothing Then CPU.Sched.HandleInput(New ExternalInputEvent(CPU.Keyboard, e, False))
         End If
         e.Handled = True
         e.SuppressKeyPress = True

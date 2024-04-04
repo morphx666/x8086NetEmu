@@ -81,8 +81,8 @@ Public Class FormEmulator
         'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
         'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
 
-        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
+        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
+        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
 
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         cpu.Adapters.Add(New MouseAdapter(cpu))
@@ -188,18 +188,8 @@ Public Class FormEmulator
                                                  End Sub
         End If
 
-        AddHandler cpu.MIPsUpdated, Sub()
-                                        Try
-                                            Invoke(Sub() SetTitleText())
-                                        Catch
-                                        End Try
-                                    End Sub
-        AddHandler cpu.DebugModeChanged, Sub()
-                                             Try
-                                                 Invoke(Sub() ShowDebugger())
-                                             Catch
-                                             End Try
-                                         End Sub
+        AddHandler cpu.MIPsUpdated, Sub() Invoke(Sub() SetTitleText())
+        AddHandler cpu.DebugModeChanged, Sub() Invoke(Sub() ShowDebugger())
     End Sub
 
     Private Sub WarnAboutRestart(optionName As String)
@@ -272,18 +262,11 @@ Public Class FormEmulator
     End Sub
 
     Private Sub StopEmulation()
-        Task.Run(Sub()
-                     If cpu IsNot Nothing Then
-                         Try
-                             If fDebugger IsNot Nothing Then Me.Invoke(Sub() fDebugger.Close())
-                             If fConsole IsNot Nothing Then Me.Invoke(Sub() fConsole.Close())
-                             If cpuState IsNot Nothing Then Me.Invoke(Sub() cpuState = Nothing)
-                         Catch
-                         End Try
+        cpu.Close()
 
-                         cpu.Close()
-                     End If
-                 End Sub)
+        fDebugger?.Close()
+        fConsole?.Close()
+        cpuState = Nothing
     End Sub
 
     ' Code demonstration on how to attach custom hooks
@@ -744,10 +727,10 @@ Public Class FormEmulator
             SetCPUClockSpeed(Double.Parse(xml.<clockSpeed>.Value))
             If xml.<extras>.<fullScreen>.Value IsNot Nothing AndAlso Boolean.Parse(xml.<extras>.<fullScreen>.Value) Then
                 SetZoomLevel(Double.Parse(xml.<extras>.<lastZoomLevel>.Value))
-                Task.Run(Sub()
-                             Threading.Thread.Sleep(250)
-                             Me.Invoke(Sub() SetZoomFromMenu(ZoomFullScreenToolStripMenuItem, New EventArgs()))
-                         End Sub)
+                Task.Run(action:=Async Sub()
+                                     Await Task.Delay(250)
+                                     Me.Invoke(Sub() SetZoomFromMenu(ZoomFullScreenToolStripMenuItem, New EventArgs()))
+                                 End Sub)
             Else
                 SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))
             End If

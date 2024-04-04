@@ -1,6 +1,8 @@
 ﻿Imports System.Threading
 Imports x8086NetEmu
 Imports System.Text
+Imports System.Threading.Tasks
+Imports System.Security
 
 Public Class FormDebugger
     Public Enum LastInstructionMode
@@ -702,7 +704,7 @@ Public Class FormDebugger
         'End Try
 
         If isShiftKeyDown Then
-            Tasks.Task.Run(AddressOf RunShiftF8)
+            Task.Run(AddressOf RunShiftF8)
         Else
             mEmulator.StepInto()
         End If
@@ -734,11 +736,11 @@ Public Class FormDebugger
         Dim kickEmulation = Sub()
                                 instructionDecoded = False
                                 mEmulator.StepInto()
-                                Tasks.Task.Run(Sub()
-                                                   While Not instructionDecoded
-                                                       Thread.Sleep(1)
-                                                   End While
-                                               End Sub).Wait()
+                                Task.Run(action:=Async Sub()
+                                                     While Not instructionDecoded And Not X8086.IsClosing
+                                                         Await Task.Delay(1)
+                                                     End While
+                                                 End Sub).Wait()
                             End Sub
 
         ignoreEvents = True

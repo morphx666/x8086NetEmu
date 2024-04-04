@@ -633,21 +633,8 @@ Public MustInherit Class VGAAdapter
                                                     Return False
                                                 End Function))
 
-        mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
-                                                          If mCPU.Registers.AH = &H0 OrElse mCPU.Registers.AH = &H10 Then
-                                                              SetVideoMode()
-
-                                                              If mCPU.Registers.AH = &H10 Then Return True
-                                                              If mVideoMode = 9 Then Return True
-                                                          End If
-
-                                                          If mCPU.Registers.AH = &H1A Then
-                                                              mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
-                                                              mCPU.Registers.BL = &H8
-                                                              Return True
-                                                          End If
-
-                                                          Return False
+        mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean 
+                                                          Return SetVideoMode()
                                                       End Function))
 
         vgaInit = True
@@ -701,7 +688,7 @@ Public MustInherit Class VGAAdapter
         End Set
     End Property
 
-    Private Sub SetVideoMode()
+    Private Function SetVideoMode() As Boolean
         Select Case mCPU.Registers.AH
             Case &H0
                 For i As Integer = 0 To VGABasePalette.Length - 1
@@ -900,9 +887,18 @@ Public MustInherit Class VGAAdapter
                             addr += 3
                         Next
                 End Select
+                Return True
+
+            Case &H1A
+                mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
+                mCPU.Registers.BL = &H8
+                Return True
+
+            Case Else
+                Return False
 
         End Select
-    End Sub
+    End Function
 
     Public Overrides Function [In](port As UInt16) As Byte
         Select Case port
@@ -969,7 +965,7 @@ Public MustInherit Class VGAAdapter
                 flip3C0 = Not flip3C0
 
             Case &H3C4 ' Sequence controller index
-                portRAM(&H3C4) = value Mod 4 ' FIXME: Fugly hack that fixes many things
+                portRAM(&H3C4) = value Mod 4
 
             Case &H3C5 ' Sequence controller data
                 VGA_SC(portRAM(&H3C4)) = value
@@ -1020,7 +1016,7 @@ Public MustInherit Class VGAAdapter
             '    portRAM(&H3DA) = value Or (portRAM(&H3DA) And &B0000_1001)
 
             Case &H3CE ' Graphics Registers index
-                portRAM(&H3CE) = value Mod 8 ' FIXME: Fugly hack that fixes many things
+                portRAM(&H3CE) = value Mod 8
 
             Case &H3CF ' Graphics Registers
                 VGA_GC(portRAM(&H3CE)) = value
@@ -1034,8 +1030,8 @@ Public MustInherit Class VGAAdapter
     Private Sub UpdateCursor()
         ' https://www.scs.stanford.edu/22wi-cs212/pintos/specs/freevga/vga/crtcreg.htm#0C
         mCursorVisible = (VGA_CRTC(&HA) And &B0010_0000) = 0
-        mCursorStart = VGA_CRTC(&HA)
-        mCursorEnd = VGA_CRTC(&HB)
+        mCursorStart = VGA_CRTC(&HA) And &B0001_1111
+        mCursorEnd = VGA_CRTC(&HB) And &B0001_1111
 
         Dim startOffset As Integer = ((VGA_CRTC(&HC) And &H3F) << 8) Or (VGA_CRTC(&HD) And &HFF)
         Dim p As Integer = (VGA_CRTC(&HE) << 8) Or VGA_CRTC(&HF)

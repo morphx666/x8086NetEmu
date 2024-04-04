@@ -1,4 +1,6 @@
-﻿Public MustInherit Class Adapter
+﻿Imports System.Threading.Tasks
+
+Public MustInherit Class Adapter
     Inherits IOPortHandler
 
     Private mCPU As X8086
@@ -19,7 +21,10 @@
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
-        Threading.Tasks.Task.Run(AddressOf InitAdapter)
+        Task.Run(action:=Async Sub()
+                             Await Task.Delay(100)
+                             InitAdapter()
+                         End Sub)
     End Sub
 
     Public ReadOnly Property CPU As X8086

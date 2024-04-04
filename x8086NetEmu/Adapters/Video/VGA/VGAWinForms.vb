@@ -85,10 +85,11 @@ Public Class VGAWinForms
                              Dim delay As Integer = 1000 / frameRate
                              Do
                                  Await Task.Delay(delay)
+
                                  If Not mRenderControl.IsDisposed Then
-                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
+                                     mRenderControl.Invoke(Sub() If Not mRenderControl.IsDisposed Then mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
                                  End If
-                             Loop
+                             Loop Until X8086.IsClosing
                          End Sub)
 
         InitVideoMemory(False)
@@ -192,6 +193,12 @@ Public Class VGAWinForms
         Dim k As UInt32 = mCellSize.Width * mCellSize.Height
         Dim r As New Rectangle(Point.Empty, CellSize)
 
+        ' This "fixes" PETSCII Robots
+        'If mVideoMode = &H13 AndAlso (Now.Second Mod 2) = 0 Then
+        '    If CPU.RAM8(CPU.Registers.SS, &H1151) > 0 Then CPU.RAM8(CPU.Registers.SS, &H1151) -= 1
+        '    If CPU.RAM8(CPU.Registers.SS, &H1153) > 0 Then CPU.RAM8(CPU.Registers.SS, &H1153) -= 1
+        'End If
+
         For y As Integer = 0 To GraphicsResolution.Height - 1 Step If(mVideoMode = 6, 2, 1)
             For x As Integer = 0 To GraphicsResolution.Width - 1
                 Select Case mVideoMode
@@ -267,10 +274,6 @@ Public Class VGAWinForms
                         videoBMP.Pixel(x, y) = vgaPalette(b0)
 
                     Case &H13
-                        ' This "fixes" PETSCII Robots
-                        'CPU.RAM8(CPU.Registers.SS, &H1151) = 0
-                        'CPU.RAM8(CPU.Registers.SS, &H1153) = 0
-
                         Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
                         Dim vgaPage As UInt32 = CUInt(VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
                         If planeMode Then

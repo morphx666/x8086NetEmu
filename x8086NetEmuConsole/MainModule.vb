@@ -1,4 +1,5 @@
 ﻿Imports System.Threading
+Imports System.Threading.Tasks
 Imports x8086NetEmu
 
 Module MainModule
@@ -33,11 +34,9 @@ Module MainModule
         LoadSettings()
 
         cpu.Run()
-
         Do
             Thread.Sleep(500)
         Loop
-
         cpu.Close()
     End Sub
 

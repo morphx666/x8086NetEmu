@@ -110,9 +110,9 @@ Public Class CGAWinForms
                              Do
                                  Await Task.Delay(delay)
                                  If Not mRenderControl.IsDisposed Then
-                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
+                                     mRenderControl.Invoke(Sub() If Not mRenderControl.IsDisposed Then mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
                                  End If
-                             Loop
+                             Loop Until X8086.IsClosing
                          End Sub)
     End Sub
 

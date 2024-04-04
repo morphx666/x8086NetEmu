@@ -27,7 +27,7 @@
     End Sub
 
     Public Overrides Sub InitAdapter()
-        mVolume = 0.2
+        mVolume = 0.1
     End Sub
 
     Public Property Frequency As Double

@@ -48,7 +48,7 @@ Public Class CGAConsole
                                          Next
                                      End If
                                  Catch : End Try
-                             Loop
+                             Loop Until X8086.IsClosing
                          End Sub)
     End Sub
 
@@ -128,10 +128,10 @@ Public Class CGAConsole
     Private Sub HandleModifier(v As ConsoleModifiers, t As ConsoleModifiers, k As Keys)
         If HasModifier(v, t) AndAlso Not HasModifier(lastModifiers, t) Then
             MyBase.HandleKeyDown(Me, New KeyEventArgs(k))
-            Thread.Sleep(100)
+            Thread.Sleep(30)
         ElseIf Not HasModifier(v, t) AndAlso HasModifier(lastModifiers, t) Then
             MyBase.HandleKeyUp(Me, New KeyEventArgs(k))
-            Thread.Sleep(100)
+            Thread.Sleep(30)
         End If
     End Sub
 
@@ -197,8 +197,8 @@ Public Class CGAConsole
         Console.CursorVisible = False
 
         ' The "-4" is to prevent the code from printing the last character and avoid scrolling.
-        ' Unfortunately, this causes the last char to not be printed
-        For address As Integer = mStartTextVideoAddress To mEndTextVideoAddress + buffer.Length - 4 Step 2
+        ' Only required when using command.com. Windows Terminal and Linux-based terminals don't need it.
+        For address As Integer = mStartTextVideoAddress To mEndTextVideoAddress + buffer.Length - 2 Step 2
             b0 = CPU.Memory(address)
             b1 = CPU.Memory(address + 1)
 

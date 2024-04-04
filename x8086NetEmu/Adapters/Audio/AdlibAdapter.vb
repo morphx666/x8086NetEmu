@@ -107,13 +107,13 @@
 
         RegisteredPorts.Add(&H388)
         RegisteredPorts.Add(&H389)
+
+        SampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
+        cpu.Sched.RunTaskEach(task, SampleTicks)
     End Sub
 
     Public Overrides Sub InitAdapter()
-        SampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
         mVolume = 0.9
-
-        CPU.Sched.RunTaskEach(task, SampleTicks)
     End Sub
 
     Public Overrides Sub CloseAdapter()

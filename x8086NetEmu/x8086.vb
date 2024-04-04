@@ -100,6 +100,8 @@ Public Class X8086
     Public Delegate Sub RestartEmulation()
     Private restartCallback As RestartEmulation
 
+    Public Shared IsClosing As Boolean = False
+
     Public Sub New(Optional v20 As Boolean = True,
                    Optional int13 As Boolean = True,
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
@@ -124,7 +126,7 @@ Public Class X8086
                              Do
                                  Await Task.Delay(1000)
                                  MIPSCounterLoop()
-                             Loop
+                             Loop Until IsClosing
                          End Sub)
     End Sub
 
@@ -243,6 +245,7 @@ Public Class X8086
     End Sub
 
     Public Sub Close()
+        IsClosing = True
         mRepeLoopMode = REPLoopModes.None
 
         If DebugMode Then debugWaiter.Set()

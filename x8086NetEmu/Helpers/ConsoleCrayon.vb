@@ -70,7 +70,7 @@ Public NotInheritable Class ConsoleCrayon
             If foreColor <> Console.ForegroundColor Then Console.ForegroundColor = foreColor
             If backColor <> Console.BackgroundColor Then Console.BackgroundColor = backColor
 
-            If col + text.Length > ConsoleWidth Then
+            If col + text.Length >= ConsoleWidth Then
                 Console.Write(text.Substring(0, ConsoleWidth - col))
                 WriteFast(text.Substring(ConsoleWidth - col), foreColor, backColor, 0, row + 1)
             Else
