@@ -312,7 +312,7 @@ Partial Public Class X8086
     End Sub
 
     Public Sub CopyToMemory(bytes() As Byte, segment As UInt16, offset As UInt16)
-        CopyToMemory(bytes, X8086.SegmentOffetToAbsolute(segment, offset))
+        CopyToMemory(bytes, X8086.SegmentOffsetToAbsolute(segment, offset))
     End Sub
 
     Public Sub CopyToMemory(bytes() As Byte, address As UInt32)
@@ -354,7 +354,7 @@ Partial Public Class X8086
         Return RAM16(mRegisters.SS, mRegisters.SP - 2,, True)
     End Function
 
-    Public Shared Function SegmentOffetToAbsolute(segment As UInt16, offset As UInt16) As UInt32
+    Public Shared Function SegmentOffsetToAbsolute(segment As UInt16, offset As UInt16) As UInt32
         Return ((CUInt(segment) << 4) + offset) And &HF_FFFF
     End Function
 
@@ -391,27 +391,29 @@ Partial Public Class X8086
 
     Public Property RAM8(segment As UInt16, offset As UInt16, Optional inc As Byte = 0, Optional ignoreHooks As Boolean = False) As Byte
         Get
-            Return RAM(SegmentOffetToAbsolute(segment, offset + inc), ignoreHooks)
+            Return RAM(SegmentOffsetToAbsolute(segment, offset + inc), ignoreHooks)
         End Get
         Set(value As Byte)
-            RAM(SegmentOffetToAbsolute(segment, offset + inc), ignoreHooks) = value
+            RAM(SegmentOffsetToAbsolute(segment, offset + inc), ignoreHooks) = value
         End Set
     End Property
 
     Public Property RAM16(segment As UInt16, offset As UInt16, Optional inc As Byte = 0, Optional ignoreHooks As Boolean = False) As UInt16
         Get
-            Dim a1 As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
-            Dim a2 As UInt32 = SegmentOffetToAbsolute(segment, offset + inc + 1)
+            Dim a1 As UInt32 = SegmentOffsetToAbsolute(segment, offset + inc)
+            Dim a2 As UInt32 = SegmentOffsetToAbsolute(segment, offset + inc + 1)
             Return (CUInt(RAM(a2, ignoreHooks)) << 8) Or RAM(a1, ignoreHooks)
-            'address = SegmentOffetToAbsolute(segment, offset + inc)
+
+            'address = SegmentOffsetToAbsolute(segment, offset + inc)
             'Return (CUInt(RAM(address + 1, ignoreHooks)) << 8) Or RAM(address, ignoreHooks)
         End Get
         Set(value As UInt16)
-            Dim a1 As UInt32 = SegmentOffetToAbsolute(segment, offset + inc)
-            Dim a2 As UInt32 = SegmentOffetToAbsolute(segment, offset + inc + 1)
+            Dim a1 As UInt32 = SegmentOffsetToAbsolute(segment, offset + inc)
+            Dim a2 As UInt32 = SegmentOffsetToAbsolute(segment, offset + inc + 1)
             RAM(a1, ignoreHooks) = value
             RAM(a2, ignoreHooks) = value >> 8
-            'address = SegmentOffetToAbsolute(segment, offset + inc)
+
+            'address = SegmentOffsetToAbsolute(segment, offset + inc)
             'RAM(address, ignoreHooks) = value
             'RAM(address + 1, ignoreHooks) = value >> 8
         End Set
@@ -419,9 +421,11 @@ Partial Public Class X8086
 
     Public Property RAMn(Optional ignoreHooks As Boolean = False) As UInt16
         Get
-            Return If(addrMode.Size = DataSize.Byte,
-                        RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks),
-                        RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks))
+            If addrMode.Size = DataSize.Byte Then
+                Return RAM8(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks)
+            Else
+                Return RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr,, ignoreHooks)
+            End If
         End Get
         Set(value As UInt16)
             If addrMode.Size = DataSize.Byte Then

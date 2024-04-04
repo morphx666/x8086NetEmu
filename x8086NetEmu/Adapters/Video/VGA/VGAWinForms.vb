@@ -316,6 +316,7 @@ Public Class VGAWinForms
         Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
         Dim intensity As Boolean = (portRAM(&H3D8) And &H80) <> 0
         Dim mode As Boolean = (portRAM(&H3D8) = 9) AndAlso (portRAM(&H3D4) = 9)
+        Dim underline As Boolean = False
 
         If mVideoMode = 7 OrElse mVideoMode = 127 Then
             ' FIXME: Dummy workaround to support the cursor; Haven't found a better way yet...
@@ -341,22 +342,17 @@ Public Class VGAWinForms
                 End If
 
                 ' http://www.osdever.net/FreeVGA/vga/attrreg.htm
-                ' FIXME: This doesn't work
-                'If ((VGA_ATTR(&H10) And &B0000_1000) <> 0) AndAlso (b1 And &B1000_0000) <> 0 Then 
-                '    If blinkCounter < BlinkRate Then b0 = 0
-                'End If
+                If (mVideoMode < 3 OrElse mVideoMode = 7) AndAlso ((VGA_ATTR(&H10) And &B0000_1000) <> 0) AndAlso (b1 And &B1000_0000) <> 0 Then
+                    If blinkCounter < BlinkRate Then b0 = 0
+                End If
 
-                ' Force B&W
-                'If mVideoMode = 7 OrElse mVideoMode = 127 Then
-                '    If (b1 And &H70) <> 0 Then
-                '        b1 = If(b0 = 0, 7, 0)
-                '    Else
-                '        b1 = If(b0 = 0, 0, 7)
-                '    End If
-                'End If
+                If mVideoMode = 7 OrElse mVideoMode = 127 Then
+                    underline = (b1 = 1) OrElse (b1 = 9) OrElse (b1 = 129) OrElse (b1 = 137)
+                    If underline Then b1 = (b1 And &HF0) Or If((b1 And 9) = 9, 15, 7)
+                End If
 
                 r.X = x * CellSize.Width
-                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location)
+                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location, underline)
                 cursorAddress.Remove(address)
 
                 If mCursorVisible AndAlso y = mCursorRow AndAlso x = mCursorCol Then
@@ -380,7 +376,7 @@ Public Class VGAWinForms
         Next
     End Sub
 
-    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
+    Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point, underline As Boolean)
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
                 g.FillRectangle(bbb, New Rectangle(p, mCellSize))
@@ -400,6 +396,8 @@ Public Class VGAWinForms
             End If
             charsCache(idx).Paint(dbmp, p, scale)
         End If
+
+        If c <> 0 AndAlso underline Then dbmp.FillRectangle(fb, p.X, p.Y + mCellSize.Height - 2, mCellSize.Width, 1)
     End Sub
 
     Public Overrides ReadOnly Property Description As String

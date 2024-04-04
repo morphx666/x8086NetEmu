@@ -62,7 +62,7 @@ Partial Public Class X8086
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
-                CopyToMemory(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
+                CopyToMemory(buf, X8086.SegmentOffsetToAbsolute(mRegisters.ES, mRegisters.BX))
                 AL = bufSize \ dskImg.SectorSize
 
             Case &H3 ' Write sectors
@@ -98,7 +98,7 @@ Partial Public Class X8086
                                 mRegisters.BX)
 
                 Dim buf(bufSize - 1) As Byte
-                CopyFromMemory(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
+                CopyFromMemory(buf, X8086.SegmentOffsetToAbsolute(mRegisters.ES, mRegisters.BX))
                 ret = dskImg.Write(offset, buf)
                 If ret = DiskImage.EIO Then
                     X8086.Notify("Write Sectors: Drive {0:000} CRC Error", NotificationReasons.Warn, mRegisters.DL)
@@ -278,7 +278,7 @@ Partial Public Class X8086
                 buf(buf.Length - 3) = ecc(0)
                 buf(buf.Length - 2) = ecc(3)
                 buf(buf.Length - 1) = ecc(2)
-                CopyToMemory(buf, X8086.SegmentOffetToAbsolute(mRegisters.ES, mRegisters.BX))
+                CopyToMemory(buf, X8086.SegmentOffsetToAbsolute(mRegisters.ES, mRegisters.BX))
                 AL = bufSize \ dskImg.SectorSize
 
             Case &HC ' Seek to Cylinder
@@ -340,7 +340,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim dap As UInt32 = X8086.SegmentOffetToAbsolute(mRegisters.DS, mRegisters.SI)
+                Dim dap As UInt32 = X8086.SegmentOffsetToAbsolute(mRegisters.DS, mRegisters.SI)
                 bufSize = RAM(dap + 3) << 8 Or RAM(dap + 2)
                 Dim seg As Integer = RAM(dap + 7) << 8 Or RAM(dap + 6)
                 Dim off As Integer = RAM(dap + 5) << 8 Or RAM(dap + 4)
@@ -373,7 +373,7 @@ Partial Public Class X8086
                     ret = &H4 ' sector not found
                     Exit Select
                 End If
-                CopyToMemory(buf, X8086.SegmentOffetToAbsolute(seg, off))
+                CopyToMemory(buf, X8086.SegmentOffsetToAbsolute(seg, off))
                 AL = bufSize \ dskImg.SectorSize
 
             Case &H43 ' Extended Sectors Write
@@ -383,7 +383,7 @@ Partial Public Class X8086
                     Exit Select
                 End If
 
-                Dim dap As UInt32 = X8086.SegmentOffetToAbsolute(mRegisters.DS, mRegisters.SI)
+                Dim dap As UInt32 = X8086.SegmentOffsetToAbsolute(mRegisters.DS, mRegisters.SI)
                 bufSize = RAM(dap + 3) << 8 Or RAM(dap + 2)
                 Dim seg As Integer = RAM(dap + 7) << 8 Or RAM(dap + 6)
                 Dim off As Integer = RAM(dap + 5) << 8 Or RAM(dap + 4)
@@ -406,7 +406,7 @@ Partial Public Class X8086
                                 off)
 
                 Dim buf(bufSize - 1) As Byte
-                CopyFromMemory(buf, X8086.SegmentOffetToAbsolute(seg, off))
+                CopyFromMemory(buf, X8086.SegmentOffsetToAbsolute(seg, off))
                 ret = dskImg.Write(offset, buf)
                 If ret = DiskImage.EIO Then
                     X8086.Notify("Write Sectors: Drive {0:000} CRC Error", NotificationReasons.Warn, mRegisters.DL)

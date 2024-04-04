@@ -194,7 +194,7 @@ Public Class FormDiskExplorer
         If Not sdf.MasterBootRecord.IsBootable Then Exit Sub
 
         For i As Integer = 0 To bsc.Length - 1
-            address = X8086.SegmentOffetToAbsolute(0, i).ToString("X")
+            address = X8086.SegmentOffsetToAbsolute(0, i).ToString("X")
             ins = emu.Decode(0, i)
 
             With ListViewCode.Items.Add(address, ins.CS.ToString("X4") + ":" + ins.IP.ToString("X4"), 0)

@@ -49,8 +49,6 @@ Public MustInherit Class CGAAdapter
         Color.FromArgb(&HFF, &HFF, &HFF)
     }
 
-    ' http://www.htl-steyr.ac.at/~morg/pcinfo/hardware/interrupts/inte6l9s.htm
-
     Protected cgaPalette(16 - 1) As Color
 
     Protected Friend Enum CGAModeControlRegisters

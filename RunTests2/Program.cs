@@ -127,7 +127,7 @@ namespace RunTests2 {
             }
 
             if(ignoreFlags) { // Also ignore stack
-                UInt32 sssp = X8086.SegmentOffetToAbsolute(sf.regs.ss, sf.regs.sp);
+                UInt32 sssp = X8086.SegmentOffsetToAbsolute(sf.regs.ss, sf.regs.sp);
                 for(int i = 0; i < sf.ram.Length; i++) {
                     if(sf.ram[i][0] == sssp) {
                         cpu.Memory[sssp] = (byte)sf.ram[i][1];

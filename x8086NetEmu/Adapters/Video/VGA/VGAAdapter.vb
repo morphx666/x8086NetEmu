@@ -779,8 +779,10 @@ Public MustInherit Class VGAAdapter
                         portRAM(&H3D8) = portRAM(&H3D8) And &HFE
 
                     Case 7 ' MDA 640x200 2 Colors
-                        mStartTextVideoAddress = &HB0000
-                        mStartGraphicsVideoAddress = &HB0000
+                        'mStartTextVideoAddress = &HB0000
+                        'mStartGraphicsVideoAddress = &HB0000
+                        mStartTextVideoAddress = &HB8000
+                        mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New Size(80, 25)
                         mVideoResolution = New Size(720, 400)
                         'mCellSize = New Size(9, 16)
@@ -1039,7 +1041,7 @@ Public MustInherit Class VGAAdapter
         Dim p As Integer = (VGA_CRTC(&HE) << 8) Or VGA_CRTC(&HF)
         p = (p - startOffset) And &H1FFF
         mCursorCol = p Mod mTextResolution.Width
-        mCursorRow = p / mTextResolution.Width
+        mCursorRow = p \ mTextResolution.Width
     End Sub
 
     Public Overrides Sub Reset()

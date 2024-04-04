@@ -188,8 +188,18 @@ Public Class FormEmulator
                                                  End Sub
         End If
 
-        AddHandler cpu.MIPsUpdated, Sub() If Not (Disposing OrElse IsDisposed) Then Invoke(Sub() SetTitleText())
-        AddHandler cpu.DebugModeChanged, Sub() If Not (Disposing OrElse IsDisposed) Then Invoke(Sub() ShowDebugger())
+        AddHandler cpu.MIPsUpdated, Sub()
+                                        Try
+                                            Invoke(Sub() SetTitleText())
+                                        Catch
+                                        End Try
+                                    End Sub
+        AddHandler cpu.DebugModeChanged, Sub()
+                                             Try
+                                                 Invoke(Sub() ShowDebugger())
+                                             Catch
+                                             End Try
+                                         End Sub
     End Sub
 
     Private Sub WarnAboutRestart(optionName As String)
@@ -264,9 +274,12 @@ Public Class FormEmulator
     Private Sub StopEmulation()
         Task.Run(Sub()
                      If cpu IsNot Nothing Then
-                         If fDebugger IsNot Nothing Then fDebugger.Close()
-                         If fConsole IsNot Nothing Then fConsole.Close()
-                         If cpuState IsNot Nothing Then cpuState = Nothing
+                         Try
+                             If fDebugger IsNot Nothing Then Me.Invoke(Sub() fDebugger.Close())
+                             If fConsole IsNot Nothing Then Me.Invoke(Sub() fConsole.Close())
+                             If cpuState IsNot Nothing Then Me.Invoke(Sub() cpuState = Nothing)
+                         Catch
+                         End Try
 
                          cpu.Close()
                      End If
@@ -371,7 +384,7 @@ Public Class FormEmulator
 
     Private Function GetInt21FunctionFileName(isFCB As Boolean) As String
         Dim b As New List(Of Byte)
-        Dim addr As UInt32 = X8086.SegmentOffetToAbsolute(cpu.Registers.DS, cpu.Registers.DX)
+        Dim addr As UInt32 = X8086.SegmentOffsetToAbsolute(cpu.Registers.DS, cpu.Registers.DX)
         If isFCB Then
             For i As Integer = 1 To 11
                 b.Add(cpu.Memory(addr + i))
@@ -731,10 +744,10 @@ Public Class FormEmulator
             SetCPUClockSpeed(Double.Parse(xml.<clockSpeed>.Value))
             If xml.<extras>.<fullScreen>.Value IsNot Nothing AndAlso Boolean.Parse(xml.<extras>.<fullScreen>.Value) Then
                 SetZoomLevel(Double.Parse(xml.<extras>.<lastZoomLevel>.Value))
-                Threading.Tasks.Task.Run(Sub()
-                                             Threading.Thread.Sleep(250)
-                                             Me.Invoke(Sub() SetZoomFromMenu(ZoomFullScreenToolStripMenuItem, New EventArgs()))
-                                         End Sub)
+                Task.Run(Sub()
+                             Threading.Thread.Sleep(250)
+                             Me.Invoke(Sub() SetZoomFromMenu(ZoomFullScreenToolStripMenuItem, New EventArgs()))
+                         End Sub)
             Else
                 SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))
             End If
