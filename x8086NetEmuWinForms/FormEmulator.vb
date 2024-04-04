@@ -1,4 +1,5 @@
-﻿Imports x8086NetEmu
+﻿Imports System.Threading.Tasks
+Imports x8086NetEmu
 
 Public Class FormEmulator
     Private Const WM_NCRBUTTONDOWN As Long = &HA4
@@ -187,9 +188,8 @@ Public Class FormEmulator
                                                  End Sub
         End If
 
-        AddHandler cpu.MIPsUpdated, Sub() Me.Invoke(Sub() SetTitleText())
-
-        AddHandler cpu.DebugModeChanged, Sub() Me.Invoke(Sub() ShowDebugger())
+        AddHandler cpu.MIPsUpdated, Sub() If Not (Disposing OrElse IsDisposed) Then Invoke(Sub() SetTitleText())
+        AddHandler cpu.DebugModeChanged, Sub() If Not (Disposing OrElse IsDisposed) Then Invoke(Sub() ShowDebugger())
     End Sub
 
     Private Sub WarnAboutRestart(optionName As String)
@@ -262,14 +262,15 @@ Public Class FormEmulator
     End Sub
 
     Private Sub StopEmulation()
-        If cpu IsNot Nothing Then
-            If fDebugger IsNot Nothing Then fDebugger.Close()
-            If fConsole IsNot Nothing Then fConsole.Close()
-            If cpuState IsNot Nothing Then cpuState = Nothing
+        Task.Run(Sub()
+                     If cpu IsNot Nothing Then
+                         If fDebugger IsNot Nothing Then fDebugger.Close()
+                         If fConsole IsNot Nothing Then fConsole.Close()
+                         If cpuState IsNot Nothing Then cpuState = Nothing
 
-            cpu.Close()
-            cpu = Nothing
-        End If
+                         cpu.Close()
+                     End If
+                 End Sub)
     End Sub
 
     ' Code demonstration on how to attach custom hooks

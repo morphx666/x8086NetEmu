@@ -47,7 +47,7 @@ Public Class CGAConsole
                                        Next
                                    End If
                                Catch : End Try
-                           Loop Until MyBase.cancelAllThreads
+                           Loop
                        End Sub)
     End Sub
 

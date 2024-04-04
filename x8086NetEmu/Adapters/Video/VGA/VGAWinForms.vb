@@ -82,11 +82,13 @@ Public Class VGAWinForms
                                    StringFormatFlags.NoClip
 
         Task.Run(action:=Async Sub()
+                             Dim delay As Integer = 1000 / frameRate
                              Do
-                                 Await Task.Delay(1000 / frameRate)
-                                 'mRenderControl.Invalidate()
-                                 mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
-                             Loop Until cancelAllThreads
+                                 Await Task.Delay(delay)
+                                 If Not mRenderControl.IsDisposed Then
+                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
+                                 End If
+                             Loop
                          End Sub)
 
         InitVideoMemory(False)

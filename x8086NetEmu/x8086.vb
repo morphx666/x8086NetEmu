@@ -38,8 +38,6 @@ Public Class X8086
     Private addrMode As AddressingMode
     Private mIsExecuting As Boolean = False
 
-    Private mipsThread As Thread
-    Private mipsWaiter As AutoResetEvent
     Private instructionsCounter As UInt32
     Private newPrefix As Boolean = False
     Private newPrefixLast As Integer = 0
@@ -75,7 +73,6 @@ Public Class X8086
     Private mSimulationMultiplier As Double = 1.0
     Private leftCycleFrags As ULong
 
-    Private cancelAllThreads As Boolean
     Private debugWaiter As AutoResetEvent
 
     'Private trapEnabled As Boolean
@@ -122,11 +119,16 @@ Public Class X8086
         BuildSZPTables()
         BuildDecoderCache()
         Init()
+
+        Task.Run(action:=Async Sub()
+                             Do
+                                 Await Task.Delay(1000)
+                                 MIPSCounterLoop()
+                             Loop
+                         End Sub)
     End Sub
 
     Private Sub Init()
-        StopAllThreads()
-
         Sched = New Scheduler(Me)
 
         ' If FPU Is Nothing Then FPU = New x8087(Me)
@@ -146,12 +148,6 @@ Public Class X8086
         SetupSystem()
 
         Array.Clear(Memory, 0, Memory.Length)
-
-        If mipsWaiter Is Nothing Then
-            mipsWaiter = New AutoResetEvent(False)
-            mipsThread = New Thread(AddressOf MIPSCounterLoop)
-            mipsThread.Start()
-        End If
 
         portsCache.Clear()
 
@@ -248,12 +244,9 @@ Public Class X8086
 
     Public Sub Close()
         mRepeLoopMode = REPLoopModes.None
-        StopAllThreads()
 
         If DebugMode Then debugWaiter.Set()
         If Sched IsNot Nothing Then Sched.Stop()
-
-        If mipsWaiter IsNot Nothing Then mipsWaiter.Set()
 
         For Each adapter As Adapter In mAdapters
             adapter.CloseAdapter()
@@ -267,7 +260,6 @@ Public Class X8086
         audioSubSystem.Dispose()
 
         Sched = Nothing
-        mipsWaiter = Nothing
     End Sub
 
     Public Sub SoftReset()
@@ -279,15 +271,15 @@ Public Class X8086
     Public Sub FastHardReset()
         Sched.Stop()
 
-        Task.Run(Sub()
-                     Do
-                         If Not mDoReSchedule OrElse mIsExecuting Then
-                             Thread.Sleep(1)
-                         Else
-                             Exit Do
-                         End If
-                     Loop
-                 End Sub).Wait()
+        Task.Run(action:=Async Sub()
+                             Do
+                                 If Not mDoReSchedule OrElse mIsExecuting Then
+                                     Await Task.Delay(1)
+                                 Else
+                                     Exit Do
+                                 End If
+                             Loop
+                         End Sub).Wait()
 
         mIsHalted = False
         mIsExecuting = False
@@ -320,7 +312,6 @@ Public Class X8086
         SetSynchronization()
 
         mDebugMode = debugMode
-        cancelAllThreads = False
 
         If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = True
         If mVideoAdapter IsNot Nothing Then mVideoAdapter.Reset()
@@ -334,41 +325,16 @@ Public Class X8086
         audioSubSystem.Init()
     End Sub
 
-    Private Sub StopAllThreads()
-        cancelAllThreads = True
-
-        'If mVideoAdapter IsNot Nothing Then mVideoAdapter.Update()
-
-        If mipsThread IsNot Nothing Then
-            Do
-                Thread.Sleep(100)
-            Loop While mipsThread.ThreadState = ThreadState.Running
-
-            mipsThread = Nothing
-        End If
-    End Sub
-
     Private Sub MIPSCounterLoop()
-        Const delay As Integer = 1000
-        Do
-            mipsWaiter.WaitOne(delay)
+        mMPIs = instructionsCounter / 1_000_000
+        instructionsCounter = 0
 
-            mMPIs = (instructionsCounter / delay / 1000)
-            instructionsCounter = 0
-
-            If cancelAllThreads Then Exit Do
-            RaiseEvent MIPsUpdated()
-        Loop
+        RaiseEvent MIPsUpdated()
     End Sub
 
     Public Sub Pause()
-        'Do
-        '    Thread.Sleep(10)
-        'Loop While mIsExecuting
-
         mIsPaused = True
         If PIT?.Speaker IsNot Nothing Then PIT.Speaker.Enabled = False
-
     End Sub
 
     Public Sub [Resume]()

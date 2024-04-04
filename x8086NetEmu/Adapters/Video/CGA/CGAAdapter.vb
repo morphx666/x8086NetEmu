@@ -1,4 +1,4 @@
-﻿Imports System.Threading
+﻿Imports System.Threading.Tasks
 
 Public MustInherit Class CGAAdapter
     Inherits VideoAdapter
@@ -119,8 +119,6 @@ Public MustInherit Class CGAAdapter
     Private mZoom As Double = 1.0
 
     Protected videoBMP As New DirectBitmap(1, 1)
-    Private ReadOnly waiter As New AutoResetEvent(False)
-    Protected cancelAllThreads As Boolean
     Private ReadOnly useInternalTimer As Boolean
 
     'Public Event VideoRefreshed(sender As Object)
@@ -151,7 +149,7 @@ Public MustInherit Class CGAAdapter
             End Get
         End Property
     End Class
-    Private ReadOnly task As New TaskSC(Me)
+    Private ReadOnly schTask As New TaskSC(Me)
 
     Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True, Optional enableWebUI As Boolean = False)
         MyBase.New(cpu)
@@ -175,7 +173,7 @@ Public MustInherit Class CGAAdapter
         Reset()
         UpdateClock()
 
-        cpu.Sched.RunTaskEach(task, SampleTicks)
+        cpu.Sched.RunTaskEach(schTask, SampleTicks)
     End Sub
 
     Public Overrides Sub Run()
@@ -190,7 +188,16 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides Sub InitAdapter()
         isInit = MyBase.CPU IsNot Nothing
-        If isInit AndAlso useInternalTimer Then Tasks.Task.Run(AddressOf MainLoop)
+        If isInit AndAlso useInternalTimer Then
+            Task.Run(action:=Async Sub()
+                                 Do
+                                     Await Task.Delay(2 * 1000 / VERTSYNC)
+                                     Render()
+
+                                     'RaiseEvent VideoRefreshed(Me)
+                                 Loop
+                             End Sub)
+        End If
 
         SampleTicks = Scheduler.HOSTCLOCK \ 31_500 ' 31.5KHz
     End Sub
@@ -278,16 +285,6 @@ Public MustInherit Class CGAAdapter
             Return mCursorRow
         End Get
     End Property
-
-    Private Sub MainLoop()
-        Dim multiplier As Integer = If(TypeOf MyBase.CPU.VideoAdapter Is CGAConsole, 2, 2)
-        Do
-            waiter.WaitOne(multiplier * 1000 / VERTSYNC)
-            Render()
-
-            'RaiseEvent VideoRefreshed(Me)
-        Loop Until cancelAllThreads
-    End Sub
 
     Public Overrides Sub Reset()
         CGAAdapter.WordToBitsArray(&H29, CGAModeControlRegister)
@@ -564,7 +561,6 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides Sub CloseAdapter()
         isInit = False
-        cancelAllThreads = True
         wui?.Close()
 
         Application.DoEvents()

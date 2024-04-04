@@ -4,6 +4,8 @@
 ' http://www.powernet.co.za/info/BIOS/Mem/
 ' http://www-ivs.cs.uni-magdeburg.de/~zbrog/asm/memory.html
 
+Imports System.Threading.Tasks
+
 Public Class CGAWinForms
     Inherits CGAAdapter
 
@@ -103,14 +105,15 @@ Public Class CGAWinForms
                                    StringFormatFlags.FitBlackBox Or
                                    StringFormatFlags.NoClip
 
-        Threading.Tasks.Task.Run(Sub()
-                                     Dim delay As Integer = 1000 / frameRate
-                                     Do
-                                         Threading.Thread.Sleep(delay)
-                                         'mRenderControl.Invalidate()
-                                         mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
-                                     Loop Until cancelAllThreads
-                                 End Sub)
+        Task.Run(action:=Async Sub()
+                             Dim delay As Integer = 1000 / frameRate
+                             Do
+                                 Await Task.Delay(delay)
+                                 If Not mRenderControl.IsDisposed Then
+                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
+                                 End If
+                             Loop
+                         End Sub)
     End Sub
 
     Public Property RenderControl As Control
