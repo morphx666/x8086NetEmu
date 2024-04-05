@@ -55,7 +55,7 @@ Public Class FormDiskExplorer
 
         For i As Integer = 0 To sdf.MasterBootRecord.Partitions.Length - 1
             Select Case sdf.MasterBootRecord.Partitions(i).SystemId
-                Case StandardDiskFormat.SystemIds.FAT_12, StandardDiskFormat.SystemIds.FAT_16, StandardDiskFormat.SystemIds.FAT_BIGDOS
+                Case SystemIds.FAT_12, SystemIds.FAT_16, SystemIds.FAT_BIGDOS
                     ComboBoxPartitions.Items.Add(sdf.MasterBootRecord.Partitions(i).ToString() +
                                              $" {If(sdf.IsBootable(i), "BOOT", "")} [H:{sdf.Heads(i)} C:{sdf.Cylinders(i)} S:{sdf.Sectors(i)}]")
             End Select

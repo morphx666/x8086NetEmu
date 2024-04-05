@@ -73,7 +73,7 @@
 
         Dim romSize As Integer = rom.Length
         Dim offset As Integer = romOffset + dataW
-        ReDim VideoChar.FontBitmaps(fw * fh * 512 - 1)
+        ReDim FontBitmaps(fw * fh * 512 - 1)
 
         Dim tempCount As Integer
         Dim base As Integer
@@ -91,7 +91,7 @@
 
                     While mask <> 0
                         b = (rom((base + (tempCount * dataH) + (row * dataW * dataH) + offset) Mod romSize) And mask)
-                        VideoChar.FontBitmaps(i * fw * fh + y * fw + x) = If(b = 0, 0, 1)
+                        FontBitmaps(i * fw * fh + y * fw + x) = If(b = 0, 0, 1)
                         x += 1
                         mask >>= 1
                     End While

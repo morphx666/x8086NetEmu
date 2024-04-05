@@ -186,7 +186,7 @@ Public NotInheritable Class ConsoleCrayon
             px = CInt(radius * ca + fromCol)
             py = CInt(radius * sa + fromRow)
 
-            ConsoleCrayon.WriteFast(c, foreColor, backColor, px, py)
+            WriteFast(c, foreColor, backColor, px, py)
         Next
     End Sub
 

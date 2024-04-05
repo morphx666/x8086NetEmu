@@ -223,7 +223,7 @@ Public Class StandardDiskFormat
         ReDim mFATDataPointers(partitionNumber)(CUInt(mBootSectors(partitionNumber).BIOSParameterBlock.SectorsPerFAT) * mBootSectors(partitionNumber).BIOSParameterBlock.BytesPerSector / 2 - 1)
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
-                Case StandardDiskFormat.SystemIds.FAT_12 ' Wish I had found this before: http://www.c-jump.com/CIS24/Slides/FAT/lecture.html
+                Case SystemIds.FAT_12 ' Wish I had found this before: http://www.c-jump.com/CIS24/Slides/FAT/lecture.html
                     b1 = strm.ReadByte()
                     b2 = strm.ReadByte()
                     b3 = strm.ReadByte()
@@ -232,9 +232,9 @@ Public Class StandardDiskFormat
                     mFATDataPointers(partitionNumber)(j + 1) = b3 << 4 Or b2 >> 4
 
                     j += 1
-                Case StandardDiskFormat.SystemIds.FAT_16
+                Case SystemIds.FAT_16
                     mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
-                Case StandardDiskFormat.SystemIds.FAT_BIGDOS
+                Case SystemIds.FAT_BIGDOS
                     mFATDataPointers(partitionNumber)(j) = BitConverter.ToUInt16({strm.ReadByte(), strm.ReadByte()}, 0)
             End Select
         Next
@@ -503,7 +503,7 @@ Public Class StandardDiskFormat
 
         For j As Integer = 0 To mFATDataPointers(partitionNumber).Length - 1
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
-                Case StandardDiskFormat.SystemIds.FAT_12
+                Case SystemIds.FAT_12
                     b = BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j))
 
                     If f Then
@@ -524,9 +524,9 @@ Public Class StandardDiskFormat
                         strm.Write(b, 0, 1)
                     End If
                     f = Not f
-                Case StandardDiskFormat.SystemIds.FAT_16
+                Case SystemIds.FAT_16
                     strm.Write(BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j)), 0, 2)
-                Case StandardDiskFormat.SystemIds.FAT_BIGDOS
+                Case SystemIds.FAT_BIGDOS
                     strm.Write(BitConverter.GetBytes(mFATDataPointers(partitionNumber)(j)), 0, 2)
             End Select
         Next

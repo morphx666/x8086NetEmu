@@ -24,6 +24,7 @@ Public Class CGAWinForms
     Private scale As New SizeF(1, 1)
 
     Private mRenderControl As Control
+    Private renderLoopIsInit As Boolean
 
     Private Class TaskSC
         Inherits Scheduler.SchTask
@@ -80,7 +81,7 @@ Public Class CGAWinForms
                     fontSourceMode = FontSources.TrueType
                 End If
             Case FontSources.ROM
-                MyBase.CellSize = New Size(8, 4)
+                CellSize = New Size(8, 4)
                 VideoChar.BuildFontBitmapsFromROM(8, 4, 4, &HFE000 + &H1A6D, cpu.Memory)
                 mCellSize = New Size(8, 8)
         End Select
@@ -104,16 +105,6 @@ Public Class CGAWinForms
                                    StringFormatFlags.MeasureTrailingSpaces Or
                                    StringFormatFlags.FitBlackBox Or
                                    StringFormatFlags.NoClip
-
-        Task.Run(action:=Async Sub()
-                             Dim delay As Integer = 1000 / frameRate
-                             Do
-                                 Await Task.Delay(delay)
-                                 If Not mRenderControl.IsDisposed Then
-                                     mRenderControl.Invoke(Sub() If Not mRenderControl.IsDisposed Then mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
-                                 End If
-                             Loop Until X8086.IsClosing
-                         End Sub)
     End Sub
 
     Public Property RenderControl As Control
@@ -123,12 +114,6 @@ Public Class CGAWinForms
         Set(value As Control)
             DetachRenderControl()
             mRenderControl = value
-
-            'useSDL = TypeOf mRenderControl Is RenderCtrlSDL
-            'If useSDL Then
-            '    sdlCtrl = CType(mRenderControl, RenderCtrlSDL)
-            '    sdlCtrl.Init(Me, mFont.FontFamily.Name, mFont.Size)
-            'End If
 
             InitAdapter()
 
@@ -143,6 +128,22 @@ Public Class CGAWinForms
     Public Overrides Sub CloseAdapter()
         MyBase.CloseAdapter()
         DetachRenderControl()
+    End Sub
+
+    Public Overrides Sub InitAdapter()
+        MyBase.InitAdapter()
+
+        If mRenderControl IsNot Nothing AndAlso Not renderLoopIsInit Then
+            Task.Run(action:=Async Sub()
+                                 Dim delay As Integer = 1000 / frameRate
+                                 Do
+                                     Await Task.Delay(delay)
+                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
+                                 Loop Until X8086.IsClosing
+                             End Sub)
+
+            renderLoopIsInit = True
+        End If
     End Sub
 
     Protected Overrides Sub AutoSize()
@@ -243,8 +244,8 @@ Public Class CGAWinForms
             If CursorVisible AndAlso row = CursorRow AndAlso col = CursorCol Then
                 If blinkCounter < BlinkRate Then
                     videoBMP.FillRectangle(brushCache(b1.LowNib()),
-                                           r.X + 0, r.Y - 1 + mCellSize.Height - (MyBase.CursorEnd - MyBase.CursorStart) - 1,
-                                           mCellSize.Width, MyBase.CursorEnd - MyBase.CursorStart + 1)
+                                           r.X + 0, r.Y - 1 + mCellSize.Height - (CursorEnd - CursorStart) - 1,
+                                           mCellSize.Width, CursorEnd - CursorStart + 1)
                 End If
 
                 If blinkCounter >= 2 * BlinkRate Then

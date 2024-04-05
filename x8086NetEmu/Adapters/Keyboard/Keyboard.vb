@@ -210,6 +210,6 @@
         Dim keyEvent As KeyEventArgs = CType(e.Event, KeyEventArgs)
         Dim isUp As Boolean = e.Extra
 
-        If MyBase.CPU.PPI IsNot Nothing Then MyBase.CPU.PPI.PutKeyData(keyEvent.KeyValue And &HFF, isUp)
+        If CPU.PPI IsNot Nothing Then CPU.PPI.PutKeyData(keyEvent.KeyValue And &HFF, isUp)
     End Sub
 End Class

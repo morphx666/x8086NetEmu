@@ -470,13 +470,13 @@
     End Sub
 
     Private Sub PrintRegisters()
-        X8086.Notify("AX: {0}   SP: {1} ", NotificationReasons.Info, mRegisters.AX.ToString("X4"), mRegisters.SP.ToString("X4"))
-        X8086.Notify("BX: {0}   DI: {1} ", NotificationReasons.Info, mRegisters.BX.ToString("X4"), mRegisters.DI.ToString("X4"))
-        X8086.Notify("CX: {0}   BP: {1} ", NotificationReasons.Info, mRegisters.CX.ToString("X4"), mRegisters.BP.ToString("X4"))
-        X8086.Notify("DX: {0}   SI: {1} ", NotificationReasons.Info, mRegisters.DX.ToString("X4"), mRegisters.SI.ToString("X4"))
-        X8086.Notify("ES: {0}   CS: {1} ", NotificationReasons.Info, mRegisters.ES.ToString("X4"), mRegisters.CS.ToString("X4"))
-        X8086.Notify("SS: {0}   DS: {1} ", NotificationReasons.Info, mRegisters.SS.ToString("X4"), mRegisters.DS.ToString("X4"))
-        X8086.Notify("IP: {0} FLGS: {1}{2}{3}{4}{5}{6}{7}{8}", NotificationReasons.Info,
+        Notify("AX: {0}   SP: {1} ", NotificationReasons.Info, mRegisters.AX.ToString("X4"), mRegisters.SP.ToString("X4"))
+        Notify("BX: {0}   DI: {1} ", NotificationReasons.Info, mRegisters.BX.ToString("X4"), mRegisters.DI.ToString("X4"))
+        Notify("CX: {0}   BP: {1} ", NotificationReasons.Info, mRegisters.CX.ToString("X4"), mRegisters.BP.ToString("X4"))
+        Notify("DX: {0}   SI: {1} ", NotificationReasons.Info, mRegisters.DX.ToString("X4"), mRegisters.SI.ToString("X4"))
+        Notify("ES: {0}   CS: {1} ", NotificationReasons.Info, mRegisters.ES.ToString("X4"), mRegisters.CS.ToString("X4"))
+        Notify("SS: {0}   DS: {1} ", NotificationReasons.Info, mRegisters.SS.ToString("X4"), mRegisters.DS.ToString("X4"))
+        Notify("IP: {0} FLGS: {1}{2}{3}{4}{5}{6}{7}{8}", NotificationReasons.Info,
                                                         mRegisters.IP.ToString("X4"),
                                                         mFlags.CF,
                                                         mFlags.ZF,
@@ -486,7 +486,7 @@
                                                         mFlags.AF,
                                                         mFlags.IF,
                                                         mFlags.DF)
-        X8086.Notify("                CZSOPAID", NotificationReasons.Info)
+        Notify("                CZSOPAID", NotificationReasons.Info)
         For i As Integer = 0 To 3
             Debug.Write(RAM8(mRegisters.CS, mRegisters.IP + i).ToString("X2") + " ")
         Next
@@ -494,9 +494,9 @@
 
     Private Sub PrintFlags()
         With mFlags
-            X8086.Notify($"{ .CF}{ .ZF}{ .SF}{ .OF}{ .PF}{ .AF}{ .IF}{ .DF}", NotificationReasons.Info)
+            Notify($"{ .CF}{ .ZF}{ .SF}{ .OF}{ .PF}{ .AF}{ .IF}{ .DF}", NotificationReasons.Info)
         End With
-        X8086.Notify("CZSOPAID", NotificationReasons.Info)
+        Notify("CZSOPAID", NotificationReasons.Info)
     End Sub
 
     Private Sub PrintStack()
@@ -504,7 +504,7 @@
         Dim t As Integer = Math.Max(0, mRegisters.SP - 10)
 
         For i As Integer = f To t Step -2
-            X8086.Notify("{0}:{1}  {2}{3}", NotificationReasons.Info,
+            Notify("{0}:{1}  {2}{3}", NotificationReasons.Info,
                                     mRegisters.SS.ToString("X4"),
                                     i.ToString("X4"),
                                     RAM16(mRegisters.SS, i,, True).ToString("X4"),

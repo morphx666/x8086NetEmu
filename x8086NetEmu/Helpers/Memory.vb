@@ -301,8 +301,8 @@ Partial Public Class X8086
     End Class
 
     Public Sub LoadBIN(fileName As String, segment As UInt16, offset As UInt16)
-        X8086.Notify($"Loading: {fileName} @ {segment:X4}:{offset:X4}", NotificationReasons.Info)
-        fileName = X8086.FixPath(fileName)
+        Notify($"Loading: {fileName} @ {segment:X4}:{offset:X4}", NotificationReasons.Info)
+        fileName = FixPath(fileName)
 
         If IO.File.Exists(fileName) Then
             CopyToMemory(IO.File.ReadAllBytes(fileName), segment, offset)
@@ -312,7 +312,7 @@ Partial Public Class X8086
     End Sub
 
     Public Sub CopyToMemory(bytes() As Byte, segment As UInt16, offset As UInt16)
-        CopyToMemory(bytes, X8086.SegmentOffsetToAbsolute(segment, offset))
+        CopyToMemory(bytes, SegmentOffsetToAbsolute(segment, offset))
     End Sub
 
     Public Sub CopyToMemory(bytes() As Byte, address As UInt32)

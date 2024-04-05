@@ -30,7 +30,7 @@
     End Sub
 
     Private Sub NoIOPort(port As Integer)
-        X8086.Notify("No IO port response from {0} called at {1}:{2}", NotificationReasons.Warn,
+        Notify("No IO port response from {0} called at {1}:{2}", NotificationReasons.Warn,
         port.ToString("X4"),
                         mRegisters.CS.ToString("X4"),
                         mRegisters.IP.ToString("X4"))
@@ -44,7 +44,7 @@
         If mEnableExceptions Then
             Throw New Exception(message)
         Else
-            X8086.Notify(message, NotificationReasons.Err)
+            Notify(message, NotificationReasons.Err)
             RaiseEvent Error(Me, New EmulatorErrorEventArgs(message))
         End If
     End Sub

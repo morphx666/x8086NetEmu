@@ -107,6 +107,7 @@ Public Class X8086
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
                    Optional model As Models = Models.IBMPC_5160)
 
+        IsClosing = False
         Scheduler.HOSTCLOCK = Stopwatch.Frequency
         'Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
 

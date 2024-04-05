@@ -119,18 +119,18 @@ Public Class CGAConsole
             HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Alt, Keys.Alt Or Keys.Menu)
             lastModifiers = keyInfo.Modifiers
 
-            MyBase.HandleKeyDown(Me, keyEvent)
+            HandleKeyDown(Me, keyEvent)
             Thread.Sleep(30)
-            MyBase.HandleKeyUp(Me, keyEvent)
+            HandleKeyUp(Me, keyEvent)
         End If
     End Sub
 
     Private Sub HandleModifier(v As ConsoleModifiers, t As ConsoleModifiers, k As Keys)
         If HasModifier(v, t) AndAlso Not HasModifier(lastModifiers, t) Then
-            MyBase.HandleKeyDown(Me, New KeyEventArgs(k))
+            HandleKeyDown(Me, New KeyEventArgs(k))
             Thread.Sleep(30)
         ElseIf Not HasModifier(v, t) AndAlso HasModifier(lastModifiers, t) Then
-            MyBase.HandleKeyUp(Me, New KeyEventArgs(k))
+            HandleKeyUp(Me, New KeyEventArgs(k))
             Thread.Sleep(30)
         End If
     End Sub
@@ -139,7 +139,7 @@ Public Class CGAConsole
         If isRendering OrElse CPU Is Nothing Then Exit Sub
         isRendering = True
 
-        If MyBase.VideoEnabled Then
+        If VideoEnabled Then
             Try
                 Select Case MainMode
                     Case MainModes.Text : RenderText()

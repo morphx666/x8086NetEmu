@@ -1001,7 +1001,7 @@ Public Class FormDebugger
             Else
                 For i As Integer = startIndex To endIndex
                     Array.Copy(mEmulator.Memory, i, buffer, 0, str.Length)
-                    If ASCIIEncoding.ASCII.GetString(buffer).ToLower() = str Then
+                    If Encoding.ASCII.GetString(buffer).ToLower() = str Then
                         TextBoxMemSeg.Text = X8086.AbsoluteToSegment(i).ToString("X4")
                         TextBoxMemOff.Text = X8086.AbsoluteToOffset(i).ToString("X4")
 

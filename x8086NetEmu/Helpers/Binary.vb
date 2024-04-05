@@ -95,7 +95,7 @@
 
     Public Shared Narrowing Operator CType(value As String) As Binary
         Dim result As Binary = 0
-        Binary.TryParse(value, result)
+        TryParse(value, result)
         Return result
     End Operator
 
@@ -188,7 +188,7 @@
     End Function
 
     Public Shared Function From(value As Int32, Optional size As Sizes = Sizes.Undefined) As Binary
-        Return Binary.From(CUInt(Math.Abs(value)), size)
+        Return From(CUInt(Math.Abs(value)), size)
     End Function
 
     Private Shared Function AdjustSize(value As Long, size As Sizes) As Binary

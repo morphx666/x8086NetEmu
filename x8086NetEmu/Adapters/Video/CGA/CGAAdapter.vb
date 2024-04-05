@@ -183,7 +183,8 @@ Public MustInherit Class CGAAdapter
     End Sub
 
     Public Overrides Sub InitAdapter()
-        isInit = MyBase.CPU IsNot Nothing
+        isInit = CPU IsNot Nothing
+
         If isInit AndAlso useInternalTimer Then
             Task.Run(action:=Async Sub()
                                  Do
@@ -209,7 +210,7 @@ Public MustInherit Class CGAAdapter
             MyBase.OnKeyDown(Me, e)
             If e.Handled Then Exit Sub
             'Debug.WriteLine($"KEY DOWN: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
-            If CPU.Keyboard IsNot Nothing Then CPU.Sched.HandleInput(New ExternalInputEvent(CPU.Keyboard, e, False))
+            If CPU.Keyboard IsNot Nothing Then CPU.Sched?.HandleInput(New ExternalInputEvent(CPU.Keyboard, e, False))
         End If
         e.Handled = True
         e.SuppressKeyPress = True
@@ -220,21 +221,21 @@ Public MustInherit Class CGAAdapter
             MyBase.OnKeyUp(Me, e)
             If e.Handled Then Exit Sub
             'Debug.WriteLine($"KEY UP: {e.KeyCode} | {e.Modifiers} | {e.KeyValue}")
-            If MyBase.CPU.Keyboard IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Keyboard, e, True))
+            If CPU.Keyboard IsNot Nothing Then CPU.Sched?.HandleInput(New ExternalInputEvent(CPU.Keyboard, e, True))
         End If
         e.Handled = True
     End Sub
 
     Public Sub OnMouseDown(sender As Object, e As MouseEventArgs)
-        If MyBase.CPU.Mouse IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Mouse, e, True))
+        If CPU.Mouse IsNot Nothing Then CPU.Sched.HandleInput(New ExternalInputEvent(CPU.Mouse, e, True))
     End Sub
 
     Public Sub OnMouseMove(sender As Object, e As MouseEventArgs)
-        If MyBase.CPU.Mouse IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Mouse, e, Nothing))
+        If CPU.Mouse IsNot Nothing Then CPU.Sched.HandleInput(New ExternalInputEvent(CPU.Mouse, e, Nothing))
     End Sub
 
     Public Sub OnMouseUp(sender As Object, e As MouseEventArgs)
-        If MyBase.CPU.Mouse IsNot Nothing Then MyBase.CPU.Sched.HandleInput(New ExternalInputEvent(MyBase.CPU.Mouse, e, False))
+        If CPU.Mouse IsNot Nothing Then CPU.Sched.HandleInput(New ExternalInputEvent(CPU.Mouse, e, False))
     End Sub
 
     Public ReadOnly Property BlinkRate As Integer
@@ -286,8 +287,8 @@ Public MustInherit Class CGAAdapter
     End Property
 
     Public Overrides Sub Reset()
-        CGAAdapter.WordToBitsArray(&H29, CGAModeControlRegister)
-        CGAAdapter.WordToBitsArray(&H0, CGAColorControlRegister)
+        WordToBitsArray(&H29, CGAModeControlRegister)
+        WordToBitsArray(&H0, CGAColorControlRegister)
         CRT6845DataRegister(0) = &H71
         CRT6845DataRegister(1) = &H50
         CRT6845DataRegister(2) = &H5A
@@ -381,7 +382,7 @@ Public MustInherit Class CGAAdapter
                     mMainMode = MainModes.Text
 
                 Case Else
-                    MyBase.CPU.RaiseException("CGA: Unknown Video Mode " + value.ToString("X2"))
+                    CPU.RaiseException("CGA: Unknown Video Mode " + value.ToString("X2"))
                     mVideoMode = VideoModes.Undefined
             End Select
 
@@ -415,17 +416,17 @@ Public MustInherit Class CGAAdapter
                 Return CRT6845DataRegister(CRT6845IndexRegister)
 
             Case &H3D8 ' CGA mode control register  (except PCjr)
-                Return CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
+                Return BitsArrayToWord(CGAModeControlRegister)
 
             Case &H3D9 ' CGA palette register
-                Return CGAAdapter.BitsArrayToWord(CGAPaletteRegister)
+                Return BitsArrayToWord(CGAPaletteRegister)
 
             Case &H3DA, &H3BA ' CGA status register
                 UpdateStatusRegister()
-                Return CGAAdapter.BitsArrayToWord(CGAStatusRegister)
+                Return BitsArrayToWord(CGAStatusRegister)
 
             Case Else
-                MyBase.CPU.RaiseException("CGA: Unknown In Port: " + port.ToString("X4"))
+                CPU.RaiseException("CGA: Unknown In Port: " + port.ToString("X4"))
         End Select
 
         Return &HFF
@@ -448,15 +449,15 @@ Public MustInherit Class CGAAdapter
                 OnDataRegisterChanged()
 
             Case &H3D8, &H3B8 ' CGA mode control register  (except PCjr)
-                CGAAdapter.WordToBitsArray(value, CGAModeControlRegister)
+                WordToBitsArray(value, CGAModeControlRegister)
                 OnModeControlRegisterChanged()
 
             Case &H3D9, &H3B9 ' CGA palette register
-                CGAAdapter.WordToBitsArray(value, CGAPaletteRegister)
+                WordToBitsArray(value, CGAPaletteRegister)
                 OnPaletteRegisterChanged()
 
             Case &H3DA, &H3BA ' CGA status register	EGA/VGA: input status 1 register / EGA/VGA feature control register
-                CGAAdapter.WordToBitsArray(value, CGAStatusRegister)
+                WordToBitsArray(value, CGAStatusRegister)
 
             Case &H3DB ' The trigger is cleared by writing any value to port 03DBh (undocumented)
                 CGAStatusRegister(CGAStatusRegisters.light_pen_trigger_set) = False
@@ -465,7 +466,7 @@ Public MustInherit Class CGAAdapter
                 'Stop
 
             Case Else
-                MyBase.CPU.RaiseException("CGA: Unknown Out Port: " + port.ToString("X4"))
+                CPU.RaiseException("CGA: Unknown Out Port: " + port.ToString("X4"))
         End Select
     End Sub
 
@@ -493,7 +494,7 @@ Public MustInherit Class CGAAdapter
 
     Protected Overridable Sub OnModeControlRegisterChanged()
         ' http://www.seasip.info/VintagePC/cga.html
-        Dim v As UInt32 = CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
+        Dim v As UInt32 = BitsArrayToWord(CGAModeControlRegister)
         Dim newMode As VideoModes = v And &H17 ' 10111
 
         If (v And vidModeChangeFlag) <> 0 AndAlso newMode <> mVideoMode Then VideoMode = newMode
@@ -503,11 +504,11 @@ Public MustInherit Class CGAAdapter
 
     Protected Overridable Sub OnPaletteRegisterChanged()
         If MainMode = MainModes.Text Then
-            CGAPalette = CType(CGABasePalette.Clone(), Color())
+            cgaPalette = CType(CGABasePalette.Clone(), Color())
         Else
             Dim colors() As Color = Nothing
-            Dim cgaModeReg As UInt32 = CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
-            Dim cgaColorReg As UInt32 = CGAAdapter.BitsArrayToWord(CGAPaletteRegister)
+            Dim cgaModeReg As UInt32 = BitsArrayToWord(CGAModeControlRegister)
+            Dim cgaColorReg As UInt32 = BitsArrayToWord(CGAPaletteRegister)
 
             Select Case mVideoMode
                 Case VideoModes.Mode4_Graphic_Color_320x200, VideoModes.Mode5_Graphic_BW_320x200

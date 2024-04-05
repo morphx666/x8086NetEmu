@@ -60,7 +60,13 @@ Public Class FormEmulator
                         int13Emulation,
                         Sub()
                             SaveSettings()
-                            If Not formIsClosing Then StartEmulation()
+
+                            If Not formIsClosing Then
+                                Task.Run(action:=Async Sub()
+                                                     Await Task.Delay(500)
+                                                     Invoke(Sub() StartEmulation())
+                                                 End Sub)
+                            End If
                         End Sub,
                         X8086.Models.IBMPC_5160)
 
@@ -77,10 +83,10 @@ Public Class FormEmulator
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
 
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
+        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat", False))
         'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
 
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, If(ConsoleCrayon.RuntimeIsMono, VideoAdapter.FontSources.TrueType, VideoAdapter.FontSources.BitmapFile), "asciivga.dat", False))
+        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat", False))
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, "asciivga.dat", False))
 
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
@@ -526,7 +532,7 @@ Public Class FormEmulator
 
         AddHandler videoPort.MouseDown, Sub(s As Object, e As MouseEventArgs)
                                             If e.Button = MouseButtons.Left AndAlso isSelectingText Then
-                                                If cpu.VideoAdapter.MainMode <> CGAAdapter.MainModes.Text Then
+                                                If cpu.VideoAdapter.MainMode <> VideoAdapter.MainModes.Text Then
                                                     isSelectingText = False
                                                     Exit Sub
                                                 End If

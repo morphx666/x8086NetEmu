@@ -68,7 +68,7 @@
                     BufSerMouseData(M) '                  actually a mouse connected to the port.
                     BufSerMouseData(M)
                 End If
-                MyBase.CPU.Flags.OF = 1
+                CPU.Flags.OF = 1
         End Select
     End Sub
 
