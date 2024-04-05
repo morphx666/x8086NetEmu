@@ -267,6 +267,10 @@ ModelManifest.xml
 !**/Release/roms/pcxtbios.rom
 
 **/settings.dat
+**/mono_crash*
 
 # Include Bass libraries
 !**/x8086NetEmu/Bass/**
+
+# Eto.Forms
+/Eto.Forms

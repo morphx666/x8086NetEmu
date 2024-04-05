@@ -503,7 +503,7 @@ Public MustInherit Class CGAAdapter
 
     Protected Overridable Sub OnPaletteRegisterChanged()
         If MainMode = MainModes.Text Then
-            cgaPalette = CType(CGABasePalette.Clone(), Color())
+            CGAPalette = CType(CGABasePalette.Clone(), Color())
         Else
             Dim colors() As Color = Nothing
             Dim cgaModeReg As UInt32 = CGAAdapter.BitsArrayToWord(CGAModeControlRegister)
@@ -532,7 +532,7 @@ Public MustInherit Class CGAAdapter
 
             If colors IsNot Nothing Then
                 For i As Integer = 0 To colors.Length - 1
-                    cgaPalette(i) = colors(i)
+                    CGAPalette(i) = colors(i)
                 Next
             End If
         End If

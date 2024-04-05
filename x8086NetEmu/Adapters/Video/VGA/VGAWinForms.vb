@@ -11,7 +11,7 @@ Public Class VGAWinForms
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
     Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
-    Private ReadOnly brushCache(cgaPalette.Length - 1) As Color
+    Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
 
     Private ReadOnly fontSourceMode As FontSources
     Private g As Graphics
@@ -213,7 +213,7 @@ Public Class VGAWinForms
                         End Select
                         b0 = b0 * 2 + usePal + intensity
                         If b0 = (usePal + intensity) Then b0 = 0
-                        videoBMP.Pixel(x, y) = cgaPalette(b0 And &HF)
+                        videoBMP.Pixel(x, y) = CGAPalette(b0 And &HF)
 
                     Case 6
                         h2 = y >> 1
@@ -221,8 +221,8 @@ Public Class VGAWinForms
                                                                      ((h2 And 1) * &H2000) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
                         b0 *= 15
-                        videoBMP.Pixel(x, y) = cgaPalette(b0)
-                        videoBMP.Pixel(x, y + 1) = cgaPalette(b0)
+                        videoBMP.Pixel(x, y) = CGAPalette(b0)
+                        videoBMP.Pixel(x, y + 1) = CGAPalette(b0)
 
                     Case &HD
                         address = y * mTextResolution.Width + (x >> 3)
@@ -289,7 +289,7 @@ Public Class VGAWinForms
                     Case 127
                         b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y And 3) << 13) + ((y >> 2) * 90) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
-                        videoBMP.Pixel(x, y) = cgaPalette(b0)
+                        videoBMP.Pixel(x, y) = CGAPalette(b0)
 
                     Case Else
                         b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> xDiv))
@@ -303,7 +303,7 @@ Public Class VGAWinForms
                         Else
                             b0 = (b0 >> (7 - (x And 7))) And 1
                         End If
-                        videoBMP.Pixel(x, y) = cgaPalette(b0)
+                        videoBMP.Pixel(x, y) = CGAPalette(b0)
 
                 End Select
             Next
@@ -423,8 +423,8 @@ Public Class VGAWinForms
         mVideoMode = vm
 
         If brushCache IsNot Nothing Then
-            For i As Integer = 0 To cgaPalette.Length - 1
-                brushCache(i) = cgaPalette(i)
+            For i As Integer = 0 To CGAPalette.Length - 1
+                brushCache(i) = CGAPalette(i)
             Next
         End If
     End Sub

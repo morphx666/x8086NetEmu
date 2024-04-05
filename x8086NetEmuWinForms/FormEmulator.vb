@@ -37,11 +37,10 @@ Public Class FormEmulator
     Private mCursorVisible As Boolean = True
 
     Private runningApp As String
+    Private formIsClosing As Boolean
 
     Private Sub FormEmulator_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         Me.BackColor = Color.Black
-
-        'RunChecks()
 
         ' New settings that are recommend to be turned on
         INT13EmulationToolStripMenuItem.Checked = True
@@ -61,7 +60,7 @@ Public Class FormEmulator
                         int13Emulation,
                         Sub()
                             SaveSettings()
-                            StartEmulation()
+                            If Not formIsClosing Then StartEmulation()
                         End Sub,
                         X8086.Models.IBMPC_5160)
 
@@ -88,7 +87,6 @@ Public Class FormEmulator
         cpu.Adapters.Add(New MouseAdapter(cpu))
 
         cpu.Adapters.Add(New SpeakerAdapter(cpu))
-
         Dim adlib As New AdlibAdapter(cpu)
         cpu.Adapters.Add(adlib)
         cpu.Adapters.Add(New SoundBlaster(cpu, adlib))
@@ -700,7 +698,7 @@ Public Class FormEmulator
         Else
             If showPrompt Then
                 If MsgBox($"It looks like this is the first time you run the emulator.{Environment.NewLine}" +
-                          $"Use the 'RightCtrl + Home' hotkey to access the emulator settings or click over the title bar.{Environment.NewLine}{Environment.NewLine}" +
+                          $"Use the 'Shift + Alt + Home' hotkey to access the emulator settings or click over the title bar.{Environment.NewLine}{Environment.NewLine}" +
                           $"Would you like to configure the emulator's floppies and hard drives now?", MsgBoxStyle.Information Or MsgBoxStyle.YesNo) = MsgBoxResult.Yes Then
                     RunMediaManager()
                 End If
@@ -877,6 +875,7 @@ Public Class FormEmulator
     End Sub
 
     Private Sub FormEmulator_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        formIsClosing = True
         SaveSettings()
         StopEmulation()
     End Sub
