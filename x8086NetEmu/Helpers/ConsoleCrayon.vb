@@ -193,7 +193,7 @@ Public NotInheritable Class ConsoleCrayon
     Private Shared Function SetColorFrom(data As String, isForeground As Boolean) As Integer
         Dim colorName = data.Substring(0, data.IndexOf(">"))
         Dim c As ConsoleColor
-        If [Enum].TryParse(Of ConsoleColor)(colorName, c) Then SetColor(c, isForeground)
+        If [Enum].TryParse(colorName, c) Then SetColor(c, isForeground)
         Return data.IndexOf(">", colorName.Length)
     End Function
 

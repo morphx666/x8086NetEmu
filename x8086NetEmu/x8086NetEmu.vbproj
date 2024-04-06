@@ -159,10 +159,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Management" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -172,9 +170,7 @@
     <Import Include="System" />
     <Import Include="System.Collections" />
     <Import Include="System.Collections.Generic" />
-    <Import Include="System.Drawing" />
     <Import Include="System.Diagnostics" />
-    <Import Include="System.Windows.Forms" />
     <Import Include="System.Linq" />
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
@@ -193,16 +189,9 @@
     <Compile Include="Adapters\DummyAdapter.vb" />
     <Compile Include="Adapters\Keyboard\KeyMap.vb" />
     <Compile Include="Adapters\Serial\MouseAdapter.vb" />
-    <Compile Include="Adapters\Video\CGA\CGAAdapter.vb" />
-    <Compile Include="Adapters\Video\CGA\CGAConsole.vb" />
-    <Compile Include="Adapters\Video\CGA\CGAWinForms.vb" />
-    <Compile Include="Adapters\Video\DirectBitmap.vb" />
-    <Compile Include="Adapters\Video\Image2Ascii.vb" />
-    <Compile Include="Adapters\Video\VGA\VGAAdapter.vb" />
-    <Compile Include="Adapters\Video\VGA\VGAWinForms.vb" />
+    <Compile Include="Adapters\Video\CGAAdapter.vb" />
+    <Compile Include="Adapters\Video\VGAAdapter.vb" />
     <Compile Include="Adapters\Video\VideoAdapter.vb" />
-    <Compile Include="Adapters\Video\VideoChar.vb" />
-    <Compile Include="Adapters\WebUI.vb" />
     <Compile Include="Chipset\RTC.vb" />
     <Compile Include="Helpers\Bass\BassHelpers.vb" />
     <Compile Include="Helpers\Bass\BufferProvider.vb" />
@@ -255,12 +244,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Adapters\Video\RenderCtrlGDI.Designer.vb">
-      <DependentUpon>RenderCtrlGDI.vb</DependentUpon>
-    </Compile>
-    <Compile Include="Adapters\Video\RenderCtrlGDI.vb">
-      <SubType>Component</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">
@@ -269,13 +252,9 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Adapters\Video\RenderCtrlGDI.resx">
-      <DependentUpon>RenderCtrlGDI.vb</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Adapters\Video\VGA\VGA Emulation Status.md" />
+    <None Include="Adapters\Video\VGA Emulation Status.md" />
     <None Include="Bass\arm\hardfp\libbass.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -336,7 +315,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildAction="Both" BuildVersion_DetectChanges="False" />
+      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

@@ -1,5 +1,6 @@
 ﻿Imports System.Threading
 Imports x8086NetEmu
+Imports x8086NetEmuRenderers
 
 Module MainModule
     Private cpu As X8086

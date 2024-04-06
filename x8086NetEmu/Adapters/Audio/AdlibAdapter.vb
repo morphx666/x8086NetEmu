@@ -244,7 +244,7 @@
         End Get
     End Property
 
-    Public Overrides ReadOnly Property Type As Adapter.AdapterType
+    Public Overrides ReadOnly Property Type As AdapterType
         Get
             Return AdapterType.AudioDevice
         End Get

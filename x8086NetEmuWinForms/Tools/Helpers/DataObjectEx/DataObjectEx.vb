@@ -7,7 +7,7 @@ Imports System.Security.Permissions
 
 Public Class DataObjectEx
     Inherits DataObject
-    Implements ComTypes.IDataObject
+    Implements IDataObject
 
     Private Shared ReadOnly ALLOWED_TYMEDS As TYMED() = New TYMED() {TYMED.TYMED_HGLOBAL, TYMED.TYMED_ISTREAM, TYMED.TYMED_ENHMF, TYMED.TYMED_MFPICT, TYMED.TYMED_GDI}
 
@@ -57,7 +57,7 @@ Public Class DataObjectEx
     End Function
 
     <SecurityPermission(SecurityAction.Demand, Flags:=SecurityPermissionFlag.UnmanagedCode)>
-    Private Overloads Sub GetData(ByRef formatetc As FORMATETC, ByRef medium As STGMEDIUM) Implements ComTypes.IDataObject.GetData
+    Private Overloads Sub GetData(ByRef formatetc As FORMATETC, ByRef medium As STGMEDIUM) Implements IDataObject.GetData
         If formatetc.cfFormat = DataFormats.GetFormat(NativeMethods.CFSTR_FILECONTENTS).Id Then
             mLindex = formatetc.lindex
         End If
@@ -69,7 +69,7 @@ Public Class DataObjectEx
                 medium.unionmember = NativeMethods.GlobalAlloc(NativeMethods.GHND Or NativeMethods.GMEM_DDESHARE, 1)
                 If medium.unionmember = IntPtr.Zero Then Throw New OutOfMemoryException()
                 Try
-                    DirectCast(Me, ComTypes.IDataObject).GetDataHere(formatetc, medium)
+                    DirectCast(Me, IDataObject).GetDataHere(formatetc, medium)
                     Exit Sub
                 Catch ex As Exception
                     NativeMethods.GlobalFree(New HandleRef(medium, medium.unionmember))
@@ -79,7 +79,7 @@ Public Class DataObjectEx
                 End Try
             End If
             medium.tymed = formatetc.tymed
-            DirectCast(Me, ComTypes.IDataObject).GetDataHere(formatetc, medium)
+            DirectCast(Me, IDataObject).GetDataHere(formatetc, medium)
         Else
             Marshal.ThrowExceptionForHR(NativeMethods.DV_E_TYMED)
         End If

@@ -11,7 +11,7 @@
     Private sm As New SerialMouse()
     Private irq As PIC8259.IRQLine
 
-    Public Property MidPointOffset As Point
+    Public Property MidPointOffset As XPoint
 
     Public Property IsCaptured As Boolean
 
@@ -83,7 +83,7 @@
     End Sub
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
-        Dim m As MouseEventArgs = CType(e.Event, MouseEventArgs)
+        Dim m As XMouseEventArgs = CType(e.Event, XMouseEventArgs)
 
         Dim x As Integer = m.X - MidPointOffset.X
         Dim y As Integer = m.Y - MidPointOffset.Y
@@ -95,8 +95,8 @@
         If y < 0 Then highBits = highBits Or &B1100
 
         Dim buttons As Byte = 0
-        If (m.Button And MouseButtons.Left) = MouseButtons.Left Then buttons = buttons Or 2
-        If (m.Button And MouseButtons.Right) = MouseButtons.Right Then buttons = buttons Or 1
+        If (m.Button And XEventArgs.MouseButtons.Left) <> 0 Then buttons = buttons Or 2
+        If (m.Button And XEventArgs.MouseButtons.Right) <> 0 Then buttons = buttons Or 1
 
         BufSerMouseData(&H40 Or (buttons << 4) Or highBits)
         BufSerMouseData(x And &H3F)
@@ -126,7 +126,7 @@
         End Get
     End Property
 
-    Public Overrides ReadOnly Property Type As Adapter.AdapterType
+    Public Overrides ReadOnly Property Type As AdapterType
         Get
             Return AdapterType.SerialMouseCOM1
         End Get

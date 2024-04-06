@@ -1,5 +1,4 @@
 ﻿Imports System.Threading
-Imports System.Threading.Tasks
 
 Public Class CGAConsole
     Inherits CGAAdapter
@@ -11,7 +10,7 @@ Public Class CGAConsole
 
     Private i2a As Image2Ascii
     Private isRendering As Boolean
-    Private ratio As New Size(3, 4)
+    Private ratio As New XSize(3, 4)
     Private frameRate As Integer = 27
 
     Public Sub New(cpu As X8086)
@@ -72,7 +71,7 @@ Public Class CGAConsole
                 ConsoleCrayon.ConsoleHeight = TextResolution.Height
 
             Case MainModes.Graphics
-                ratio = New Size(Math.Ceiling(GraphicsResolution.Width / Console.LargestWindowWidth),
+                ratio = New XSize(Math.Ceiling(GraphicsResolution.Width / Console.LargestWindowWidth),
                                  Math.Ceiling(GraphicsResolution.Height / Console.LargestWindowHeight))
                 Console.SetWindowSize(GraphicsResolution.Width / ratio.Width, GraphicsResolution.Height / ratio.Height)
                 ResetI2A()
@@ -104,7 +103,7 @@ Public Class CGAConsole
         If i2a IsNot Nothing Then
             If i2a.Bitmap IsNot Nothing Then i2a.Bitmap.Dispose()
             i2a.Bitmap = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
-            i2a.CanvasSize = New Size(TextResolution.Width, TextResolution.Height)
+            i2a.CanvasSize = TextResolution.ToSize()
             Console.CursorVisible = False
         End If
     End Sub
@@ -112,7 +111,7 @@ Public Class CGAConsole
     Private Sub HandleKeyPress()
         If Console.KeyAvailable Then
             Dim keyInfo As ConsoleKeyInfo = Console.ReadKey(True)
-            Dim keyEvent As New KeyEventArgs(keyInfo.Key)
+            Dim keyEvent As New XKeyEventArgs(keyInfo.Key, 0)
 
             HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Shift, Keys.ShiftKey)
             HandleModifier(keyInfo.Modifiers, ConsoleModifiers.Control, Keys.ControlKey)
@@ -127,10 +126,10 @@ Public Class CGAConsole
 
     Private Sub HandleModifier(v As ConsoleModifiers, t As ConsoleModifiers, k As Keys)
         If HasModifier(v, t) AndAlso Not HasModifier(lastModifiers, t) Then
-            HandleKeyDown(Me, New KeyEventArgs(k))
+            HandleKeyDown(Me, New XKeyEventArgs(k, 0))
             Thread.Sleep(30)
         ElseIf Not HasModifier(v, t) AndAlso HasModifier(lastModifiers, t) Then
-            HandleKeyUp(Me, New KeyEventArgs(k))
+            HandleKeyUp(Me, New XKeyEventArgs(k, 0))
             Thread.Sleep(30)
         End If
     End Sub
@@ -174,7 +173,7 @@ Public Class CGAConsole
                     b = (b >> (7 - (x And 7))) And 1
                 End If
 
-                i2a.DirectBitmap.Pixel(x, y) = CGAPalette(b)
+                i2a.DirectBitmap.Pixel(x, y) = cgaPalette(b).ToColor()
             Next
         Next
     End Sub
@@ -205,7 +204,7 @@ Public Class CGAConsole
             If (blinkCounter < BlinkRate) AndAlso BlinkCharOn AndAlso (b1 And &H80) <> 0 Then b0 = 0
 
             If b1c <> b1 Then
-                ConsoleCrayon.WriteFast(text, b1c.LowNib(), b1c.HighNib(), c, r)
+                ConsoleCrayon.WriteFast(text, b1c And &HF, b1c >> 4, c, r)
                 text = ""
 
                 b1c = b1
@@ -234,7 +233,7 @@ Public Class CGAConsole
             bufIdx += 2
         Next
 
-        If text <> "" Then ConsoleCrayon.WriteFast(text, b1c.LowNib(), b1c.HighNib(), c, r)
+        If text <> "" Then ConsoleCrayon.WriteFast(text, b1c And &HF, b1c >> 4, c, r)
 
         If cv Then
             Console.SetCursorPosition(CursorCol, CursorRow)

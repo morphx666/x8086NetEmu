@@ -13,10 +13,10 @@
         Graphics = 2
     End Enum
 
-    Public Event KeyDown(sender As Object, e As KeyEventArgs)
-    Public Event KeyUp(sender As Object, e As KeyEventArgs)
-    Public Event PreRender(sender As Object, e As PaintEventArgs)
-    Public Event PostRender(sender As Object, e As PaintEventArgs)
+    Public Event KeyDown(sender As Object, e As XKeyEventArgs)
+    Public Event KeyUp(sender As Object, e As XKeyEventArgs)
+    Public Event PreRender(sender As Object, e As XPaintEventArgs)
+    Public Event PostRender(sender As Object, e As XPaintEventArgs)
 
     Public Overrides ReadOnly Property Type As AdapterType
         Get
@@ -52,9 +52,9 @@
     Protected mEndGraphicsVideoAddress As Integer
     Protected mMainMode As MainModes
 
-    Protected mTextResolution As Size = New Size(40, 25)
-    Protected mVideoResolution As Size = New Size(0, 0)
-    Protected mCellSize As Size
+    Protected mTextResolution As XSize = New XSize(40, 25)
+    Protected mVideoResolution As XSize = New XSize(0, 0)
+    Protected mCellSize As XSize
 
     Protected keyMap As New KeyMap() ' Used to filter unsupported keystrokes
 
@@ -62,19 +62,19 @@
         MyBase.New(cpu)
     End Sub
 
-    Protected Overridable Sub OnKeyDown(sender As Object, e As KeyEventArgs)
+    Protected Overridable Sub OnKeyDown(sender As Object, e As XKeyEventArgs)
         RaiseEvent KeyDown(sender, e)
     End Sub
 
-    Protected Overridable Sub OnKeyUp(sender As Object, e As KeyEventArgs)
+    Protected Overridable Sub OnKeyUp(sender As Object, e As XKeyEventArgs)
         RaiseEvent KeyUp(sender, e)
     End Sub
 
-    Protected Overridable Sub OnPreRender(sender As Object, e As PaintEventArgs)
+    Protected Overridable Sub OnPreRender(sender As Object, e As XPaintEventArgs)
         RaiseEvent PreRender(sender, e)
     End Sub
 
-    Protected Overridable Sub OnPostRender(sender As Object, e As PaintEventArgs)
+    Protected Overridable Sub OnPostRender(sender As Object, e As XPaintEventArgs)
         RaiseEvent PostRender(sender, e)
     End Sub
 
@@ -102,37 +102,26 @@
         End Get
     End Property
 
-    Public ReadOnly Property TextResolution As Size
+    Public ReadOnly Property TextResolution As XSize
         Get
             Return mTextResolution
         End Get
     End Property
 
-    Public ReadOnly Property GraphicsResolution As Size
+    Public ReadOnly Property GraphicsResolution As XSize
         Get
             Return mVideoResolution
         End Get
     End Property
 
-    Public Property CellSize As Size
+    Public Property CellSize As XSize
         Get
             Return mCellSize
         End Get
-        Protected Set(value As Size)
+        Protected Set(value As XSize)
             mCellSize = value
         End Set
     End Property
-
-    'Public Property IsDirty(address As UInt32) As Boolean
-    '    Get
-    '        Dim r As Boolean = Memory(address)
-    '        Memory(address) = False
-    '        Return r
-    '    End Get
-    '    Set(value As Boolean)
-    '        Memory(address) = value
-    '    End Set
-    'End Property
 
     Public ReadOnly Property MainMode As MainModes
         Get
@@ -140,8 +129,10 @@
         End Get
     End Property
 
-    Public Function ColRowToRectangle(col As Integer, row As Integer) As Rectangle
-        Return New Rectangle(New Point(col * mCellSize.Width, row * mCellSize.Height), mCellSize)
+    Public Function ColRowToRectangle(col As Integer, row As Integer) As XRectangle
+        Return New XRectangle(col * mCellSize.Width,
+                             row * mCellSize.Height,
+                             mCellSize)
     End Function
 
     Public Function ColRowToAddress(col As Integer, row As Integer) As Integer

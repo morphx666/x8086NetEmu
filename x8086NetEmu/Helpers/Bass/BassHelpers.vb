@@ -37,7 +37,7 @@ Public Class BassHelpers
             Try
                 result = Bass.Init(-1, SpeakerAdapter.SampleRate, DeviceInitFlags.Default)
             Catch ex As DllNotFoundException
-                Application.Restart()
+                ' TODO: What do we do here?
             End Try
         End If
 

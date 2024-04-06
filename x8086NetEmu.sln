@@ -22,6 +22,8 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GenOpCodes", "GenOpCodes\Ge
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunTests2", "RunTests2\RunTests2.csproj", "{4FFD8045-6272-46A4-B521-073393A09FD1}"
 EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "x8086NetEmuRenderers", "x8086NetEmuRenderers\x8086NetEmuRenderers.vbproj", "{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -104,6 +106,18 @@ Global
 		{4FFD8045-6272-46A4-B521-073393A09FD1}.Release|x64.Build.0 = Release|x64
 		{4FFD8045-6272-46A4-B521-073393A09FD1}.Release|x86.ActiveCfg = Release|x86
 		{4FFD8045-6272-46A4-B521-073393A09FD1}.Release|x86.Build.0 = Release|x86
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Debug|x64.Build.0 = Debug|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Debug|x86.Build.0 = Debug|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Release|x64.ActiveCfg = Release|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Release|x64.Build.0 = Release|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Release|x86.ActiveCfg = Release|Any CPU
+		{5F543E7F-6DA7-4F52-B523-C59B2AC4AEE5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
