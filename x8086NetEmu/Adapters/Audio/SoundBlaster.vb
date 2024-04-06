@@ -94,7 +94,7 @@
         blaster.DspMinor = 0
         MixerReset()
 
-        mVolume = 1.0
+        mVolume = 0.8
     End Sub
 
     Private Sub ProcessCommand(value As Byte)
