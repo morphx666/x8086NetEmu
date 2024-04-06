@@ -1,5 +1,4 @@
 ﻿Imports System.Threading
-Imports System.Threading.Tasks
 Imports x8086NetEmu
 
 Module MainModule

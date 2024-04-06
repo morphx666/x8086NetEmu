@@ -109,7 +109,7 @@ Public Class X8086
 
         IsClosing = False
         Scheduler.HOSTCLOCK = Stopwatch.Frequency
-        'Scheduler.HOSTCLOCK = GetCpuSpeed() * X8086.MHz
+        'Scheduler.HOSTCLOCK = GetCpuSpeed() * 10000
 
         mV20 = v20
         mEmulateINT13 = int13
@@ -324,6 +324,10 @@ Public Class X8086
 
         mRegisters.CS = cs
         mRegisters.IP = ip
+
+        For Each adptr In mAdapters
+            adptr.InitAdapter()
+        Next
 
         Sched.Start()
         audioSubSystem.Init()

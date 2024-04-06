@@ -130,6 +130,10 @@ Public MustInherit Class CGAAdapter
 
     Protected wui As WebUI
 
+    Private curTick As Long
+    Private lastTick As Long
+    Private frameTicks As Long = Scheduler.HOSTCLOCK / 5 ' ~60ms / 16fps
+
     Private Class TaskSC
         Inherits Scheduler.SchTask
 
@@ -180,26 +184,20 @@ Public MustInherit Class CGAAdapter
 
         CGAStatusRegister(CGAStatusRegisters.display_enable) = hRetrace
         CGAStatusRegister(CGAStatusRegisters.vertical_retrace) = vRetrace
+
+        curTick = CPU.Sched.CurrentTime
+        If curTick >= (lastTick + frameTicks) Then
+            Render()
+
+            lastTick = curTick - (curTick - (lastTick + frameTicks))
+        End If
     End Sub
 
     Public Overrides Sub InitAdapter()
-        isInit = CPU IsNot Nothing
-
-        If isInit AndAlso useInternalTimer Then
-            Task.Run(action:=Async Sub()
-                                 Do
-                                     Await Task.Delay(2 * 1000 / VERTSYNC)
-                                     Render()
-
-                                     'RaiseEvent VideoRefreshed(Me)
-                                 Loop Until X8086.IsClosing
-                             End Sub)
+        If Not isInit AndAlso useInternalTimer Then
+            CPU.Sched.RunTaskEach(schTask, Scheduler.HOSTCLOCK / 31_500) ' 31.5KHz
+            isInit = True
         End If
-
-        SampleTicks = Scheduler.HOSTCLOCK \ 31_500 ' 31.5KHz
-
-        schTask.Cancel()
-        CPU.Sched.RunTaskEach(schTask, SampleTicks)
     End Sub
 
     Public Overrides Sub UpdateClock()

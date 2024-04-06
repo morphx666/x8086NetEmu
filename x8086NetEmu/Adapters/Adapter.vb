@@ -21,10 +21,6 @@ Public MustInherit Class Adapter
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
-        Task.Run(action:=Async Sub()
-                             Await Task.Delay(100)
-                             InitAdapter()
-                         End Sub)
     End Sub
 
     Public ReadOnly Property CPU As X8086

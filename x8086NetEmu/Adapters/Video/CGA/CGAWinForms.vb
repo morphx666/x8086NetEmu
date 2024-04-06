@@ -10,9 +10,8 @@ Public Class CGAWinForms
     Inherits CGAAdapter
 
     Private blinkCounter As Integer
-    Private frameRate As Integer = 30
 
-    Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
+    Private ReadOnly brushCache(cgaPalette.Length - 1) As Color
 
     Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
@@ -24,26 +23,6 @@ Public Class CGAWinForms
     Private scale As New SizeF(1, 1)
 
     Private mRenderControl As Control
-    Private renderLoopIsInit As Boolean
-
-    Private Class TaskSC
-        Inherits Scheduler.SchTask
-
-        Public Sub New(owner As IOPortHandler)
-            MyBase.New(owner)
-        End Sub
-
-        Public Overrides Sub Run()
-            Owner.Run()
-        End Sub
-
-        Public Overrides ReadOnly Property Name As String
-            Get
-                Return Owner.Name
-            End Get
-        End Property
-    End Class
-    Private ReadOnly schTask As New TaskSC(Me)
 
     Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu,, enableWebUI)
@@ -125,25 +104,21 @@ Public Class CGAWinForms
         If mRenderControl IsNot Nothing Then RemoveHandler mRenderControl.Paint, AddressOf Paint
     End Sub
 
+    Public Overrides Sub InitAdapter()
+        If Not isInit Then
+            MyBase.InitAdapter()
+            Task.Run(action:=Async Sub()
+                                 Do
+                                     Await Task.Delay(2 * 1000 / VERTSYNC)
+                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate())
+                                 Loop Until X8086.IsClosing
+                             End Sub)
+        End If
+    End Sub
+
     Public Overrides Sub CloseAdapter()
         MyBase.CloseAdapter()
         DetachRenderControl()
-    End Sub
-
-    Public Overrides Sub InitAdapter()
-        MyBase.InitAdapter()
-
-        If mRenderControl IsNot Nothing AndAlso Not renderLoopIsInit Then
-            Task.Run(action:=Async Sub()
-                                 Dim delay As Integer = 1000 / frameRate
-                                 Do
-                                     Await Task.Delay(delay)
-                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
-                                 Loop Until X8086.IsClosing
-                             End Sub)
-
-            renderLoopIsInit = True
-        End If
     End Sub
 
     Protected Overrides Sub AutoSize()
@@ -201,8 +176,8 @@ Public Class CGAWinForms
         MyBase.OnPaletteRegisterChanged()
 
         If brushCache IsNot Nothing Then
-            For i As Integer = 0 To CGAPalette.Length - 1
-                brushCache(i) = CGAPalette(i)
+            For i As Integer = 0 To cgaPalette.Length - 1
+                brushCache(i) = cgaPalette(i)
             Next
 
             charsCache.Clear()

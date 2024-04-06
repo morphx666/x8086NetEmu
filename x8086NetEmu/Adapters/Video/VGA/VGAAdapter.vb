@@ -2,6 +2,8 @@
 ' https://pdos.csail.mit.edu/6.828/2007/readings/hardware/vgadoc/VGABIOS.TXT
 ' http://stanislavs.org/helppc/ports.html
 
+Imports x8086NetEmu.Scheduler
+
 Public MustInherit Class VGAAdapter
     Inherits CGAAdapter
 
@@ -565,29 +567,13 @@ Public MustInherit Class VGAAdapter
     Private activeStartAddress As UInt32
     Private activeEndAddress As UInt32
 
-    Private vgaInit As Boolean = False
     Private curScanLine As Integer = 0
 
     Private mCPU As X8086
 
-    Private Class TaskSC
-        Inherits Scheduler.SchTask
-
-        Public Sub New(owner As IOPortHandler)
-            MyBase.New(owner)
-        End Sub
-
-        Public Overrides Sub Run()
-            Owner.Run()
-        End Sub
-
-        Public Overrides ReadOnly Property Name As String
-            Get
-                Return Owner.Name
-            End Get
-        End Property
-    End Class
-    Private ReadOnly task As New TaskSC(Me)
+    Private curTick As Long
+    Private lastTick As Long
+    Private frameTicks As Long = Scheduler.HOSTCLOCK / 5 ' ~60ms / 16fps
 
     ' Video Modes: http://www.columbia.edu/~em36/wpdos/videomodes.txt
     '              http://webpages.charter.net/danrollins/techhelp/0114.HTM
@@ -633,16 +619,12 @@ Public MustInherit Class VGAAdapter
                                                     Return False
                                                 End Function))
 
-        mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean 
+        mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
                                                           Return SetVideoMode()
                                                       End Function))
-
-        vgaInit = True
     End Sub
 
     Public Overrides Sub Run()
-        If Not vgaInit Then Exit Sub
-
         curScanLine = (curScanLine + 1) Mod 525
         If curScanLine > 479 Then
             portRAM(&H3DA) = portRAM(&H3DA) Or &B0000_1000
@@ -651,8 +633,12 @@ Public MustInherit Class VGAAdapter
         End If
         If (curScanLine And 1) <> 0 Then portRAM(&H3DA) = portRAM(&H3DA) Or &H1
 
-        ' This is handled by the CGAAdapter
-        'CPU.Sched.RunTaskAt(task, CPU.Sched.CurrentTime + SampleTicks)
+        curTick = CPU.Sched.CurrentTime
+        If curTick >= (lastTick + frameTicks) Then
+            Render()
+
+            lastTick = curTick - (curTick - (lastTick + frameTicks))
+        End If
     End Sub
 
     Public Property VideoRAM(address As UInt32) As Byte

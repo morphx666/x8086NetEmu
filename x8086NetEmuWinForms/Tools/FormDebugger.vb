@@ -2,7 +2,6 @@
 Imports x8086NetEmu
 Imports System.Text
 Imports System.Threading.Tasks
-Imports System.Security
 
 Public Class FormDebugger
     Public Enum LastInstructionMode

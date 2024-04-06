@@ -113,7 +113,7 @@
     End Sub
 
     Public Overrides Sub InitAdapter()
-        mVolume = 0.9
+        mVolume = 0.8
     End Sub
 
     Public Overrides Sub CloseAdapter()

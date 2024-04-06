@@ -4,7 +4,6 @@ Public Class VGAWinForms
     Inherits VGAAdapter
 
     Private blinkCounter As Integer
-    Private frameRate As Integer = 30
     Private cursorAddress As New List(Of Integer)
 
     Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
@@ -20,8 +19,6 @@ Public Class VGAWinForms
 
     Private mCPU As X8086
     Private mRenderControl As Control
-    Private mHideHostCursor As Boolean = True
-    Private renderLoopIsInit As Boolean
 
     Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu, , enableWebUI)
@@ -104,18 +101,14 @@ Public Class VGAWinForms
     End Sub
 
     Public Overrides Sub InitAdapter()
-        MyBase.InitAdapter()
-
-        If mRenderControl IsNot Nothing AndAlso Not renderLoopIsInit Then
+        If Not isInit Then
+            MyBase.InitAdapter()
             Task.Run(action:=Async Sub()
-                                 Dim delay As Integer = 1000 / frameRate
                                  Do
-                                     Await Task.Delay(delay)
-                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate()) ' This fixes a problem with Mono 🤷‍
+                                     Await Task.Delay(2 * 1000 / VERTSYNC)
+                                     mRenderControl.Invoke(Sub() mRenderControl.Invalidate())
                                  Loop Until X8086.IsClosing
                              End Sub)
-
-            renderLoopIsInit = True
         End If
     End Sub
 
