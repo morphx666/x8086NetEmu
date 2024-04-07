@@ -86,9 +86,9 @@
         Dim m As XMouseEventArgs = CType(e.Event, XMouseEventArgs)
 
         Dim x As Integer = m.X - MidPointOffset.X
-        Dim y As Integer = m.Y - MidPointOffset.Y
+        Dim y As Integer = (m.Y - MidPointOffset.Y)
         x = Math.Max(Math.Min(x, 2), -2)
-        y = Math.Max(Math.Min(y, 2), -2)
+        y = Math.Max(Math.Min(y, 1), -1)
 
         Dim highBits As Byte = 0
         If x < 0 Then highBits = &B11
