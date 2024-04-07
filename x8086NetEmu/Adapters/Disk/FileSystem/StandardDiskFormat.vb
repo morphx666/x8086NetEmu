@@ -200,7 +200,7 @@ Public Class StandardDiskFormat
                 Case SystemIds.FAT_12
                     mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
                 Case SystemIds.FAT_16
-                    mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT16.BootSector))
+                    mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
                 Case SystemIds.FAT_BIGDOS
                     mBootSectors(partitionNumber) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT32.BootSector))
                 Case SystemIds.EMPTY
@@ -394,7 +394,7 @@ Public Class StandardDiskFormat
                     nde.SetTimeDate(file.CreationTime, Now, Now)
                     ndeObj = nde
 
-                    Marshal.StructureToPtr(Of FAT12.DirectoryEntry)(nde, pb.AddrOfPinnedObject(), True)
+                    Marshal.StructureToPtr(nde, pb.AddrOfPinnedObject(), True)
                 Case SystemIds.FAT_BIGDOS
                     Dim nde As New FAT32.DirectoryEntry With {
                         .FileName = If(file.Extension <> "", file.Name.Replace(file.Extension, ""), file.Name),
@@ -406,7 +406,7 @@ Public Class StandardDiskFormat
                     nde.SetTimeDate(file.CreationTime, Now, Now)
                     ndeObj = nde
 
-                    Marshal.StructureToPtr(Of FAT32.DirectoryEntry)(nde, pb.AddrOfPinnedObject(), True)
+                    Marshal.StructureToPtr(nde, pb.AddrOfPinnedObject(), True)
             End Select
             pb.Free()
 

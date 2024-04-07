@@ -1,6 +1,4 @@
-﻿Imports System.Threading.Tasks
-
-Public MustInherit Class CGAAdapter
+﻿Public MustInherit Class CGAAdapter
     Inherits VideoAdapter
 
     Private Const BASECLOCK = 3_579_545 ' 3.579545 MHz
@@ -10,9 +8,6 @@ Public MustInherit Class CGAAdapter
 
     Protected ht As ULong = (BASECLOCK * (Scheduler.HOSTCLOCK \ X8086.BASECLOCK)) \ HORIZSYNC
     Protected vt As ULong = ht * (HORIZSYNC \ VERTSYNC)
-
-    Protected ReadOnly charsCache As New List(Of VideoChar)
-    Protected ReadOnly charSizeCache As New Dictionary(Of Integer, Size)
 
     Public Enum VideoModes
         Mode0_Text_BW_40x25 = &H4
@@ -30,26 +25,30 @@ Public MustInherit Class CGAAdapter
         Undefined = &HFF
     End Enum
 
-    Private CGABasePalette() As Color = {
-        Color.FromArgb(&H0, &H0, &H0),
-        Color.FromArgb(&H0, &H0, &HAA),
-        Color.FromArgb(&H0, &HAA, &H0),
-        Color.FromArgb(&H0, &HAA, &HAA),
-        Color.FromArgb(&HAA, &H0, &H0),
-        Color.FromArgb(&HAA, &H0, &HAA),
-        Color.FromArgb(&HAA, &H55, &H0),
-        Color.FromArgb(&HAA, &HAA, &HAA),
-        Color.FromArgb(&H55, &H55, &H55),
-        Color.FromArgb(&H55, &H55, &HFF),
-        Color.FromArgb(&H55, &HFF, &H55),
-        Color.FromArgb(&H55, &HFF, &HFF),
-        Color.FromArgb(&HFF, &H55, &H55),
-        Color.FromArgb(&HFF, &H55, &HFF),
-        Color.FromArgb(&HFF, &HFF, &H55),
-        Color.FromArgb(&HFF, &HFF, &HFF)
+    Private x()() As Integer = {
+        New Integer() {0, 0, 0}
+        }
+
+    Private CGABasePalette() As XColor = {
+        XColor.FromArgb(&H0, &H0, &H0),
+        XColor.FromArgb(&H0, &H0, &HAA),
+        XColor.FromArgb(&H0, &HAA, &H0),
+        XColor.FromArgb(&H0, &HAA, &HAA),
+        XColor.FromArgb(&HAA, &H0, &H0),
+        XColor.FromArgb(&HAA, &H0, &HAA),
+        XColor.FromArgb(&HAA, &H55, &H0),
+        XColor.FromArgb(&HAA, &HAA, &HAA),
+        XColor.FromArgb(&H55, &H55, &H55),
+        XColor.FromArgb(&H55, &H55, &HFF),
+        XColor.FromArgb(&H55, &HFF, &H55),
+        XColor.FromArgb(&H55, &HFF, &HFF),
+        XColor.FromArgb(&HFF, &H55, &H55),
+        XColor.FromArgb(&HFF, &H55, &HFF),
+        XColor.FromArgb(&HFF, &HFF, &H55),
+        XColor.FromArgb(&HFF, &HFF, &HFF)
     }
 
-    Protected cgaPalette(16 - 1) As Color
+    Protected cgaPalette(16 - 1) As XColor
 
     Protected Friend Enum CGAModeControlRegisters
         blink_enabled = 5
@@ -116,7 +115,6 @@ Public MustInherit Class CGAAdapter
 
     Private mZoom As Double = 1.0
 
-    Protected videoBMP As New DirectBitmap(1, 1)
     Private ReadOnly useInternalTimer As Boolean
 
     'Public Event VideoRefreshed(sender As Object)
@@ -127,8 +125,6 @@ Public MustInherit Class CGAAdapter
 
     Protected MustOverride Overrides Sub AutoSize()
     Protected MustOverride Sub Render()
-
-    Protected wui As WebUI
 
     Private curTick As Long
     Private lastTick As Long
@@ -153,11 +149,9 @@ Public MustInherit Class CGAAdapter
     End Class
     Private ReadOnly schTask As New TaskSC(Me)
 
-    Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True, Optional enableWebUI As Boolean = False)
+    Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True)
         MyBase.New(cpu)
         Me.useInternalTimer = useInternalTimer
-
-        If enableWebUI Then wui = New WebUI(cpu, videoBMP, chars)
 
         For i As UInt16 = &H3D0 To &H3DF ' CGA
             RegisteredPorts.Add(i)
@@ -203,7 +197,7 @@ Public MustInherit Class CGAAdapter
     Public Overrides Sub UpdateClock()
     End Sub
 
-    Public Sub HandleKeyDown(sender As Object, e As KeyEventArgs)
+    Public Sub HandleKeyDown(sender As Object, e As XKeyEventArgs)
         If keyMap.GetScanCode(e.KeyValue) <> 0 Then
             MyBase.OnKeyDown(Me, e)
             If e.Handled Then Exit Sub
@@ -214,7 +208,7 @@ Public MustInherit Class CGAAdapter
         e.SuppressKeyPress = True
     End Sub
 
-    Public Sub HandleKeyUp(sender As Object, e As KeyEventArgs)
+    Public Sub HandleKeyUp(sender As Object, e As XKeyEventArgs)
         If keyMap.GetScanCode(e.KeyValue) <> 0 Then
             MyBase.OnKeyUp(Me, e)
             If e.Handled Then Exit Sub
@@ -224,15 +218,15 @@ Public MustInherit Class CGAAdapter
         e.Handled = True
     End Sub
 
-    Public Sub OnMouseDown(sender As Object, e As MouseEventArgs)
+    Public Sub OnMouseDown(sender As Object, e As XMouseEventArgs)
         If CPU.Mouse IsNot Nothing Then CPU.Sched.HandleInput(New ExternalInputEvent(CPU.Mouse, e, True))
     End Sub
 
-    Public Sub OnMouseMove(sender As Object, e As MouseEventArgs)
+    Public Sub OnMouseMove(sender As Object, e As XMouseEventArgs)
         If CPU.Mouse IsNot Nothing Then CPU.Sched.HandleInput(New ExternalInputEvent(CPU.Mouse, e, Nothing))
     End Sub
 
-    Public Sub OnMouseUp(sender As Object, e As MouseEventArgs)
+    Public Sub OnMouseUp(sender As Object, e As XMouseEventArgs)
         If CPU.Mouse IsNot Nothing Then CPU.Sched.HandleInput(New ExternalInputEvent(CPU.Mouse, e, False))
     End Sub
 
@@ -313,9 +307,9 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public ReadOnly Property CursorLocation As Point
+    Public ReadOnly Property CursorLocation As XPoint
         Get
-            Return New Point(mCursorCol, mCursorRow)
+            Return New XPoint(mCursorCol, mCursorRow)
         End Get
     End Property
 
@@ -333,50 +327,50 @@ Public MustInherit Class CGAAdapter
 
             Select Case value
                 Case VideoModes.Mode0_Text_BW_40x25
-                    mTextResolution = New Size(40, 25)
-                    mVideoResolution = New Size(0, 0)
+                    mTextResolution = New XSize(40, 25)
+                    mVideoResolution = New XSize(0, 0)
                     mMainMode = MainModes.Text
 
                 Case VideoModes.Mode1_Text_Color_40x25
-                    mTextResolution = New Size(40, 25)
-                    mVideoResolution = New Size(0, 0)
+                    mTextResolution = New XSize(40, 25)
+                    mVideoResolution = New XSize(0, 0)
                     mMainMode = MainModes.Text
 
                 Case VideoModes.Mode2_Text_BW_80x25
-                    mTextResolution = New Size(80, 25)
-                    mVideoResolution = New Size(0, 0)
+                    mTextResolution = New XSize(80, 25)
+                    mVideoResolution = New XSize(0, 0)
                     mMainMode = MainModes.Text
 
                 Case VideoModes.Mode3_Text_Color_80x25
-                    mTextResolution = New Size(80, 25)
-                    mVideoResolution = New Size(0, 0)
+                    mTextResolution = New XSize(80, 25)
+                    mVideoResolution = New XSize(0, 0)
                     mMainMode = MainModes.Text
 
                 Case VideoModes.Mode4_Graphic_Color_320x200
-                    mTextResolution = New Size(40, 25)
-                    mVideoResolution = New Size(320, 200)
+                    mTextResolution = New XSize(40, 25)
+                    mVideoResolution = New XSize(320, 200)
                     mMainMode = MainModes.Graphics
 
                 Case VideoModes.Mode5_Graphic_BW_320x200
-                    mTextResolution = New Size(40, 25)
-                    mVideoResolution = New Size(320, 200)
+                    mTextResolution = New XSize(40, 25)
+                    mVideoResolution = New XSize(320, 200)
                     mMainMode = MainModes.Graphics
 
                 Case VideoModes.Mode6_Graphic_Color_640x200
-                    mTextResolution = New Size(80, 25)
-                    mVideoResolution = New Size(640, 200)
+                    mTextResolution = New XSize(80, 25)
+                    mVideoResolution = New XSize(640, 200)
                     mMainMode = MainModes.Graphics
 
                 Case VideoModes.Mode6_Graphic_Color_640x200_Alt
-                    mTextResolution = New Size(80, 25)
-                    mVideoResolution = New Size(640, 200)
+                    mTextResolution = New XSize(80, 25)
+                    mVideoResolution = New XSize(640, 200)
                     mMainMode = MainModes.Graphics
 
                 Case VideoModes.Mode7_Text_BW_80x25
                     mStartTextVideoAddress = &HB0000
                     mStartGraphicsVideoAddress = &HB0000
-                    mTextResolution = New Size(80, 25)
-                    mVideoResolution = New Size(720, 400)
+                    mTextResolution = New XSize(80, 25)
+                    mVideoResolution = New XSize(720, 400)
                     mMainMode = MainModes.Text
 
                 Case Else
@@ -502,9 +496,9 @@ Public MustInherit Class CGAAdapter
 
     Protected Overridable Sub OnPaletteRegisterChanged()
         If MainMode = MainModes.Text Then
-            cgaPalette = CType(CGABasePalette.Clone(), Color())
+            cgaPalette = CType(CGABasePalette.Clone(), XColor())
         Else
-            Dim colors() As Color = Nothing
+            Dim colors() As XColor = Nothing
             Dim cgaModeReg As UInt32 = BitsArrayToWord(CGAModeControlRegister)
             Dim cgaColorReg As UInt32 = BitsArrayToWord(CGAPaletteRegister)
 
@@ -516,14 +510,14 @@ Public MustInherit Class CGAAdapter
 
                     If mVideoMode = VideoModes.Mode5_Graphic_BW_320x200 Then pal1 = 1
 
-                    colors = New Color() {
+                    colors = New XColor() {
                             CGABasePalette(cgaColorReg And &HF),
                             CGABasePalette(3 Xor pal2 Or intense),
                             CGABasePalette(4 Xor pal1 Or intense),
                             CGABasePalette(7 Xor pal2 Or intense)
                         }
                 Case VideoModes.Mode6_Graphic_Color_640x200
-                    colors = New Color() {
+                    colors = New XColor() {
                             CGABasePalette(0),
                             CGABasePalette(cgaColorReg And &HF)
                         }
@@ -531,7 +525,7 @@ Public MustInherit Class CGAAdapter
 
             If colors IsNot Nothing Then
                 For i As Integer = 0 To colors.Length - 1
-                    CGAPalette(i) = colors(i)
+                    cgaPalette(i) = colors(i)
                 Next
             End If
         End If
@@ -559,9 +553,6 @@ Public MustInherit Class CGAAdapter
 
     Public Overrides Sub CloseAdapter()
         isInit = False
-        wui?.Close()
-
-        Application.DoEvents()
     End Sub
 
     Public Shared Function BitsArrayToWord(b() As Boolean) As UInt16
@@ -614,7 +605,7 @@ Public MustInherit Class CGAAdapter
         End Get
     End Property
 
-    Public Overrides ReadOnly Property Type As Adapter.AdapterType
+    Public Overrides ReadOnly Property Type As AdapterType
         Get
             Return AdapterType.Video
         End Get

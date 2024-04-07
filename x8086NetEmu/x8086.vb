@@ -267,9 +267,9 @@ Public Class X8086
     End Sub
 
     Public Sub SoftReset()
-        PPI.PutKeyData(Keys.ControlKey, False)
-        PPI.PutKeyData(Keys.Menu, False)
-        PPI.PutKeyData(Keys.Delete, False)
+        PPI.PutKeyData(Adapter.XEventArgs.Keys.ControlKey, False)
+        PPI.PutKeyData(Adapter.XEventArgs.Keys.Menu, False)
+        PPI.PutKeyData(Adapter.XEventArgs.Keys.Delete, False)
     End Sub
 
     Public Sub FastHardReset()

@@ -17,26 +17,40 @@ Public Class VGAWinForms
 
     Private scale As New SizeF(1, 1)
 
-    Private mCPU As X8086
+    Private videoBMP As New DirectBitmap(1, 1)
+    Private ReadOnly charsCache As New List(Of VideoChar)
+    Private ReadOnly charSizeCache As New Dictionary(Of Integer, Size)
+
     Private mRenderControl As Control
 
-    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
-        MyBase.New(cpu, , enableWebUI)
+    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "")
+        MyBase.New(cpu)
         fontSourceMode = fontSource
-        mCPU = cpu
+
         Me.RenderControl = renderControl
 
-        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs) HandleKeyDown(Me, e)
-        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs) HandleKeyUp(Me, e)
+        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs)
+                                               HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
 
-        AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, e)
+                                               ' FIXME: Is there a better way to do this?
+                                               e.Handled = True
+                                               e.SuppressKeyPress = True
+                                           End Sub
+        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs)
+                                             HandleKeyUp(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+
+                                             ' FIXME: Is there a better way to do this?
+                                             e.Handled = True
+                                         End Sub
+
+        AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
                                                  If MyBase.CPU.Mouse?.IsCaptured Then
-                                                     OnMouseMove(Me, e)
-                                                     Cursor.Position = mRenderControl.PointToScreen(MyBase.CPU.Mouse.MidPointOffset)
+                                                     OnMouseMove(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
+                                                     Cursor.Position = mRenderControl.PointToScreen(New Point(cpu.Mouse.MidPointOffset.X, cpu.Mouse.MidPointOffset.Y))
                                                  End If
                                              End Sub
-        AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, e)
+        AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
 
         Dim fontCGAPath As String = X8086.FixPath("misc\" + bitmapFontFile)
         Dim fontCGAError As String = ""
@@ -55,8 +69,8 @@ Public Class VGAWinForms
                     fontSourceMode = FontSources.TrueType
                 End If
             Case FontSources.ROM
-                CellSize = New Size(8, 14)
-                VideoChar.BuildFontBitmapsFromROM(8, 14, 14, &HC0000 + &H3310, mCPU.Memory)
+                CellSize = New XSize(8, 14)
+                VideoChar.BuildFontBitmapsFromROM(8, 14, 14, &HC0000 + &H3310, cpu.Memory)
         End Select
 
         If fontSourceMode = FontSources.TrueType Then
@@ -75,9 +89,9 @@ Public Class VGAWinForms
         End If
 
         textFormat.FormatFlags = StringFormatFlags.NoWrap Or
-                                   StringFormatFlags.MeasureTrailingSpaces Or
-                                   StringFormatFlags.FitBlackBox Or
-                                   StringFormatFlags.NoClip
+                                 StringFormatFlags.MeasureTrailingSpaces Or
+                                 StringFormatFlags.FitBlackBox Or
+                                 StringFormatFlags.NoClip
 
         InitVideoMemory(False)
     End Sub
@@ -128,22 +142,45 @@ Public Class VGAWinForms
     End Sub
 
     Protected Overrides Sub ResizeRenderControl()
-        Dim ctrlSize As Size
+        Dim ctrlSize As XSize
 
         If MainMode = MainModes.Text Then
-            ctrlSize = New Size(mCellSize.Width * TextResolution.Width, mCellSize.Height * TextResolution.Height)
+            ctrlSize = New XSize(mCellSize.Width * TextResolution.Width, mCellSize.Height * TextResolution.Height)
         Else
-            ctrlSize = New Size(GraphicsResolution.Width, GraphicsResolution.Height)
+            ctrlSize = New XSize(GraphicsResolution.Width, GraphicsResolution.Height)
         End If
 
-        Dim frmSize As New Size(640 * Zoom, 400 * Zoom)
+        Dim frmSize As New XSize(640 * Zoom, 400 * Zoom)
         Dim frm As Form = mRenderControl.FindForm
-        frm.ClientSize = frmSize
+        frm.ClientSize = New Size(frmSize.Width, frmSize.Height)
         mRenderControl.Location = Point.Empty
-        mRenderControl.Size = frmSize
+        mRenderControl.Size = frm.ClientSize
         If mCellSize.Width = 0 OrElse mCellSize.Height = 0 Then Exit Sub
 
         scale = New SizeF(frmSize.Width / ctrlSize.Width, frmSize.Height / ctrlSize.Height)
+    End Sub
+
+    Private Sub Paint(sender As Object, e As PaintEventArgs)
+        Dim g As Graphics = e.Graphics
+
+        g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighSpeed
+        g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
+        g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
+
+        g.ScaleTransform(scale.Width, scale.Height)
+
+        Dim ex = New XPaintEventArgs(e.Graphics, New XRectangle(e.ClipRectangle.X,
+                                                                e.ClipRectangle.Y,
+                                                                e.ClipRectangle.Width,
+                                                                e.ClipRectangle.Height))
+
+        OnPreRender(sender, ex)
+        g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
+
+        g.DrawImageUnscaled(videoBMP, 0, 0)
+
+        g.CompositingMode = Drawing2D.CompositingMode.SourceOver
+        OnPostRender(sender, ex)
     End Sub
 
     Protected Overrides Sub Render()
@@ -159,29 +196,8 @@ Public Class VGAWinForms
         End If
     End Sub
 
-    Private Sub Paint(sender As Object, e As PaintEventArgs)
-        Dim g As Graphics = e.Graphics
-
-        g.PixelOffsetMode = Drawing2D.PixelOffsetMode.HighSpeed
-        g.InterpolationMode = Drawing2D.InterpolationMode.NearestNeighbor
-        g.CompositingQuality = Drawing2D.CompositingQuality.HighSpeed
-
-        g.ScaleTransform(scale.Width, scale.Height)
-
-        OnPreRender(sender, e)
-        g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
-
-        g.DrawImageUnscaled(videoBMP, 0, 0)
-
-        g.CompositingMode = Drawing2D.CompositingMode.SourceOver
-        OnPostRender(sender, e)
-
-        'RenderWaveform(g)
-    End Sub
-
     Private Sub RenderGraphics()
         Dim b0 As UInt32
-        Dim b1 As UInt32
         Dim usePal As Integer = If(mVideoMode = 5, 1, (portRAM(&H3D9) >> 5) And 1)
         Dim intensity As Integer = If(mVideoMode = 5, 8, ((portRAM(&H3D9) >> 4) And 1) << 3)
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
@@ -190,7 +206,10 @@ Public Class VGAWinForms
         Dim h1 As UInt32
         Dim h2 As UInt32
         Dim k As UInt32 = mCellSize.Width * mCellSize.Height
-        Dim r As New Rectangle(Point.Empty, CellSize)
+        Dim r As New Rectangle(Point.Empty, New Size(mCellSize.Width, mCellSize.Height))
+
+        Dim vgaPage As UInt32 = CUInt(VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
+        Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
 
         ' This "fixes" PETSCII Robots
         'If mVideoMode = &H13 AndAlso (Now.Second Mod 2) = 0 Then
@@ -212,7 +231,7 @@ Public Class VGAWinForms
                         End Select
                         b0 = b0 * 2 + usePal + intensity
                         If b0 = (usePal + intensity) Then b0 = 0
-                        videoBMP.Pixel(x, y) = cgaPalette(b0 And &HF)
+                        videoBMP.Pixel(x, y) = cgaPalette(b0 And &HF).ToColor()
 
                     Case 6
                         h2 = y >> 1
@@ -220,8 +239,8 @@ Public Class VGAWinForms
                                                                      ((h2 And 1) * &H2000) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
                         b0 *= 15
-                        videoBMP.Pixel(x, y) = cgaPalette(b0)
-                        videoBMP.Pixel(x, y + 1) = cgaPalette(b0)
+                        videoBMP.Pixel(x, y) = cgaPalette(b0).ToColor()
+                        videoBMP.Pixel(x, y + 1) = cgaPalette(b0).ToColor()
 
                     Case &HD
                         address = y * mTextResolution.Width + (x >> 3)
@@ -230,7 +249,7 @@ Public Class VGAWinForms
                         b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b0 = b0 Or ((vRAM(address + &H20000) >> h1) And 1) << 2
                         b0 = b0 Or ((vRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = vgaPalette(b0)
+                        videoBMP.Pixel(x, y) = vgaPalette(b0).ToColor()
 
                     Case &HE
                         h1 = x >> 1
@@ -241,7 +260,7 @@ Public Class VGAWinForms
                         b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b0 = b0 Or ((vRAM(address + &H20000) >> h1) And 1) << 2
                         b0 = b0 Or ((vRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = vgaPalette(b0)
+                        videoBMP.Pixel(x, y) = vgaPalette(b0).ToColor()
 
                     Case &HF
                         h1 = x >> 1
@@ -252,7 +271,7 @@ Public Class VGAWinForms
                         b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b0 = b0 Or ((vRAM(address + &H20000) >> h1) And 1) << 2
                         b0 = b0 Or ((vRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = vgaPalette(b0)
+                        videoBMP.Pixel(x, y) = vgaPalette(b0).ToColor()
 
                     Case &H10
                         address = (y * mTextResolution.Width) + (x >> 3)
@@ -261,7 +280,7 @@ Public Class VGAWinForms
                         b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b0 = b0 Or ((vRAM(address + &H20000) >> h1) And 1) << 2
                         b0 = b0 Or ((vRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = vgaPalette(b0)
+                        videoBMP.Pixel(x, y) = vgaPalette(b0).ToColor()
 
                     Case &H12
                         address = (y * (mTextResolution.Width << 1)) + (x >> 3)
@@ -270,28 +289,26 @@ Public Class VGAWinForms
                         b0 = b0 Or ((vRAM(address + &H10000) >> h1) And 1) << 1
                         b0 = b0 Or ((vRAM(address + &H20000) >> h1) And 1) << 2
                         b0 = b0 Or ((vRAM(address + &H30000) >> h1) And 1) << 3
-                        videoBMP.Pixel(x, y) = vgaPalette(b0)
+                        videoBMP.Pixel(x, y) = vgaPalette(b0).ToColor()
 
                     Case &H13
-                        Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
-                        Dim vgaPage As UInt32 = CUInt(VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
                         If planeMode Then
                             address = y * mVideoResolution.Width + x
                             address = (address >> 2) + (x And 3) * &H10000
                             address += vgaPage - (VGA_ATTR(&H13) And &HF)
                             b0 = vRAM(address)
                         Else
-                            b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((vgaPage + y * mVideoResolution.Width + x) And &HFFFF))
+                            b0 = CPU.Memory(mStartGraphicsVideoAddress + ((vgaPage + y * mVideoResolution.Width + x) And &HFFFF))
                         End If
-                        videoBMP.Pixel(x, y) = vgaPalette(b0)
+                        videoBMP.Pixel(x, y) = vgaPalette(b0).ToColor()
 
                     Case 127
-                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y And 3) << 13) + ((y >> 2) * 90) + (x >> 3))
+                        b0 = CPU.Memory(mStartGraphicsVideoAddress + ((y And 3) << 13) + ((y >> 2) * 90) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
-                        videoBMP.Pixel(x, y) = cgaPalette(b0)
+                        videoBMP.Pixel(x, y) = cgaPalette(b0).ToColor()
 
                     Case Else
-                        b0 = mCPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> xDiv))
+                        b0 = CPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> xDiv))
                         If PixelsPerByte = 4 Then
                             Select Case x And 3
                                 Case 3 : b0 = b0 And 3
@@ -302,7 +319,7 @@ Public Class VGAWinForms
                         Else
                             b0 = (b0 >> (7 - (x And 7))) And 1
                         End If
-                        videoBMP.Pixel(x, y) = cgaPalette(b0)
+                        videoBMP.Pixel(x, y) = cgaPalette(b0).ToColor()
 
                 End Select
             Next
@@ -313,7 +330,7 @@ Public Class VGAWinForms
         Dim b0 As Byte
         Dim b1 As Byte
 
-        Dim r As New Rectangle(Point.Empty, CellSize)
+        Dim r As New Rectangle(Point.Empty, CellSize.ToSize())
 
         Dim vgaPage As Integer = (VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
         Dim intensity As Boolean = (portRAM(&H3D8) And &H80) <> 0
@@ -322,11 +339,11 @@ Public Class VGAWinForms
 
         If mVideoMode = 7 OrElse mVideoMode = 127 Then
             ' FIXME: Dummy workaround to support the cursor; Haven't found a better way yet...
-            mCursorCol = mCPU.Memory(&H450)
-            mCursorRow = mCPU.Memory(&H451)
+            mCursorCol = CPU.Memory(&H450)
+            mCursorRow = CPU.Memory(&H451)
 
-            mCursorStart = mCPU.Memory(&H461) And &B0001_1111
-            mCursorEnd = mCPU.Memory(&H460) And &B0001_1111
+            mCursorStart = CPU.Memory(&H461) And &B0001_1111
+            mCursorEnd = CPU.Memory(&H460) And &B0001_1111
 
             mCursorVisible = True
         End If
@@ -354,12 +371,12 @@ Public Class VGAWinForms
                 End If
 
                 r.X = x * CellSize.Width
-                RenderChar(b0, videoBMP, brushCache(b1.LowNib()), brushCache(b1.HighNib() And If(intensity, 7, &HF)), r.Location, underline)
+                RenderChar(b0, videoBMP, brushCache(b1 And &HF), brushCache((b1 >> 4) And If(intensity, 7, &HF)), r.Location, underline)
                 cursorAddress.Remove(address)
 
                 If mCursorVisible AndAlso y = mCursorRow AndAlso x = mCursorCol Then
                     If blinkCounter < mBlinkRate Then
-                        videoBMP.FillRectangle(brushCache(b1.LowNib()),
+                        videoBMP.FillRectangle(brushCache(b1 And &HF),
                                                r.X + 0, r.Y - 1 + mCellSize.Height - (mCursorEnd - mCursorStart) - 1,
                                                mCellSize.Width, mCursorEnd - mCursorStart + 1)
                         cursorAddress.Add(address)
@@ -381,7 +398,7 @@ Public Class VGAWinForms
     Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point, underline As Boolean)
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
-                g.FillRectangle(bbb, New Rectangle(p, mCellSize))
+                g.FillRectangle(bbb, New Rectangle(New Point(p.X, p.Y), mCellSize.ToSize()))
                 Using bfb As New SolidBrush(fb)
                     g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - mCellSize.Width / 2 + 2, p.Y)
                 End Using
@@ -396,7 +413,7 @@ Public Class VGAWinForms
                 charsCache.Add(ccc)
                 idx = charsCache.Count - 1
             End If
-            charsCache(idx).Paint(dbmp, p, scale)
+            charsCache(idx).Paint(dbmp, New Point(p.X, p.Y), scale)
         End If
 
         If c <> 0 AndAlso underline Then dbmp.FillRectangle(fb, p.X, p.Y + mCellSize.Height - 2, mCellSize.Width, 1)
@@ -423,7 +440,7 @@ Public Class VGAWinForms
 
         If brushCache IsNot Nothing Then
             For i As Integer = 0 To cgaPalette.Length - 1
-                brushCache(i) = cgaPalette(i)
+                brushCache(i) = cgaPalette(i).ToColor()
             Next
         End If
     End Sub
@@ -433,7 +450,7 @@ Public Class VGAWinForms
 
         Select Case fontSourceMode
             Case FontSources.BitmapFile
-                charSizeCache.Add(code, CellSize)
+                charSizeCache.Add(code, mCellSize.ToSize())
             Case FontSources.TrueType
                 If charSizeCache.ContainsKey(code) Then Return charSizeCache(code)
 
@@ -449,10 +466,10 @@ Public Class VGAWinForms
                 size = New Size(rect.Right - 1, rect.Bottom)
                 charSizeCache.Add(code, size)
             Case FontSources.ROM
-                charSizeCache.Add(code, CellSize)
+                charSizeCache.Add(code, mCellSize.ToSize())
         End Select
 
-        Return CellSize
+        Return size ' CellSize
     End Function
 
     Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
@@ -466,8 +483,6 @@ Public Class VGAWinForms
                     Exit Sub
                 End If
                 videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
-
-                If wui IsNot Nothing Then wui.Bitmap = videoBMP
             End SyncLock
 
             If clearScreen OrElse charSizeCache.Count = 0 Then

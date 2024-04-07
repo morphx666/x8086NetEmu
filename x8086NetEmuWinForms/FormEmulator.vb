@@ -1,5 +1,6 @@
 ﻿Imports System.Threading.Tasks
 Imports x8086NetEmu
+Imports x8086NetEmuRenderers
 
 Public Class FormEmulator
     Private Const WM_NCRBUTTONDOWN As Long = &HA4
@@ -83,11 +84,11 @@ Public Class FormEmulator
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
 
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat", False))
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, , False))
+        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat"))
+        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM))
 
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat", False))
-        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM, , False))
+        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat"))
+        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM))
 
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         cpu.Adapters.Add(New MouseAdapter(cpu))
@@ -158,13 +159,13 @@ Public Class FormEmulator
 
     Private Sub SetupCpuEventHandlers()
         If cpu.VideoAdapter IsNot Nothing Then
-            AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As KeyEventArgs)
+            AddHandler cpu.VideoAdapter.KeyDown, Sub(s1 As Object, e1 As Adapter.XKeyEventArgs)
                                                      If e1.Shift AndAlso e1.Alt Then
                                                          Cursor.Clip = Rectangle.Empty
                                                          CursorVisible = True
                                                          If cpu.Mouse IsNot Nothing Then cpu.Mouse.IsCaptured = False
 
-                                                         Select Case e1.KeyCode
+                                                         Select Case e1.KeyValue
                                                              Case Keys.Home
                                                                  ContextMenuStripMain.Show(Cursor.Position)
                                                              Case Keys.Add
@@ -553,7 +554,7 @@ Public Class FormEmulator
                                             End If
                                         End Sub
 
-        AddHandler cpu.VideoAdapter.PostRender, Sub(sender As Object, e As PaintEventArgs)
+        AddHandler cpu.VideoAdapter.PostRender, Sub(sender As Object, e As Adapter.XPaintEventArgs)
                                                     If isLeftMouseButtonDown Then
                                                         Dim fromCol As Integer = Math.Min(fromColRow.X, toColRow.X)
                                                         Dim toCol As Integer = Math.Max(fromColRow.X, toColRow.X)
@@ -562,7 +563,8 @@ Public Class FormEmulator
                                                         Using sb As New SolidBrush(Color.FromArgb(128, Color.DarkSlateBlue))
                                                             For row As Integer = fromRow To toRow
                                                                 For col As Integer = If(row = fromRow, fromCol, 0) To If(row = toRow, toCol, cpu.VideoAdapter.TextResolution.Width) - 1
-                                                                    e.Graphics.FillRectangle(sb, cpu.VideoAdapter.ColRowToRectangle(col, row))
+                                                                    Dim r As Adapter.XRectangle = cpu.VideoAdapter.ColRowToRectangle(col, row)
+                                                                    e.Graphics.FillRectangle(sb, New Rectangle(r.X, r.Y, r.Width, r.Height))
                                                                 Next
                                                             Next
                                                         End Using
@@ -583,7 +585,8 @@ Public Class FormEmulator
                 Cursor.Clip = Me.RectangleToScreen(videoPort.Bounds)
                 CursorVisible = False
 
-                cpu.Mouse.MidPointOffset = Me.PointToClient(New Point(Me.Left + videoPort.Width / 2, Me.Top + videoPort.Height / 2))
+                Dim p As Point = Me.PointToClient(New Point(Me.Left + videoPort.Width / 2, Me.Top + videoPort.Height / 2))
+                cpu.Mouse.MidPointOffset = New Adapter.XPoint(p.X, p.Y)
                 cpu.Mouse.IsCaptured = True
             End If
         End If

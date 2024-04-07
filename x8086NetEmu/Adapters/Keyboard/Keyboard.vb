@@ -36,7 +36,7 @@
         End Get
     End Property
 
-    Public Overrides ReadOnly Property Type As Adapter.AdapterType
+    Public Overrides ReadOnly Property Type As AdapterType
         Get
             Return AdapterType.Keyboard
         End Get
@@ -207,7 +207,7 @@
     End Sub
 
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
-        Dim keyEvent As KeyEventArgs = CType(e.Event, KeyEventArgs)
+        Dim keyEvent As XKeyEventArgs = CType(e.Event, XKeyEventArgs)
         Dim isUp As Boolean = e.Extra
 
         If CPU.PPI IsNot Nothing Then CPU.PPI.PutKeyData(keyEvent.KeyValue And &HFF, isUp)

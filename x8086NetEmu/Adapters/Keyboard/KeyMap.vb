@@ -1,4 +1,6 @@
-﻿Public Class KeyMap
+﻿Imports x8086NetEmu.Adapter.XEventArgs
+
+Public Class KeyMap
     ' Enables sending virtual shift up/down events to deal with non-XT keys.
     Private useVirtualShift As Boolean = True
 

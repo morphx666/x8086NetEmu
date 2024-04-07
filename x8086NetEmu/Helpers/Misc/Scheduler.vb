@@ -388,28 +388,28 @@ Public Class Scheduler
     Public Sub HandleInput(e As ExternalInputEvent) Implements IExternalInputHandler.HandleInput
         If e.Handler Is Nothing Then Exit Sub
 
-        If TypeOf e.Event Is KeyEventArgs Then
-            Dim theEvent = CType(e.Event, KeyEventArgs)
+        If TypeOf e.Event Is Adapter.XKeyEventArgs Then
+            Dim theEvent = CType(e.Event, Adapter.XKeyEventArgs)
 
             If cadCounter > 0 Then
                 cadCounter -= 1
                 Exit Sub
             End If
 
-            If (theEvent.Modifiers And Keys.Control) = Keys.Control Then
+            If (theEvent.Modifiers And Adapter.XEventArgs.Keys.Control) <> 0 Then
                 isCtrlDown = Not CType(e.Extra, Boolean)
             Else
                 isCtrlDown = False
             End If
-            If (theEvent.Modifiers And Keys.Alt) = Keys.Alt Then
+            If (theEvent.Modifiers And Adapter.XEventArgs.Keys.Alt) <> 0 Then
                 isAltDown = Not CType(e.Extra, Boolean)
             Else
                 isAltDown = False
             End If
 
-            If isCtrlDown AndAlso isAltDown AndAlso (theEvent.KeyCode And Keys.Insert) = Keys.Insert Then
+            If isCtrlDown AndAlso isAltDown AndAlso (theEvent.KeyValue And Adapter.XEventArgs.Keys.Insert) <> 0 Then
                 cadCounter = 3 ' Ignore the next three events, which will be the release of CTRL, ALT and DEL
-                e.Event = New KeyEventArgs(Keys.Delete)
+                e.Event = New Adapter.XKeyEventArgs(Adapter.XEventArgs.Keys.Delete, 0)
                 X8086.Notify("Sending CTRL+ALT+DEL", X8086.NotificationReasons.Info)
             End If
         End If
@@ -430,19 +430,19 @@ Public Interface IExternalInputHandler
 End Interface
 
 Public Class ExternalInputEvent
-    Inherits EventArgs
+    Inherits Adapter.XEventArgs
 
     Public Property Handler As IExternalInputHandler
-    Public Property [Event] As EventArgs
+    Public Property [Event] As Adapter.XEventArgs
     Public Property TimeStamp As Long
     Public Property Extra As Object
 
-    Public Sub New(handler As IExternalInputHandler, theEvent As EventArgs)
+    Public Sub New(handler As IExternalInputHandler, theEvent As Adapter.XEventArgs)
         Me.Handler = handler
         Me.Event = theEvent
     End Sub
 
-    Public Sub New(handler As IExternalInputHandler, theEvent As EventArgs, extra As Object)
+    Public Sub New(handler As IExternalInputHandler, theEvent As Adapter.XEventArgs, extra As Object)
         Me.Handler = handler
         Me.Event = theEvent
         Me.Extra = extra

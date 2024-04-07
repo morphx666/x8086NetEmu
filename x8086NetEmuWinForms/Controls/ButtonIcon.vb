@@ -2,7 +2,7 @@
     Inherits Button
 
     Private mouseIsOver As Boolean
-    Private disabledImage As DirectBitmap
+    Private disabledImage As x8086NetEmuRenderers.DirectBitmap
 
     Public Sub New()
         Me.SetStyle(ControlStyles.AllPaintingInWmPaint, True)
@@ -41,7 +41,7 @@
         End If
 
         If Me.Image IsNot Nothing Then
-            disabledImage = New DirectBitmap(Me.Image)
+            disabledImage = New x8086NetEmuRenderers.DirectBitmap(Me.Image)
 
             For y As Integer = 0 To disabledImage.Height - 1
                 For x As Integer = 0 To disabledImage.Width - 1
