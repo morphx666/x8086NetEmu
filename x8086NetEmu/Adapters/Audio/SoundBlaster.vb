@@ -82,7 +82,7 @@
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            blaster.SampleTicks = 10 * Scheduler.HOSTCLOCK \ blaster.SampleRate
+            blaster.SampleTicks = 15 * Scheduler.HOSTCLOCK \ blaster.SampleRate
 
             task.Cancel()
             CPU.Sched.RunTaskEach(task, blaster.SampleTicks)

@@ -74,7 +74,7 @@ Public Class AudioSubsystem
     End Function
 
     Public Sub Init()
-        sampleTicks = Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
+        sampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
         cpu.Sched.RunTaskEach(sTask, sampleTicks)
     End Sub
 
