@@ -927,13 +927,13 @@ Public MustInherit Class VGAAdapter
         Select Case port
             Case &H3B8
                 If ((value & 2) = 2) AndAlso (mVideoMode <> 127) Then
-                    Dim oldAX As UInt16 = mCPU.Registers.AX
-                    mCPU.Registers.AH = 0
-                    mCPU.Registers.AL = 127
+                    'Dim oldAX As UInt16 = mCPU.Registers.AX
+                    'mCPU.Registers.AH = 0
+                    'mCPU.Registers.AL = 127
                     'mCPU.intHooks(&H10).Invoke()
                     'mCPU.HandleInterrupt(&H10, False)
                     'SetVideoMode()
-                    mCPU.Registers.AX = oldAX
+                    'mCPU.Registers.AX = oldAX
                 End If
                 If (value And &H80) <> 0 Then
                     mStartTextVideoAddress = &HB8000
@@ -955,8 +955,6 @@ Public MustInherit Class VGAAdapter
 
             Case &H3C5 ' Sequence controller data
                 VGA_SC(portRAM(&H3C4)) = value
-
-                'mVideoEnabled = (VGA_SC(1) And &B0010_0000) = 0
 
             Case &H3C7 ' Color index register (read operations)
                 latchReadPal = value

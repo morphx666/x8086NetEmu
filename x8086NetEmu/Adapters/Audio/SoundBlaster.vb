@@ -82,7 +82,8 @@
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            blaster.SampleTicks = 15 * Scheduler.HOSTCLOCK \ blaster.SampleRate
+            ' FIXME: This 14 factor is due to the factor used in the PIT8254
+            blaster.SampleTicks = 14 * Scheduler.HOSTCLOCK \ blaster.SampleRate
 
             task.Cancel()
             CPU.Sched.RunTaskEach(task, blaster.SampleTicks)
@@ -311,22 +312,13 @@
             Exit Sub
         End If
         If dmaChannel.AutoInit <> 0 AndAlso dmaChannel.CurrentCount > dmaChannel.BaseCount Then dmaChannel.CurrentCount = 0
-        'If dmaChannel.CurrentCount > dmaChannel.BaseCount Then
-        '    blaster.Sample = 128
-        '    Exit Sub
-        'End If
+        If dmaChannel.CurrentCount > dmaChannel.BaseCount Then
+            blaster.Sample = 128
+            Exit Sub
+        End If
 
+        ' FIXME: Why???
         dmaChannel.CurrentCount = dmaChannel.CurrentCount Mod dmaChannel.BaseCount
-
-        ' Prince of Persia
-        ' page = 524288
-        ' addr = 38686
-        ' count = 0
-
-        ' SBTalker
-        ' page = 196608
-        ' addr = 55679
-        ' count = 0
         If dmaChannel.Direction = 0 Then
             blaster.Sample = CPU.Memory(dmaChannel.Page + dmaChannel.CurrentAddress + dmaChannel.CurrentCount)
         Else

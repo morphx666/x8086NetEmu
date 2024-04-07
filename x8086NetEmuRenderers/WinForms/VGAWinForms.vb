@@ -29,8 +29,19 @@ Public Class VGAWinForms
 
         Me.RenderControl = renderControl
 
-        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs) HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
-        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs) HandleKeyUp(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs)
+                                               HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+
+                                               ' FIXME: Is there a better way to do this?
+                                               e.Handled = True
+                                               e.SuppressKeyPress = True
+                                           End Sub
+        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs)
+                                             HandleKeyUp(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+
+                                             ' FIXME: Is there a better way to do this?
+                                             e.Handled = True
+                                         End Sub
 
         AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
@@ -187,7 +198,6 @@ Public Class VGAWinForms
 
     Private Sub RenderGraphics()
         Dim b0 As UInt32
-        Dim b1 As UInt32
         Dim usePal As Integer = If(mVideoMode = 5, 1, (portRAM(&H3D9) >> 5) And 1)
         Dim intensity As Integer = If(mVideoMode = 5, 8, ((portRAM(&H3D9) >> 4) And 1) << 3)
         Dim xDiv As Integer = If(PixelsPerByte = 4, 2, 3)
@@ -197,6 +207,9 @@ Public Class VGAWinForms
         Dim h2 As UInt32
         Dim k As UInt32 = mCellSize.Width * mCellSize.Height
         Dim r As New Rectangle(Point.Empty, New Size(mCellSize.Width, mCellSize.Height))
+
+        Dim vgaPage As UInt32 = CUInt(VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
+        Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
 
         ' This "fixes" PETSCII Robots
         'If mVideoMode = &H13 AndAlso (Now.Second Mod 2) = 0 Then
@@ -279,8 +292,6 @@ Public Class VGAWinForms
                         videoBMP.Pixel(x, y) = vgaPalette(b0).ToColor()
 
                     Case &H13
-                        Dim planeMode As Boolean = (VGA_SC(4) And 6) <> 0
-                        Dim vgaPage As UInt32 = CUInt(VGA_CRTC(&HC) << 8) + VGA_CRTC(&HD)
                         If planeMode Then
                             address = y * mVideoResolution.Width + x
                             address = (address >> 2) + (x And 3) * &H10000

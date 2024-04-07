@@ -32,8 +32,19 @@ Public Class CGAWinForms
 
         Me.RenderControl = renderControl
 
-        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs) HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
-        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs) HandleKeyUp(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs)
+                                               HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+
+                                               ' FIXME: Is there a better way to do this?
+                                               e.Handled = True
+                                               e.SuppressKeyPress = True
+                                           End Sub
+        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs)
+                                             HandleKeyUp(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+
+                                             ' FIXME: Is there a better way to do this?
+                                             e.Handled = True
+                                         End Sub
 
         AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
         AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)

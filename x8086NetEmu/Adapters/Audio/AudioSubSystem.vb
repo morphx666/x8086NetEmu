@@ -74,7 +74,12 @@ Public Class AudioSubsystem
     End Function
 
     Public Sub Init()
+        ' FIXME: This 1/10 factor is due to the factor used in the PIT8254
+#If DEBUG Then
+        sampleTicks = Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
+#Else
         sampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
+#End If
         cpu.Sched.RunTaskEach(sTask, sampleTicks)
     End Sub
 

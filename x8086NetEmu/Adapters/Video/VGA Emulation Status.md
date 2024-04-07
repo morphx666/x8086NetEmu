@@ -22,10 +22,10 @@ VGA Mode | Status | Notes
 0x10  |	:ok:							|	d:\ckpro\ckinfo.exe
 &nbsp;|	:x: [EGA corrupted video]		|	d:\win3\win.com
 &nbsp;|	:x: [no video]					|	d:\games\lemmings\lemmings.bat
-0x12  |	:x: [some issues]				|	d:\ewb2\digital.bat
+0x12  |	:x: [wrong colors]				|	d:\ewb2\digital.bat
 &nbsp;|	:x: [many issues]				|	d:\banner\banner.exe
 &nbsp;|	:x: [VGA corrupted video]		|	d:\win3\win.com
-&nbsp;|	:x: [wrong colors/no mouse]		|	d:\orcad\orcad.bat
+&nbsp;|	:x: [wrong colors]				|	d:\orcad\orcad.bat
 &nbsp;|	:x: [many issues]				|	d:\vistapro\vistapro.exe
 0x13  |	:ok:							|	d:\games\prince\prince.exe
 &nbsp;|	:ok:							|	d:\games\prince2\prince.exe
