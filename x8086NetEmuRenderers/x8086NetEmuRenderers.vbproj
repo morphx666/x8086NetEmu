@@ -72,10 +72,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CGAConsole.vb" />
-    <Compile Include="CGAWinForms.vb" />
-    <Compile Include="DirectBitmap.vb" />
-    <Compile Include="Extensions.vb" />
-    <Compile Include="Image2Ascii.vb" />
+    <Compile Include="WinForms\CGAWinForms.vb" />
+    <Compile Include="Helpers\DirectBitmap.vb" />
+    <Compile Include="Helpers\Extensions.vb" />
+    <Compile Include="Helpers\Image2Ascii.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
       <DependentUpon>Application.myapp</DependentUpon>
@@ -91,20 +91,20 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="RenderCtrl.Designer.vb">
+    <Compile Include="WinForms\Controls\RenderCtrl.Designer.vb">
       <DependentUpon>RenderCtrl.vb</DependentUpon>
     </Compile>
-    <Compile Include="RenderCtrl.vb">
+    <Compile Include="WinForms\Controls\RenderCtrl.vb">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="RenderCtrlGDI.Designer.vb">
+    <Compile Include="WinForms\Controls\RenderCtrlGDI.Designer.vb">
       <DependentUpon>RenderCtrlGDI.vb</DependentUpon>
     </Compile>
-    <Compile Include="RenderCtrlGDI.vb">
+    <Compile Include="WinForms\Controls\RenderCtrlGDI.vb">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="VGAWinForms.vb" />
-    <Compile Include="VideoChar.vb" />
+    <Compile Include="WinForms\VGAWinForms.vb" />
+    <Compile Include="Helpers\VideoChar.vb" />
     <Compile Include="WebUI.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -114,10 +114,10 @@
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="RenderCtrl.resx">
+    <EmbeddedResource Include="WinForms\Controls\RenderCtrl.resx">
       <DependentUpon>RenderCtrl.vb</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="RenderCtrlGDI.resx">
+    <EmbeddedResource Include="WinForms\Controls\RenderCtrlGDI.resx">
       <DependentUpon>RenderCtrlGDI.vb</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>

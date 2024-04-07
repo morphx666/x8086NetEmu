@@ -307,12 +307,16 @@
             Return New XColor(a, r, g, b)
         End Function
 
-        Public Shared Function FromArgb(v As Integer) As XColor
-            Return New XColor((v >> 24) And 255, (v >> 16) And 255, (v >> 8) And 255, v And 255)
+        Public Shared Function FromArgb(v As UInt32) As XColor
+            Return New XColor(v >> 24, (v >> 16) And &HFF, (v >> 8) And &HFF, v And &HFF)
         End Function
 
-        Public Function ToArgb() As Integer
-            Return (A << 24) Or (R << 16) Or (G << 8) Or B
+        Public Function ToArgb() As UInt32
+            Return (CUInt(A) << 24) Or (CUInt(R) << 16) Or (CUInt(G) << 8) Or B
+        End Function
+
+        Public Overrides Function ToString() As String
+            Return $"[A={A}, R={R}, G={G}, B={B}]"
         End Function
     End Structure
 
