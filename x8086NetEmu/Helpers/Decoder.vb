@@ -17,7 +17,6 @@
         Public SegmentOverride As String
 
         Private str As String
-        Private strFull As String
 
         Public Overloads Function ToString(includeOpCode As Boolean) As String
             If str = "" Then

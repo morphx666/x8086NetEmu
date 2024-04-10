@@ -105,9 +105,9 @@
                 ' bit 5: NMI I/O check disable
                 ' bit 6: enable(1) or disable(0) keyboard clock ??
                 ' bit 7: pulse 1 to reset keyboard and IRQ1
-                Dim oldv As UInt32 = ppiB
+                Dim oldValue As UInt32 = ppiB
                 ppiB = value
-                If (timer IsNot Nothing) AndAlso ((oldv Xor value) And 1) <> 0 Then
+                If (timer IsNot Nothing) AndAlso ((oldValue Xor value) And 1) <> 0 Then
                     timer.SetCh2Gate((ppiB And 1) <> 0)
                     If timer.Speaker IsNot Nothing Then timer.Speaker.Enabled = (value And 1) = 1
                 End If
