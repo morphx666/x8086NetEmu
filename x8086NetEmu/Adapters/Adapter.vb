@@ -257,7 +257,7 @@
         Public SuppressKeyPress As Boolean
 
         Public Sub New(keyValue As Integer, modifiers As Integer)
-            Me.KeyValue = keyValue
+            Me.KeyValue = keyValue And (Not modifiers)
             Me.Modifiers = modifiers
             Me.Alt = (modifiers And Keys.Alt) = Keys.Alt
             Me.Control = (modifiers And Keys.Control) = Keys.Control
