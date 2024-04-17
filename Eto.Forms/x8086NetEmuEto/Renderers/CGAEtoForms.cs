@@ -111,7 +111,7 @@ namespace x8086NetEmuEto.Renderers {
                 ctrlSize = new Size(GraphicsResolution.Width, GraphicsResolution.Height);
             }
 
-            Size frmSize = new Size((int)(640 * Zoom), (int)(480 * Zoom));
+            Size frmSize = new Size((int)(640 * Zoom), (int)(400 * Zoom));
             Window frm = (Window)renderControl.FindParent(typeof(Window));
             //Application.Instance.Invoke(() => {
             frm.ClientSize = frmSize;
@@ -125,6 +125,8 @@ namespace x8086NetEmuEto.Renderers {
             Graphics g = e.Graphics;
 
             g.AntiAlias = false;
+            g.ImageInterpolation = ImageInterpolation.None;
+            g.PixelOffsetMode = PixelOffsetMode.None;
             g.ScaleTransform(scale.Width, scale.Height);
 
             XPaintEventArgs ex = new XPaintEventArgs(g, new XRectangle((int)e.ClipRectangle.X,
@@ -139,13 +141,15 @@ namespace x8086NetEmuEto.Renderers {
 
         protected override void Render() {
             if(VideoEnabled) {
-                switch(MainMode) {
-                    case MainModes.Text:
-                        lock(chars) RenderText();
-                        break;
-                    case MainModes.Graphics:
-                        RenderGraphics();
-                        break;
+                lock(chars) {
+                    switch(MainMode) {
+                        case MainModes.Text:
+                            RenderText();
+                            break;
+                        case MainModes.Graphics:
+                            RenderGraphics();
+                            break;
+                    }
                 }
             }
         }
@@ -208,7 +212,36 @@ namespace x8086NetEmuEto.Renderers {
         }
 
         private void RenderGraphics() {
+            int b;
+            int xDiv = PixelsPerByte == 4 ? 2 : 3;
 
+            for(int y = 0; y < GraphicsResolution.Height; y++) {
+                int cy = ((y >> 1) * 80) + ((y & 1) * 0x2000);
+                for(int x = 0; x < GraphicsResolution.Width; x++) {
+                    b = CPU.Memory[mStartGraphicsVideoAddress + cy + (x >> xDiv)];
+
+                    if(PixelsPerByte == 4) {
+                        switch(x & 3) {
+                            case 3:
+                                b = b & 3;
+                                break;
+                            case 2:
+                                b = (b >> 2) & 3;
+                                break;
+                            case 1:
+                                b = (b >> 4) & 3;
+                                break;
+                            case 0:
+                                b = (b >> 6) & 3;
+                                break;
+                        }
+                    } else {
+                        b = (b >> (7 - (x & 7))) & 1;
+                    }
+
+                    videoBMP.SetPixel(x, y, CGAPalette[b].ToColor());
+                }
+            }
         }
 
         protected override void InitVideoMemory(bool clearScreen) {

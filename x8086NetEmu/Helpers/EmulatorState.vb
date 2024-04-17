@@ -1,4 +1,6 @@
-﻿Public Class EmulatorState
+﻿Imports System.Web.UI
+
+Public Class EmulatorState
     Private mCPU As X8086
 
     Public Sub New(cpu As X8086)
@@ -51,7 +53,7 @@
                         xml.Add(<floppy>
                                     <letter><%= Convert.ToChar(65 + i) %></letter>
                                     <index><%= i %></index>
-                                    <image><%= di.FileName.Replace(curPath, "") %></image>
+                                    <image><%= di.FileName.Replace(curPath, "").Replace(X8086.BasePath, "") %></image>
                                     <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
                                 </floppy>)
                     End If
@@ -74,7 +76,7 @@
                     xml.Add(<disk>
                                 <letter><%= Convert.ToChar(67 + (i - 128)) %></letter>
                                 <index><%= i %></index>
-                                <image><%= di.FileName.Replace(curPath, "") %></image>
+                                <image><%= di.FileName.Replace(curPath, "").Replace(X8086.BasePath, "") %></image>
                                 <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
                             </disk>)
                 End If
