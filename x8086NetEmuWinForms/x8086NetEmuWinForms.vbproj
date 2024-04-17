@@ -191,9 +191,7 @@
     <Compile Include="FormEmulator.Designer.vb">
       <DependentUpon>FormEmulator.vb</DependentUpon>
     </Compile>
-    <Compile Include="FormEmulator.vb">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="FormEmulator.vb" />
     <Compile Include="Tools\FormDebugger.Designer.vb">
       <DependentUpon>FormDebugger.vb</DependentUpon>
     </Compile>

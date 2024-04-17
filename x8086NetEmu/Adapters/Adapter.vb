@@ -164,6 +164,7 @@
             Subtract = &H6D
             [Decimal] = &H6E
             Divide = &H6F
+            Slash = Divide
             F1 = &H70
             F2 = &H71
             F3 = &H72
@@ -233,10 +234,12 @@
             Oemtilde = &HC0
             Oem3 = Oemtilde
             OemOpenBrackets = &HDB
+            LeftBracket = &HDB
             Oem4 = OemOpenBrackets
             OemPipe = &HDC
             Oem5 = OemPipe
             OemCloseBrackets = &HDD
+            RightBracket = OemCloseBrackets
             Oem6 = OemCloseBrackets
             OemQuotes = &HDE
             Quote = &HDE

@@ -80,6 +80,8 @@ Public Class KeyMap
         keytbl(Keys.P) = 25
         keytbl(Keys.OemOpenBrackets) = 26
         keytbl(Keys.OemCloseBrackets) = 27
+        keytbl(Keys.LeftBracket) = 26
+        keytbl(Keys.RightBracket) = 27
         keytbl(Keys.Enter) = 28
         keytbl(Keys.ControlKey) = 29
         keytbl(Keys.LeftControl) = 29
@@ -114,6 +116,7 @@ Public Class KeyMap
         keytbl(Keys.OemPeriod) = 52
         keytbl(Keys.OemQuestion) = 53
         keytbl(Keys.Divide) = 53 Or KEY_EXTEND
+        keytbl(Keys.Slash) = 53 Or KEY_EXTEND
         keytbl(Keys.Multiply) = 55
         keytbl(18) = 56 ' ALT
         keytbl(164) = 56 ' ALT

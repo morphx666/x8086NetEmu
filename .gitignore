@@ -273,4 +273,4 @@ ModelManifest.xml
 !**/x8086NetEmu/Bass/**
 
 # Eto.Forms
-!/Eto.Forms
+**/Release/Eto.Forms
