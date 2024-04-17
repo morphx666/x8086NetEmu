@@ -187,7 +187,9 @@
             RControlKey = &HA3
             RightControl = RControlKey
             LMenu = &HA4
+            LeftAlt = LMenu
             RMenu = &HA5
+            RightAlt = RMenu
             BrowserBack = &HA6
             BrowserForward = &HA7
             BrowserRefresh = &HA8

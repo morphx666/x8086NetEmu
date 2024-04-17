@@ -113,6 +113,8 @@ Public Class KeyMap
         keytbl(Keys.Divide) = 53 Or KEY_EXTEND
         keytbl(Keys.Multiply) = 55
         keytbl(18) = 56 ' ALT
+        keytbl(164) = 56 ' ALT
+        keytbl(165) = 56 ' ALT
         keytbl(Keys.Space) = 57
         keytbl(Keys.CapsLock) = 58
         keytbl(Keys.F1) = 59
