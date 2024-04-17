@@ -302,9 +302,8 @@ Partial Public Class X8086
     End Class
 
     Public Sub LoadBIN(fileName As String, segment As UInt16, offset As UInt16)
-        fileName = Path.Combine(basePath, fileName)
-        Notify($"Loading: {fileName} @ {segment:X4}:{offset:X4}", NotificationReasons.Info)
         fileName = FixPath(fileName)
+        Notify($"Loading: {fileName} @ {segment:X4}:{offset:X4}", NotificationReasons.Info)
 
         If File.Exists(fileName) Then
             CopyToMemory(File.ReadAllBytes(fileName), segment, offset)

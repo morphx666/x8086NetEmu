@@ -24,7 +24,7 @@ namespace x8086NetEmuEto.Renderers {
                             string bitmapFontFile = "asciivga.dat") : base(cpu) {
             RenderControl = renderControl;
 
-            string fontCGAPath = X8086.FixPath(X8086.BasePath + @"\misc\" + bitmapFontFile);
+            string fontCGAPath = X8086.FixPath(@"misc\" + bitmapFontFile);
             if(File.Exists(fontCGAPath)) {
                 VideoChar.FontBitmaps = File.ReadAllBytes(fontCGAPath);
                 CellSize = new XSize(8, 16);

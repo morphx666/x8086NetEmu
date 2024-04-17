@@ -108,7 +108,7 @@ Public Class X8086
                    Optional int13 As Boolean = True,
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
                    Optional model As Models = Models.IBMPC_5160,
-                   Optional basePath As String = ".")
+                   Optional basePath As String = ".\")
 
         IsClosing = False
         Scheduler.HOSTCLOCK = Stopwatch.Frequency

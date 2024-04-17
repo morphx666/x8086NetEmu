@@ -2,8 +2,8 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
-		<AssemblyVersion>2024.4.17.161</AssemblyVersion>
-		<FileVersion>2024.4.17.161</FileVersion>
+		<AssemblyVersion>2024.4.17.167</AssemblyVersion>
+		<FileVersion>2024.4.17.167</FileVersion>
 		<BaseOutputPath>..\..\Release\</BaseOutputPath>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>

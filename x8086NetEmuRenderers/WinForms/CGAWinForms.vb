@@ -34,7 +34,7 @@ Public Class CGAWinForms
 
         SetupEventHandlers()
 
-        Dim fontCGAPath As String = X8086.FixPath(X8086.BasePath + "\misc\" + bitmapFontFile)
+        Dim fontCGAPath As String = X8086.FixPath("misc\" + bitmapFontFile)
         Dim fontCGAError As String = ""
 
         Select Case fontSource

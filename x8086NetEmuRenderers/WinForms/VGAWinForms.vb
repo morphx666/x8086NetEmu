@@ -52,7 +52,7 @@ Public Class VGAWinForms
                                              End Sub
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
 
-        Dim fontCGAPath As String = X8086.FixPath(X8086.BasePath + "\misc\" + bitmapFontFile)
+        Dim fontCGAPath As String = X8086.FixPath("misc\" + bitmapFontFile)
         Dim fontCGAError As String = ""
 
         Select Case fontSource
