@@ -1,4 +1,5 @@
-﻿Imports System.Runtime.InteropServices
+﻿Imports System.IO
+Imports System.Runtime.InteropServices
 
 Partial Public Class X8086
     Public Const MemSize As UInt32 = &H10_0000UI  ' 1MB
@@ -301,11 +302,12 @@ Partial Public Class X8086
     End Class
 
     Public Sub LoadBIN(fileName As String, segment As UInt16, offset As UInt16)
+        fileName = Path.Combine(basePath, fileName)
         Notify($"Loading: {fileName} @ {segment:X4}:{offset:X4}", NotificationReasons.Info)
         fileName = FixPath(fileName)
 
-        If IO.File.Exists(fileName) Then
-            CopyToMemory(IO.File.ReadAllBytes(fileName), segment, offset)
+        If File.Exists(fileName) Then
+            CopyToMemory(File.ReadAllBytes(fileName), segment, offset)
         Else
             ThrowException("File Not Found: " + vbCrLf + fileName)
         End If

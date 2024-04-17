@@ -9,7 +9,7 @@ Public Class CGAWinForms
 
     Private blinkCounter As Integer
 
-    Private ReadOnly brushCache(cgaPalette.Length - 1) As Color
+    Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
 
     Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
@@ -32,30 +32,9 @@ Public Class CGAWinForms
 
         Me.RenderControl = renderControl
 
-        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs)
-                                               HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+        SetupEventHandlers()
 
-                                               ' FIXME: Is there a better way to do this?
-                                               e.Handled = True
-                                               e.SuppressKeyPress = True
-                                           End Sub
-        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs)
-                                             HandleKeyUp(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
-
-                                             ' FIXME: Is there a better way to do this?
-                                             e.Handled = True
-                                         End Sub
-
-        AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
-        AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
-                                                 If cpu.Mouse?.IsCaptured Then
-                                                     OnMouseMove(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
-                                                     Cursor.Position = mRenderControl.PointToScreen(New Point(cpu.Mouse.MidPointOffset.X, cpu.Mouse.MidPointOffset.Y))
-                                                 End If
-                                             End Sub
-        AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
-
-        Dim fontCGAPath As String = X8086.FixPath("misc\" + bitmapFontFile)
+        Dim fontCGAPath As String = X8086.FixPath(X8086.BasePath + "\misc\" + bitmapFontFile)
         Dim fontCGAError As String = ""
 
         Select Case fontSource
@@ -97,6 +76,31 @@ Public Class CGAWinForms
                                  StringFormatFlags.MeasureTrailingSpaces Or
                                  StringFormatFlags.FitBlackBox Or
                                  StringFormatFlags.NoClip
+    End Sub
+
+    Private Sub SetupEventHandlers()
+        AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs)
+                                               HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+
+                                               ' FIXME: Is there a better way to do this?
+                                               e.Handled = True
+                                               e.SuppressKeyPress = True
+                                           End Sub
+        AddHandler mRenderControl.KeyUp, Sub(sender As Object, e As KeyEventArgs)
+                                             HandleKeyUp(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
+
+                                             ' FIXME: Is there a better way to do this?
+                                             e.Handled = True
+                                         End Sub
+
+        AddHandler mRenderControl.MouseDown, Sub(sender As Object, e As MouseEventArgs) OnMouseDown(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
+        AddHandler mRenderControl.MouseMove, Sub(sender As Object, e As MouseEventArgs)
+                                                 If CPU.Mouse?.IsCaptured Then
+                                                     OnMouseMove(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
+                                                     Cursor.Position = mRenderControl.PointToScreen(New Point(CPU.Mouse.MidPointOffset.X, CPU.Mouse.MidPointOffset.Y))
+                                                 End If
+                                             End Sub
+        AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
     End Sub
 
     Public Property RenderControl As Control
@@ -172,10 +176,10 @@ Public Class CGAWinForms
 
         g.ScaleTransform(scale.Width, scale.Height)
 
-        Dim ex = New XPaintEventArgs(e.Graphics, New XRectangle(e.ClipRectangle.X,
-                                                                e.ClipRectangle.Y,
-                                                                e.ClipRectangle.Width,
-                                                                e.ClipRectangle.Height))
+        Dim ex = New XPaintEventArgs(g, New XRectangle(e.ClipRectangle.X,
+                                                       e.ClipRectangle.Y,
+                                                       e.ClipRectangle.Width,
+                                                       e.ClipRectangle.Height))
 
         OnPreRender(sender, ex)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
@@ -192,8 +196,8 @@ Public Class CGAWinForms
         MyBase.OnPaletteRegisterChanged()
 
         If brushCache IsNot Nothing Then
-            For i As Integer = 0 To cgaPalette.Length - 1
-                brushCache(i) = cgaPalette(i).ToColor()
+            For i As Integer = 0 To CGAPalette.Length - 1
+                brushCache(i) = CGAPalette(i).ToColor()
             Next
 
             charsCache.Clear()
@@ -202,12 +206,16 @@ Public Class CGAWinForms
 
     Protected Overrides Sub Render()
         If VideoEnabled Then
-            SyncLock chars
-                Select Case MainMode
-                    Case MainModes.Text : RenderText()
-                    Case MainModes.Graphics : RenderGraphics()
-                End Select
-            End SyncLock
+            Select Case MainMode
+                Case MainModes.Text
+                    SyncLock chars
+                        RenderText()
+                    End SyncLock
+
+                Case MainModes.Graphics
+                    RenderGraphics()
+
+            End Select
         End If
     End Sub
 
@@ -279,7 +287,7 @@ Public Class CGAWinForms
                     b = (b >> (7 - (x And 7))) And 1
                 End If
 
-                videoBMP.Pixel(x, y) = cgaPalette(b).ToColor()
+                videoBMP.Pixel(x, y) = CGAPalette(b).ToColor()
             Next
         Next
     End Sub
@@ -287,7 +295,7 @@ Public Class CGAWinForms
     Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point)
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
-                g.FillRectangle(bbb, New Rectangle(New Point(p.X, p.Y), mCellSize.ToSize()))
+                g.FillRectangle(bbb, New Rectangle(p, mCellSize.ToSize()))
                 Using bfb As New SolidBrush(fb)
                     g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - mCellSize.Width / 2 + 2, p.Y)
                 End Using
@@ -300,11 +308,11 @@ Public Class CGAWinForms
                 charsCache.Add(ccc)
                 idx = charsCache.Count - 1
             End If
-            charsCache(idx).Paint(dbmp, New Point(p.X, p.Y), scale)
+            charsCache(idx).Paint(dbmp, p, scale)
         End If
     End Sub
 
-    Private Function MeasureChar(graphics As Graphics, code As Integer, text As Char, font As Font) As Size
+    Private Function MeasureChar(g As Graphics, code As Integer, text As Char, font As Font) As Size
         Dim size As Size
 
         Select Case fontSourceMode
@@ -319,8 +327,8 @@ Public Class CGAWinForms
 
                 textFormat.SetMeasurableCharacterRanges(ranges)
 
-                regions = graphics.MeasureCharacterRanges(text, font, r, textFormat)
-                r = regions(0).GetBounds(graphics)
+                regions = g.MeasureCharacterRanges(text, font, r, textFormat)
+                r = regions(0).GetBounds(g)
 
                 size = New Size(r.Right - 1, r.Bottom)
                 charSizeCache.Add(code, size)

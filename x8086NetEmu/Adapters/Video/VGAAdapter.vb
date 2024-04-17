@@ -691,7 +691,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB8000
                         mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New XSize(40, 25)
-                        mVideoResolution = New XSize(360, 400)
+                        mGraphicsResolution = New XSize(360, 400)
                         'mCellSize = New Size(9, 16)
                         mMainMode = MainModes.Text
                         mPixelsPerByte = 1
@@ -700,7 +700,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB8000
                         mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New XSize(40, 25)
-                        mVideoResolution = New XSize(360, 400)
+                        mGraphicsResolution = New XSize(360, 400)
                         'mCellSize = New Size(9, 16)
                         mMainMode = MainModes.Text
                         mPixelsPerByte = 4
@@ -710,7 +710,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB8000
                         mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New XSize(80, 25)
-                        mVideoResolution = New XSize(640, 400)
+                        mGraphicsResolution = New XSize(640, 400)
                         'mCellSize = New Size(9, 16)
                         mMainMode = MainModes.Text
                         mPixelsPerByte = 1
@@ -720,7 +720,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB8000
                         mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New XSize(80, 25)
-                        mVideoResolution = New XSize(720, 400)
+                        mGraphicsResolution = New XSize(720, 400)
                         'mCellSize = New Size(9, 16)
                         mMainMode = MainModes.Text
                         mPixelsPerByte = 4
@@ -730,7 +730,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB8000
                         mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New XSize(40, 25)
-                        mVideoResolution = New XSize(320, 200)
+                        mGraphicsResolution = New XSize(320, 200)
                         'mCellSize = New Size(8, 8)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 4
@@ -745,7 +745,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB8000
                         mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New XSize(80, 25)
-                        mVideoResolution = New XSize(640, 400)
+                        mGraphicsResolution = New XSize(640, 400)
                         'mCellSize = New Size(8, 8)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 2
@@ -757,7 +757,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB8000
                         mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New XSize(80, 25)
-                        mVideoResolution = New XSize(720, 400)
+                        mGraphicsResolution = New XSize(720, 400)
                         'mCellSize = New Size(9, 16)
                         mMainMode = MainModes.Text
                         mPixelsPerByte = 1
@@ -766,7 +766,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB8000
                         mStartGraphicsVideoAddress = &HB8000
                         mTextResolution = New XSize(40, 25)
-                        mVideoResolution = New XSize(320, 200)
+                        mGraphicsResolution = New XSize(320, 200)
                         'mCellSize = New Size(8, 8)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 4
@@ -776,7 +776,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HA0000
                         mStartGraphicsVideoAddress = &HA0000
                         mTextResolution = New XSize(40, 25)
-                        mVideoResolution = New XSize(320, 200)
+                        mGraphicsResolution = New XSize(320, 200)
                         'mCellSize = New Size(8, 8)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 4
@@ -786,7 +786,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HA0000
                         mStartGraphicsVideoAddress = &HA0000
                         mTextResolution = New XSize(80, 25)
-                        mVideoResolution = New XSize(640, 200)
+                        mGraphicsResolution = New XSize(640, 200)
                         'mCellSize = New Size(8, 8)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 4
@@ -795,7 +795,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HA0000
                         mStartGraphicsVideoAddress = &HA0000
                         mTextResolution = New XSize(80, 25)
-                        mVideoResolution = New XSize(640, 350)
+                        mGraphicsResolution = New XSize(640, 350)
                         'mCellSize = New Size(8, 8)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 4
@@ -804,7 +804,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HA0000
                         mStartGraphicsVideoAddress = &HA0000
                         mTextResolution = New XSize(80, 25)
-                        mVideoResolution = New XSize(640, 350)
+                        mGraphicsResolution = New XSize(640, 350)
                         'mCellSize = New Size(8, 14)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 1
@@ -813,7 +813,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HA0000
                         mStartGraphicsVideoAddress = &HA0000
                         mTextResolution = New XSize(80, 25)
-                        mVideoResolution = New XSize(640, 480)
+                        mGraphicsResolution = New XSize(640, 480)
                         'mCellSize = New Size(8, 14)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 1
@@ -822,7 +822,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HA0000
                         mStartGraphicsVideoAddress = &HA0000
                         mTextResolution = New XSize(40, 25)
-                        mVideoResolution = New XSize(640, 480)
+                        mGraphicsResolution = New XSize(640, 480)
                         'mCellSize = New Size(8, 16)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 4
@@ -832,7 +832,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HA0000
                         mStartGraphicsVideoAddress = &HA0000
                         mTextResolution = New XSize(40, 25)
-                        mVideoResolution = New XSize(320, 200)
+                        mGraphicsResolution = New XSize(320, 200)
                         'mCellSize = New Size(8, 8)
                         mMainMode = MainModes.Graphics
                         mPixelsPerByte = 4
@@ -842,7 +842,7 @@ Public MustInherit Class VGAAdapter
                         mStartTextVideoAddress = &HB0000
                         mStartGraphicsVideoAddress = &HB0000
                         mTextResolution = New XSize(90, 25)
-                        mVideoResolution = New XSize(720, 400)
+                        mGraphicsResolution = New XSize(720, 400)
                         'mCellSize = New Size(8, 16)
                         mMainMode = MainModes.Text
                         mPixelsPerByte = 1

@@ -102,10 +102,13 @@ Public Class X8086
 
     Public Shared IsClosing As Boolean = False
 
+    Public Shared BasePath As String
+
     Public Sub New(Optional v20 As Boolean = True,
                    Optional int13 As Boolean = True,
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
-                   Optional model As Models = Models.IBMPC_5160)
+                   Optional model As Models = Models.IBMPC_5160,
+                   Optional basePath As String = ".")
 
         IsClosing = False
         Scheduler.HOSTCLOCK = Stopwatch.Frequency
@@ -115,6 +118,7 @@ Public Class X8086
         mEmulateINT13 = int13
         restartCallback = restartEmulationCallback
         mModel = model
+        X8086.BasePath = basePath
 
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()

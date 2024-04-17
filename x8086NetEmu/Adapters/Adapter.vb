@@ -52,6 +52,7 @@
             XButton1 = &H5
             XButton2 = &H6
             Back = &H8
+            Backspace = Back
             Tab = &H9
             LineFeed = &HA
             Clear = &HC
@@ -178,9 +179,13 @@
             NumLock = &H90
             Scroll = &H91
             LShiftKey = &HA0
+            LeftShift = LShiftKey
             RShiftKey = &HA1
+            RightShift = RShiftKey
             LControlKey = &HA2
+            LeftControl = LControlKey
             RControlKey = &HA3
+            RightControl = RControlKey
             LMenu = &HA4
             RMenu = &HA5
             BrowserBack = &HA6

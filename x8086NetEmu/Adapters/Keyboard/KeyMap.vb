@@ -82,6 +82,8 @@ Public Class KeyMap
         keytbl(Keys.OemCloseBrackets) = 27
         keytbl(Keys.Enter) = 28
         keytbl(Keys.ControlKey) = 29
+        keytbl(Keys.LeftControl) = 29
+        keytbl(Keys.RightControl) = 29
         keytbl(Keys.A) = 30
         keytbl(Keys.S) = 31
         keytbl(Keys.D) = 32
@@ -95,6 +97,8 @@ Public Class KeyMap
         keytbl(Keys.OemQuotes) = 40
         keytbl(Keys.Oemtilde) = 41
         keytbl(Keys.ShiftKey) = SCAN_LSHIFT
+        keytbl(Keys.LeftShift) = SCAN_LSHIFT
+        keytbl(Keys.RightShift) = SCAN_RSHIFT
         keytbl(Keys.OemPipe) = 43 ' Keys.OemBackslash
         keytbl(Keys.Z) = 44
         keytbl(Keys.X) = 45
