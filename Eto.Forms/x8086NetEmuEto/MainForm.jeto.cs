@@ -10,10 +10,12 @@ namespace x8086NetEmuEto {
     public class MainForm : Form {
         private X8086 cpu;
         protected Drawable Canvas;
-        private const string basePath = @"..\..\";
+        private readonly string basePath = @"..\..\";
 
         public MainForm() {
             JsonReader.Load(this);
+
+            if(Platform.IsMac) basePath = @"..\..\..\";
 
             StartEmulation();
         }

@@ -353,7 +353,7 @@
             Case Adapter.AdapterType.Floppy
                 mFloppyController = adapter
             Case Adapter.AdapterType.AudioDevice
-                audioSubSystem.Providers.Add(adapter)
+                audioSubSystem?.Providers.Add(adapter)
         End Select
     End Sub
 

@@ -65,7 +65,9 @@ Public Class KeyMap
         keytbl(Keys.D9) = 10
         keytbl(Keys.D0) = 11
         keytbl(Keys.OemMinus) = 12
+        keytbl(Keys.Minus) = 12
         keytbl(Keys.Oemplus) = 13
+        keytbl(Keys.Equal) = 13
         keytbl(Keys.Back) = 14
         keytbl(Keys.Tab) = 15
         keytbl(Keys.Q) = 16
@@ -80,6 +82,8 @@ Public Class KeyMap
         keytbl(Keys.P) = 25
         keytbl(Keys.OemOpenBrackets) = 26
         keytbl(Keys.OemCloseBrackets) = 27
+        keytbl(Keys.LeftBracket) = 26
+        keytbl(Keys.RightBracket) = 27
         keytbl(Keys.Enter) = 28
         keytbl(Keys.ControlKey) = 29
         keytbl(Keys.LeftControl) = 29
@@ -98,6 +102,7 @@ Public Class KeyMap
         keytbl(Keys.OemQuotes) = 40
         keytbl(Keys.Quote) = 40
         keytbl(Keys.Oemtilde) = 41
+        keytbl(Keys.Grave) = 41
         keytbl(Keys.ShiftKey) = SCAN_LSHIFT
         keytbl(Keys.LeftShift) = SCAN_LSHIFT
         keytbl(Keys.RightShift) = SCAN_RSHIFT
@@ -111,9 +116,12 @@ Public Class KeyMap
         keytbl(Keys.N) = 49
         keytbl(Keys.M) = 50
         keytbl(Keys.Oemcomma) = 51
+        keytbl(Keys.Comma) = 51
         keytbl(Keys.OemPeriod) = 52
+        keytbl(Keys.Period) = 52
         keytbl(Keys.OemQuestion) = 53
         keytbl(Keys.Divide) = 53 Or KEY_EXTEND
+        keytbl(Keys.Slash) = 53 Or KEY_EXTEND
         keytbl(Keys.Multiply) = 55
         keytbl(18) = 56 ' ALT
         keytbl(164) = 56 ' ALT

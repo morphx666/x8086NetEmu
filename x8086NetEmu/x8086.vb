@@ -111,8 +111,8 @@ Public Class X8086
                    Optional basePath As String = ".\")
 
         IsClosing = False
-        Scheduler.HOSTCLOCK = Stopwatch.Frequency
-        'Scheduler.HOSTCLOCK = GetCpuSpeed() * 10000
+        'Scheduler.HOSTCLOCK = Stopwatch.Frequency
+        Scheduler.HOSTCLOCK = GetCpuSpeed() * 10000
 
         mV20 = v20
         mEmulateINT13 = int13
@@ -334,7 +334,7 @@ Public Class X8086
         Next
 
         Sched.Start()
-        audioSubSystem.Init()
+        audioSubSystem?.Init()
     End Sub
 
     Private Sub MIPSCounterLoop()

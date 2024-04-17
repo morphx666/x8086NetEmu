@@ -570,11 +570,10 @@
             RegisteredPorts.Add(i)
         Next
 
-        ' FIXME: WHY???!!!!
 #If DEBUG Then
-        COUNTRATE /= 4
+        COUNTRATE = Scheduler.HOSTCLOCK / 100
 #Else
-        COUNTRATE /= 14
+        COUNTRATE = Scheduler.HOSTCLOCK / 1000
 #End If
     End Sub
 
@@ -689,9 +688,9 @@
                 mSpeaker.Frequency = 0
             Else
 #If DEBUG Then
-                mSpeaker.Frequency = 134.07 * COUNTRATE / period
+                mSpeaker.Frequency = 430 * COUNTRATE / period
 #Else
-                mSpeaker.Frequency = 1700 * COUNTRATE / period
+                mSpeaker.Frequency = 43000 * COUNTRATE / period
 #End If
             End If
         End If

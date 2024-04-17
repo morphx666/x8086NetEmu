@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Eto;
 using Eto.Drawing;
@@ -14,8 +15,9 @@ namespace x8086NetEmuEto.Renderers {
         private Drawable renderControl;
         private SizeF scale = new SizeF(1, 1);
 
-        private readonly Color[] brushCache;
         private Bitmap videoBMP = new Bitmap(1, 1, PixelFormat.Format32bppRgb);
+
+        private readonly Color[] brushCache;
         private readonly List<VideoChar> charsCache = new List<VideoChar>();
         private readonly Dictionary<int, Size> charSizeCache = new Dictionary<int, Size>();
 
@@ -24,7 +26,6 @@ namespace x8086NetEmuEto.Renderers {
                             FontSources fontSource = FontSources.BitmapFile,
                             string bitmapFontFile = "asciivga.dat") : base(cpu) {
             RenderControl = renderControl;
-            RenderControl.CanFocus = true;
 
             string fontCGAPath = X8086.FixPath(@"misc\" + bitmapFontFile);
             if(File.Exists(fontCGAPath)) {
@@ -39,10 +40,6 @@ namespace x8086NetEmuEto.Renderers {
 
         private void SetupEventHandlers() {
             renderControl.KeyDown += (sender, e) => {
-                Debug.WriteLine("Key: " + e.Key);
-                Debug.WriteLine("KeyData: " + e.KeyData);
-                Debug.WriteLine("KeyChar: " + e.KeyChar);
-                Debug.WriteLine("----------------------------------");
                 HandleKeyDown(this, new XKeyEventArgs(KeyToInt(e.Key), KeyToInt(e.Modifiers)));
                 e.Handled = true;
             };
@@ -119,15 +116,12 @@ namespace x8086NetEmuEto.Renderers {
 
             Size frmSize = new Size((int)(640 * Zoom), (int)(400 * Zoom));
             Window frm = (Window)renderControl.FindParent(typeof(Window));
-            if(Platform.Instance.IsGtk) {
-                frm.ClientSize = frmSize;
-                renderControl.Size = frmSize;
-            }
             if(Platform.Instance.IsWpf) {
                 Application.Instance.Invoke(() => {
                     frm.ClientSize = frmSize;
-                    renderControl.Size = frmSize;
                 });
+            } else {
+                frm.ClientSize = frmSize;
             }
 
             scale = new SizeF((float)frmSize.Width / ctrlSize.Width, (float)frmSize.Height / ctrlSize.Height);
@@ -147,11 +141,8 @@ namespace x8086NetEmuEto.Renderers {
                                                                        (int)e.ClipRectangle.Height));
 
             OnPreRender(sender, ex);
-            lock(chars) g.DrawImage(videoBMP, 0, 0);
-            OnPostRender(sender, ex);
-        }
+            //lock(chars) g.DrawImage(videoBMP, 0, 0);
 
-        protected override void Render() {
             if(VideoEnabled) {
                 lock(chars) {
                     switch(MainMode) {
@@ -162,8 +153,26 @@ namespace x8086NetEmuEto.Renderers {
                             RenderGraphics();
                             break;
                     }
+                    g.DrawImage(videoBMP, 0, 0);
                 }
             }
+
+            OnPostRender(sender, ex);
+        }
+
+        protected override void Render() {
+            //if(VideoEnabled) {
+            //    lock(chars) {
+            //        switch(MainMode) {
+            //            case MainModes.Text:
+            //                RenderText();
+            //                break;
+            //            case MainModes.Graphics:
+            //                RenderGraphics();
+            //                break;
+            //        }
+            //    }
+            //}
         }
 
         private void RenderText() {
@@ -182,7 +191,7 @@ namespace x8086NetEmuEto.Renderers {
                         if(blinkCounter < BlinkRate) atr = 0;
                     }
 
-                    RenderChar(chr, g, brushCache[atr & 0xF], brushCache[atr >> 4], r.Location);
+                    RenderChar(g, chr, brushCache[atr & 0xF], brushCache[atr >> 4], r.Location);
 
                     if(CursorVisible && row == CursorRow && col == CursorCol) {
                         if(blinkCounter < BlinkRate) {
@@ -207,12 +216,13 @@ namespace x8086NetEmuEto.Renderers {
 
                         r.X = 0;
                         r.Y += mCellSize.Height;
+
                     }
                 }
             }
         }
 
-        private void RenderChar(byte c, Graphics g, Color fb, Color bb, Point p) {
+        private void RenderChar(Graphics g, byte c, Color fb, Color bb, Point p) {
             VideoChar ccc = new VideoChar(c, fb, bb);
             int idx = charsCache.IndexOf(ccc);
             if(idx == -1) {
@@ -235,7 +245,7 @@ namespace x8086NetEmuEto.Renderers {
                     if(PixelsPerByte == 4) {
                         switch(x & 3) {
                             case 3:
-                                b = b & 3;
+                                b &= 3;
                                 break;
                             case 2:
                                 b = (b >> 2) & 3;
@@ -271,7 +281,7 @@ namespace x8086NetEmuEto.Renderers {
                 }
 
                 lock(chars) {
-                    if(videoBMP != null) videoBMP.Dispose();
+                    videoBMP?.Dispose();
                     videoBMP = new Bitmap(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb);
                 }
             }
