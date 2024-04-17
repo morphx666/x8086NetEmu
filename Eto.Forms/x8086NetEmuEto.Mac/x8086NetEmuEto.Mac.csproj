@@ -3,11 +3,11 @@
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
 		<RuntimeIdentifiers>osx-x64;osx-arm64</RuntimeIdentifiers>
-		<AssemblyVersion>2024.4.17.39</AssemblyVersion>
-		<FileVersion>2024.4.17.39</FileVersion>
-		<BaseOutputPath>..\..\Release\</BaseOutputPath>
+		<AssemblyVersion>2024.4.17.50</AssemblyVersion>
+		<FileVersion>2024.4.17.50</FileVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<BaseOutputPath>..\..\Release\Eto.Forms\</BaseOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>

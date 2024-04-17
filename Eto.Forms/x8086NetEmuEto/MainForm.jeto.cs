@@ -10,7 +10,7 @@ namespace x8086NetEmuEto {
     public class MainForm : Form {
         private X8086 cpu;
         protected Drawable Canvas;
-        private const string basePath = @"..\";
+        private const string basePath = @"..\..\";
 
         public MainForm() {
             JsonReader.Load(this);

@@ -94,12 +94,15 @@ Public Class KeyMap
         keytbl(Keys.K) = 37
         keytbl(Keys.L) = 38
         keytbl(Keys.OemSemicolon) = 39
+        keytbl(Keys.Semicolon) = 39
         keytbl(Keys.OemQuotes) = 40
+        keytbl(Keys.Quote) = 40
         keytbl(Keys.Oemtilde) = 41
         keytbl(Keys.ShiftKey) = SCAN_LSHIFT
         keytbl(Keys.LeftShift) = SCAN_LSHIFT
         keytbl(Keys.RightShift) = SCAN_RSHIFT
         keytbl(Keys.OemPipe) = 43 ' Keys.OemBackslash
+        keytbl(Keys.Backslash) = 43 ' Keys.OemBackslash
         keytbl(Keys.Z) = 44
         keytbl(Keys.X) = 45
         keytbl(Keys.C) = 46

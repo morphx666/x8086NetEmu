@@ -133,7 +133,9 @@
             Y = &H59
             Z = &H5A
             LWin = &H5B
+            LeftApplication = LWin
             RWin = &H5C
+            RightApplication = RWin
             Apps = &H5D
             Sleep = &H5F
             NumPad0 = &H60
@@ -146,6 +148,16 @@
             NumPad7 = &H67
             NumPad8 = &H68
             NumPad9 = &H69
+            Keypad0 = &H60
+            Keypad1 = &H61
+            Keypad2 = &H62
+            Keypad3 = &H63
+            Keypad4 = &H64
+            Keypad5 = &H65
+            Keypad6 = &H66
+            Keypad7 = &H67
+            Keypad8 = &H68
+            Keypad9 = &H69
             Multiply = &H6A
             Add = &H6B
             Separator = &H6C
@@ -177,6 +189,7 @@
             F23 = &H86
             F24 = &H87
             NumLock = &H90
+            NumberLock = &H90
             Scroll = &H91
             LShiftKey = &HA0
             LeftShift = LShiftKey
@@ -209,6 +222,7 @@
             LaunchApplication1 = &HB6
             LaunchApplication2 = &HB7
             OemSemicolon = &HBA
+            Semicolon = OemSemicolon
             Oem1 = OemSemicolon
             Oemplus = &HBB
             Oemcomma = &HBC
@@ -225,9 +239,11 @@
             OemCloseBrackets = &HDD
             Oem6 = OemCloseBrackets
             OemQuotes = &HDE
+            Quote = &HDE
             Oem7 = OemQuotes
             Oem8 = &HDF
             OemBackslash = &HE2
+            Backslash = &HE2
             Oem102 = OemBackslash
             ProcessKey = &HE5
             Packet = &HE7

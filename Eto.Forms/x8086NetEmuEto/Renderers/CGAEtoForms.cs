@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Eto;
 using Eto.Drawing;
 using Eto.Forms;
 using x8086NetEmu;
@@ -23,6 +24,7 @@ namespace x8086NetEmuEto.Renderers {
                             FontSources fontSource = FontSources.BitmapFile,
                             string bitmapFontFile = "asciivga.dat") : base(cpu) {
             RenderControl = renderControl;
+            RenderControl.CanFocus = true;
 
             string fontCGAPath = X8086.FixPath(@"misc\" + bitmapFontFile);
             if(File.Exists(fontCGAPath)) {
@@ -37,6 +39,10 @@ namespace x8086NetEmuEto.Renderers {
 
         private void SetupEventHandlers() {
             renderControl.KeyDown += (sender, e) => {
+                Debug.WriteLine("Key: " + e.Key);
+                Debug.WriteLine("KeyData: " + e.KeyData);
+                Debug.WriteLine("KeyChar: " + e.KeyChar);
+                Debug.WriteLine("----------------------------------");
                 HandleKeyDown(this, new XKeyEventArgs(KeyToInt(e.Key), KeyToInt(e.Modifiers)));
                 e.Handled = true;
             };
@@ -113,10 +119,16 @@ namespace x8086NetEmuEto.Renderers {
 
             Size frmSize = new Size((int)(640 * Zoom), (int)(400 * Zoom));
             Window frm = (Window)renderControl.FindParent(typeof(Window));
-            //Application.Instance.Invoke(() => {
-            frm.ClientSize = frmSize;
-            renderControl.Size = frmSize;
-            //});
+            if(Platform.Instance.IsGtk) {
+                frm.ClientSize = frmSize;
+                renderControl.Size = frmSize;
+            }
+            if(Platform.Instance.IsWpf) {
+                Application.Instance.Invoke(() => {
+                    frm.ClientSize = frmSize;
+                    renderControl.Size = frmSize;
+                });
+            }
 
             scale = new SizeF((float)frmSize.Width / ctrlSize.Width, (float)frmSize.Height / ctrlSize.Height);
         }
