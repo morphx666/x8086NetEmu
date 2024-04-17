@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<RuntimeIdentifiers>osx-x64;osx-arm64</RuntimeIdentifiers>
+		<AssemblyVersion>2024.4.17.39</AssemblyVersion>
+		<FileVersion>2024.4.17.39</FileVersion>
+		<BaseOutputPath>..\..\Release\</BaseOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\x8086NetEmuEto\x8086NetEmuEto.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Eto.Platform.Mac64" Version="2.8.3" />
+	</ItemGroup>
+
+</Project>

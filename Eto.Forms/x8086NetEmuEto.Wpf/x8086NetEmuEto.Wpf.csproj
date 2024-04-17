@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<AssemblyVersion>2024.4.17.45</AssemblyVersion>
+		<FileVersion>2024.4.17.45</FileVersion>
+		<BaseOutputPath>..\..\Release\</BaseOutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\x8086NetEmuEto\x8086NetEmuEto.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Eto.Platform.Wpf" Version="2.8.3" />
+	</ItemGroup>
+
+</Project>

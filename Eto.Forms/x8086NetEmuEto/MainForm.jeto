@@ -1,0 +1,17 @@
+﻿{
+	"$type": "Form",
+	"Title": "x8086NetEmu",
+	"ClientSize": "1024, 768",
+	"Maximizable": "false",
+	"Content": {
+		"$type": "DynamicLayout",
+		"Rows": [
+			{
+				"$type": "Drawable",
+				"$name": "Canvas",
+				"CanFocus": "true",
+				"BackgroundColor": "Black"
+			}
+		]
+	}
+}
