@@ -38,7 +38,7 @@ Public Class AudioSubsystem
         Me.cpu = cpu
         BassHelpers.Setup()
 
-        bufferMax = (SpeakerAdapter.SampleRate / 1000) * latency
+        bufferMax = (SpeakerAdapter.SampleRate / 1_000) * latency
         bufferIndex = bufferMax
 
         handle = Bass.CreateStream(SpeakerAdapter.SampleRate, 1, BassFlags.Byte, AddressOf FillAudioBuffer, IntPtr.Zero)
@@ -74,12 +74,7 @@ Public Class AudioSubsystem
     End Function
 
     Public Sub Init()
-        ' FIXME: This 1/10 factor is due to the factor used in the PIT8254
-#If DEBUG Then
-        sampleTicks = Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
-#Else
-        sampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
-#End If
+        sampleTicks = 0.5 * Scheduler.HOSTCLOCK / SpeakerAdapter.SampleRate
         cpu.Sched.RunTaskEach(sTask, sampleTicks)
     End Sub
 

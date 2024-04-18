@@ -82,8 +82,7 @@
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            ' FIXME: This 14 factor is due to the factor used in the PIT8254
-            blaster.SampleTicks = 14 * Scheduler.HOSTCLOCK \ blaster.SampleRate
+            blaster.SampleTicks = Scheduler.HOSTCLOCK / blaster.SampleRate
 
             task.Cancel()
             CPU.Sched.RunTaskEach(task, blaster.SampleTicks)

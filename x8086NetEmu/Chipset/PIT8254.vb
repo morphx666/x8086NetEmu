@@ -570,11 +570,7 @@
             RegisteredPorts.Add(i)
         Next
 
-#If DEBUG Then
-        COUNTRATE = Scheduler.HOSTCLOCK / 100
-#Else
-        COUNTRATE = Scheduler.HOSTCLOCK / 1000
-#End If
+        COUNTRATE = Scheduler.HOSTCLOCK * cpu.SimulationMultiplier / 65 ' Why 65? Who the fuck knows! Also, it varies between releases... 🤯
     End Sub
 
     Public ReadOnly Property Channels(index As Integer) As Counter
@@ -687,11 +683,7 @@
             If period = 0 Then
                 mSpeaker.Frequency = 0
             Else
-#If DEBUG Then
-                mSpeaker.Frequency = 430 * COUNTRATE / period
-#Else
-                mSpeaker.Frequency = 43000 * COUNTRATE / period
-#End If
+                mSpeaker.Frequency = 500 * COUNTRATE / period
             End If
         End If
     End Sub

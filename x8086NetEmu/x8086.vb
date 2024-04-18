@@ -111,8 +111,8 @@ Public Class X8086
                    Optional basePath As String = ".\")
 
         IsClosing = False
-        'Scheduler.HOSTCLOCK = Stopwatch.Frequency
-        Scheduler.HOSTCLOCK = GetCpuSpeed() * 10000
+        Scheduler.HOSTCLOCK = Stopwatch.Frequency
+        'Scheduler.HOSTCLOCK = GetCpuSpeed() * 10000
 
         mV20 = v20
         mEmulateINT13 = int13
@@ -374,8 +374,8 @@ Public Class X8086
 
     Private Sub SetSynchronization()
         Sched.SetSynchronization(True,
-                                (Scheduler.HOSTCLOCK \ 100),
-                                (Scheduler.HOSTCLOCK \ 1000) * mSimulationMultiplier)
+                                (Scheduler.HOSTCLOCK / 20),
+                                (Scheduler.HOSTCLOCK / 1000))
 
         'PIT?.UpdateClock()
         'VideoAdapter?.UpdateClock()
@@ -386,12 +386,12 @@ Public Class X8086
 
         Dim maxRunTime As Long = Sched.GetTimeToNextEvent()
         If maxRunTime > Scheduler.HOSTCLOCK Then maxRunTime = Scheduler.HOSTCLOCK
-        Dim maxRunCycl As Long = (maxRunTime * BASECLOCK - leftCycleFrags + Scheduler.HOSTCLOCK - 1) \ Scheduler.HOSTCLOCK
+        Dim maxRunCycles As Long = (maxRunTime * BASECLOCK - leftCycleFrags + Scheduler.HOSTCLOCK - 1) \ Scheduler.HOSTCLOCK
 
         DoReschedule = False
 
         If DebugMode Then
-            While clkCyc < maxRunCycl AndAlso Not DoReschedule AndAlso DebugMode
+            While clkCyc < maxRunCycles AndAlso Not DoReschedule AndAlso DebugMode
                 debugWaiter.WaitOne()
 
                 SyncLock decoderSyncObj
@@ -410,7 +410,7 @@ Public Class X8086
             End While
         Else
             mIsExecuting = True
-            While clkCyc < maxRunCycl AndAlso Not DoReschedule
+            While clkCyc < maxRunCycles AndAlso Not DoReschedule
                 PreExecute()
 #If DEBUG Then
                 Execute_DEBUG()

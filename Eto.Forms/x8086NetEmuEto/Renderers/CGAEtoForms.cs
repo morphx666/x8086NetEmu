@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Eto;
 using Eto.Drawing;
@@ -15,7 +13,8 @@ namespace x8086NetEmuEto.Renderers {
         private Drawable renderControl;
         private SizeF scale = new SizeF(1, 1);
 
-        private Bitmap videoBMP = new Bitmap(1, 1, PixelFormat.Format32bppRgb);
+        private Bitmap[] videoBMP;
+        private int bmpIndex = 0;
 
         private readonly Color[] brushCache;
         private readonly List<VideoChar> charsCache = new List<VideoChar>();
@@ -34,6 +33,11 @@ namespace x8086NetEmuEto.Renderers {
             }
 
             brushCache = new Color[CGAPalette.Length];
+
+            videoBMP = new Bitmap[2] {
+                new Bitmap(1, 1, PixelFormat.Format32bppRgb),
+                new Bitmap(1, 1, PixelFormat.Format32bppRgb)
+            };
 
             SetupEventHandlers();
         }
@@ -141,48 +145,33 @@ namespace x8086NetEmuEto.Renderers {
                                                                        (int)e.ClipRectangle.Height));
 
             OnPreRender(sender, ex);
-            //lock(chars) g.DrawImage(videoBMP, 0, 0);
-
-            if(VideoEnabled) {
-                lock(chars) {
-                    switch(MainMode) {
-                        case MainModes.Text:
-                            RenderText();
-                            break;
-                        case MainModes.Graphics:
-                            RenderGraphics();
-                            break;
-                    }
-                    g.DrawImage(videoBMP, 0, 0);
-                }
-            }
-
+            g.DrawImage(videoBMP[bmpIndex], 0, 0);
             OnPostRender(sender, ex);
         }
 
         protected override void Render() {
-            //if(VideoEnabled) {
-            //    lock(chars) {
-            //        switch(MainMode) {
-            //            case MainModes.Text:
-            //                RenderText();
-            //                break;
-            //            case MainModes.Graphics:
-            //                RenderGraphics();
-            //                break;
-            //        }
-            //    }
-            //}
+            if(VideoEnabled) {
+                int nextBmpIndex = bmpIndex == 0 ? 1 : 0;
+                switch(MainMode) {
+                    case MainModes.Text:
+                        RenderText(nextBmpIndex);
+                        break;
+                    case MainModes.Graphics:
+                        RenderGraphics(nextBmpIndex);
+                        break;
+                }
+                bmpIndex = nextBmpIndex;
+            }
         }
 
-        private void RenderText() {
+        private void RenderText(int bmpIndex) {
             int col = 0;
             int row = 0;
 
             // FIXME: This should be cached
             Rectangle r = new Rectangle(Point.Empty, CellSize.ToSize());
 
-            using(Graphics g = new Graphics(videoBMP)) {
+            using(Graphics g = new Graphics(videoBMP[bmpIndex])) {
                 for(UInt32 address = StartTextVideoAddress; address < EndTextVideoAddress; address += 2) {
                     byte chr = CPU.Memory[address];
                     byte atr = CPU.Memory[address + 1];
@@ -233,7 +222,7 @@ namespace x8086NetEmuEto.Renderers {
             charsCache[idx].Paint(g, p, scale);
         }
 
-        private void RenderGraphics() {
+        private void RenderGraphics(int bmpIndex) {
             int b;
             int xDiv = PixelsPerByte == 4 ? 2 : 3;
 
@@ -261,7 +250,7 @@ namespace x8086NetEmuEto.Renderers {
                         b = (b >> (7 - (x & 7))) & 1;
                     }
 
-                    videoBMP.SetPixel(x, y, CGAPalette[b].ToColor());
+                    videoBMP[bmpIndex].SetPixel(x, y, CGAPalette[b].ToColor());
                 }
             }
         }
@@ -280,9 +269,14 @@ namespace x8086NetEmuEto.Renderers {
                     CellSize = new XSize(cs.Width, cs.Height);
                 }
 
-                lock(chars) {
-                    videoBMP?.Dispose();
-                    videoBMP = new Bitmap(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb);
+                if(videoBMP[0].Size != GraphicsResolution.ToSize()) {
+                    videoBMP[0]?.Dispose();
+                    videoBMP[1]?.Dispose();
+                    videoBMP = new Bitmap[2] {
+                        new Bitmap(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb),
+                        new Bitmap(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb)
+                    };
+                    bmpIndex = 0;
                 }
             }
         }

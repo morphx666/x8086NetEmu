@@ -184,22 +184,9 @@ Public Class CGAWinForms
         OnPreRender(sender, ex)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-        'SyncLock chars
-        '    g.DrawImageUnscaled(videoBMP, 0, 0)
-        'End SyncLock
-
-        If VideoEnabled Then
-            Select Case MainMode
-                Case MainModes.Text
-                    RenderText()
-
-                Case MainModes.Graphics
-                    RenderGraphics()
-
-            End Select
-
+        SyncLock chars
             g.DrawImageUnscaled(videoBMP, 0, 0)
-        End If
+        End SyncLock
 
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         OnPostRender(sender, ex)
@@ -218,18 +205,18 @@ Public Class CGAWinForms
     End Sub
 
     Protected Overrides Sub Render()
-        'If VideoEnabled Then
-        '    Select Case MainMode
-        '        Case MainModes.Text
-        '            SyncLock chars
-        '                RenderText()
-        '            End SyncLock
+        If VideoEnabled Then
+            Select Case MainMode
+                Case MainModes.Text
+                    SyncLock chars
+                        RenderText()
+                    End SyncLock
 
-        '        Case MainModes.Graphics
-        '            RenderGraphics()
+                Case MainModes.Graphics
+                    RenderGraphics()
 
-        '    End Select
-        'End If
+            End Select
+        End If
     End Sub
 
     Private Sub RenderText()
