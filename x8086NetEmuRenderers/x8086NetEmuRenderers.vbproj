@@ -50,6 +50,7 @@
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
@@ -73,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CGAConsole.vb" />
+    <Compile Include="WebUI.vb" />
     <Compile Include="WinForms\CGAWinForms.vb" />
     <Compile Include="Helpers\DirectBitmap.vb" />
     <Compile Include="Helpers\Extensions.vb" />
@@ -107,7 +109,6 @@
     </Compile>
     <Compile Include="WinForms\VGAWinForms.vb" />
     <Compile Include="Helpers\VideoChar.vb" />
-    <Compile Include="WebUI.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="My Project\Resources.resx">

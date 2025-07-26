@@ -108,6 +108,7 @@ Public Class Scheduler
 
     Private ReadOnly Property CurrentTimeMs As Long
         Get
+            ' Watch: https://www.youtube.com/watch?v=Lvdyi5DWNm4
             Return Stopwatch.GetTimestamp()
         End Get
     End Property

@@ -85,7 +85,10 @@
       },
       "x8086NetEmu/1.0.0": {
         "runtime": {
-          "x8086NetEmu.dll": {}
+          "x8086NetEmu.dll": {
+            "assemblyVersion": "2025.7.26.13747",
+            "fileVersion": "2025.7.26.13740"
+          }
         }
       },
       "ManagedBass/3.1.1.0": {

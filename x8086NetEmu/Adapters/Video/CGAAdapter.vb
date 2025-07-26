@@ -1,4 +1,6 @@
-﻿Public MustInherit Class CGAAdapter
+﻿Imports Microsoft
+
+Public MustInherit Class CGAAdapter
     Inherits VideoAdapter
 
     Private Const BASECLOCK = 3_579_545 ' 3.579545 MHz

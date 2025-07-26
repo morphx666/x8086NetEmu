@@ -4,11 +4,14 @@
 ' http://www.powernet.co.za/info/BIOS/Mem/
 ' http://www-ivs.cs.uni-magdeburg.de/~zbrog/asm/memory.html
 
+Imports System.Web
+
 Public Class CGAWinForms
     Inherits CGAAdapter
 
     Private blinkCounter As Integer
 
+    Private videoBMP As New DirectBitmap(1, 1)
     Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
 
     Private ReadOnly preferredFont As String = "Perfect DOS VGA 437"
@@ -20,17 +23,19 @@ Public Class CGAWinForms
 
     Private scale As New SizeF(1, 1)
 
-    Private videoBMP As New DirectBitmap(1, 1)
     Private ReadOnly charsCache As New List(Of VideoChar)
     Private ReadOnly charSizeCache As New Dictionary(Of Integer, Size)
 
     Private mRenderControl As Control
 
-    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "")
+    Protected wui As WebUI
+
+    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu)
         fontSourceMode = fontSource
 
         Me.RenderControl = renderControl
+        If enableWebUI Then wui = New WebUI(cpu, videoBMP, chars)
 
         SetupEventHandlers()
 
@@ -134,6 +139,7 @@ Public Class CGAWinForms
     End Sub
 
     Public Overrides Sub CloseAdapter()
+        wui?.Close()
         MyBase.CloseAdapter()
         DetachRenderControl()
     End Sub
@@ -185,7 +191,7 @@ Public Class CGAWinForms
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
         SyncLock chars
-            g.DrawImageUnscaled(videoBMP, 0, 0)
+            g.DrawImageUnscaled(videoBMP.Bitmap, 0, 0)
         End SyncLock
 
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
@@ -378,6 +384,8 @@ Public Class CGAWinForms
                 Case MainModes.Graphics
                     videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
             End Select
+
+            If wui IsNot Nothing Then wui.Bitmap = videoBMP
         End SyncLock
 
         If fontSourceMode = FontSources.TrueType Then
