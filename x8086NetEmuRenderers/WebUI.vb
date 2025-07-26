@@ -122,13 +122,15 @@ Public Class WebUI
                             padding: 0;
                             margin: auto;
                             display: block;
-                            width:  {640 * cpu.VideoAdapter.Zoom};
-                            height: {400 * cpu.VideoAdapter.Zoom};
+                            width:  {640 * cpu.VideoAdapter.Zoom}px;
+                            height: {400 * cpu.VideoAdapter.Zoom}px;
                             position: absolute;
                             top: 0;
                             bottom: 0;
                             left: 0;
                             right: 0;
+                            border: 20px solid #000;
+                            border-radius: 20px;
                         }}
                     </style>
                     <script type=""text/JavaScript"">
