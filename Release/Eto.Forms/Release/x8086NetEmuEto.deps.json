@@ -1,51 +1,40 @@
 {
   "runtimeTarget": {
-    "name": ".NETStandard,Version=v2.0/",
+    "name": ".NETCoreApp,Version=v9.0",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETStandard,Version=v2.0": {},
-    ".NETStandard,Version=v2.0/": {
+    ".NETCoreApp,Version=v9.0": {
       "x8086NetEmuEto/1.0.0": {
         "dependencies": {
-          "Eto.Forms": "2.8.3",
-          "Eto.Serialization.Json": "2.8.3",
-          "NETStandard.Library": "2.0.3",
-          "System.Management": "8.0.0",
+          "Eto.Forms": "2.9.0",
+          "Eto.Serialization.Json": "2.9.0",
+          "System.Management": "9.0.8",
           "x8086NetEmu": "1.0.0"
         },
         "runtime": {
           "x8086NetEmuEto.dll": {}
         }
       },
-      "Eto.Forms/2.8.3": {
-        "dependencies": {
-          "System.ComponentModel.Annotations": "5.0.0"
-        },
+      "Eto.Forms/2.9.0": {
         "runtime": {
-          "lib/netstandard2.0/Eto.dll": {
-            "assemblyVersion": "2.7.0.0",
-            "fileVersion": "2.7.8836.26846"
+          "lib/net6.0/Eto.dll": {
+            "assemblyVersion": "2.9.0.0",
+            "fileVersion": "2.9.9128.32678"
           }
         }
       },
-      "Eto.Serialization.Json/2.8.3": {
+      "Eto.Serialization.Json/2.9.0": {
         "dependencies": {
-          "Eto.Forms": "2.8.3",
+          "Eto.Forms": "2.9.0",
           "Newtonsoft.Json": "13.0.1"
         },
         "runtime": {
           "lib/netstandard2.0/Eto.Serialization.Json.dll": {
-            "assemblyVersion": "2.8.0.0",
-            "fileVersion": "2.8.8836.26883"
+            "assemblyVersion": "2.9.0.0",
+            "fileVersion": "2.9.9128.32679"
           }
-        }
-      },
-      "Microsoft.NETCore.Platforms/1.1.0": {},
-      "NETStandard.Library/2.0.3": {
-        "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0"
         }
       },
       "Newtonsoft.Json/13.0.1": {
@@ -56,46 +45,46 @@
           }
         }
       },
-      "System.CodeDom/8.0.0": {
+      "System.CodeDom/9.0.8": {
         "runtime": {
-          "lib/netstandard2.0/System.CodeDom.dll": {
-            "assemblyVersion": "8.0.0.0",
-            "fileVersion": "8.0.23.53103"
+          "lib/net9.0/System.CodeDom.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.825.36511"
           }
         }
       },
-      "System.ComponentModel.Annotations/5.0.0": {
-        "runtime": {
-          "lib/netstandard2.0/System.ComponentModel.Annotations.dll": {
-            "assemblyVersion": "4.2.1.0",
-            "fileVersion": "4.6.26515.6"
-          }
-        }
-      },
-      "System.Management/8.0.0": {
+      "System.Management/9.0.8": {
         "dependencies": {
-          "System.CodeDom": "8.0.0"
+          "System.CodeDom": "9.0.8"
         },
         "runtime": {
-          "lib/netstandard2.0/System.Management.dll": {
-            "assemblyVersion": "4.0.0.0",
-            "fileVersion": "8.0.23.53103"
+          "lib/net9.0/System.Management.dll": {
+            "assemblyVersion": "9.0.0.8",
+            "fileVersion": "9.0.825.36511"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net9.0/System.Management.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "9.0.0.8",
+            "fileVersion": "9.0.825.36511"
           }
         }
       },
       "x8086NetEmu/1.0.0": {
         "runtime": {
           "x8086NetEmu.dll": {
-            "assemblyVersion": "2025.7.26.13749",
-            "fileVersion": "2025.7.26.13742"
+            "assemblyVersion": "2025.8.22.13762",
+            "fileVersion": "2025.8.22.13755"
           }
         }
       },
-      "ManagedBass/3.1.1.0": {
+      "ManagedBass/3.1.4.0": {
         "runtime": {
           "ManagedBass.dll": {
-            "assemblyVersion": "3.1.1.0",
-            "fileVersion": "3.1.1.0"
+            "assemblyVersion": "3.1.4.0",
+            "fileVersion": "3.1.4.0"
           }
         }
       }
@@ -107,33 +96,19 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Eto.Forms/2.8.3": {
+    "Eto.Forms/2.9.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-JlYqTXM9quui0/35H73R4r55ZtDfUA3sOZZuhvkNgzDTXp59DDvXDxZ7lRD6fge+GTumA+5AscmF9SWwgK5FUg==",
-      "path": "eto.forms/2.8.3",
-      "hashPath": "eto.forms.2.8.3.nupkg.sha512"
+      "sha512": "sha512-kNluDQuIfgn6B19scKcXT4SDIwwqtQlwGYlxMavFhPilkye1vMu3XtFYdPFIMoqEgZSAzdJkA9rceSd/xmFlyg==",
+      "path": "eto.forms/2.9.0",
+      "hashPath": "eto.forms.2.9.0.nupkg.sha512"
     },
-    "Eto.Serialization.Json/2.8.3": {
+    "Eto.Serialization.Json/2.9.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-xuZ/9IcZm38NVFzi3zHh3GKE6NTeIA7OHp+MubO33/jdnnY9GsHWchNN6pW1Hke6AldnfWxXU6PxGm89egIMFg==",
-      "path": "eto.serialization.json/2.8.3",
-      "hashPath": "eto.serialization.json.2.8.3.nupkg.sha512"
-    },
-    "Microsoft.NETCore.Platforms/1.1.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
-      "path": "microsoft.netcore.platforms/1.1.0",
-      "hashPath": "microsoft.netcore.platforms.1.1.0.nupkg.sha512"
-    },
-    "NETStandard.Library/2.0.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
-      "path": "netstandard.library/2.0.3",
-      "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
+      "sha512": "sha512-qkQ1Hl4q54ahyLkagvUArEkr4ue2kJV+FHHdCgFIUMpVpKs8IpePJeMytlL+lwdgIK4cCfrvCKXoepmr2fAI7w==",
+      "path": "eto.serialization.json/2.9.0",
+      "hashPath": "eto.serialization.json.2.9.0.nupkg.sha512"
     },
     "Newtonsoft.Json/13.0.1": {
       "type": "package",
@@ -142,33 +117,26 @@
       "path": "newtonsoft.json/13.0.1",
       "hashPath": "newtonsoft.json.13.0.1.nupkg.sha512"
     },
-    "System.CodeDom/8.0.0": {
+    "System.CodeDom/9.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-WTlRjL6KWIMr/pAaq3rYqh0TJlzpouaQ/W1eelssHgtlwHAH25jXTkUphTYx9HaIIf7XA6qs/0+YhtLEQRkJ+Q==",
-      "path": "system.codedom/8.0.0",
-      "hashPath": "system.codedom.8.0.0.nupkg.sha512"
+      "sha512": "sha512-kxg1TE/BMUAaMve/lPH9Bds+CFF4JPrN9WkQqHejc7UP6PO4KDAjZNF0uhvpZmoLR+EvHdRt232J++ZDI7aGqA==",
+      "path": "system.codedom/9.0.8",
+      "hashPath": "system.codedom.9.0.8.nupkg.sha512"
     },
-    "System.ComponentModel.Annotations/5.0.0": {
+    "System.Management/9.0.8": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-dMkqfy2el8A8/I76n2Hi1oBFEbG1SfxD2l5nhwXV3XjlnOmwxJlQbYpJH4W51odnU9sARCSAgv7S3CyAFMkpYg==",
-      "path": "system.componentmodel.annotations/5.0.0",
-      "hashPath": "system.componentmodel.annotations.5.0.0.nupkg.sha512"
-    },
-    "System.Management/8.0.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-jrK22i5LRzxZCfGb+tGmke2VH7oE0DvcDlJ1HAKYU8cPmD8XnpUT0bYn2Gy98GEhGjtfbR/sxKTVb+dE770pfA==",
-      "path": "system.management/8.0.0",
-      "hashPath": "system.management.8.0.0.nupkg.sha512"
+      "sha512": "sha512-D7icHff0OpEEIOLsTgnPL+Ff1VmJ3tzA8y20LNKgv4hx1MFMA3XGAVlWMCkLQfBkyvEwib6rMG6nP27lf98KRA==",
+      "path": "system.management/9.0.8",
+      "hashPath": "system.management.9.0.8.nupkg.sha512"
     },
     "x8086NetEmu/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "ManagedBass/3.1.1.0": {
+    "ManagedBass/3.1.4.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

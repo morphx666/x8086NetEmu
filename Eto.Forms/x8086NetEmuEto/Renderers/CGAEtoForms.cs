@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Eto;
@@ -11,14 +12,14 @@ namespace x8086NetEmuEto.Renderers {
     public class CGAEtoForms : CGAAdapter {
         private int blinkCounter;
         private Drawable renderControl;
-        private SizeF scale = new SizeF(1, 1);
+        private SizeF scale = new(1, 1);
 
         private Bitmap[] videoBMP;
         private int bmpIndex = 0;
 
         private readonly Color[] brushCache;
-        private readonly List<VideoChar> charsCache = new List<VideoChar>();
-        private readonly Dictionary<int, Size> charSizeCache = new Dictionary<int, Size>();
+        private readonly List<VideoChar> charsCache = [];
+        private readonly Dictionary<int, Size> charSizeCache = [];
 
         public CGAEtoForms(X8086 cpu,
                             Drawable renderControl,
@@ -34,10 +35,10 @@ namespace x8086NetEmuEto.Renderers {
 
             brushCache = new Color[CGAPalette.Length];
 
-            videoBMP = new Bitmap[2] {
-                new Bitmap(1, 1, PixelFormat.Format32bppRgb),
-                new Bitmap(1, 1, PixelFormat.Format32bppRgb)
-            };
+            videoBMP = [
+                new(1, 1, PixelFormat.Format32bppRgb),
+                new(1, 1, PixelFormat.Format32bppRgb)
+            ];
 
             SetupEventHandlers();
         }
@@ -113,25 +114,30 @@ namespace x8086NetEmuEto.Renderers {
             Size ctrlSize;
 
             if(MainMode == MainModes.Text) {
-                ctrlSize = new Size(CellSize.Width * TextResolution.Width, CellSize.Height * TextResolution.Height);
+                ctrlSize = new(CellSize.Width * TextResolution.Width, CellSize.Height * TextResolution.Height);
             } else {
-                ctrlSize = new Size(GraphicsResolution.Width, GraphicsResolution.Height);
+                ctrlSize = new(GraphicsResolution.Width, GraphicsResolution.Height);
             }
 
-            Size frmSize = new Size((int)(640 * Zoom), (int)(400 * Zoom));
+            Size frmSize = new((int)(640 * Zoom), (int)(400 * Zoom));
             Window frm = (Window)renderControl.FindParent(typeof(Window));
-            if(Platform.Instance.IsWpf) {
-                Application.Instance.Invoke(() => {
-                    frm.ClientSize = frmSize;
-                });
-            } else {
-                frm.ClientSize = frmSize;
-            }
 
-            scale = new SizeF((float)frmSize.Width / ctrlSize.Width, (float)frmSize.Height / ctrlSize.Height);
+            Task.Run(async () => {
+                await Task.Delay(250);
+
+                Application.Instance.Invoke(() => {
+                    if(frm.ClientSize.Width != frmSize.Width || frm.ClientSize.Height != frmSize.Height) {
+                        frm.Size = frmSize;
+                    }
+
+                    scale = new((float)frmSize.Width / ctrlSize.Width, (float)frmSize.Height / ctrlSize.Height);
+                });
+            });
         }
 
         private void Paint(object sender, PaintEventArgs e) {
+            if(videoBMP[bmpIndex].IsDisposed) return;
+
             Graphics g = e.Graphics;
 
             g.AntiAlias = false;
@@ -139,10 +145,10 @@ namespace x8086NetEmuEto.Renderers {
             g.PixelOffsetMode = PixelOffsetMode.None;
             g.ScaleTransform(scale.Width, scale.Height);
 
-            XPaintEventArgs ex = new XPaintEventArgs(g, new XRectangle((int)e.ClipRectangle.X,
-                                                                       (int)e.ClipRectangle.Y,
-                                                                       (int)e.ClipRectangle.Width,
-                                                                       (int)e.ClipRectangle.Height));
+            XPaintEventArgs ex = new(g, new XRectangle((int)e.ClipRectangle.X,
+                                                       (int)e.ClipRectangle.Y,
+                                                       (int)e.ClipRectangle.Width,
+                                                       (int)e.ClipRectangle.Height));
 
             OnPreRender(sender, ex);
             g.DrawImage(videoBMP[bmpIndex], 0, 0);
@@ -169,9 +175,9 @@ namespace x8086NetEmuEto.Renderers {
             int row = 0;
 
             // FIXME: This should be cached
-            Rectangle r = new Rectangle(Point.Empty, CellSize.ToSize());
+            Rectangle r = new(Point.Empty, CellSize.ToSize());
 
-            using(Graphics g = new Graphics(videoBMP[bmpIndex])) {
+            using(Graphics g = new(videoBMP[bmpIndex])) {
                 for(UInt32 address = StartTextVideoAddress; address < EndTextVideoAddress; address += 2) {
                     byte chr = CPU.Memory[address];
                     byte atr = CPU.Memory[address + 1];
@@ -212,7 +218,7 @@ namespace x8086NetEmuEto.Renderers {
         }
 
         private void RenderChar(Graphics g, byte c, Color fb, Color bb, Point p) {
-            VideoChar ccc = new VideoChar(c, fb, bb);
+            VideoChar ccc = new(c, fb, bb);
             int idx = charsCache.IndexOf(ccc);
             if(idx == -1) {
                 ccc.Render(CellSize.Width, CellSize.Height);
@@ -272,10 +278,10 @@ namespace x8086NetEmuEto.Renderers {
                 if(videoBMP[0].Size != GraphicsResolution.ToSize()) {
                     videoBMP[0]?.Dispose();
                     videoBMP[1]?.Dispose();
-                    videoBMP = new Bitmap[2] {
-                        new Bitmap(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb),
-                        new Bitmap(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb)
-                    };
+                    videoBMP = [
+                        new(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb),
+                        new(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb)
+                    ];
                     bmpIndex = 0;
                 }
             }

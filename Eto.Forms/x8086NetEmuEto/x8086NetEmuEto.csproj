@@ -1,18 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyVersion>2025.7.26.545</AssemblyVersion>
-    <FileVersion>2025.7.26.545</FileVersion>
+    <TargetFramework>net9.0</TargetFramework>
+    <AssemblyVersion>2025.8.22.577</AssemblyVersion>
+    <FileVersion>2025.8.22.577</FileVersion>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 	<BaseOutputPath>..\..\Release\Eto.Forms\</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eto.Forms" Version="2.8.3" />
-    <PackageReference Include="Eto.Serialization.Json" Version="2.8.3" />
-    <PackageReference Include="System.Management" Version="8.0.0" />
+    <Compile Remove="bin\**" />
+    <EmbeddedResource Remove="bin\**" />
+    <None Remove="bin\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Eto.Forms" Version="2.9.0" />
+    <PackageReference Include="Eto.Serialization.Json" Version="2.9.0" />
+    <PackageReference Include="System.Management" Version="9.0.8" />
   </ItemGroup>
 
   <ItemGroup>

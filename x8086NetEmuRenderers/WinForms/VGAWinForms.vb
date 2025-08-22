@@ -1,4 +1,5 @@
 ﻿Imports System.Threading.Tasks
+Imports System.Web
 
 Public Class VGAWinForms
     Inherits VGAAdapter
@@ -23,11 +24,14 @@ Public Class VGAWinForms
 
     Private mRenderControl As Control
 
-    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "")
+    Protected wui As WebUI
+
+    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu)
         fontSourceMode = fontSource
 
         Me.RenderControl = renderControl
+        If enableWebUI Then wui = New WebUI(cpu, videoBMP, chars)
 
         AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs)
                                                HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
@@ -127,6 +131,7 @@ Public Class VGAWinForms
     End Sub
 
     Public Overrides Sub CloseAdapter()
+        wui?.Close()
         MyBase.CloseAdapter()
         DetachRenderControl()
     End Sub
@@ -177,7 +182,9 @@ Public Class VGAWinForms
         OnPreRender(sender, ex)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-        g.DrawImageUnscaled(videoBMP, 0, 0)
+        SyncLock chars
+            g.DrawImageUnscaled(videoBMP, 0, 0)
+        End SyncLock
 
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         OnPostRender(sender, ex)
@@ -485,6 +492,8 @@ Public Class VGAWinForms
                     Exit Sub
                 End If
                 videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+
+                If wui IsNot Nothing Then wui.Bitmap = videoBMP
             End SyncLock
 
             If clearScreen OrElse charSizeCache.Count = 0 Then
