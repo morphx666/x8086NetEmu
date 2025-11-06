@@ -37,10 +37,12 @@ Precompiled binaries can now be downloaded from the [releases](https://github.co
 
 ### Compiling for non-Windows platforms
 
-The speaker emulation uses [NAudio](https://github.com/naudio/NAudio), which only works under Windows.
-So in order to compile a version of x8086 that works under non-Windows platforms, the Win32 custom build constant in the project properties of all the projects in the solution must be set to `False`.
+~~The speaker emulation uses [NAudio](https://github.com/naudio/NAudio), which only works under Windows.
+So in order to compile a version of x8086 that works under non-Windows platforms, the Win32 custom build constant in the project properties of all the projects in the solution must be set to `False`.~~
 
-If the aforementioned bug or bugs can be resolved, I will switch the sound backend support to the cross-platform library [BASS](http://www.un4seen.com/).
+~~If the aforementioned bug or bugs can be resolved, I will switch the sound backend support to the cross-platform library [BASS](http://www.un4seen.com/).~~
+
+Since commit [7a2f66a](https://github.com/morphx666/x8086NetEmu/commit/7a2f66a7777265788d04c968c5473c7e12a9f915) we now use BASS which should allow the emulator to support sound under Windows, Linux and Mac. Not properly tested through...
 
 ### Experimental Web UI
 
