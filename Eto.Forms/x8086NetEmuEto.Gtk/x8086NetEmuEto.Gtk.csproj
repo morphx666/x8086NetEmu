@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net9.0</TargetFramework>
-		<AssemblyVersion>2025.8.22.552</AssemblyVersion>
-		<FileVersion>2025.8.22.552</FileVersion>
+		<TargetFramework>net10.0</TargetFramework>
+		<AssemblyVersion>2026.3.29.563</AssemblyVersion>
+		<FileVersion>2026.3.29.563</FileVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 		<BaseOutputPath>..\..\Release\Eto.Forms\</BaseOutputPath>
@@ -14,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Eto.Platform.Gtk" Version="2.9.0" />
+		<PackageReference Include="Eto.Platform.Gtk" Version="2.11.0" />
 	</ItemGroup>
 
 </Project>

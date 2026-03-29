@@ -154,8 +154,8 @@
     </WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ManagedBass, Version=3.1.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ManagedBass.3.1.4\lib\net45\ManagedBass.dll</HintPath>
+    <Reference Include="ManagedBass, Version=4.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ManagedBass.4.0.2\lib\net45\ManagedBass.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

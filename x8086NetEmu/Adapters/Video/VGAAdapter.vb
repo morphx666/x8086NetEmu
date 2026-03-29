@@ -880,10 +880,9 @@ Public MustInherit Class VGAAdapter
                 mCPU.Registers.BL = &H8
                 Return True
 
-            Case Else
-                Return False
-
         End Select
+
+        Return False
     End Function
 
     Public Overrides Function [In](port As UInt16) As Byte

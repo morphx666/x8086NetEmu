@@ -1,14 +1,14 @@
 {
   "runtimeTarget": {
-    "name": ".NETCoreApp,Version=v9.0",
+    "name": ".NETCoreApp,Version=v10.0",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v9.0": {
+    ".NETCoreApp,Version=v10.0": {
       "x8086NetEmuEto.Gtk/1.0.0": {
         "dependencies": {
-          "Eto.Platform.Gtk": "2.9.0",
+          "Eto.Platform.Gtk": "2.11.0",
           "x8086NetEmuEto": "1.0.0"
         },
         "runtime": {
@@ -34,35 +34,35 @@
           }
         }
       },
-      "Eto.Forms/2.9.0": {
+      "Eto.Forms/2.11.0": {
         "runtime": {
-          "lib/net6.0/Eto.dll": {
-            "assemblyVersion": "2.9.0.0",
-            "fileVersion": "2.9.9128.32678"
+          "lib/net10.0/Eto.dll": {
+            "assemblyVersion": "2.11.0.0",
+            "fileVersion": "2.11.9557.38163"
           }
         }
       },
-      "Eto.Platform.Gtk/2.9.0": {
+      "Eto.Platform.Gtk/2.11.0": {
         "dependencies": {
-          "Eto.Forms": "2.9.0",
+          "Eto.Forms": "2.11.0",
           "GtkSharp": "3.24.24.95"
         },
         "runtime": {
-          "lib/net6.0/Eto.Gtk.dll": {
-            "assemblyVersion": "2.8.0.0",
-            "fileVersion": "2.8.9128.32679"
+          "lib/net10.0/Eto.Gtk.dll": {
+            "assemblyVersion": "2.11.0.0",
+            "fileVersion": "2.11.9557.38163"
           }
         }
       },
-      "Eto.Serialization.Json/2.9.0": {
+      "Eto.Serialization.Json/2.11.0": {
         "dependencies": {
-          "Eto.Forms": "2.9.0",
+          "Eto.Forms": "2.11.0",
           "Newtonsoft.Json": "13.0.1"
         },
         "runtime": {
           "lib/netstandard2.0/Eto.Serialization.Json.dll": {
-            "assemblyVersion": "2.9.0.0",
-            "fileVersion": "2.9.9128.32679"
+            "assemblyVersion": "2.11.0.0",
+            "fileVersion": "2.11.9557.38163"
           }
         }
       },
@@ -135,60 +135,60 @@
           }
         }
       },
-      "System.CodeDom/9.0.8": {
+      "System.CodeDom/10.0.5": {
         "runtime": {
-          "lib/net9.0/System.CodeDom.dll": {
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.825.36511"
+          "lib/net10.0/System.CodeDom.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.526.15411"
           }
         }
       },
-      "System.Management/9.0.8": {
+      "System.Management/10.0.5": {
         "dependencies": {
-          "System.CodeDom": "9.0.8"
+          "System.CodeDom": "10.0.5"
         },
         "runtime": {
-          "lib/net9.0/System.Management.dll": {
-            "assemblyVersion": "9.0.0.8",
-            "fileVersion": "9.0.825.36511"
+          "lib/net10.0/System.Management.dll": {
+            "assemblyVersion": "10.0.0.5",
+            "fileVersion": "10.0.526.15411"
           }
         },
         "runtimeTargets": {
-          "runtimes/win/lib/net9.0/System.Management.dll": {
+          "runtimes/win/lib/net10.0/System.Management.dll": {
             "rid": "win",
             "assetType": "runtime",
-            "assemblyVersion": "9.0.0.8",
-            "fileVersion": "9.0.825.36511"
+            "assemblyVersion": "10.0.0.5",
+            "fileVersion": "10.0.526.15411"
           }
         }
       },
       "x8086NetEmu/1.0.0": {
         "runtime": {
           "x8086NetEmu.dll": {
-            "assemblyVersion": "2025.8.22.13762",
-            "fileVersion": "2025.8.22.13755"
+            "assemblyVersion": "2026.3.29.13770",
+            "fileVersion": "2026.3.29.13763"
           }
         }
       },
       "x8086NetEmuEto/1.0.0": {
         "dependencies": {
-          "Eto.Forms": "2.9.0",
-          "Eto.Serialization.Json": "2.9.0",
-          "System.Management": "9.0.8",
+          "Eto.Forms": "2.11.0",
+          "Eto.Serialization.Json": "2.11.0",
+          "System.Management": "10.0.5",
           "x8086NetEmu": "1.0.0"
         },
         "runtime": {
           "x8086NetEmuEto.dll": {
-            "assemblyVersion": "2025.8.22.575",
-            "fileVersion": "2025.8.22.575"
+            "assemblyVersion": "2026.3.29.584",
+            "fileVersion": "2026.3.29.584"
           }
         }
       },
-      "ManagedBass/3.1.4.0": {
+      "ManagedBass/4.0.2.0": {
         "runtime": {
           "ManagedBass.dll": {
-            "assemblyVersion": "3.1.4.0",
-            "fileVersion": "3.1.4.0"
+            "assemblyVersion": "4.0.2.0",
+            "fileVersion": "4.0.2.0"
           }
         }
       }
@@ -214,26 +214,26 @@
       "path": "cairosharp/3.24.24.95",
       "hashPath": "cairosharp.3.24.24.95.nupkg.sha512"
     },
-    "Eto.Forms/2.9.0": {
+    "Eto.Forms/2.11.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-kNluDQuIfgn6B19scKcXT4SDIwwqtQlwGYlxMavFhPilkye1vMu3XtFYdPFIMoqEgZSAzdJkA9rceSd/xmFlyg==",
-      "path": "eto.forms/2.9.0",
-      "hashPath": "eto.forms.2.9.0.nupkg.sha512"
+      "sha512": "sha512-zAWXLvZYY4MvoR8rsX/Y45IlOiPP9bxseTkLjAi5YNnqMojHa8D+tfgY56KeEVOnum8iyTh8xBiQJyhxDksYuw==",
+      "path": "eto.forms/2.11.0",
+      "hashPath": "eto.forms.2.11.0.nupkg.sha512"
     },
-    "Eto.Platform.Gtk/2.9.0": {
+    "Eto.Platform.Gtk/2.11.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-bzPyKQLwB01XG8bQtom44fEvaCrERluW9b25RybbVYfbhYZ9OKYH65jqcjgFxtwME5RoFOf6tSbZkxY3La8Kvw==",
-      "path": "eto.platform.gtk/2.9.0",
-      "hashPath": "eto.platform.gtk.2.9.0.nupkg.sha512"
+      "sha512": "sha512-Pg2CeRiq4WgNxdKIEBiaaKiZ/zkZxdIj2kmNxW3hyCUMKu715Cho4daPa8bBUTmIYRtIRxE+oCY4amVQ2jD52A==",
+      "path": "eto.platform.gtk/2.11.0",
+      "hashPath": "eto.platform.gtk.2.11.0.nupkg.sha512"
     },
-    "Eto.Serialization.Json/2.9.0": {
+    "Eto.Serialization.Json/2.11.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-qkQ1Hl4q54ahyLkagvUArEkr4ue2kJV+FHHdCgFIUMpVpKs8IpePJeMytlL+lwdgIK4cCfrvCKXoepmr2fAI7w==",
-      "path": "eto.serialization.json/2.9.0",
-      "hashPath": "eto.serialization.json.2.9.0.nupkg.sha512"
+      "sha512": "sha512-EldIC2VJy7Uo7U18Frkx/oM9hU03gIId9XhStG5/w0WGB/n6OCN6bTg9i0PeQqOAqs7TzGZYEpSrZr5MdRbMlQ==",
+      "path": "eto.serialization.json/2.11.0",
+      "hashPath": "eto.serialization.json.2.11.0.nupkg.sha512"
     },
     "GdkSharp/3.24.24.95": {
       "type": "package",
@@ -277,19 +277,19 @@
       "path": "pangosharp/3.24.24.95",
       "hashPath": "pangosharp.3.24.24.95.nupkg.sha512"
     },
-    "System.CodeDom/9.0.8": {
+    "System.CodeDom/10.0.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-kxg1TE/BMUAaMve/lPH9Bds+CFF4JPrN9WkQqHejc7UP6PO4KDAjZNF0uhvpZmoLR+EvHdRt232J++ZDI7aGqA==",
-      "path": "system.codedom/9.0.8",
-      "hashPath": "system.codedom.9.0.8.nupkg.sha512"
+      "sha512": "sha512-hGZWDDJh1U6t7fy3iO4HlZYK1ur1fWE3sTqTNHkHk0Leh0JUcxYM//JtLBNG5g+6D2Lt0+aHH8rc7e5oIlNgCg==",
+      "path": "system.codedom/10.0.5",
+      "hashPath": "system.codedom.10.0.5.nupkg.sha512"
     },
-    "System.Management/9.0.8": {
+    "System.Management/10.0.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-D7icHff0OpEEIOLsTgnPL+Ff1VmJ3tzA8y20LNKgv4hx1MFMA3XGAVlWMCkLQfBkyvEwib6rMG6nP27lf98KRA==",
-      "path": "system.management/9.0.8",
-      "hashPath": "system.management.9.0.8.nupkg.sha512"
+      "sha512": "sha512-JhBVxvWhUJ0KAquUK0dMnc3a1Ol4JyH8fMrMQZ9GgEUkrtvPy8DE57SDnGnuvOdI0maJOdguxw87N5bh2eL87A==",
+      "path": "system.management/10.0.5",
+      "hashPath": "system.management.10.0.5.nupkg.sha512"
     },
     "x8086NetEmu/1.0.0": {
       "type": "project",
@@ -301,7 +301,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ManagedBass/3.1.4.0": {
+    "ManagedBass/4.0.2.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

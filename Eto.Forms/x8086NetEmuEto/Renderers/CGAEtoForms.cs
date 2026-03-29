@@ -127,7 +127,7 @@ namespace x8086NetEmuEto.Renderers {
 
                 Application.Instance.Invoke(() => {
                     if(frm.ClientSize.Width != frmSize.Width || frm.ClientSize.Height != frmSize.Height) {
-                        frm.Size = frmSize;
+                        frm.ClientSize = frmSize;
                     }
 
                     scale = new((float)frmSize.Width / ctrlSize.Width, (float)frmSize.Height / ctrlSize.Height);
