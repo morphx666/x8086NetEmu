@@ -20,6 +20,7 @@ namespace x8086NetEmuEto {
 
             if(Platform.IsMac) basePath = @"..\..\..\";
 
+            BuildEmulatorMenu();
             StartEmulation();
         }
 
@@ -34,7 +35,7 @@ namespace x8086NetEmuEto {
             cpu.Adapters.Add(new MouseAdapter(cpu));
 
             cpu.Adapters.Add(new SpeakerAdapter(cpu));
-            var adlib = new AdlibAdapter(cpu);
+            AdlibAdapter adlib = new(cpu);
             cpu.Adapters.Add(adlib);
             cpu.Adapters.Add(new SoundBlaster(cpu, adlib));
 
@@ -135,7 +136,6 @@ namespace x8086NetEmuEto {
             //cpu.DebugModeChanged += () => Invoke(() => ShowDebugger());
         }
 
-
         private void SetTitleText() {
             string title = string.Format("x8086NetEmu [Menu: {0}]  {1:F2}MHz ● {2}% | {3} | {4:N2} MIPs | {5} {6}",
                             "Shift + Alt + Home",
@@ -228,6 +228,77 @@ namespace x8086NetEmuEto {
                     addr += 1;
                 }
             return System.Text.Encoding.ASCII.GetString(b.ToArray());
+        }
+
+        private void BuildEmulatorMenu() {
+            ContextMenu cm = new();
+
+            ButtonMenuItem emulator = new() { Text = "Emulator" };
+            {
+                ButtonMenuItem cpuClock = new() { Text = "CPU Clock" };
+                cpuClock.Items.Add(new CheckMenuItem() { Text = "4.77 MHz", Checked = true });
+                cpuClock.Items.Add(new CheckMenuItem() { Text = "9.54 MHz" });
+                cpuClock.Items.Add(new CheckMenuItem() { Text = "19.08 MHz" });
+                cpuClock.Items.Add(new CheckMenuItem() { Text = "38.16 MHz" });
+                cpuClock.Items.Add(new CheckMenuItem() { Text = "47.70 MHz" });
+                emulator.Items.Add(cpuClock);
+
+                ButtonMenuItem emulationSpeed = new() { Text = "Emulation Speed" };
+                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "25%" });
+                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "50%" });
+                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "100%", Checked = true });
+                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "150%" });
+                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "200%" });
+                emulator.Items.Add(emulationSpeed);
+
+                emulator.Items.Add(new SeparatorMenuItem());
+
+                emulator.Items.Add(new CheckMenuItem() { Text = "Emulate Disk Access (INT13)", Checked = true });
+                emulator.Items.Add(new CheckMenuItem() { Text = "V20 Emulation", Checked = true });
+
+                emulator.Items.Add(new SeparatorMenuItem());
+
+                emulator.Items.Add(new ButtonMenuItem() { Text = "Soft Reset (CTRL+ALT+INS)" });
+                emulator.Items.Add(new ButtonMenuItem() { Text = "Hard Reset" });
+
+                emulator.Items.Add(new SeparatorMenuItem());
+
+                emulator.Items.Add(new ButtonMenuItem() { Text = "Load State..." });
+                emulator.Items.Add(new ButtonMenuItem() { Text = "Save State..." });
+
+                emulator.Items.Add(new SeparatorMenuItem());
+
+                emulator.Items.Add(new ButtonMenuItem() { Text = "Exit", Command = new Command((s, e) => Application.Instance.Quit()) });
+            }
+            cm.Items.Add(emulator);
+
+            cm.Items.Add(new ButtonMenuItem() { Text = "Media..." });
+
+            ButtonMenuItem zoom = new() { Text = "Zoom" };
+            {
+                    zoom.Items.Add(new CheckMenuItem() { Text = "25%" });
+                    zoom.Items.Add(new CheckMenuItem() { Text = "50%" });
+                    zoom.Items.Add(new CheckMenuItem() { Text = "100%", Checked = true });
+                    zoom.Items.Add(new CheckMenuItem() { Text = "150%" });
+                    zoom.Items.Add(new CheckMenuItem() { Text = "200%" });
+                    cm.Items.Add(zoom);
+            }
+            cm.Items.Add(zoom);
+
+            ButtonMenuItem tools = new() { Text = "Tools" };
+            {
+                tools.Items.Add(new ButtonMenuItem() { Text = "Debugger..." });
+                tools.Items.Add(new ButtonMenuItem() { Text = "Console..." });
+
+                tools.Items.Add(new SeparatorMenuItem());
+
+                tools.Items.Add(new ButtonMenuItem() { Text = "Copy Text" });
+                tools.Items.Add(new ButtonMenuItem() { Text = "Paste Text" });
+
+                cm.Items.Add(tools);
+            }
+
+            this.ContextMenu = cm;
         }
 
     }
