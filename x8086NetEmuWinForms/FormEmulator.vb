@@ -52,7 +52,6 @@ Public Class FormEmulator
         LoadSettings(False)  ' For pre-emulation settings
         StartEmulation()
 
-        SetupEventHandlers()
         SetTitleText()
     End Sub
 
@@ -363,7 +362,7 @@ Public Class FormEmulator
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.
-                                    '   Code execution will be transfered to the "native" interrupt handler.
+                                    '   Code execution will be transferred to the "native" interrupt handler.
                                     ' Return True if you want to prevent the emulator from executing the code associated with this interrupt.
                                     '   See INT13.vb for more information
                                     Return False

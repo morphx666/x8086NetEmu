@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <AssemblyVersion>2026.3.29.588</AssemblyVersion>
-    <FileVersion>2026.3.29.588</FileVersion>
+    <AssemblyVersion>2026.3.29.594</AssemblyVersion>
+    <FileVersion>2026.3.29.594</FileVersion>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 	<BaseOutputPath>..\..\Release\Eto.Forms\</BaseOutputPath>
