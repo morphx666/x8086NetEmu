@@ -7,7 +7,7 @@
     <AssemblyName>RunTests2</AssemblyName>
 
     <!-- Platform Configuration -->
-    <Platforms>AnyCPU;x86;x64</Platforms>
+    <Platforms>AnyCPU</Platforms>
 
     <!-- Custom Build Settings -->
     <OutputPath>..\Release\</OutputPath>
@@ -15,6 +15,7 @@
     <Deterministic>true</Deterministic>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
     <!-- Third-Party Tooling Properties -->
     <ShouldCreateLogs>False</ShouldCreateLogs>

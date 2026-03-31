@@ -2,8 +2,8 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net10.0</TargetFramework>
-		<AssemblyVersion>2026.3.29.579</AssemblyVersion>
-		<FileVersion>2026.3.29.579</FileVersion>
+		<AssemblyVersion>2026.3.31.587</AssemblyVersion>
+		<FileVersion>2026.3.31.587</FileVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 		<BaseOutputPath>..\..\Release\Eto.Forms\</BaseOutputPath>
