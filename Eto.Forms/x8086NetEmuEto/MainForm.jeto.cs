@@ -281,7 +281,6 @@ namespace x8086NetEmuEto {
                     zoom.Items.Add(new CheckMenuItem() { Text = "100%", Checked = true });
                     zoom.Items.Add(new CheckMenuItem() { Text = "150%" });
                     zoom.Items.Add(new CheckMenuItem() { Text = "200%" });
-                    cm.Items.Add(zoom);
             }
             cm.Items.Add(zoom);
 
