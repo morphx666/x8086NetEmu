@@ -2,7 +2,7 @@
   <PropertyGroup>
     <!-- Core Properties -->
     <OutputType>Exe</OutputType>
-    <TargetFramework>net481</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>RunTests2</RootNamespace>
     <AssemblyName>RunTests2</AssemblyName>
 

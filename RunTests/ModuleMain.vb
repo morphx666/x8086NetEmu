@@ -12,6 +12,10 @@ Module ModuleMain
     Private prefix As String
     Private inst As New List(Of String)
 
+    Private Function GetTestsDirectory() As IO.DirectoryInfo
+        Return New IO.DirectoryInfo(IO.Path.Combine(AppContext.BaseDirectory, "80186_tests"))
+    End Function
+
     Public Sub Main(args() As String)
         Dim waiter As New AutoResetEvent(False)
 
@@ -34,7 +38,7 @@ Module ModuleMain
         X8086.LogToConsole = False
         Console.CursorVisible = False
 
-        For Each f As IO.FileInfo In (New IO.DirectoryInfo(IO.Path.Combine(My.Application.Info.DirectoryPath, "80186_tests"))).GetFiles("*.bin")
+        For Each f As IO.FileInfo In GetTestsDirectory().GetFiles("*.bin")
             Dim fileName As String = f.Name.Replace(f.Extension, "")
             Dim dataFileName As String = IO.Path.Combine(f.DirectoryName, $"res_{fileName}.bin")
 
