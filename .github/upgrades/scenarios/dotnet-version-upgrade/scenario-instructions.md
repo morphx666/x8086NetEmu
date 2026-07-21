@@ -24,6 +24,7 @@
 - **Source Branch**: `Eto.Forms`
 - **Working Branch**: `upgrade-to-NET10`
 - **Pending Changes Handling**: Committed before starting scenario
+- **Branch Sync**: Disabled for now; user will test first and handle the eventual PR/merge manually
 
 ## User Preferences
 ### Technical Preferences
@@ -33,9 +34,11 @@
 
 ### Execution Style
 - **Flow**: Automatic
+- **Branch Integration**: Do not merge/rebase into the source branch yet; leave final PR and merge to the user after their testing
 
 ## Key Decisions Log
 - Initialized `.NET version upgrade` scenario targeting `net10.0` from branch `Eto.Forms` onto `upgrade-to-NET10` after saving pending changes.
 - User chose to drop the WinForms version and treat the `Eto.Forms` projects as the forward path for modernization.
 - Selected the `Hybrid` upgrade strategy so the legacy VB projects can be modernized in dependency order while the already-modern `Eto.Forms` projects are aligned afterward.
 - User clarified that required emulator ROMs are expected under `Release\roms\` and runtime validation should use that location.
+- User asked to avoid syncing the working branch with the source branch for now so they can test first and handle the eventual PR/merge themselves.

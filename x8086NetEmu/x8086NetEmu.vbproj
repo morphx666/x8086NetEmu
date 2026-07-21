@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <OutputType>Library</OutputType>
@@ -53,10 +53,7 @@
   <ItemGroup>
     <PackageReference Include="ManagedBass" Version="4.0.2" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net481'">
-    <Reference Include="System.Management" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+  <ItemGroup>
     <PackageReference Include="System.Management" Version="10.0.5" />
   </ItemGroup>
   <ItemGroup>
@@ -137,7 +134,8 @@ if "$(ConfigurationName)" == "Debug"   powershell.exe -executionPolicy bypass -f
 if "$(ConfigurationName)" == "Release" powershell.exe -executionPolicy bypass -file "$(SolutionDir)AddAssemblyInfo.ps1"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net481</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 </Project>
+

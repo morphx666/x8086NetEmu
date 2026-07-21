@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.4.11620.152 stable
@@ -6,8 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "x8086NetEmu", "x8086NetEmu\x8086NetEmu.vbproj", "{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "x8086NetEmuConsole", "x8086NetEmuConsole\x8086NetEmuConsole.vbproj", "{27276D22-D0B7-4995-B687-924CF829E595}"
-EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "x8086NetEmuWinForms", "x8086NetEmuWinForms\x8086NetEmuWinForms.vbproj", "{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{53E71534-D4F4-4339-B67E-D650B1962279}"
 	ProjectSection(SolutionItems) = preProject
@@ -48,10 +46,6 @@ Global
 		{27276D22-D0B7-4995-B687-924CF829E595}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27276D22-D0B7-4995-B687-924CF829E595}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27276D22-D0B7-4995-B687-924CF829E595}.Release|Any CPU.Build.0 = Release|Any CPU
-		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{00A6EBE1-1A2D-4B94-BA2F-0AA82F45F7DD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6A4C074D-6B16-410A-963C-A42F1E01D5DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A4C074D-6B16-410A-963C-A42F1E01D5DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A4C074D-6B16-410A-963C-A42F1E01D5DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -98,3 +92,4 @@ Global
 		SolutionGuid = {47FEC97B-DF82-4572-8242-79AF34F1CEAE}
 	EndGlobalSection
 EndGlobal
+
