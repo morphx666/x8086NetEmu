@@ -51,5 +51,9 @@ namespace x8086NetEmuEto.Renderers {
         public override bool Equals(object obj) {
             return obj is VideoChar vc && this == vc;
         }
+
+        public override int GetHashCode() {
+            return HashCode.Combine(CGAChar, ForeColor, BackColor);
+        }
     }
 }

@@ -32,7 +32,7 @@ Imports System.Runtime.Versioning
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("2026.7.21.2216")>
-<Assembly: AssemblyFileVersion("2026.7.21.2211")>
+<Assembly: AssemblyVersion("2026.7.21.2217")>
+<Assembly: AssemblyFileVersion("2026.7.21.2212")>
 
 <assembly: AssemblyInformationalVersion("2026.7.21")>
