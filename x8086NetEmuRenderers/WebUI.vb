@@ -1,6 +1,5 @@
 ﻿Imports System.Net
 Imports System.Threading
-Imports System.Web
 
 Public Class WebUI
     Private client As Sockets.TcpListener
@@ -60,7 +59,7 @@ Public Class WebUI
                             Dim cntType As String = "text/html; text/html; charset=UTF-8"
                             Dim params As String = ""
                             If resource.Contains("?") Then
-                                params = HttpUtility.UrlDecode(resource.Split("?")(1))
+                                params = WebUtility.UrlDecode(resource.Split("?")(1))
                                 resource = resource.Split("?")(0)
                             End If
 

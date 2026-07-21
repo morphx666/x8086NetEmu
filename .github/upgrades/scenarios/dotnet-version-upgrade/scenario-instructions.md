@@ -29,6 +29,7 @@
 ### Technical Preferences
 - **Upgrade Target**: Assess feasibility for `.NET 10`
 - **UI Strategy**: Discard `x8086NetEmuWinForms` and use the `Eto.Forms` variants going forward
+- **ROM Validation Path**: Use `Release\roms\` for emulator ROM-dependent runtime validation
 
 ### Execution Style
 - **Flow**: Automatic
@@ -37,3 +38,4 @@
 - Initialized `.NET version upgrade` scenario targeting `net10.0` from branch `Eto.Forms` onto `upgrade-to-NET10` after saving pending changes.
 - User chose to drop the WinForms version and treat the `Eto.Forms` projects as the forward path for modernization.
 - Selected the `Hybrid` upgrade strategy so the legacy VB projects can be modernized in dependency order while the already-modern `Eto.Forms` projects are aligned afterward.
+- User clarified that required emulator ROMs are expected under `Release\roms\` and runtime validation should use that location.

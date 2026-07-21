@@ -1,5 +1,4 @@
 ﻿Imports System.Threading.Tasks
-Imports System.Web
 
 Public Class VGAWinForms
     Inherits VGAAdapter
@@ -409,7 +408,7 @@ Public Class VGAWinForms
             Using bbb As New SolidBrush(bb)
                 g.FillRectangle(bbb, New Rectangle(p, mCellSize.ToSize()))
                 Using bfb As New SolidBrush(fb)
-                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - mCellSize.Width / 2 + 2, p.Y)
+                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, CSng(p.X - mCellSize.Width / 2 + 2), CSng(p.Y))
                 End Using
             End Using
         Else

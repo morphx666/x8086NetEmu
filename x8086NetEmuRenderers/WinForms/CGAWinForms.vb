@@ -4,8 +4,6 @@
 ' http://www.powernet.co.za/info/BIOS/Mem/
 ' http://www-ivs.cs.uni-magdeburg.de/~zbrog/asm/memory.html
 
-Imports System.Web
-
 Public Class CGAWinForms
     Inherits CGAAdapter
 
@@ -303,7 +301,7 @@ Public Class CGAWinForms
             Using bbb As New SolidBrush(bb)
                 g.FillRectangle(bbb, New Rectangle(p, mCellSize.ToSize()))
                 Using bfb As New SolidBrush(fb)
-                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - mCellSize.Width / 2 + 2, p.Y)
+                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, CSng(p.X - mCellSize.Width / 2 + 2), CSng(p.Y))
                 End Using
             End Using
         Else

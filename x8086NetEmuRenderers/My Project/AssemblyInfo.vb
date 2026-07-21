@@ -1,6 +1,7 @@
 Imports System
 Imports System.Reflection
 Imports System.Runtime.InteropServices
+Imports System.Runtime.Versioning
 
 ' General Information about an assembly is controlled through the following
 ' set of attributes. Change these attribute values to modify the information
@@ -16,6 +17,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>
+<Assembly: SupportedOSPlatform("windows")>
 
 'The following GUID is for the ID of the typelib if this project is exposed to COM
 <Assembly: Guid("7d23af38-4a54-4b45-b7b7-45af94c1b0ab")>
