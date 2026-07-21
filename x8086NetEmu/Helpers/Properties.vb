@@ -157,14 +157,22 @@ Partial Public Class X8086
         If mHostCpuSpeed = 0 Then
             Select Case HostRuntime.Platform
                 Case HostRuntime.Platforms.Windows
+#If NET10_0_OR_GREATER Then
+                    If OperatingSystem.IsWindows() Then
+#End If
                     Using managementObject As New Management.ManagementObject("Win32_Processor.DeviceID='CPU0'")
-                        mHostCpuSpeed = managementObject("CurrentClockSpeed")
+                        managementObject.Get()
+                        Dim clockSpeed = managementObject.Properties("CurrentClockSpeed")?.Value
+                        mHostCpuSpeed = If(clockSpeed IsNot Nothing, Convert.ToUInt16(clockSpeed), CUShort(1_000))
                     End Using
+#If NET10_0_OR_GREATER Then
+                    End If
+#End If
 
                 Case HostRuntime.Platforms.Linux,
                      HostRuntime.Platforms.ARMHard,
                      HostRuntime.Platforms.ARMSoft
-                    Dim p As New Process()
+                    Dim p As New Global.System.Diagnostics.Process()
                     p.StartInfo.FileName = "cat"
                     p.StartInfo.Arguments = "/proc/cpuinfo"
                     p.StartInfo.UseShellExecute = False
@@ -174,11 +182,11 @@ Partial Public Class X8086
                     Dim output As String = p.StandardOutput.ReadToEnd()
                     p.WaitForExit()
 
-                    Dim m As Match = Regex.Match(output, "cpu MHz\s+:\s+(\d+)")
+                    Dim m As Global.System.Text.RegularExpressions.Match = Global.System.Text.RegularExpressions.Regex.Match(output, "cpu MHz\s+:\s+(\d+)")
                     mHostCpuSpeed = If(m.Success, Convert.ToUInt16(m.Groups(1).Value), 1_000)
 
                 Case HostRuntime.Platforms.MacOSX
-                    Dim p As New Process()
+                    Dim p As New Global.System.Diagnostics.Process()
                     p.StartInfo.FileName = "sysctl"
                     p.StartInfo.Arguments = "hw.cpufrequency"
                     p.StartInfo.UseShellExecute = False
@@ -188,7 +196,7 @@ Partial Public Class X8086
                     Dim output As String = p.StandardOutput.ReadToEnd()
                     p.WaitForExit()
 
-                    Dim m As Match = Regex.Match(output, "hw.cpufrequency:\s+(\d+)")
+                    Dim m As Global.System.Text.RegularExpressions.Match = Global.System.Text.RegularExpressions.Regex.Match(output, "hw.cpufrequency:\s+(\d+)")
                     mHostCpuSpeed = If(m.Success, Convert.ToUInt32(m.Groups(1).Value) / 1_000_000, 1_000)
 
                 Case Else

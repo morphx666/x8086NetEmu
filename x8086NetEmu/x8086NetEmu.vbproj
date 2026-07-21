@@ -1,22 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>
-    </ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{2D0B2D2C-0261-4FF8-AA8C-5E7E7C134840}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <StartupObject>
-    </StartupObject>
-    <RootNamespace>x8086NetEmu</RootNamespace>
-    <AssemblyName>x8086NetEmu</AssemblyName>
-    <FileAlignment>512</FileAlignment>
-    <MyType>Windows</MyType>
-    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <StartupObject></StartupObject>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -32,14 +18,10 @@
     <ApplicationVersion>2018.3.4.3636</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <SccProjectName>
-    </SccProjectName>
-    <SccLocalPath>
-    </SccLocalPath>
-    <SccAuxPath>
-    </SccAuxPath>
-    <SccProvider>
-    </SccProvider>
+    <SccProjectName></SccProjectName>
+    <SccLocalPath></SccLocalPath>
+    <SccAuxPath></SccAuxPath>
+    <SccProvider></SccProvider>
     <ShouldCreateLogs>False</ShouldCreateLogs>
     <AdvancedSettingsExpanded>True</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -48,144 +30,44 @@
     <UpdatePackageVersion>False</UpdatePackageVersion>
     <AssemblyInfoVersionType>SettingsVersion</AssemblyInfoVersionType>
     <InheritWinAppVersionFrom>None</InheritWinAppVersionFrom>
-    <AssemblyVersionSettings>
-    </AssemblyVersionSettings>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyVersionSettings></AssemblyVersionSettings>
     <OptionExplicit>On</OptionExplicit>
-  </PropertyGroup>
-  <PropertyGroup>
     <OptionCompare>Binary</OptionCompare>
-  </PropertyGroup>
-  <PropertyGroup>
     <OptionStrict>Off</OptionStrict>
-  </PropertyGroup>
-  <PropertyGroup>
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DefineDebug>true</DefineDebug>
-    <DefineTrace>true</DefineTrace>
     <OutputPath>..\Release\</OutputPath>
     <DefineConstants>Win32 = True</DefineConstants>
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <DocumentationFile>x8086NetEmu.xml</DocumentationFile>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <WarningsAsErrors>
-    </WarningsAsErrors>
+    <WarningsAsErrors></WarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DefineTrace>true</DefineTrace>
     <OutputPath>..\Release\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <DocumentationFile>x8086NetEmu.xml</DocumentationFile>
-    <Optimize>true</Optimize>
-    <NoWarn>41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <WarningsAsErrors>
-    </WarningsAsErrors>
+    <WarningsAsErrors></WarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ManagedBass, Version=4.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ManagedBass.4.0.2\lib\net45\ManagedBass.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
+    <PackageReference Include="ManagedBass" Version="4.0.2" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net481'">
     <Reference Include="System.Management" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="System.Management" Version="10.0.5" />
   </ItemGroup>
   <ItemGroup>
-    <Import Include="Microsoft.VisualBasic" />
-    <Import Include="System" />
-    <Import Include="System.Collections" />
-    <Import Include="System.Collections.Generic" />
-    <Import Include="System.Diagnostics" />
-    <Import Include="System.Linq" />
-    <Import Include="System.Xml.Linq" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Adapters\Adapter.vb" />
-    <Compile Include="Adapters\Adapters.vb" />
-    <Compile Include="Adapters\Audio\AdlibAdapter.vb" />
-    <Compile Include="Adapters\Audio\AudioProvider.vb" />
-    <Compile Include="Adapters\Audio\AudioSubsystem.vb" />
-    <Compile Include="Adapters\Audio\SoundBlaster.vb" />
-    <Compile Include="Adapters\Audio\SpeakerAdapter.vb" />
-    <Compile Include="Adapters\Disk\FileSystem\FileSystemStructs.vb" />
-    <Compile Include="Adapters\Disk\FileSystem\StandardDiskFormat.vb" />
-    <Compile Include="Adapters\Disk\FloppyController.vb" />
-    <Compile Include="Adapters\Disk\FileSystem\HostFolderAsDisk.vb" />
-    <Compile Include="Adapters\DummyAdapter.vb" />
-    <Compile Include="Adapters\Keyboard\KeyMap.vb" />
-    <Compile Include="Adapters\Serial\MouseAdapter.vb" />
-    <Compile Include="Adapters\Video\CGAAdapter.vb" />
-    <Compile Include="Adapters\Video\VGAAdapter.vb" />
-    <Compile Include="Adapters\Video\VideoAdapter.vb" />
-    <Compile Include="Chipset\RTC.vb" />
-    <Compile Include="Helpers\Bass\BassHelpers.vb" />
-    <Compile Include="Helpers\Binary.vb" />
-    <Compile Include="Helpers\Exceptions.vb" />
-    <Compile Include="Helpers\Misc\HostRuntime.vb" />
-    <Compile Include="Helpers\OpCodes.vb" />
-    <Compile Include="Helpers\ConsoleCrayon.vb" />
-    <Compile Include="Helpers\Decoder.vb" />
-    <Compile Include="Helpers\EmulatorState.vb" />
-    <Compile Include="Adapters\Disk\DiskImage.vb" />
-    <Compile Include="Chipset\PPI8255.vb" />
-    <Compile Include="Helpers\Hooks\INT13.vb" />
-    <Compile Include="Helpers\InterruptHandlers.vb" />
-    <Compile Include="Helpers\Memory.vb" />
-    <Compile Include="Helpers\Misc\IDMAChannel.vb" />
-    <Compile Include="Helpers\Misc\IDMADevice.vb" />
-    <Compile Include="Helpers\Misc\IInterruptController.vb" />
-    <Compile Include="Helpers\Misc\InterruptController.vb" />
-    <Compile Include="Helpers\Misc\IInterruptRequest.vb" />
-    <Compile Include="Helpers\Misc\InterruptRequest.vb" />
-    <Compile Include="Helpers\Misc\PriorityQueue.vb" />
-    <Compile Include="Helpers\Misc\Scheduler.vb" />
-    <Compile Include="Chipset\DMA8237.vb" />
-    <Compile Include="Chipset\PIT8254.vb" />
-    <Compile Include="Chipset\PIC8259.vb" />
-    <Compile Include="Chipset\IIOPortHandler.vb" />
-    <Compile Include="Chipset\IOPortHandler.vb" />
-    <Compile Include="Chipset\IOPorts.vb" />
-    <Compile Include="Helpers\Prefetch.vb" />
-    <Compile Include="Helpers\Properties.vb" />
-    <Compile Include="Helpers\Helpers.vb" />
-    <Compile Include="Adapters\Keyboard\Keyboard.vb" />
-    <Compile Include="x8086.vb" />
-    <Compile Include="x8087.vb" />
-    <Compile Include="Helpers\Extensions.vb" />
-    <Compile Include="My Project\AssemblyInfo.vb" />
-    <Compile Include="My Project\Application.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Application.myapp</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="My Project\Resources.Designer.vb">
+    <Compile Update="My Project\Resources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="My Project\Settings.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="My Project\Resources.resx">
+    <EmbeddedResource Update="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
@@ -193,38 +75,27 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Adapters\Video\VGA Emulation Status.md" />
-    <None Include="Bass\arm\hardfp\libbass.so">
+    <None Update="Bass\arm\hardfp\libbass.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Bass\arm\softfp\libbass.so">
+    <None Update="Bass\arm\softfp\libbass.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Bass\linux\x64\libbass.so">
+    <None Update="Bass\linux\x64\libbass.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Bass\linux\x86\libbass.so">
+    <None Update="Bass\linux\x86\libbass.so">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Bass\macosx\x64\libbass.dylib">
+    <None Update="Bass\macosx\x64\libbass.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="My Project\Application.myapp">
-      <Generator>MyApplicationCodeGenerator</Generator>
-      <LastGenOutput>Application.Designer.vb</LastGenOutput>
-    </None>
-    <None Include="Bass\windows\x64\bass.dll">
+    <None Update="Bass\windows\x64\bass.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Bass\windows\x86\bass.dll">
+    <None Update="Bass\windows\x86\bass.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="My Project\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <CustomToolNamespace>My</CustomToolNamespace>
-      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
-    </None>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
@@ -251,22 +122,22 @@
   <ItemGroup>
     <Service Include="{94E38DFF-614B-4CBD-B67C-F211BB35CE8B}" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties BuildVersion_DetectChanges="False" BuildVersion_BuildAction="Both" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.Increment.None" />
-    </VisualStudio>
-  </ProjectExtensions>
+  <ItemGroup Label="Compile items now included by globbing that were not in the original project file">
+    <Compile Remove="Adapters\Disk\DiskController.vb" />
+    <Compile Remove="My Project\Application.Designer.vb" />
+    <Compile Remove="My Project\Settings.Designer.vb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="My Project\Application.myapp" />
+    <None Remove="My Project\Settings.settings" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>cd $(SolutionDir)
 if "$(ConfigurationName)" == "Debug"   powershell.exe -executionPolicy bypass -file "$(SolutionDir)IgnoreAssemblyInfo.ps1"
 if "$(ConfigurationName)" == "Release" powershell.exe -executionPolicy bypass -file "$(SolutionDir)AddAssemblyInfo.ps1"</PostBuildEvent>
   </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net481</TargetFrameworks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
 </Project>

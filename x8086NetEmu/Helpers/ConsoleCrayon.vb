@@ -104,17 +104,24 @@ Public NotInheritable Class ConsoleCrayon
     End Property
 
     Public Shared Sub RemoveScrollbars()
-        Select Case Environment.OSVersion.Platform
-            Case PlatformID.Win32NT, PlatformID.Win32S, PlatformID.Win32Windows, PlatformID.WinCE
-                Console.BufferWidth = ConsoleWidth
-                Console.BufferHeight = ConsoleHeight
-        End Select
+#If NET10_0_OR_GREATER Then
+        If OperatingSystem.IsWindows() Then
+#Else
+        If HostRuntime.Platform = HostRuntime.Platforms.Windows Then
+#End If
+            Console.BufferWidth = ConsoleWidth
+            Console.BufferHeight = ConsoleHeight
+        End If
     End Sub
 
     Public Shared Sub ResetColor()
         If XtermColors Then
             Console.Write(ColorReset)
-        ElseIf Environment.OSVersion.Platform <> PlatformID.Unix AndAlso Not RuntimeIsMono Then
+#If NET10_0_OR_GREATER Then
+        ElseIf OperatingSystem.IsWindows() AndAlso Not RuntimeIsMono Then
+#Else
+        ElseIf HostRuntime.Platform = HostRuntime.Platforms.Windows AndAlso Not RuntimeIsMono Then
+#End If
             Console.ResetColor()
         End If
     End Sub
@@ -126,7 +133,11 @@ Public NotInheritable Class ConsoleCrayon
 
         If XtermColors Then
             Console.Write(GetAnsiColorControlCode(color, isForeground))
-        ElseIf Environment.OSVersion.Platform <> PlatformID.Unix AndAlso Not RuntimeIsMono Then
+#If NET10_0_OR_GREATER Then
+        ElseIf OperatingSystem.IsWindows() AndAlso Not RuntimeIsMono Then
+#Else
+        ElseIf HostRuntime.Platform = HostRuntime.Platforms.Windows AndAlso Not RuntimeIsMono Then
+#End If
             If isForeground Then
                 Console.ForegroundColor = color
             Else

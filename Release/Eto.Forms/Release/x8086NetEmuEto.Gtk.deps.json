@@ -165,8 +165,8 @@
       "x8086NetEmu/1.0.0": {
         "runtime": {
           "x8086NetEmu.dll": {
-            "assemblyVersion": "2026.5.4.13800",
-            "fileVersion": "2026.5.4.13793"
+            "assemblyVersion": "2026.6.4.13801",
+            "fileVersion": "2026.6.4.13794"
           }
         }
       },
@@ -179,8 +179,8 @@
         },
         "runtime": {
           "x8086NetEmuEto.dll": {
-            "assemblyVersion": "2026.5.4.614",
-            "fileVersion": "2026.5.4.614"
+            "assemblyVersion": "2026.6.4.617",
+            "fileVersion": "2026.6.4.617"
           }
         }
       },

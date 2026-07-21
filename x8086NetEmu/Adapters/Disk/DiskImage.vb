@@ -38,6 +38,16 @@ Public Class DiskImage
     Protected Friend mReadOnly As Boolean
     Protected Friend mStatus As ImageStatus = ImageStatus.NoDisk
     Protected Friend mFileLength As ULong
+
+    Protected Shared Sub ReadExact(stream As IO.Stream, buffer() As Byte)
+        Dim totalRead = 0
+
+        While totalRead < buffer.Length
+            Dim bytesRead = stream.Read(buffer, totalRead, buffer.Length - totalRead)
+            If bytesRead = 0 Then Throw New IO.EndOfStreamException()
+            totalRead += bytesRead
+        End While
+    End Sub
     Protected Friend mIsHardDisk As Boolean
     Protected Friend mFileName As String
     Protected Friend mDriveType As DriveTypes
@@ -282,7 +292,7 @@ Public Class DiskImage
 
         Try
             file.Seek(offset, IO.SeekOrigin.Begin)
-            file.Read(data, 0, data.Length)
+            ReadExact(file, data)
             Return 0
         Catch e As Exception
             Return EIO

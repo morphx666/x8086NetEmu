@@ -1,7 +1,11 @@
-﻿Imports System.Web.UI
+﻿Imports System.IO
 
 Public Class EmulatorState
     Private mCPU As X8086
+
+    Private Shared Function GetCurrentBasePath() As String
+        Return AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar
+    End Function
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
@@ -41,7 +45,7 @@ Public Class EmulatorState
     End Function
 
     Private Function GetFloppyImages() As XElement
-        Dim curPath = My.Application.Info.DirectoryPath + "\"
+        Dim curPath = GetCurrentBasePath()
         Dim xml = <floppies></floppies>
 
         If mCPU.FloppyContoller IsNot Nothing Then
@@ -65,7 +69,7 @@ Public Class EmulatorState
     End Function
 
     Private Function GetDiskImages() As XElement
-        Dim curPath = My.Application.Info.DirectoryPath + "\"
+        Dim curPath = GetCurrentBasePath()
         Dim xml = <disks></disks>
 
         For i As Integer = 128 To 1000 - 1

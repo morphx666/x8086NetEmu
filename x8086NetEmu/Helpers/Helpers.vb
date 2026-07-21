@@ -458,15 +458,13 @@
         If HostRuntime.Platform = HostRuntime.Platforms.Windows Then
             Return fileName
         Else
-            Return If(Environment.OSVersion.Platform = PlatformID.Unix,
-                    fileName.Replace("\", IO.Path.DirectorySeparatorChar),
-                    fileName)
+            Return fileName.Replace("\", IO.Path.DirectorySeparatorChar)
         End If
     End Function
 
     Private Sub PrintOpCodes(n As UInt16)
         For i As Integer = mRegisters.IP To mRegisters.IP + n - 1
-            Debug.Write(RAM8(mRegisters.CS, i).ToString("X") + " ")
+            Global.System.Diagnostics.Debug.Write(RAM8(mRegisters.CS, i).ToString("X") + " ")
         Next
     End Sub
 
@@ -489,7 +487,7 @@
                                                         mFlags.DF)
         Notify("                CZSOPAID", NotificationReasons.Info)
         For i As Integer = 0 To 3
-            Debug.Write(RAM8(mRegisters.CS, mRegisters.IP + i).ToString("X2") + " ")
+            Global.System.Diagnostics.Debug.Write(RAM8(mRegisters.CS, mRegisters.IP + i).ToString("X2") + " ")
         Next
     End Sub
 
