@@ -78,7 +78,17 @@ namespace x8086NetEmuEto {
             if(cpu.VideoAdapter != null) {
                 cpu.VideoAdapter.KeyDown += (object s1, Adapter.XKeyEventArgs e1) => {
                     if(e1.Shift && e1.Alt && e1.KeyValue == (int)Adapter.XEventArgs.Keys.Home) {
-                        Application.Instance.Invoke(() => ContextMenu?.Show());
+                        if(cpu.Mouse != null) {
+                            cpu.Mouse.IsCaptured = false;
+                        }
+
+                        Application.Instance.Invoke(() => {
+                            if(Canvas.IsMouseCaptured) {
+                                Canvas.ReleaseMouseCapture();
+                            }
+
+                            ContextMenu?.Show();
+                        });
                         e1.Handled = true;
                     }
                 };

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Eto;
 using Eto.Drawing;
@@ -20,6 +21,10 @@ namespace x8086NetEmuEto.Renderers {
         private readonly Color[] brushCache;
         private readonly List<VideoChar> charsCache = [];
         private readonly Dictionary<int, Size> charSizeCache = [];
+        private readonly int[] paletteDataCache = new int[16];
+        private int[] graphicsScanline = [];
+        private bool paletteDataCacheDirty = true;
+        private EtoVideoInputController inputController;
 
         public CGAEtoForms(X8086 cpu,
                             Drawable renderControl,
@@ -40,31 +45,6 @@ namespace x8086NetEmuEto.Renderers {
                 new(1, 1, PixelFormat.Format32bppRgb)
             ];
 
-            SetupEventHandlers();
-        }
-
-        private void SetupEventHandlers() {
-            renderControl.KeyDown += (sender, e) => {
-                if(e.KeyData == (Keys.Shift | Keys.Alt | Keys.Home)
-                    || e.KeyData == (Keys.Shift | Keys.Alt | Keys.Keypad7)
-                    || (e.Shift && e.Alt && (e.Key == Keys.Home || e.Key == Keys.Keypad7))) {
-                    Application.Instance.AsyncInvoke(() => renderControl.ParentWindow?.ContextMenu?.Show(renderControl));
-                    e.Handled = true;
-                    return;
-                }
-
-                HandleKeyDown(this, new XKeyEventArgs(KeyToInt(e.Key), KeyToInt(e.Modifiers)));
-                e.Handled = true;
-            };
-
-            renderControl.KeyUp += (sender, e) => {
-                HandleKeyUp(this, new XKeyEventArgs(KeyToInt(e.Key), KeyToInt(e.Modifiers)));
-                e.Handled = true;
-            };
-        }
-
-        private int KeyToInt(Keys k) {
-            return (int)(XEventArgs.Keys)Enum.Parse(typeof(XEventArgs.Keys), k.ToString());
         }
 
         public Drawable RenderControl {
@@ -75,12 +55,15 @@ namespace x8086NetEmuEto.Renderers {
 
                 InitAdapter();
 
+                inputController = new EtoVideoInputController(renderControl, this);
+                inputController.Attach();
                 renderControl.Paint += Paint;
             }
         }
 
         private void DetachRenderControl() {
             if(renderControl != null) {
+                inputController?.Detach();
                 renderControl.Paint -= Paint;
             }
         }
@@ -89,7 +72,7 @@ namespace x8086NetEmuEto.Renderers {
             if(!isInit) {
                 base.InitAdapter();
                 Task.Run(async () => {
-                    while(true) {
+                    while(!X8086.IsClosing && renderControl != null && !renderControl.IsDisposed) {
                         await Task.Delay((int)(2 * 1000 / VERTSYNC));
                         Application.Instance.Invoke(() => renderControl.Invalidate());
                     }
@@ -115,6 +98,7 @@ namespace x8086NetEmuEto.Renderers {
                 }
 
                 charsCache.Clear();
+                paletteDataCacheDirty = true;
             }
         }
 
@@ -239,6 +223,15 @@ namespace x8086NetEmuEto.Renderers {
         private void RenderGraphics(int bmpIndex) {
             int b;
             int xDiv = PixelsPerByte == 4 ? 2 : 3;
+            using BitmapData bitmapData = videoBMP[bmpIndex].Lock();
+
+            if(paletteDataCacheDirty) {
+                for(int i = 0; i < CGAPalette.Length; i++) {
+                    paletteDataCache[i] = bitmapData.TranslateArgbToData(unchecked((int)CGAPalette[i].ToArgb()));
+                }
+
+                paletteDataCacheDirty = false;
+            }
 
             for(int y = 0; y < GraphicsResolution.Height; y++) {
                 int cy = ((y >> 1) * 80) + ((y & 1) * 0x2000);
@@ -264,8 +257,11 @@ namespace x8086NetEmuEto.Renderers {
                         b = (b >> (7 - (x & 7))) & 1;
                     }
 
-                    videoBMP[bmpIndex].SetPixel(x, y, CGAPalette[b].ToColor());
+                    graphicsScanline[x] = paletteDataCache[b];
                 }
+
+                int rowIndex = bitmapData.Flipped ? GraphicsResolution.Height - 1 - y : y;
+                Marshal.Copy(graphicsScanline, 0, IntPtr.Add(bitmapData.Data, rowIndex * bitmapData.ScanWidth), GraphicsResolution.Width);
             }
         }
 
@@ -290,7 +286,9 @@ namespace x8086NetEmuEto.Renderers {
                         new(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb),
                         new(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb)
                     ];
+                    graphicsScanline = new int[GraphicsResolution.Width];
                     bmpIndex = 0;
+                    paletteDataCacheDirty = true;
                 }
             }
         }

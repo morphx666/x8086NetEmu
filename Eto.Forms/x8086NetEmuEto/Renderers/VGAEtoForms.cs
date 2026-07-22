@@ -1,56 +1,55 @@
-﻿//using Eto.Drawing;
-//using Eto.Forms;
-//using System;
-//using System.Collections.Generic;
-//using System.Text;
-//using x8086NetEmu;
+using System.Threading.Tasks;
+using Eto.Forms;
+using x8086NetEmu;
 
-//namespace x8086NetEmuEto.Renderers {
-//    internal class VGAEtoForms : VGAAdapter {
-//        private int blinkCounter;
-//        private int frameRate = 30;
-//        private List<int> cursorAddress = new List<int>();
+namespace x8086NetEmuEto.Renderers {
+    public abstract class VGAEtoForms : VGAAdapter {
+        private Drawable renderControl;
+        private EtoVideoInputController inputController;
 
-//        private readonly string preferredFont = "Perfect DOS VGA 437";
-//        private Font mFont;
+        protected VGAEtoForms(X8086 cpu, Drawable renderControl)
+            : base(cpu) {
+            RenderControl = renderControl;
+        }
 
-//        private Color[] brushCache;
-//        private Drawable mRenderControl;
+        protected Drawable RenderControl {
+            get => renderControl;
+            set {
+                DetachRenderControl();
+                renderControl = value;
 
-//        public VGAEtoForms(X8086 cpu, 
-//                           Drawable renderControl, 
-//                           FontSources fontSource, 
-//                           string bitmapFile = "", 
-//                           bool enableWebUI = false) : base(cpu, true, enableWebUI) {
+                InitAdapter();
 
-//            mFont = new Font(new FontFamily(preferredFont), 16);
-//            brushCache = new Color[CGAPalette.Length];
+                inputController = new EtoVideoInputController(renderControl, this);
+                inputController.Attach();
+                renderControl.Paint += Paint;
+            }
+        }
 
-//            RenderControl = renderControl;
+        private void DetachRenderControl() {
+            if(renderControl != null) {
+                inputController?.Detach();
+                renderControl.Paint -= Paint;
+            }
+        }
 
-//            mRenderControl.KeyDown += (sender, e) => HandleKeyDown(this, e);
-//        }
+        public override void InitAdapter() {
+            if(!isInit) {
+                base.InitAdapter();
+                Task.Run(async () => {
+                    while(!X8086.IsClosing && renderControl != null && !renderControl.IsDisposed) {
+                        await Task.Delay((int)(2 * 1000 / VERTSYNC));
+                        Application.Instance.Invoke(() => renderControl.Invalidate());
+                    }
+                });
+            }
+        }
 
-//        public Drawable RenderControl {
-//            get => mRenderControl;
-//            set {
-//                DetachRenderControl();
-//                mRenderControl = value;
+        public override void CloseAdapter() {
+            base.CloseAdapter();
+            DetachRenderControl();
+        }
 
-//                InitAdapter();
-
-//                mRenderControl.Paint += Paint;
-//            }
-//        }
-
-
-
-//        private void DetachRenderControl() {
-//            if(mRenderControl != null) mRenderControl.Paint -= Paint;
-//        }
-
-//        private void Paint(object sender, PaintEventArgs e) {
-//            throw new NotImplementedException();
-//        }
-//    }
-//}
+        protected abstract void Paint(object sender, PaintEventArgs e);
+    }
+}
