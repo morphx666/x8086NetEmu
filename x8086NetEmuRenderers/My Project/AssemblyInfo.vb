@@ -32,7 +32,7 @@ Imports System.Runtime.Versioning
 ' You can specify all the values or you can default the Build and Revision Numbers
 ' by using the '*' as shown below:
 
-<Assembly: AssemblyVersion("2026.7.21.412")>
-<Assembly: AssemblyFileVersion("2026.7.21.412")>
+<Assembly: AssemblyVersion("2026.7.22.414")>
+<Assembly: AssemblyFileVersion("2026.7.22.414")>
 
 <assembly: AssemblyInformationalVersion("2026.7.21.411")>

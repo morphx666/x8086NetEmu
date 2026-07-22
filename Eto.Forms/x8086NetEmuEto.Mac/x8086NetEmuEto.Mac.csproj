@@ -4,11 +4,11 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx-x64;osx-arm64</RuntimeIdentifiers>
 		<RuntimeIdentifiers Condition="!$([MSBuild]::IsOSPlatform('OSX'))">osx-x64</RuntimeIdentifiers>
-		<AssemblyVersion>2026.7.21.220</AssemblyVersion>
-		<FileVersion>2026.7.21.220</FileVersion>
+		<AssemblyVersion>2026.7.22.222</AssemblyVersion>
+		<FileVersion>2026.7.22.222</FileVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-		<BaseOutputPath>..\..\Release\Eto.Forms\</BaseOutputPath>
+		<OutputPath>..\..\Release\</OutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
