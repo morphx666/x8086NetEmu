@@ -8,3 +8,4 @@
 
 ## Emulator Requirements
 - For the x8086NetEmu upgrade, required emulator ROMs are expected to be available under `Release\roms\` and runtime validation should use that location.
+- The emulator menu must not be attached to the Eto canvas/right-click behavior. It should only be displayed via the Shift+Alt+Home keyboard shortcut so canvas context input remains available to the emulator.

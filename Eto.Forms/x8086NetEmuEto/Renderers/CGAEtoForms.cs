@@ -45,6 +45,14 @@ namespace x8086NetEmuEto.Renderers {
 
         private void SetupEventHandlers() {
             renderControl.KeyDown += (sender, e) => {
+                if(e.KeyData == (Keys.Shift | Keys.Alt | Keys.Home)
+                    || e.KeyData == (Keys.Shift | Keys.Alt | Keys.Keypad7)
+                    || (e.Shift && e.Alt && (e.Key == Keys.Home || e.Key == Keys.Keypad7))) {
+                    Application.Instance.AsyncInvoke(() => renderControl.ParentWindow?.ContextMenu?.Show(renderControl));
+                    e.Handled = true;
+                    return;
+                }
+
                 HandleKeyDown(this, new XKeyEventArgs(KeyToInt(e.Key), KeyToInt(e.Modifiers)));
                 e.Handled = true;
             };

@@ -2,8 +2,8 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net10.0-windows7.0</TargetFramework>
-		<AssemblyVersion>2026.7.22.258</AssemblyVersion>
-		<FileVersion>2026.7.22.258</FileVersion>
+		<AssemblyVersion>2026.7.22.266</AssemblyVersion>
+		<FileVersion>2026.7.22.266</FileVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 		<OutputPath>..\..\Release\</OutputPath>

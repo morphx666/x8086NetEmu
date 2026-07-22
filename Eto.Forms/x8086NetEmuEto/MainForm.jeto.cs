@@ -75,62 +75,14 @@ namespace x8086NetEmuEto {
         }
 
         private void SetupCpuEventHandlers() {
-            //if(cpu.VideoAdapter != null) {
-            //    cpu.VideoAdapter.KeyDown += (object s1, Adapter.XKeyEventArgs e1) => {
-            //        if(e1.Shift && e1.Alt) {
-            //            Cursor.Clip = Rectangle.Empty;
-            //            CursorVisible = true;
-            //            if(cpu.Mouse != null)
-            //                cpu.Mouse.IsCaptured = false;
-
-            //            switch(e1.KeyValue) {
-            //                case object _ when Keys.Home: {
-            //                    ContextMenuStripMain.Show(Cursor.Position);
-            //                    break;
-            //                }
-
-            //                case object _ when Keys.Add: {
-            //                    var zoom = cpu.VideoAdapter.Zoom;
-            //                    if(zoom < 4)
-            //                        SetZoomLevel(zoom + 0.25);
-            //                    break;
-            //                }
-
-            //                case object _ when Keys.Subtract: {
-            //                    var zoom = cpu.VideoAdapter.Zoom;
-            //                    if(zoom > 0.25)
-            //                        SetZoomLevel(zoom - 0.25);
-            //                    break;
-            //                }
-
-            //                case object _ when Keys.NumPad0: {
-            //                    SetZoomLevel(1);
-            //                    break;
-            //                }
-
-            //                case object _ when Keys.C: {
-            //                    CopyTextFromEmulator();
-            //                    break;
-            //                }
-
-            //                case object _ when Keys.V: {
-            //                    PasteTextFromClipboard();
-            //                    break;
-            //                }
-
-            //                case object _ when Keys.P: {
-            //                    if(cpu.IsPaused)
-            //                        cpu.Resume();
-            //                    else
-            //                        cpu.Pause();
-            //                    break;
-            //                }
-            //            }
-
-            //            e1.Handled = true;
-            //        }
-            //    };
-            //}
+            if(cpu.VideoAdapter != null) {
+                cpu.VideoAdapter.KeyDown += (object s1, Adapter.XKeyEventArgs e1) => {
+                    if(e1.Shift && e1.Alt && e1.KeyValue == (int)Adapter.XEventArgs.Keys.Home) {
+                        Application.Instance.Invoke(() => ContextMenu?.Show());
+                        e1.Handled = true;
+                    }
+                };
+            }
 
             cpu.MIPsUpdated += () => SetTitleText();
             //cpu.DebugModeChanged += () => Invoke(() => ShowDebugger());
@@ -230,25 +182,40 @@ namespace x8086NetEmuEto {
             return System.Text.Encoding.ASCII.GetString(b.ToArray());
         }
 
+        private static IEnumerable<RadioMenuItem> CreateRadioMenuItems(params (string Text, bool Checked)[] items) {
+            RadioMenuItem controller = null;
+
+            foreach((string text, bool isChecked) in items) {
+                RadioMenuItem item = controller == null ? new RadioMenuItem() : new RadioMenuItem(controller);
+                item.Text = text;
+                item.Checked = isChecked;
+
+                controller ??= item;
+                yield return item;
+            }
+        }
+
         private void BuildEmulatorMenu() {
             ContextMenu cm = new();
 
             ButtonMenuItem emulator = new() { Text = "Emulator" };
             {
                 ButtonMenuItem cpuClock = new() { Text = "CPU Clock" };
-                cpuClock.Items.Add(new CheckMenuItem() { Text = "4.77 MHz", Checked = true });
-                cpuClock.Items.Add(new CheckMenuItem() { Text = "9.54 MHz" });
-                cpuClock.Items.Add(new CheckMenuItem() { Text = "19.08 MHz" });
-                cpuClock.Items.Add(new CheckMenuItem() { Text = "38.16 MHz" });
-                cpuClock.Items.Add(new CheckMenuItem() { Text = "47.70 MHz" });
+                cpuClock.Items.AddRange(CreateRadioMenuItems(
+                    ("4.77 MHz", true),
+                    ("9.54 MHz", false),
+                    ("19.08 MHz", false),
+                    ("38.16 MHz", false),
+                    ("47.70 MHz", false)));
                 emulator.Items.Add(cpuClock);
 
                 ButtonMenuItem emulationSpeed = new() { Text = "Emulation Speed" };
-                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "25%" });
-                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "50%" });
-                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "100%", Checked = true });
-                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "150%" });
-                emulationSpeed.Items.Add(new CheckMenuItem() { Text = "200%" });
+                emulationSpeed.Items.AddRange(CreateRadioMenuItems(
+                    ("25%", false),
+                    ("50%", false),
+                    ("100%", true),
+                    ("150%", false),
+                    ("200%", false)));
                 emulator.Items.Add(emulationSpeed);
 
                 emulator.Items.Add(new SeparatorMenuItem());
@@ -276,11 +243,12 @@ namespace x8086NetEmuEto {
 
             ButtonMenuItem zoom = new() { Text = "Zoom" };
             {
-                    zoom.Items.Add(new CheckMenuItem() { Text = "25%" });
-                    zoom.Items.Add(new CheckMenuItem() { Text = "50%" });
-                    zoom.Items.Add(new CheckMenuItem() { Text = "100%", Checked = true });
-                    zoom.Items.Add(new CheckMenuItem() { Text = "150%" });
-                    zoom.Items.Add(new CheckMenuItem() { Text = "200%" });
+                    zoom.Items.AddRange(CreateRadioMenuItems(
+                        ("25%", false),
+                        ("50%", false),
+                        ("100%", true),
+                        ("150%", false),
+                        ("200%", false)));
             }
             cm.Items.Add(zoom);
 
