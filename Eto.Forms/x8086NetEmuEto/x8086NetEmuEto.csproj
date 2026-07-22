@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <AssemblyVersion>2026.7.22.622</AssemblyVersion>
-    <FileVersion>2026.7.22.622</FileVersion>
+    <AssemblyVersion>2026.7.22.627</AssemblyVersion>
+    <FileVersion>2026.7.22.627</FileVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputPath>..\..\Release\</OutputPath>
