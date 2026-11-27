@@ -229,7 +229,6 @@ Public Class X8086
         'LoadBIN("..\Other Emulators & Resources\xtbios30\eproms\2764\pcxtbios.ROM", &HFE00, &H0)
         'LoadBIN("..\Other Emulators & Resources\xtbios31\pcxtbios.bin", &HFE00, &H0)
         'LoadBIN("..\Other Emulators & Resources\PCemV14Win\roms\genxt\pcxt.rom", &HFE00, &H0)
-        'LoadBIN("..\Other Emulators & Resources\fake86-0.12.9.19-win32\Binaries\pcxtbios.bin", &HFE00, &H0)
         'LoadBIN("..\Other Emulators & Resources\award-2.05.rom", &HFE00, &H0)
         'LoadBIN("..\Other Emulators & Resources\phoenix-2.51.rom", &HFE00, &H0)
         'LoadBIN("..\Other Emulators & Resources\PCE - PC Emulator\bin\rom\ibm-pc-1982.rom", &HFE00, &H0)

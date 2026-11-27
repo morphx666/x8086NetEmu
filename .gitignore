@@ -250,7 +250,6 @@ ModelManifest.xml
 !/Release/
 !/Release/disks/
 /Release/disks/*
-!/Release/disks/hd0-dist.img
 !/Release/misc/
 !/Release/misc/**
 !/Release/roms/

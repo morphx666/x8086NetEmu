@@ -21,7 +21,7 @@ Module ModuleMain
 
         ParseArguments(args)
 
-        ' X8086.Models.IBMPC_5150 is required as fake86 does not properly handle eflags
+        ' X8086.Models.IBMPC_5150 is required to match the EFLAGS behavior the reference results expect
         cpu = New X8086(True, False,, X8086.Models.IBMPC_5150) With {.Clock = 47700000}
         AddHandler cpu.EmulationHalted, Sub()
                                             Compare()
