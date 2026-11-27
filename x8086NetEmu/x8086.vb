@@ -1373,7 +1373,7 @@ Public Class X8086
             Case &HD4 ' AAM I0
                 tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
                 If tmpUVal1 = 0 Then
-                    HandleInterrupt(0, True)
+                    RaiseDivideError()
                     Exit Select
                 End If
                 mRegisters.AH = mRegisters.AL \ tmpUVal1
@@ -1958,7 +1958,7 @@ Public Class X8086
                 End If
 
                 If div = 0 Then
-                    HandleInterrupt(0, True)
+                    RaiseDivideError()
                     Exit Select
                 End If
 
@@ -1967,14 +1967,14 @@ Public Class X8086
 
                 If addrMode.Size = DataSize.Byte Then
                     If result > &HFF Then
-                        HandleInterrupt(0, True)
+                        RaiseDivideError()
                         Exit Select
                     End If
                     mRegisters.AL = result
                     mRegisters.AH = remain
                 Else
                     If result > &HFFFF Then
-                        HandleInterrupt(0, True)
+                        RaiseDivideError()
                         Exit Select
                     End If
                     mRegisters.AX = result
@@ -2036,25 +2036,28 @@ Public Class X8086
                 End If
 
                 If div = 0 Then
-                    HandleInterrupt(0, True)
+                    RaiseDivideError()
                     Exit Select
                 End If
 
                 result = num \ div
                 remain = num Mod div
 
-                If signN <> signD Then
-                    If result > If(addrMode.Size = DataSize.Byte, &H80, &H8000) Then
-                        HandleInterrupt(0, True)
-                        Exit Select
-                    End If
-                    result = (Not result) + 1
-                Else
-                    If result > If(addrMode.Size = DataSize.Byte, &H7F, &H7FFF) Then
-                        HandleInterrupt(0, True)
-                        Exit Select
-                    End If
+                ' The 8086/8088 limits the quotient's magnitude to 7Fh/7FFFh for BOTH signs: a
+                ' quotient of -128 (-32768) raises a divide error instead of being stored.
+                ' (The 80186/286 and later accept -128/-32768.)
+                If result > If(addrMode.Size = DataSize.Byte, &H7F, &H7FFF) Then
+                    RaiseDivideError()
+                    Exit Select
                 End If
+
+                ' Undocumented 8088 quirk (discovered by reenigne): a REP/REPNE prefix inverts the
+                ' sign of the quotient (the remainder is unaffected). The microcode reuses the
+                ' internal flag set by the prefix to decide whether to negate the result.
+                Dim negateQuotient As Boolean = signN <> signD
+                If mRepeLoopMode <> REPLoopModes.None Then negateQuotient = Not negateQuotient
+
+                If negateQuotient Then result = (Not result) + 1
 
                 If signN Then remain = (Not remain) + 1
 

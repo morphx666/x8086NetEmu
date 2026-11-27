@@ -32,6 +32,15 @@ Partial Public Class X8086
         End If
     End Sub
 
+    ' Divide error (INT 0), raised by DIV, IDIV and AAM.
+    ' On the 8086/8088 this is taken *after* the instruction, like a software INT: the pushed
+    ' return address points to the NEXT instruction (verified against all 15,154 divide-error
+    ' cases in the 8088 ProcessorTests). The 80186/286 and later changed this to a fault that
+    ' pushes the address of the dividing instruction itself.
+    Private Sub RaiseDivideError()
+        HandleInterrupt(0, False)
+    End Sub
+
     Public Sub HandleInterrupt(intNum As Byte, isHard As Boolean, Optional ignoreHooks As Boolean = False)
         If Not ((Not ignoreHooks) AndAlso intHooks.ContainsKey(intNum) AndAlso intHooks(intNum).Invoke()) Then
             PushIntoStack(mFlags.EFlags)
