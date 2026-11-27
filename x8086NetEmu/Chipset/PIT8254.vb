@@ -1,4 +1,4 @@
-﻿Public Class PIT8254
+Public Class PIT8254
     Inherits IOPortHandler
 
     Public Class Counter
@@ -213,9 +213,9 @@
                     ' trigger pulls output high
                     If (Not outputValue) AndAlso trigger Then clocks = 1
                     ' output goes low on reaching zero
-                    If active AndAlso mGate AndAlso outputValue Then clocks = FromCounter(counterValue) / 2 + If(trigger, 1, 0) + (countRegister And 1)
+                    If active AndAlso mGate AndAlso outputValue Then clocks = FromCounter(counterValue) \ 2 + If(trigger, 1, 0) + (countRegister And 1)
                     ' output goes high on reaching zero
-                    If active AndAlso mGate AndAlso (Not outputValue) AndAlso (Not trigger) Then clocks = FromCounter(counterValue) / 2
+                    If active AndAlso mGate AndAlso (Not outputValue) AndAlso (Not trigger) Then clocks = FromCounter(counterValue) \ 2
                 Case 4
                     ' strobe starts on terminal count
                     If active AndAlso mGate AndAlso outputValue Then clocks = FromCounter(counterValue) + If(nullCount, 1, 0)
@@ -399,7 +399,7 @@
             '  on one:    switch phase, reload counter
             If trigger Then
                 '  load counter on trigger
-                counterValue = countRegister And (Not 2)
+                counterValue = countRegister And (Not 1) ' Mode 3 counts down by 2 from an even value
                 nullCount = False
                 outputValue = True
                 clocks -= 1
@@ -413,10 +413,10 @@
                     v -= 2 * clocks
                 Else
                     '  zero reached, reload counter
-                    clocks -= v / 2
+                    clocks -= v \ 2
                     v = FromCounter(countRegister)
                     Dim c As Integer = clocks Mod v
-                    v = v And (Not 2)
+                    v = v And (Not 1)
                     nullCount = False
                     If Not outputValue Then
                         '  zero reached in low phase
@@ -428,7 +428,7 @@
                             counterValue = ToCounter(v)
                             Exit Sub
                         End If
-                        c -= v / 2
+                        c -= v \ 2
                     End If
                     '  zero reached in high phase
                     If (countRegister And 1) <> 0 Then
@@ -444,7 +444,7 @@
                     '  continue counting
                     If 2 * c >= v Then
                         '  zero reached again
-                        c -= v / 2
+                        c -= v \ 2
                         '  switch to high phase
                         outputValue = True
                     End If
