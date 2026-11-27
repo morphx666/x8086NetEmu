@@ -52,7 +52,6 @@ Public Class FormEmulator
         LoadSettings(False)  ' For pre-emulation settings
         StartEmulation()
 
-        SetupEventHandlers()
         SetTitleText()
     End Sub
 
@@ -84,10 +83,10 @@ Public Class FormEmulator
 
         cpu.Adapters.Add(New FloppyControllerAdapter(cpu))
 
-        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat"))
+        'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat", True))
         'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM))
 
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat"))
+        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, "asciivga.dat", False)) ' WebUI is not fully supported under VGA emulation
         'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM))
 
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
@@ -363,7 +362,7 @@ Public Class FormEmulator
                                     End Select
 
                                     ' Return False to notify the emulator that the interrupt was not handled.
-                                    '   Code execution will be transfered to the "native" interrupt handler.
+                                    '   Code execution will be transferred to the "native" interrupt handler.
                                     ' Return True if you want to prevent the emulator from executing the code associated with this interrupt.
                                     '   See INT13.vb for more information
                                     Return False
@@ -742,9 +741,9 @@ Public Class FormEmulator
                 SetZoomLevel(Double.Parse(xml.<videoZoom>.Value))
             End If
 
-            If cpu.FloppyContoller IsNot Nothing Then
+            If cpu.FloppyController IsNot Nothing Then
                 For i As Integer = 0 To 512 - 1
-                    If cpu.FloppyContoller.DiskImage(i) IsNot Nothing Then cpu.FloppyContoller.DiskImage(i).Close()
+                    If cpu.FloppyController.DiskImage(i) IsNot Nothing Then cpu.FloppyController.DiskImage(i).Close()
                 Next
 
                 For Each f In xml.<floppies>.<floppy>
@@ -752,7 +751,7 @@ Public Class FormEmulator
                     Dim image As String = f.<image>.Value
                     Dim ro As Boolean = Boolean.Parse(f.<readOnly>.Value)
 
-                    cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro)
+                    cpu.FloppyController.DiskImage(index) = New DiskImage(image, ro)
                 Next
 
                 For Each d In xml.<disks>.<disk>
@@ -760,7 +759,7 @@ Public Class FormEmulator
                     Dim image As String = d.<image>.Value
                     Dim ro As Boolean = Boolean.Parse(d.<readOnly>.Value)
 
-                    cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro, True)
+                    cpu.FloppyController.DiskImage(index) = New DiskImage(image, ro, True)
                 Next
             End If
 

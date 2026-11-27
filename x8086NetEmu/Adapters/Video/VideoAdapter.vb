@@ -53,7 +53,7 @@
     Protected mMainMode As MainModes
 
     Protected mTextResolution As XSize = New XSize(40, 25)
-    Protected mVideoResolution As XSize = New XSize(0, 0)
+    Protected mGraphicsResolution As XSize = New XSize(0, 0)
     Protected mCellSize As XSize
 
     Protected keyMap As New KeyMap() ' Used to filter unsupported keystrokes
@@ -78,25 +78,25 @@
         RaiseEvent PostRender(sender, e)
     End Sub
 
-    Public ReadOnly Property StartGraphicsVideoAddress As Integer
+    Public ReadOnly Property StartGraphicsVideoAddress As UInt32
         Get
             Return mStartGraphicsVideoAddress
         End Get
     End Property
 
-    Public ReadOnly Property EndGraphicsVideoAddress As Integer
+    Public ReadOnly Property EndGraphicsVideoAddress As UInt32
         Get
             Return mEndGraphicsVideoAddress
         End Get
     End Property
 
-    Public ReadOnly Property StartTextVideoAddress As Integer
+    Public ReadOnly Property StartTextVideoAddress As UInt32
         Get
             Return mStartTextVideoAddress
         End Get
     End Property
 
-    Public ReadOnly Property EndTextVideoAddress As Integer
+    Public ReadOnly Property EndTextVideoAddress As UInt32
         Get
             Return mEndTextVideoAddress
         End Get
@@ -110,7 +110,7 @@
 
     Public ReadOnly Property GraphicsResolution As XSize
         Get
-            Return mVideoResolution
+            Return mGraphicsResolution
         End Get
     End Property
 

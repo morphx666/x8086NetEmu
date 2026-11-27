@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<AssemblyVersion>2026.11.27.603</AssemblyVersion>
+		<FileVersion>2026.11.27.603</FileVersion>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<OutputPath>..\..\Release\</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\x8086NetEmuEto\x8086NetEmuEto.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Eto.Platform.Gtk" Version="2.11.0" />
+	</ItemGroup>
+
+</Project>

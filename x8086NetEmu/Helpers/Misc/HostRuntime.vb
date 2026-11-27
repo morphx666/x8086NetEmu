@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Runtime.InteropServices
 
 Public Class HostRuntime
     Public Enum Platforms
@@ -20,26 +21,24 @@ Public Class HostRuntime
     End Property
 
     Private Shared Sub DetectPlatform()
-        Select Case Environment.OSVersion.Platform
-            Case PlatformID.Win32NT, PlatformID.Win32S, PlatformID.Win32Windows, PlatformID.WinCE, PlatformID.Xbox
-                mPlatform = Platforms.Windows
-            Case PlatformID.MacOSX
-                mPlatform = Platforms.MacOSX
-            Case Else
-
-                If Directory.Exists("/Applications") AndAlso Directory.Exists("/System") AndAlso Directory.Exists("/Users") AndAlso Directory.Exists("/Volumes") Then
-                    mPlatform = Platforms.MacOSX
-                Else
-                    mPlatform = Platforms.Linux
-                    Dim distro As String = GetLinuxDistro().ToLower()
-                    If distro.Contains("raspberrypi") Then mPlatform = If(distro.Contains("armv7l"), Platforms.ARMHard, Platforms.ARMSoft)
-                End If
-        End Select
+        If RuntimeInformation.IsOSPlatform(OSPlatform.Windows) Then
+            mPlatform = Platforms.Windows
+        ElseIf RuntimeInformation.IsOSPlatform(OSPlatform.OSX) Then
+            mPlatform = Platforms.MacOSX
+        ElseIf RuntimeInformation.IsOSPlatform(OSPlatform.Linux) Then
+            mPlatform = Platforms.Linux
+            Dim distro As String = GetLinuxDistro().ToLowerInvariant()
+            If distro.Contains("raspberrypi") Then mPlatform = If(distro.Contains("armv7l"), Platforms.ARMHard, Platforms.ARMSoft)
+        ElseIf Directory.Exists("/Applications") AndAlso Directory.Exists("/System") AndAlso Directory.Exists("/Users") AndAlso Directory.Exists("/Volumes") Then
+            mPlatform = Platforms.MacOSX
+        Else
+            mPlatform = Platforms.Unknown
+        End If
     End Sub
 
     Private Shared Function GetLinuxDistro() As String
         Dim lines As List(Of String) = New List(Of String)()
-        Dim si As ProcessStartInfo = New ProcessStartInfo() With {
+        Dim si As New Global.System.Diagnostics.ProcessStartInfo() With {
             .FileName = "uname",
             .Arguments = "-a",
             .CreateNoWindow = True,
@@ -48,10 +47,10 @@ Public Class HostRuntime
             .RedirectStandardError = True,
             .RedirectStandardInput = False
         }
-        Dim catProcess As Process = New Process With {
+        Dim catProcess As New Global.System.Diagnostics.Process With {
             .StartInfo = si
         }
-        AddHandler catProcess.OutputDataReceived, Sub(ByVal s As Object, ByVal e As DataReceivedEventArgs) lines.Add(e.Data)
+        AddHandler catProcess.OutputDataReceived, Sub(ByVal s As Object, ByVal e As Global.System.Diagnostics.DataReceivedEventArgs) lines.Add(e.Data)
 
         Try
             catProcess.Start()
@@ -61,7 +60,7 @@ Public Class HostRuntime
             Threading.Thread.Sleep(500)
             Return If(lines.Count > 0, lines(0), "Unknown")
         Catch
-            Return Environment.OSVersion.Platform.ToString()
+            Return RuntimeInformation.OSDescription
         End Try
     End Function
 End Class

@@ -1,13 +1,14 @@
-﻿Public MustInherit Class CGAAdapter
-    Inherits VideoAdapter
+﻿Imports Microsoft
 
-    Private Const BASECLOCK = 3_579_545 ' 3.579545 MHz
+Public MustInherit Class CGAAdapter
+    Inherits VideoAdapter
 
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
-    Protected ht As ULong = (BASECLOCK * (Scheduler.HOSTCLOCK \ X8086.BASECLOCK)) \ HORIZSYNC
-    Protected vt As ULong = ht * (HORIZSYNC \ VERTSYNC)
+    ' Scanline and frame durations in scheduler time units (Scheduler.HOSTCLOCK per second)
+    Protected ht As ULong = Math.Round(Scheduler.HOSTCLOCK / HORIZSYNC)
+    Protected vt As ULong = Math.Round(Scheduler.HOSTCLOCK / VERTSYNC)
 
     Public Enum VideoModes
         Mode0_Text_BW_40x25 = &H4
@@ -24,10 +25,6 @@
 
         Undefined = &HFF
     End Enum
-
-    Private x()() As Integer = {
-        New Integer() {0, 0, 0}
-        }
 
     Private CGABasePalette() As XColor = {
         XColor.FromArgb(&H0, &H0, &H0),
@@ -48,7 +45,7 @@
         XColor.FromArgb(&HFF, &HFF, &HFF)
     }
 
-    Protected cgaPalette(16 - 1) As XColor
+    Public CGAPalette(16 - 1) As XColor
 
     Protected Friend Enum CGAModeControlRegisters
         blink_enabled = 5
@@ -328,49 +325,49 @@
             Select Case value
                 Case VideoModes.Mode0_Text_BW_40x25
                     mTextResolution = New XSize(40, 25)
-                    mVideoResolution = New XSize(0, 0)
+                    mGraphicsResolution = New XSize(640, 480)
                     mMainMode = MainModes.Text
 
                 Case VideoModes.Mode1_Text_Color_40x25
                     mTextResolution = New XSize(40, 25)
-                    mVideoResolution = New XSize(0, 0)
+                    mGraphicsResolution = New XSize(640, 400)
                     mMainMode = MainModes.Text
 
                 Case VideoModes.Mode2_Text_BW_80x25
                     mTextResolution = New XSize(80, 25)
-                    mVideoResolution = New XSize(0, 0)
+                    mGraphicsResolution = New XSize(640, 400)
                     mMainMode = MainModes.Text
 
                 Case VideoModes.Mode3_Text_Color_80x25
                     mTextResolution = New XSize(80, 25)
-                    mVideoResolution = New XSize(0, 0)
+                    mGraphicsResolution = New XSize(640, 400)
                     mMainMode = MainModes.Text
 
                 Case VideoModes.Mode4_Graphic_Color_320x200
                     mTextResolution = New XSize(40, 25)
-                    mVideoResolution = New XSize(320, 200)
+                    mGraphicsResolution = New XSize(320, 200)
                     mMainMode = MainModes.Graphics
 
                 Case VideoModes.Mode5_Graphic_BW_320x200
                     mTextResolution = New XSize(40, 25)
-                    mVideoResolution = New XSize(320, 200)
+                    mGraphicsResolution = New XSize(320, 200)
                     mMainMode = MainModes.Graphics
 
                 Case VideoModes.Mode6_Graphic_Color_640x200
                     mTextResolution = New XSize(80, 25)
-                    mVideoResolution = New XSize(640, 200)
+                    mGraphicsResolution = New XSize(640, 200)
                     mMainMode = MainModes.Graphics
 
                 Case VideoModes.Mode6_Graphic_Color_640x200_Alt
                     mTextResolution = New XSize(80, 25)
-                    mVideoResolution = New XSize(640, 200)
+                    mGraphicsResolution = New XSize(640, 200)
                     mMainMode = MainModes.Graphics
 
                 Case VideoModes.Mode7_Text_BW_80x25
                     mStartTextVideoAddress = &HB0000
                     mStartGraphicsVideoAddress = &HB0000
                     mTextResolution = New XSize(80, 25)
-                    mVideoResolution = New XSize(720, 400)
+                    mGraphicsResolution = New XSize(720, 400)
                     mMainMode = MainModes.Text
 
                 Case Else
@@ -496,7 +493,7 @@
 
     Protected Overridable Sub OnPaletteRegisterChanged()
         If MainMode = MainModes.Text Then
-            cgaPalette = CType(CGABasePalette.Clone(), XColor())
+            CGAPalette = CType(CGABasePalette.Clone(), XColor())
         Else
             Dim colors() As XColor = Nothing
             Dim cgaModeReg As UInt32 = BitsArrayToWord(CGAModeControlRegister)
@@ -525,7 +522,7 @@
 
             If colors IsNot Nothing Then
                 For i As Integer = 0 To colors.Length - 1
-                    cgaPalette(i) = colors(i)
+                    CGAPalette(i) = colors(i)
                 Next
             End If
         End If

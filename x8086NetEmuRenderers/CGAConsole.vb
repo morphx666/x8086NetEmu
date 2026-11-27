@@ -173,7 +173,7 @@ Public Class CGAConsole
                     b = (b >> (7 - (x And 7))) And 1
                 End If
 
-                i2a.DirectBitmap.Pixel(x, y) = cgaPalette(b).ToColor()
+                i2a.DirectBitmap.Pixel(x, y) = CGAPalette(b).ToColor()
             Next
         Next
     End Sub

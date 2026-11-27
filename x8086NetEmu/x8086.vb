@@ -102,12 +102,14 @@ Public Class X8086
 
     Public Shared IsClosing As Boolean = False
 
+    Public Shared BasePath As String
+
     Public Sub New(Optional v20 As Boolean = True,
                    Optional int13 As Boolean = True,
                    Optional restartEmulationCallback As RestartEmulation = Nothing,
-                   Optional model As Models = Models.IBMPC_5160)
+                   Optional model As Models = Models.IBMPC_5160,
+                   Optional basePath As String = "")
 
-        IsClosing = False
         Scheduler.HOSTCLOCK = Stopwatch.Frequency
         'Scheduler.HOSTCLOCK = GetCpuSpeed() * 10000
 
@@ -115,6 +117,7 @@ Public Class X8086
         mEmulateINT13 = int13
         restartCallback = restartEmulationCallback
         mModel = model
+        X8086.BasePath = basePath
 
         debugWaiter = New AutoResetEvent(False)
         addrMode = New AddressingMode()
@@ -132,6 +135,7 @@ Public Class X8086
     End Sub
 
     Private Sub Init()
+        IsClosing = False
         Sched = New Scheduler(Me)
 
         ' If FPU Is Nothing Then FPU = New x8087(Me)
@@ -330,7 +334,7 @@ Public Class X8086
         Next
 
         Sched.Start()
-        audioSubSystem.Init()
+        audioSubSystem?.Init()
     End Sub
 
     Private Sub MIPSCounterLoop()
@@ -360,18 +364,23 @@ Public Class X8086
     End Property
 
     Private Sub FlushCycles()
+        ' Convert executed CPU cycles into simulated (scheduler) time using the *configured* clock,
+        ' so a faster clock packs more cycles into the same amount of simulated/wall time while
+        ' peripherals (PIT, video, etc.) keep running at their real rates.
         Dim t As Long = clkCyc * Scheduler.HOSTCLOCK + leftCycleFrags
-        Sched.AdvanceTime(t \ BASECLOCK)
-        leftCycleFrags = t Mod BASECLOCK
+        Sched.AdvanceTime(t \ mClock)
+        leftCycleFrags = t Mod mClock
 
         clkCyc = 0
         DoReschedule = True
     End Sub
 
     Private Sub SetSynchronization()
+        ' Emulation speed scales how much simulated time elapses per wall-clock millisecond,
+        ' which speeds up/slows down the whole machine (CPU and all devices) uniformly
         Sched.SetSynchronization(True,
-                                (Scheduler.HOSTCLOCK \ 100),
-                                (Scheduler.HOSTCLOCK \ 1000) * mSimulationMultiplier)
+                                (Scheduler.HOSTCLOCK / 20),
+                                (Scheduler.HOSTCLOCK / 1000) * mSimulationMultiplier)
 
         'PIT?.UpdateClock()
         'VideoAdapter?.UpdateClock()
@@ -382,12 +391,12 @@ Public Class X8086
 
         Dim maxRunTime As Long = Sched.GetTimeToNextEvent()
         If maxRunTime > Scheduler.HOSTCLOCK Then maxRunTime = Scheduler.HOSTCLOCK
-        Dim maxRunCycl As Long = (maxRunTime * BASECLOCK - leftCycleFrags + Scheduler.HOSTCLOCK - 1) \ Scheduler.HOSTCLOCK
+        Dim maxRunCycles As Long = (maxRunTime * mClock - leftCycleFrags + Scheduler.HOSTCLOCK - 1) \ Scheduler.HOSTCLOCK
 
         DoReschedule = False
 
         If DebugMode Then
-            While clkCyc < maxRunCycl AndAlso Not DoReschedule AndAlso DebugMode
+            While clkCyc < maxRunCycles AndAlso Not DoReschedule AndAlso DebugMode
                 debugWaiter.WaitOne()
 
                 SyncLock decoderSyncObj
@@ -406,7 +415,7 @@ Public Class X8086
             End While
         Else
             mIsExecuting = True
-            While clkCyc < maxRunCycl AndAlso Not DoReschedule
+            While clkCyc < maxRunCycles AndAlso Not DoReschedule
                 PreExecute()
 #If DEBUG Then
                 Execute_DEBUG()

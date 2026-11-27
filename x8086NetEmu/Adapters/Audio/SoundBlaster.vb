@@ -41,6 +41,14 @@
     Private adLib As AdlibAdapter
     Private mVolume As Double
 
+    ' Exact DSP sample clock: sample N of the current second is due at
+    ' secondStartTime + N * HOSTCLOCK / SampleRate (no accumulated rounding error)
+    Private secondStartTime As Long
+    Private sampleIndex As Integer
+
+    ' Set when a non auto-init DMA transfer reaches terminal count
+    Private dmaDone As Boolean
+
     Private Class TaskSC
         Inherits Scheduler.SchTask
 
@@ -79,15 +87,39 @@
     End Sub
 
     Private Sub SetSampleTicks()
+        task.Cancel()
+
         If blaster.SampleRate = 0 Then
             blaster.SampleTicks = 0
         Else
-            ' FIXME: This 14 factor is due to the factor used in the PIT8254
-            blaster.SampleTicks = 14 * Scheduler.HOSTCLOCK \ blaster.SampleRate
+            blaster.SampleTicks = Scheduler.HOSTCLOCK / blaster.SampleRate
 
-            task.Cancel()
-            CPU.Sched.RunTaskEach(task, blaster.SampleTicks)
+            secondStartTime = CPU.Sched.CurrentTime
+            sampleIndex = 0
+            ScheduleNextSample()
         End If
+    End Sub
+
+    Private Sub ScheduleNextSample()
+        If blaster.SampleRate = 0 Then Exit Sub
+
+        Dim hostClock As Long = CLng(Scheduler.HOSTCLOCK) ' Long math (mixing in ULong would promote to Decimal)
+        sampleIndex += 1
+        If sampleIndex >= blaster.SampleRate Then
+            ' Rebase once per simulated second so the multiplication below never overflows
+            secondStartTime += hostClock
+            sampleIndex = 0
+        End If
+        CPU.Sched.RunTaskAt(task, secondStartTime + CLng(sampleIndex) * hostClock \ blaster.SampleRate)
+    End Sub
+
+    Private Sub StartDma(autoInit As Boolean)
+        blaster.UsingDma = True
+        blaster.BlockStep = 0
+        blaster.UseAutoInit = autoInit
+        blaster.Paused8 = False
+        blaster.OutputEnabled = True
+        dmaDone = False
     End Sub
 
     Public Overrides Sub InitAdapter()
@@ -113,12 +145,7 @@
                         Exit Sub
                     Else
                         blaster.BlockSize = (blaster.BlockSize And &HFF) Or (CUInt(value) << 8)
-
-                        blaster.UsingDma = True
-                        blaster.BlockStep = 0
-                        blaster.UseAutoInit = False
-                        blaster.Paused8 = False
-                        blaster.OutputEnabled = True
+                        StartDma(False)
                     End If
                 Case &H40 ' Set Time Constant
                     blaster.SampleRate = 1000000 / (256 - value)
@@ -157,11 +184,7 @@
                 blaster.WaitForArg = 2
 
             Case &H1C, &H2C ' 8-bit Auto-Init DMA Output
-                blaster.UsingDma = True
-                blaster.BlockStep = 0
-                blaster.UseAutoInit = True
-                blaster.Paused8 = False
-                blaster.OutputEnabled = True
+                StartDma(True)
 
             Case &HD0 ' Pause 8-bit DMA I/O
                 blaster.Paused8 = True
@@ -289,8 +312,11 @@
         End Select
     End Sub
 
+    ' Scheduler task: runs once per DSP sample period
     Public Overrides Sub Run()
-        If blaster.UsingDma Then
+        ScheduleNextSample()
+
+        If blaster.UsingDma AndAlso Not blaster.Paused8 Then
             ReadDMA()
 
             blaster.BlockStep += 1
@@ -306,25 +332,38 @@
         End If
     End Sub
 
+    ' Fetches the next sample byte following the real 8237 semantics: read at Page:CurrentAddress,
+    ' step the address, and count *down* from the programmed count. The transfer covers
+    ' BaseCount + 1 bytes; terminal count is reached when the counter wraps from 0 to FFFF.
+    ' (The previous implementation counted up from 0 and needed "CurrentCount Mod BaseCount" to
+    ' cope with the guest-programmed count, which skipped the last byte of every block and
+    ' divided by zero on single-byte transfers.)
     Public Sub ReadDMA()
-        If dmaChannel.Masked <> 0 Then
-            blaster.Sample = 128
-            Exit Sub
-        End If
-        If dmaChannel.AutoInit <> 0 AndAlso dmaChannel.CurrentCount > dmaChannel.BaseCount Then dmaChannel.CurrentCount = 0
-        If dmaChannel.CurrentCount > dmaChannel.BaseCount Then
+        If dmaChannel.Masked <> 0 OrElse dmaDone Then
             blaster.Sample = 128
             Exit Sub
         End If
 
-        ' FIXME: Why???
-        dmaChannel.CurrentCount = dmaChannel.CurrentCount Mod dmaChannel.BaseCount
+        blaster.Sample = CPU.Memory(dmaChannel.Page Or dmaChannel.CurrentAddress)
+
         If dmaChannel.Direction = 0 Then
-            blaster.Sample = CPU.Memory(dmaChannel.Page + dmaChannel.CurrentAddress + dmaChannel.CurrentCount)
+            dmaChannel.CurrentAddress = (dmaChannel.CurrentAddress + 1) And &HFFFF
         Else
-            blaster.Sample = CPU.Memory(dmaChannel.Page + dmaChannel.CurrentAddress - dmaChannel.CurrentCount)
+            dmaChannel.CurrentAddress = (dmaChannel.CurrentAddress - 1) And &HFFFF
         End If
-        dmaChannel.CurrentCount += 1
+
+        If dmaChannel.CurrentCount = 0 Then
+            ' Terminal count
+            If dmaChannel.AutoInit <> 0 Then
+                dmaChannel.CurrentAddress = dmaChannel.BaseAddress
+                dmaChannel.CurrentCount = dmaChannel.BaseCount
+            Else
+                dmaChannel.CurrentCount = &HFFFF
+                dmaDone = True
+            End If
+        Else
+            dmaChannel.CurrentCount -= 1
+        End If
     End Sub
 
     Public Overrides ReadOnly Property Type As AdapterType

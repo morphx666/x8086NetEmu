@@ -58,7 +58,7 @@ Public Class DiskImgCtrl
         Eject()
 
         Try
-            mEmulator.FloppyContoller.DiskImage(mIndex) = New DiskImage(fileName, ro, mHardDiskMode)
+            mEmulator.FloppyController.DiskImage(mIndex) = New DiskImage(fileName, ro, mHardDiskMode)
             UpdateUI()
         Catch ex As Exception
             MsgBox("Unable to mount image: " + ex.Message, MsgBoxStyle.Critical)
@@ -70,9 +70,9 @@ Public Class DiskImgCtrl
     End Sub
 
     Private Sub Eject()
-        If mEmulator.FloppyContoller.DiskImage(mIndex) IsNot Nothing Then
-            mEmulator.FloppyContoller.DiskImage(mIndex).Close()
-            mEmulator.FloppyContoller.DiskImage(mIndex) = Nothing
+        If mEmulator.FloppyController.DiskImage(mIndex) IsNot Nothing Then
+            mEmulator.FloppyController.DiskImage(mIndex).Close()
+            mEmulator.FloppyController.DiskImage(mIndex) = Nothing
         End If
 
         UpdateUI()
@@ -94,24 +94,24 @@ Public Class DiskImgCtrl
             LabelDriveInfo.Text = $"{devName} Drive {Convert.ToChar(65 + mIndex)}:"
         End If
 
-        If mEmulator.FloppyContoller.DiskImage(mIndex) Is Nothing Then
+        If mEmulator.FloppyController.DiskImage(mIndex) Is Nothing Then
             TextBoxImageFileName.Text = ""
 
             ButtonEject.Enabled = False
             CheckBoxReadOnly.Enabled = False
         Else
-            TextBoxImageFileName.Text = mEmulator.FloppyContoller.DiskImage(mIndex).FileName
-            CheckBoxReadOnly.Checked = mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly
+            TextBoxImageFileName.Text = mEmulator.FloppyController.DiskImage(mIndex).FileName
+            CheckBoxReadOnly.Checked = mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly
 
             ButtonEject.Enabled = True
             CheckBoxReadOnly.Enabled = True
         End If
-        ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyContoller.DiskImage(mIndex).FileName)
+        ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyController.DiskImage(mIndex).FileName)
     End Sub
 
     Private Sub CheckBoxReadOnly_CheckedChanged(sender As Object, e As EventArgs) Handles CheckBoxReadOnly.CheckedChanged
-        If mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly <> CheckBoxReadOnly.Checked Then
-            MountImage(mEmulator.FloppyContoller.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)
+        If mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly <> CheckBoxReadOnly.Checked Then
+            MountImage(mEmulator.FloppyController.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)
         End If
     End Sub
 

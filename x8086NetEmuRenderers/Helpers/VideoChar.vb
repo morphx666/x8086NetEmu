@@ -27,9 +27,10 @@
             mBitmap = New DirectBitmap(w, h)
             w4s = w * 4
 
+            Dim offset = CGAChar * w * h
             For y As Integer = 0 To h - 1
                 For x As Integer = 0 To w - 1
-                    If FontBitmaps(CGAChar * w * h + y * w + x) = 1 Then
+                    If FontBitmaps(offset + y * w + x) = 1 Then
                         mBitmap.Pixel(x, y) = ForeColor
                     Else
                         mBitmap.Pixel(x, y) = BackColor

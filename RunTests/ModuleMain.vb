@@ -2,8 +2,8 @@
 Imports System.Threading
 
 Module ModuleMain
-    Private DebugMode As Boolean = False
-    Private TraceDelay As Integer = 30
+    Private DebugMode As Boolean = False ' FIXME: Setting this to true causes some tests to fail, likely due to bugs in the disassembler
+    Private TraceDelay As Integer = 1
 
     Private cpu As X8086
     Private validData() As Byte = Nothing
@@ -11,6 +11,10 @@ Module ModuleMain
     Private failedTotal As Integer = 0
     Private prefix As String
     Private inst As New List(Of String)
+
+    Private Function GetTestsDirectory() As IO.DirectoryInfo
+        Return New IO.DirectoryInfo(IO.Path.Combine(AppContext.BaseDirectory, "80186_tests"))
+    End Function
 
     Public Sub Main(args() As String)
         Dim waiter As New AutoResetEvent(False)
@@ -34,7 +38,7 @@ Module ModuleMain
         X8086.LogToConsole = False
         Console.CursorVisible = False
 
-        For Each f As IO.FileInfo In (New IO.DirectoryInfo(IO.Path.Combine(My.Application.Info.DirectoryPath, "80186_tests"))).GetFiles("*.bin")
+        For Each f As IO.FileInfo In GetTestsDirectory().GetFiles("*.bin")
             Dim fileName As String = f.Name.Replace(f.Extension, "")
             Dim dataFileName As String = IO.Path.Combine(f.DirectoryName, $"res_{fileName}.bin")
 
@@ -42,6 +46,7 @@ Module ModuleMain
             validData = IO.File.ReadAllBytes(dataFileName)
 
             prefix = $"Running: {fileName}"
+            Console.ForegroundColor = ConsoleColor.Gray
             Console.Write(prefix)
 
             If cpu.IsHalted Then cpu.HardReset()
@@ -50,15 +55,15 @@ Module ModuleMain
 
             If DebugMode Then
                 While Not cpu.IsHalted
+                    Thread.Sleep(TraceDelay)
+
                     DisplayInstructions()
                     cpu.StepInto()
-                    Thread.Sleep(TraceDelay)
                 End While
             End If
 
             waiter.WaitOne()
         Next
-        cpu.Close()
 
         Dim passedTotal As Integer = testsTotal - failedTotal
         Console.ForegroundColor = ConsoleColor.Magenta

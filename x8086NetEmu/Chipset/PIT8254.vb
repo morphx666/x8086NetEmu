@@ -516,8 +516,12 @@
         End Sub
     End Class
 
-    ' Global counter clock rate (1.193182 MHz) 
-    Public COUNTRATE As Long = 1_193_182
+    ' Global counter clock rate (1.193182 MHz)
+    ' This is a fixed hardware constant: it is the number of PIT input clocks per *simulated*
+    ' second. TimeToClocks/ClocksToTime already convert to/from scheduler time units
+    ' (Scheduler.HOSTCLOCK per simulated second), so it must never be scaled by HOSTCLOCK,
+    ' the CPU clock or the emulation speed.
+    Public Const COUNTRATE As Long = 1_193_182
 
     ' Three counters in the I8254 chip 
     Private ReadOnly mChannels(3 - 1) As Counter
@@ -569,13 +573,6 @@
         For i As UInt16 = &H40 To &H43
             RegisteredPorts.Add(i)
         Next
-
-        ' FIXME: WHY???!!!!
-#If DEBUG Then
-        COUNTRATE /= 4
-#Else
-        COUNTRATE /= 14
-#End If
     End Sub
 
     Public ReadOnly Property Channels(index As Integer) As Counter
@@ -684,15 +681,13 @@
         'End If
 
         If mSpeaker IsNot Nothing Then
+            ' GetSquareWavePeriod returns the period in scheduler time units (not PIT clocks),
+            ' so the frequency is simply time-units-per-second / period
             Dim period As Long = mChannels(2).GetSquareWavePeriod()
             If period = 0 Then
                 mSpeaker.Frequency = 0
             Else
-#If DEBUG Then
-                mSpeaker.Frequency = 134.07 * COUNTRATE / period
-#Else
-                mSpeaker.Frequency = 1700 * COUNTRATE / period
-#End If
+                mSpeaker.Frequency = Scheduler.HOSTCLOCK / period
             End If
         End If
     End Sub

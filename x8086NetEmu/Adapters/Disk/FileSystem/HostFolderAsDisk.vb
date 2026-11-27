@@ -36,7 +36,7 @@
 
         Try
             s.Seek(offset, IO.SeekOrigin.Begin)
-            s.Read(data, 0, data.Length)
+            ReadExact(s, data)
 
             Return 0
         Catch e As Exception

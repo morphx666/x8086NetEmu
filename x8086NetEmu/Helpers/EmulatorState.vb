@@ -1,5 +1,11 @@
-﻿Public Class EmulatorState
+﻿Imports System.IO
+
+Public Class EmulatorState
     Private mCPU As X8086
+
+    Private Shared Function GetCurrentBasePath() As String
+        Return AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar
+    End Function
 
     Public Sub New(cpu As X8086)
         mCPU = cpu
@@ -39,19 +45,19 @@
     End Function
 
     Private Function GetFloppyImages() As XElement
-        Dim curPath = My.Application.Info.DirectoryPath + "\"
+        Dim curPath = GetCurrentBasePath()
         Dim xml = <floppies></floppies>
 
-        If mCPU.FloppyContoller IsNot Nothing Then
+        If mCPU.FloppyController IsNot Nothing Then
             For i As Integer = 0 To 128 - 1
-                If mCPU.FloppyContoller.DiskImage(i) IsNot Nothing Then
-                    Dim di = mCPU.FloppyContoller.DiskImage(i)
+                If mCPU.FloppyController.DiskImage(i) IsNot Nothing Then
+                    Dim di = mCPU.FloppyController.DiskImage(i)
 
                     If Not di.IsHardDisk Then
                         xml.Add(<floppy>
                                     <letter><%= Convert.ToChar(65 + i) %></letter>
                                     <index><%= i %></index>
-                                    <image><%= di.FileName.Replace(curPath, "") %></image>
+                                    <image><%= di.FileName.Replace(curPath, "").Replace(X8086.BasePath, "") %></image>
                                     <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
                                 </floppy>)
                     End If
@@ -63,18 +69,18 @@
     End Function
 
     Private Function GetDiskImages() As XElement
-        Dim curPath = My.Application.Info.DirectoryPath + "\"
+        Dim curPath = GetCurrentBasePath()
         Dim xml = <disks></disks>
 
         For i As Integer = 128 To 1000 - 1
-            If mCPU.FloppyContoller.DiskImage(i) IsNot Nothing Then
-                Dim di = mCPU.FloppyContoller.DiskImage(i)
+            If mCPU.FloppyController.DiskImage(i) IsNot Nothing Then
+                Dim di = mCPU.FloppyController.DiskImage(i)
 
                 If di.IsHardDisk Then
                     xml.Add(<disk>
                                 <letter><%= Convert.ToChar(67 + (i - 128)) %></letter>
                                 <index><%= i %></index>
-                                <image><%= di.FileName.Replace(curPath, "") %></image>
+                                <image><%= di.FileName.Replace(curPath, "").Replace(X8086.BasePath, "") %></image>
                                 <readOnly><%= di.IsReadOnly.ToString() %></readOnly>
                             </disk>)
                 End If

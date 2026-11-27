@@ -53,7 +53,7 @@ Module MainModule
         cpu.Clock = Double.Parse(xml.<clockSpeed>.Value)
 
         For i As Integer = 0 To 512 - 1
-            If cpu.FloppyContoller.DiskImage(i) IsNot Nothing Then cpu.FloppyContoller.DiskImage(i).Close()
+            If cpu.FloppyController.DiskImage(i) IsNot Nothing Then cpu.FloppyController.DiskImage(i).Close()
         Next
 
         For Each f In xml.<floppies>.<floppy>
@@ -61,7 +61,7 @@ Module MainModule
             Dim image As String = f.<image>.Value
             Dim ro As Boolean = Boolean.Parse(f.<readOnly>.Value)
 
-            cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro)
+            cpu.FloppyController.DiskImage(index) = New DiskImage(image, ro)
         Next
 
         For Each d In xml.<disks>.<disk>
@@ -69,7 +69,7 @@ Module MainModule
             Dim image As String = d.<image>.Value
             Dim ro As Boolean = Boolean.Parse(d.<readOnly>.Value)
 
-            cpu.FloppyContoller.DiskImage(index) = New DiskImage(image, ro, True)
+            cpu.FloppyController.DiskImage(index) = New DiskImage(image, ro, True)
         Next
     End Sub
 End Module

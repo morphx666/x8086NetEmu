@@ -20,6 +20,16 @@ Public Class StandardDiskFormat
         SystemPartition = &H80
     End Enum
 
+    Private Shared Sub ReadExact(stream As IO.Stream, buffer() As Byte)
+        Dim totalRead = 0
+
+        While totalRead < buffer.Length
+            Dim bytesRead = stream.Read(buffer, totalRead, buffer.Length - totalRead)
+            If bytesRead = 0 Then Throw New IO.EndOfStreamException()
+            totalRead += bytesRead
+        End While
+    End Sub
+
     Public Enum SystemIds As Byte
         EMPTY = 0
         FAT_12 = 1
@@ -118,7 +128,7 @@ Public Class StandardDiskFormat
         ' FIXME: There has to be a better way to know if the image is a floppy or a hard disk
         '        Perhaps some better way to detect if the image has a master boot record or something...
         strm.Position = 0
-        strm.Read(b, 0, b.Length)
+        ReadExact(strm, b)
         pb = GCHandle.Alloc(b, GCHandleType.Pinned)
         Dim bs As FAT12.BootSector = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
         pb.Free()
@@ -164,7 +174,7 @@ Public Class StandardDiskFormat
         Next
 
         strm.Position = 0
-        strm.Read(b, 0, b.Length)
+        ReadExact(strm, b)
 
         pb = GCHandle.Alloc(b, GCHandleType.Pinned)
         mBootSectors(0) = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(FAT12.BootSector))
@@ -186,14 +196,14 @@ Public Class StandardDiskFormat
         Dim b(512 - 1) As Byte
 
         strm.Position = 0
-        strm.Read(b, 0, b.Length)
+        ReadExact(strm, b)
         pb = GCHandle.Alloc(b, GCHandleType.Pinned)
         mMasterBootRecord = Marshal.PtrToStructure(pb.AddrOfPinnedObject(), GetType(MBR))
         pb.Free()
 
         For partitionNumber As Integer = 0 To 4 - 1
             strm.Position = mMasterBootRecord.Partitions(partitionNumber).RelativeSector * 512
-            strm.Read(b, 0, b.Length)
+            ReadExact(strm, b)
             pb = GCHandle.Alloc(b, GCHandleType.Pinned)
 
             Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
@@ -263,7 +273,7 @@ Public Class StandardDiskFormat
             End If
 
             Do
-                strm.Read(b, 0, b.Length)
+                ReadExact(strm, b)
                 Select Case b(0) ' First char of FileName
                     Case 0 : clusterIndex = -1 : Exit Do
                     Case 5 : b(0) = &HE5
@@ -358,7 +368,7 @@ Public Class StandardDiskFormat
             End If
 
             Do
-                strm.Read(b, 0, b.Length)
+                ReadExact(strm, b)
                 If b(0) = 0 OrElse b(0) = 5 OrElse b(0) = &HE5 Then
                     foundEmptyDirectoryEntry = True
                     Exit While
@@ -464,7 +474,7 @@ Public Class StandardDiskFormat
             End If
 
             Do
-                strm.Read(b, 0, b.Length)
+                ReadExact(strm, b)
                 pb = GCHandle.Alloc(b, GCHandleType.Pinned)
                 Select Case mMasterBootRecord.Partitions(partitionNumber).SystemId
                     Case SystemIds.FAT_12, SystemIds.FAT_16

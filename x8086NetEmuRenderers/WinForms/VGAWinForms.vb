@@ -10,7 +10,7 @@ Public Class VGAWinForms
     Private mFont As Font = New Font(preferredFont, 16, FontStyle.Regular, GraphicsUnit.Pixel)
     Private textFormat As StringFormat = New StringFormat(StringFormat.GenericTypographic)
 
-    Private ReadOnly brushCache(cgaPalette.Length - 1) As Color
+    Private ReadOnly brushCache(CGAPalette.Length - 1) As Color
 
     Private ReadOnly fontSourceMode As FontSources
     Private g As Graphics
@@ -23,11 +23,14 @@ Public Class VGAWinForms
 
     Private mRenderControl As Control
 
-    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "")
+    Protected wui As WebUI
+
+    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
         MyBase.New(cpu)
         fontSourceMode = fontSource
 
         Me.RenderControl = renderControl
+        If enableWebUI Then wui = New WebUI(cpu, videoBMP, chars)
 
         AddHandler mRenderControl.KeyDown, Sub(sender As Object, e As KeyEventArgs)
                                                HandleKeyDown(Me, New XKeyEventArgs(e.KeyValue, e.Modifiers))
@@ -127,6 +130,7 @@ Public Class VGAWinForms
     End Sub
 
     Public Overrides Sub CloseAdapter()
+        wui?.Close()
         MyBase.CloseAdapter()
         DetachRenderControl()
     End Sub
@@ -177,22 +181,26 @@ Public Class VGAWinForms
         OnPreRender(sender, ex)
         g.CompositingMode = Drawing2D.CompositingMode.SourceCopy
 
-        g.DrawImageUnscaled(videoBMP, 0, 0)
+        SyncLock chars
+            g.DrawImageUnscaled(videoBMP, 0, 0)
+        End SyncLock
 
         g.CompositingMode = Drawing2D.CompositingMode.SourceOver
         OnPostRender(sender, ex)
     End Sub
 
     Protected Overrides Sub Render()
-        If mVideoEnabled Then
-            Try
-                SyncLock chars
-                    Select Case MainMode
-                        Case MainModes.Text : RenderText()
-                        Case MainModes.Graphics : RenderGraphics()
-                    End Select
-                End SyncLock
-            Catch : End Try
+        If VideoEnabled Then
+            Select Case MainMode
+                Case MainModes.Text
+                    SyncLock chars
+                        RenderText()
+                    End SyncLock
+
+                Case MainModes.Graphics
+                    RenderGraphics()
+
+            End Select
         End If
     End Sub
 
@@ -231,7 +239,7 @@ Public Class VGAWinForms
                         End Select
                         b0 = b0 * 2 + usePal + intensity
                         If b0 = (usePal + intensity) Then b0 = 0
-                        videoBMP.Pixel(x, y) = cgaPalette(b0 And &HF).ToColor()
+                        videoBMP.Pixel(x, y) = CGAPalette(b0 And &HF).ToColor()
 
                     Case 6
                         h2 = y >> 1
@@ -239,8 +247,8 @@ Public Class VGAWinForms
                                                                      ((h2 And 1) * &H2000) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
                         b0 *= 15
-                        videoBMP.Pixel(x, y) = cgaPalette(b0).ToColor()
-                        videoBMP.Pixel(x, y + 1) = cgaPalette(b0).ToColor()
+                        videoBMP.Pixel(x, y) = CGAPalette(b0).ToColor()
+                        videoBMP.Pixel(x, y + 1) = CGAPalette(b0).ToColor()
 
                     Case &HD
                         address = y * mTextResolution.Width + (x >> 3)
@@ -293,19 +301,19 @@ Public Class VGAWinForms
 
                     Case &H13
                         If planeMode Then
-                            address = y * mVideoResolution.Width + x
+                            address = y * mGraphicsResolution.Width + x
                             address = (address >> 2) + (x And 3) * &H10000
                             address += vgaPage - (VGA_ATTR(&H13) And &HF)
                             b0 = vRAM(address)
                         Else
-                            b0 = CPU.Memory(mStartGraphicsVideoAddress + ((vgaPage + y * mVideoResolution.Width + x) And &HFFFF))
+                            b0 = CPU.Memory(mStartGraphicsVideoAddress + ((vgaPage + y * mGraphicsResolution.Width + x) And &HFFFF))
                         End If
                         videoBMP.Pixel(x, y) = vgaPalette(b0).ToColor()
 
                     Case 127
                         b0 = CPU.Memory(mStartGraphicsVideoAddress + ((y And 3) << 13) + ((y >> 2) * 90) + (x >> 3))
                         b0 = (b0 >> (7 - (x And 7))) And 1
-                        videoBMP.Pixel(x, y) = cgaPalette(b0).ToColor()
+                        videoBMP.Pixel(x, y) = CGAPalette(b0).ToColor()
 
                     Case Else
                         b0 = CPU.Memory(mStartGraphicsVideoAddress + ((y >> 1) * mTextResolution.Width) + ((y And 1) * &H2000) + (x >> xDiv))
@@ -319,7 +327,7 @@ Public Class VGAWinForms
                         Else
                             b0 = (b0 >> (7 - (x And 7))) And 1
                         End If
-                        videoBMP.Pixel(x, y) = cgaPalette(b0).ToColor()
+                        videoBMP.Pixel(x, y) = CGAPalette(b0).ToColor()
 
                 End Select
             Next
@@ -398,9 +406,9 @@ Public Class VGAWinForms
     Private Sub RenderChar(c As Integer, dbmp As DirectBitmap, fb As Color, bb As Color, p As Point, underline As Boolean)
         If fontSourceMode = FontSources.TrueType Then
             Using bbb As New SolidBrush(bb)
-                g.FillRectangle(bbb, New Rectangle(New Point(p.X, p.Y), mCellSize.ToSize()))
+                g.FillRectangle(bbb, New Rectangle(p, mCellSize.ToSize()))
                 Using bfb As New SolidBrush(fb)
-                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, p.X - mCellSize.Width / 2 + 2, p.Y)
+                    g.DrawString(Char.ConvertFromUtf32(c), mFont, bfb, CSng(p.X - mCellSize.Width / 2 + 2), CSng(p.Y))
                 End Using
             End Using
         Else
@@ -413,7 +421,7 @@ Public Class VGAWinForms
                 charsCache.Add(ccc)
                 idx = charsCache.Count - 1
             End If
-            charsCache(idx).Paint(dbmp, New Point(p.X, p.Y), scale)
+            charsCache(idx).Paint(dbmp, p, scale)
         End If
 
         If c <> 0 AndAlso underline Then dbmp.FillRectangle(fb, p.X, p.Y + mCellSize.Height - 2, mCellSize.Width, 1)
@@ -439,8 +447,8 @@ Public Class VGAWinForms
         mVideoMode = vm
 
         If brushCache IsNot Nothing Then
-            For i As Integer = 0 To cgaPalette.Length - 1
-                brushCache(i) = cgaPalette(i).ToColor()
+            For i As Integer = 0 To CGAPalette.Length - 1
+                brushCache(i) = CGAPalette(i).ToColor()
             Next
         End If
     End Sub
@@ -483,6 +491,8 @@ Public Class VGAWinForms
                     Exit Sub
                 End If
                 videoBMP = New DirectBitmap(GraphicsResolution.Width, GraphicsResolution.Height)
+
+                If wui IsNot Nothing Then wui.Bitmap = videoBMP
             End SyncLock
 
             If clearScreen OrElse charSizeCache.Count = 0 Then

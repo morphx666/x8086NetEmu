@@ -7,11 +7,31 @@ Public Class AudioSubsystem
 
     Private handle As Integer
     Private ReadOnly mProviders As New List(Of AudioProvider)
-    Private ReadOnly audioBuffer As Byte() = New Byte(96_000 - 1) {}
-    Private bufferIndex As Integer
-    Private ReadOnly bufferMax As Integer
-    Private ReadOnly latency As Integer = 100
-    Private sampleTicks As Integer
+
+    ' Samples are produced by the scheduler thread at exactly SampleRate per *simulated* second
+    ' and consumed by BASS at SampleRate per *wall* second. Since the scheduler keeps simulated
+    ' time locked to wall time, both rates match on average; this ring buffer absorbs the jitter
+    ' (the scheduler runs in bursts of up to a few sync quanta ahead of wall time).
+    Private ReadOnly ring As Byte() = New Byte(SpeakerAdapter.SampleRate - 1) {} ' 1s capacity
+    Private readPos As Integer
+    Private writePos As Integer
+    Private buffered As Integer
+    Private ReadOnly ringLock As New Object()
+    Private lastSample As Byte = 128
+    Private primed As Boolean
+
+    ' Amount of audio to accumulate before (re)starting playback after an underrun
+    Private Const PreRollMs As Integer = 60
+    ' If the buffer grows beyond this (emulation speed > 100%, host hiccups, etc.), drop the
+    ' oldest samples to keep audio latency bounded
+    Private Const MaxLatencyMs As Integer = 250
+    Private ReadOnly preRollSamples As Integer = SpeakerAdapter.SampleRate * PreRollMs \ 1000
+    Private ReadOnly maxBufferedSamples As Integer = SpeakerAdapter.SampleRate * MaxLatencyMs \ 1000
+
+    ' Exact sample clock: sample N of the current second is due at
+    ' secondStartTime + N * HOSTCLOCK / SampleRate (no accumulated rounding error)
+    Private secondStartTime As Long
+    Private sampleIndex As Integer
 
     Private cpu As X8086
 
@@ -38,49 +58,87 @@ Public Class AudioSubsystem
         Me.cpu = cpu
         BassHelpers.Setup()
 
-        bufferMax = (SpeakerAdapter.SampleRate / 1000) * latency
-        bufferIndex = bufferMax
-
         handle = Bass.CreateStream(SpeakerAdapter.SampleRate, 1, BassFlags.Byte, AddressOf FillAudioBuffer, IntPtr.Zero)
         Bass.ChannelSetAttribute(handle, ChannelAttribute.Buffer, 0)
         Bass.ChannelSetAttribute(handle, ChannelAttribute.Volume, 1.0)
         Bass.ChannelPlay(handle)
-
-        For i As Integer = 0 To audioBuffer.Length - 1
-            audioBuffer(i) = 128
-        Next
     End Sub
 
+    ' Scheduler thread: mix one sample from all providers, then schedule the next one
     Public Overrides Sub Run()
-        If bufferIndex >= bufferMax Then Exit Sub
-
-        Dim sample As Int16
+        Dim mixed As Integer = 0
         For Each provider In mProviders
-            sample += provider.Sample
+            mixed += provider.Sample
         Next
+        mixed += 128
+        If mixed < 0 Then mixed = 0 Else If mixed > 255 Then mixed = 255
 
-        audioBuffer(bufferIndex) = sample + 128
-        bufferIndex += 1
+        SyncLock ringLock
+            If buffered >= maxBufferedSamples Then
+                ' Too far ahead of the audio device: drop the oldest sample
+                readPos = (readPos + 1) Mod ring.Length
+                buffered -= 1
+            End If
+            ring(writePos) = mixed
+            writePos = (writePos + 1) Mod ring.Length
+            buffered += 1
+        End SyncLock
+
+        ScheduleNextSample()
     End Sub
 
+    Private Sub ScheduleNextSample()
+        Dim hostClock As Long = CLng(Scheduler.HOSTCLOCK) ' Long math (mixing in ULong would promote to Decimal)
+        sampleIndex += 1
+        If sampleIndex = SpeakerAdapter.SampleRate Then
+            ' Rebase once per simulated second so the multiplication below never overflows
+            secondStartTime += hostClock
+            sampleIndex = 0
+        End If
+        cpu.Sched.RunTaskAt(sTask, secondStartTime + CLng(sampleIndex) * hostClock \ SpeakerAdapter.SampleRate)
+    End Sub
+
+    ' BASS thread: hand out buffered samples; on underrun hold the last sample (avoids clicks)
+    ' and wait for a small pre-roll before resuming so we don't stutter sample-by-sample
     Private Function FillAudioBuffer(handle As Integer, buffer As IntPtr, length As Integer, user As IntPtr) As Integer
-        Marshal.Copy(audioBuffer, 0, buffer, length)
-        Array.Copy(audioBuffer, length, audioBuffer, 0, bufferMax - length)
+        Dim out(length - 1) As Byte
 
-        bufferIndex -= length
-        If bufferIndex < 0 Then bufferIndex = 0
+        SyncLock ringLock
+            If Not primed AndAlso buffered >= preRollSamples Then primed = True
 
+            Dim n As Integer = 0
+            If primed Then
+                n = Math.Min(length, buffered)
+                For i As Integer = 0 To n - 1
+                    out(i) = ring(readPos)
+                    readPos = (readPos + 1) Mod ring.Length
+                Next
+                buffered -= n
+                If n > 0 Then lastSample = out(n - 1)
+                If n < length Then primed = False ' underrun
+            End If
+
+            For i As Integer = n To length - 1
+                out(i) = lastSample
+            Next
+        End SyncLock
+
+        Marshal.Copy(out, 0, buffer, length)
         Return length
     End Function
 
     Public Sub Init()
-        ' FIXME: This 1/10 factor is due to the factor used in the PIT8254
-#If DEBUG Then
-        sampleTicks = Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
-#Else
-        sampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
-#End If
-        cpu.Sched.RunTaskEach(sTask, sampleTicks)
+        SyncLock ringLock
+            readPos = 0
+            writePos = 0
+            buffered = 0
+            primed = False
+        End SyncLock
+
+        sTask.Cancel()
+        secondStartTime = cpu.Sched.CurrentTime
+        sampleIndex = 0
+        ScheduleNextSample()
     End Sub
 
     Public ReadOnly Property Providers As List(Of AudioProvider)

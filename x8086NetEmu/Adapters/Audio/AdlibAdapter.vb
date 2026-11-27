@@ -79,6 +79,8 @@
 
     Private mVolume As Double
 
+    Private Const EnvelopeRate As Integer = 48_000
+
     Private Class TaskSC
         Inherits Scheduler.SchTask
 
@@ -108,7 +110,10 @@
         RegisteredPorts.Add(&H388)
         RegisteredPorts.Add(&H389)
 
-        SampleTicks = 10 * Scheduler.HOSTCLOCK \ SpeakerAdapter.SampleRate
+        ' Envelope generator tick. The attack/decay multiplier tables (and the 1.006 attack factor)
+        ' come from fake86, where they are applied at 48 kHz; running them at any other rate
+        ' changes how fast notes swell and fade.
+        SampleTicks = Scheduler.HOSTCLOCK / EnvelopeRate
         cpu.Sched.RunTaskEach(task, SampleTicks)
     End Sub
 
@@ -204,7 +209,7 @@
 
         channel = channel Mod 9
 
-        Dim fullStep As UInt64 = SpeakerAdapter.SampleRate \ Frequency(channel)
+        Dim fullStep As UInt64 = SpeakerAdapter.SampleRate / Frequency(channel)
         Dim idx As Byte = oplStep(channel) / (fullStep / 256.0)
         Dim tmpSample As Int32 = oplWave(channels(channel).WaveformSelect)(idx)
         Dim tmpStep As Double = envelope(channel)

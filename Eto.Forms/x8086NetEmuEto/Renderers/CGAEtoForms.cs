@@ -1,0 +1,300 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Eto;
+using Eto.Drawing;
+using Eto.Forms;
+using x8086NetEmu;
+
+namespace x8086NetEmuEto.Renderers {
+    public class CGAEtoForms : CGAAdapter {
+        private int blinkCounter;
+        private Drawable renderControl;
+        private SizeF scale = new(1, 1);
+
+        private Bitmap[] videoBMP;
+        private int bmpIndex = 0;
+
+        private readonly Color[] brushCache;
+        private readonly List<VideoChar> charsCache = [];
+        private readonly Dictionary<int, Size> charSizeCache = [];
+        private readonly int[] paletteDataCache = new int[16];
+        private int[] graphicsScanline = [];
+        private bool paletteDataCacheDirty = true;
+        private EtoVideoInputController inputController;
+
+        public CGAEtoForms(X8086 cpu,
+                            Drawable renderControl,
+                            FontSources fontSource = FontSources.BitmapFile,
+                            string bitmapFontFile = "asciivga.dat") : base(cpu) {
+            RenderControl = renderControl;
+
+            string fontCGAPath = X8086.FixPath(@"misc\" + bitmapFontFile);
+            if(File.Exists(fontCGAPath)) {
+                VideoChar.FontBitmaps = File.ReadAllBytes(fontCGAPath);
+                CellSize = new XSize(8, 16);
+            }
+
+            brushCache = new Color[CGAPalette.Length];
+
+            videoBMP = [
+                new(1, 1, PixelFormat.Format32bppRgb),
+                new(1, 1, PixelFormat.Format32bppRgb)
+            ];
+
+        }
+
+        public Drawable RenderControl {
+            get => renderControl;
+            set {
+                DetachRenderControl();
+                renderControl = value;
+
+                InitAdapter();
+
+                inputController = new EtoVideoInputController(renderControl, this);
+                inputController.Attach();
+                renderControl.Paint += Paint;
+            }
+        }
+
+        private void DetachRenderControl() {
+            if(renderControl != null) {
+                inputController?.Detach();
+                renderControl.Paint -= Paint;
+            }
+        }
+
+        public override void InitAdapter() {
+            if(!isInit) {
+                base.InitAdapter();
+                Task.Run(async () => {
+                    while(!X8086.IsClosing && renderControl != null && !renderControl.IsDisposed) {
+                        await Task.Delay((int)(2 * 1000 / VERTSYNC));
+                        Application.Instance.Invoke(() => renderControl.Invalidate());
+                    }
+                });
+            }
+        }
+
+        public override void CloseAdapter() {
+            base.CloseAdapter();
+            DetachRenderControl();
+        }
+
+        protected override void AutoSize() {
+            ResizeRenderControl();
+        }
+
+        protected override void OnPaletteRegisterChanged() {
+            base.OnPaletteRegisterChanged();
+
+            if(brushCache != null) {
+                for(int i = 0; i < CGAPalette.Length; i++) {
+                    brushCache[i] = CGAPalette[i].ToColor();
+                }
+
+                charsCache.Clear();
+                paletteDataCacheDirty = true;
+            }
+        }
+
+        protected override void ResizeRenderControl() {
+            Size ctrlSize;
+
+            if(MainMode == MainModes.Text) {
+                ctrlSize = new(CellSize.Width * TextResolution.Width, CellSize.Height * TextResolution.Height);
+            } else {
+                ctrlSize = new(GraphicsResolution.Width, GraphicsResolution.Height);
+            }
+
+            Size frmSize = new((int)(640 * Zoom), (int)(400 * Zoom));
+            Window frm = (Window)renderControl.FindParent(typeof(Window));
+
+            Task.Run(async () => {
+                await Task.Delay(250);
+
+                Application.Instance.Invoke(() => {
+                    if(frm.ClientSize.Width != frmSize.Width || frm.ClientSize.Height != frmSize.Height) {
+                        frm.ClientSize = frmSize;
+                    }
+
+                    scale = new((float)frmSize.Width / ctrlSize.Width, (float)frmSize.Height / ctrlSize.Height);
+                });
+            });
+        }
+
+        private void Paint(object sender, PaintEventArgs e) {
+            if(videoBMP[bmpIndex].IsDisposed) return;
+
+            Graphics g = e.Graphics;
+
+            g.AntiAlias = false;
+            g.ImageInterpolation = ImageInterpolation.None;
+            g.PixelOffsetMode = PixelOffsetMode.None;
+            g.ScaleTransform(scale.Width, scale.Height);
+
+            XPaintEventArgs ex = new(g, new XRectangle((int)e.ClipRectangle.X,
+                                                       (int)e.ClipRectangle.Y,
+                                                       (int)e.ClipRectangle.Width,
+                                                       (int)e.ClipRectangle.Height));
+
+            OnPreRender(sender, ex);
+            g.DrawImage(videoBMP[bmpIndex], 0, 0);
+            OnPostRender(sender, ex);
+        }
+
+        protected override void Render() {
+            if(VideoEnabled) {
+                int nextBmpIndex = bmpIndex == 0 ? 1 : 0;
+                switch(MainMode) {
+                    case MainModes.Text:
+                        RenderText(nextBmpIndex);
+                        break;
+                    case MainModes.Graphics:
+                        RenderGraphics(nextBmpIndex);
+                        break;
+                }
+                bmpIndex = nextBmpIndex;
+            }
+        }
+
+        private void RenderText(int bmpIndex) {
+            int col = 0;
+            int row = 0;
+
+            // FIXME: This should be cached
+            Rectangle r = new(Point.Empty, CellSize.ToSize());
+
+            using(Graphics g = new(videoBMP[bmpIndex])) {
+                for(UInt32 address = StartTextVideoAddress; address < EndTextVideoAddress; address += 2) {
+                    byte chr = CPU.Memory[address];
+                    byte atr = CPU.Memory[address + 1];
+
+                    if(BlinkCharOn && (atr & 0b1000_0000) != 0) {
+                        if(blinkCounter < BlinkRate) atr = 0;
+                    }
+
+                    RenderChar(g, chr, brushCache[atr & 0xF], brushCache[atr >> 4], r.Location);
+
+                    if(CursorVisible && row == CursorRow && col == CursorCol) {
+                        if(blinkCounter < BlinkRate) {
+                            g.FillRectangle(brushCache[atr & 0xF],
+                                            r.X + 0, r.Y - 1 + mCellSize.Height - (CursorEnd - CursorStart) - 1,
+                                            CellSize.Width, CursorEnd - CursorStart + 1);
+                        }
+
+                        if(blinkCounter >= 2 * BlinkRate) {
+                            blinkCounter = 0;
+                        } else {
+                            blinkCounter++;
+                        }
+                    }
+
+                    r.X += CellSize.Width;
+                    col++;
+                    if(col == TextResolution.Width) {
+                        col = 0;
+                        row++;
+                        if(row == TextResolution.Height) break;
+
+                        r.X = 0;
+                        r.Y += mCellSize.Height;
+
+                    }
+                }
+            }
+        }
+
+        private void RenderChar(Graphics g, byte c, Color fb, Color bb, Point p) {
+            VideoChar ccc = new(c, fb, bb);
+            int idx = charsCache.IndexOf(ccc);
+            if(idx == -1) {
+                ccc.Render(CellSize.Width, CellSize.Height);
+                charsCache.Add(ccc);
+                idx = charsCache.Count - 1;
+            }
+            charsCache[idx].Paint(g, p, scale);
+        }
+
+        private void RenderGraphics(int bmpIndex) {
+            int b;
+            int xDiv = PixelsPerByte == 4 ? 2 : 3;
+            using BitmapData bitmapData = videoBMP[bmpIndex].Lock();
+
+            if(paletteDataCacheDirty) {
+                for(int i = 0; i < CGAPalette.Length; i++) {
+                    paletteDataCache[i] = bitmapData.TranslateArgbToData(unchecked((int)CGAPalette[i].ToArgb()));
+                }
+
+                paletteDataCacheDirty = false;
+            }
+
+            for(int y = 0; y < GraphicsResolution.Height; y++) {
+                int cy = ((y >> 1) * 80) + ((y & 1) * 0x2000);
+                for(int x = 0; x < GraphicsResolution.Width; x++) {
+                    b = CPU.Memory[mStartGraphicsVideoAddress + cy + (x >> xDiv)];
+
+                    if(PixelsPerByte == 4) {
+                        switch(x & 3) {
+                            case 3:
+                                b &= 3;
+                                break;
+                            case 2:
+                                b = (b >> 2) & 3;
+                                break;
+                            case 1:
+                                b = (b >> 4) & 3;
+                                break;
+                            case 0:
+                                b = (b >> 6) & 3;
+                                break;
+                        }
+                    } else {
+                        b = (b >> (7 - (x & 7))) & 1;
+                    }
+
+                    graphicsScanline[x] = paletteDataCache[b];
+                }
+
+                int rowIndex = bitmapData.Flipped ? GraphicsResolution.Height - 1 - y : y;
+                Marshal.Copy(graphicsScanline, 0, IntPtr.Add(bitmapData.Data, rowIndex * bitmapData.ScanWidth), GraphicsResolution.Width);
+            }
+        }
+
+        protected override void InitVideoMemory(bool clearScreen) {
+            base.InitVideoMemory(clearScreen);
+
+            if(renderControl != null && GraphicsResolution.Width != 0) {
+                if(clearScreen) {
+                    charSizeCache.Clear();
+
+                    for(int c = 0; c < 256; c++) MeasureChar(c);
+
+                    // Monospace, so we can use any char
+                    Size cs = charSizeCache[65];
+                    CellSize = new XSize(cs.Width, cs.Height);
+                }
+
+                if(videoBMP[0].Size != GraphicsResolution.ToSize()) {
+                    videoBMP[0]?.Dispose();
+                    videoBMP[1]?.Dispose();
+                    videoBMP = [
+                        new(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb),
+                        new(GraphicsResolution.Width, GraphicsResolution.Height, PixelFormat.Format32bppRgb)
+                    ];
+                    graphicsScanline = new int[GraphicsResolution.Width];
+                    bmpIndex = 0;
+                    paletteDataCacheDirty = true;
+                }
+            }
+        }
+
+        private void MeasureChar(int code) {
+            charSizeCache.Add(code, CellSize.ToSize());
+        }
+    }
+}
