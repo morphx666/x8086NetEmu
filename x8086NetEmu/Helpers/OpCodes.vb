@@ -692,17 +692,7 @@ Private Sub _61' POPA (80186)
 
 Private Sub _62' BOUND (80186)
                                     If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    SetAddressing()
-                    If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
-                        HandleInterrupt(5, False)
-                    Else
-                        addrMode.IndAdr += 2
-                        If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
-                            HandleInterrupt(5, False)
-                        End If
-                    End If
-                    clkCyc += 34
+                    Execute186Bound()
                 Else
                     OpCodeNotImplemented()
                 End If
@@ -718,24 +708,9 @@ Private Sub _68' PUSH Iv (80186)
                 End If
                                  End Sub
 
-Private Sub _69' IMUL (80186)
+Private Sub _69' IMUL Gv Ev Iv (80186)
                                     If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    SetAddressing()
-                    Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
-                    Dim tmp2 As UInt32 = Param(ParamIndex.First, , DataSize.Word)
-                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
-                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
-                    Dim tmp3 As UInt32 = tmp1 * tmp2
-                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
-                    If (tmp3 And &HFFFF_0000UI) <> 0 Then
-                        mFlags.CF = 1
-                        mFlags.OF = 1
-                    Else
-                        mFlags.CF = 0
-                        mFlags.OF = 0
-                    End If
-                    clkCyc += 27
+                    Execute186Imul(False)
                 Else
                     OpCodeNotImplemented()
                 End If
@@ -743,40 +718,27 @@ Private Sub _69' IMUL (80186)
 
 Private Sub _6A' PUSH Ib (80186)
                                     If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
+                    PushIntoStack(To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))) ' Sign-extended
                     clkCyc += 3
                 Else
                     OpCodeNotImplemented()
                 End If
                                  End Sub
 
-Private Sub _6B' IMUL (80186)
+Private Sub _6B' IMUL Gv Ev Ib (80186)
                                     If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    SetAddressing()
-                    Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
-                    Dim tmp2 As UInt32 = To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))
-                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
-                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
-                    Dim tmp3 As UInt32 = tmp1 * tmp2
-                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
-                    If (tmp3 And &HFFFF_0000UI) <> 0 Then
-                        mFlags.CF = 1
-                        mFlags.OF = 1
-                    Else
-                        mFlags.CF = 0
-                        mFlags.OF = 0
-                    End If
-                    clkCyc += 27
+                    Execute186Imul(True)
                 Else
                     OpCodeNotImplemented()
                 End If
                                  End Sub
 
-Private Sub _6C_6F' Ignore 80186/V20 port operations... for now...
-                                    opCodeSize += 1
-                clkCyc += 3
+Private Sub _6C_6F' INSB/INSW/OUTSB/OUTSW (80186)
+                                    If mV20 Then
+                    HandleREPMode()
+                Else
+                    OpCodeNotImplemented()
+                End If
                                  End Sub
 
 Private Sub _70' JO Jb
@@ -1293,30 +1255,7 @@ Private Sub _C6_C7' MOV MOV Ev Iv
 
 Private Sub _C8' ENTER (80186)
                                     If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    Dim stackSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)
-                    Dim nestLevel As UInt16 = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
-                    PushIntoStack(mRegisters.BP)
-                    Dim frameTemp = mRegisters.SP
-                    If nestLevel > 0 Then
-                        For i As Integer = 1 To nestLevel - 1
-                            mRegisters.BP -= 2
-                            'PushIntoStack(RAM16(frameTemp, mRegisters.BP))
-                            PushIntoStack(mRegisters.BP)
-                        Next
-                        PushIntoStack(frameTemp)
-                    End If
-                    mRegisters.BP = frameTemp
-                    mRegisters.SP -= stackSize
-
-                    Select Case nestLevel
-                        Case 0' 
-clkCyc += 15
-                        Case 1' 
-clkCyc += 25
-                        Case Else' 
-clkCyc += 22 + 16 * (nestLevel - 1)
-                    End Select
+                    Execute186Enter()
                 Else
                     OpCodeNotImplemented()
                 End If
@@ -1473,9 +1412,10 @@ Private Sub _E4' IN AL Ib
                                  End Sub
 
 Private Sub _E5' IN AX Ib
-                                    tmpUVal1 = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
-                mRegisters.AL = tmpUVal1
-                mRegisters.AH = tmpUVal1
+                                    ' Two byte cycles on the 8-bit bus: AL from the port, AH from the next one
+                Dim inPort As UInt16 = Param(ParamIndex.First, , DataSize.Byte)
+                mRegisters.AL = ReceiveFromPort(inPort)
+                mRegisters.AH = ReceiveFromPort(inPort + 1)
                 clkCyc += 10
                                  End Sub
 
@@ -1519,9 +1459,9 @@ Private Sub _EC' IN AL DX
                                  End Sub
 
 Private Sub _ED' IN AX DX
-                                    tmpUVal1 = ReceiveFromPort(mRegisters.DX)
-                mRegisters.AL = tmpUVal1
-                mRegisters.AH = tmpUVal1
+                                    ' Two byte cycles on the 8-bit bus: AL from port DX, AH from DX + 1
+                mRegisters.AL = ReceiveFromPort(mRegisters.DX)
+                mRegisters.AH = ReceiveFromPort((mRegisters.DX + 1) And &HFFFF)
                 clkCyc += 8
                                  End Sub
 

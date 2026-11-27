@@ -824,17 +824,7 @@ Public Class X8086
 
             Case &H62 ' BOUND (80186)
                 If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    SetAddressing()
-                    If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
-                        HandleInterrupt(5, False)
-                    Else
-                        addrMode.IndAdr += 2
-                        If To32bitsWithSign(mRegisters.Val(addrMode.Register1)) < RAM16(addrMode.IndAdr >> 4, addrMode.IndAdr And 15) Then
-                            HandleInterrupt(5, False)
-                        End If
-                    End If
-                    clkCyc += 34
+                    Execute186Bound()
                 Else
                     OpCodeNotImplemented()
                 End If
@@ -848,62 +838,34 @@ Public Class X8086
                     OpCodeNotImplemented()
                 End If
 
-            Case &H69 ' IMUL (80186)
+            Case &H69 ' IMUL Gv Ev Iv (80186)
                 If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    SetAddressing()
-                    Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
-                    Dim tmp2 As UInt32 = Param(ParamIndex.First, , DataSize.Word)
-                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
-                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
-                    Dim tmp3 As UInt32 = tmp1 * tmp2
-                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
-                    If (tmp3 And &HFFFF_0000UI) <> 0 Then
-                        mFlags.CF = 1
-                        mFlags.OF = 1
-                    Else
-                        mFlags.CF = 0
-                        mFlags.OF = 0
-                    End If
-                    clkCyc += 27
+                    Execute186Imul(False)
                 Else
                     OpCodeNotImplemented()
                 End If
 
             Case &H6A ' PUSH Ib (80186)
                 If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    PushIntoStack(Param(ParamIndex.First, , DataSize.Byte))
+                    PushIntoStack(To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))) ' Sign-extended
                     clkCyc += 3
                 Else
                     OpCodeNotImplemented()
                 End If
 
-            Case &H6B ' IMUL (80186)
+            Case &H6B ' IMUL Gv Ev Ib (80186)
                 If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    SetAddressing()
-                    Dim tmp1 As UInt32 = mRegisters.Val(addrMode.Register1)
-                    Dim tmp2 As UInt32 = To16bitsWithSign(Param(ParamIndex.First, , DataSize.Byte))
-                    If (tmp1 And &H8000) = &H8000 Then tmp1 = tmp1 Or &HFFFF_0000UI
-                    If (tmp2 And &H8000) = &H8000 Then tmp2 = tmp2 Or &HFFFF_0000UI
-                    Dim tmp3 As UInt32 = tmp1 * tmp2
-                    mRegisters.Val(addrMode.Register1) = tmp3 And &HFFFF
-                    If (tmp3 And &HFFFF_0000UI) <> 0 Then
-                        mFlags.CF = 1
-                        mFlags.OF = 1
-                    Else
-                        mFlags.CF = 0
-                        mFlags.OF = 0
-                    End If
-                    clkCyc += 27
+                    Execute186Imul(True)
                 Else
                     OpCodeNotImplemented()
                 End If
 
-            Case &H6C To &H6F ' Ignore 80186/V20 port operations... for now...
-                opCodeSize += 1
-                clkCyc += 3
+            Case &H6C To &H6F ' INSB/INSW/OUTSB/OUTSW (80186)
+                If mV20 Then
+                    HandleREPMode()
+                Else
+                    OpCodeNotImplemented()
+                End If
 
             Case &H70 ' JO Jb
                 If mFlags.OF = 1 Then
@@ -1299,27 +1261,7 @@ Public Class X8086
 
             Case &HC8 ' ENTER (80186)
                 If mV20 Then
-                    ' PRE ALPHA CODE - UNTESTED
-                    Dim stackSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)
-                    Dim nestLevel As UInt16 = Param(ParamIndex.Second, , DataSize.Byte) And &H1F
-                    PushIntoStack(mRegisters.BP)
-                    Dim frameTemp = mRegisters.SP
-                    If nestLevel > 0 Then
-                        For i As Integer = 1 To nestLevel - 1
-                            mRegisters.BP -= 2
-                            'PushIntoStack(RAM16(frameTemp, mRegisters.BP))
-                            PushIntoStack(mRegisters.BP)
-                        Next
-                        PushIntoStack(frameTemp)
-                    End If
-                    mRegisters.BP = frameTemp
-                    mRegisters.SP -= stackSize
-
-                    Select Case nestLevel
-                        Case 0 : clkCyc += 15
-                        Case 1 : clkCyc += 25
-                        Case Else : clkCyc += 22 + 16 * (nestLevel - 1)
-                    End Select
+                    Execute186Enter()
                 Else
                     OpCodeNotImplemented()
                 End If
@@ -1456,9 +1398,10 @@ Public Class X8086
                 clkCyc += 10
 
             Case &HE5 ' IN AX Ib
-                tmpUVal1 = ReceiveFromPort(Param(ParamIndex.First, , DataSize.Byte))
-                mRegisters.AL = tmpUVal1
-                mRegisters.AH = tmpUVal1
+                ' Two byte cycles on the 8-bit bus: AL from the port, AH from the next one
+                Dim inPort As UInt16 = Param(ParamIndex.First, , DataSize.Byte)
+                mRegisters.AL = ReceiveFromPort(inPort)
+                mRegisters.AH = ReceiveFromPort(inPort + 1)
                 clkCyc += 10
 
             Case &HE6  ' OUT Ib AL
@@ -1494,9 +1437,9 @@ Public Class X8086
                 clkCyc += 8
 
             Case &HED ' IN AX DX
-                tmpUVal1 = ReceiveFromPort(mRegisters.DX)
-                mRegisters.AL = tmpUVal1
-                mRegisters.AH = tmpUVal1
+                ' Two byte cycles on the 8-bit bus: AL from port DX, AH from DX + 1
+                mRegisters.AL = ReceiveFromPort(mRegisters.DX)
+                mRegisters.AH = ReceiveFromPort((mRegisters.DX + 1) And &HFFFF)
                 clkCyc += 8
 
             Case &HEE ' OUT DX AL
@@ -1706,7 +1649,7 @@ Public Class X8086
         Select Case opCode
             Case &HD0, &HD1 : count = 1
             Case &HD2, &HD3 : count = mRegisters.CL
-            Case &HC0, &HC1 : count = Param(ParamIndex.Second,  , DataSize.Byte)
+            Case &HC0, &HC1 : count = Param(ParamIndex.First, opCodeSize, DataSize.Byte) ' The immediate follows the ModRM byte and any displacement
         End Select
 
         ' 80186/V20 class CPUs limit shift count to 31 (&H1F)
@@ -2138,6 +2081,75 @@ Public Class X8086
         End Select
     End Sub
 
+#Region "80186/V20 instructions (shared by Execute_DEBUG and the opcode table)"
+    Private Shared Function SignExtend16(v As Integer) As Integer
+        v = v And &HFFFF
+        Return If(v >= &H8000, v - &H10000, v)
+    End Function
+
+    ' IMUL r16, r/m16, imm16 (69h) or sign-extended imm8 (6Bh): r16 = r/m16 * imm.
+    ' CF and OF are set when the signed result doesn't fit in 16 bits.
+    Private Sub Execute186Imul(byteImmediate As Boolean)
+        SetAddressing()
+        Dim src As Integer = SignExtend16(If(addrMode.IsDirect, mRegisters.Val(addrMode.Register2), addrMode.IndMem))
+        Dim imm As Integer
+        If byteImmediate Then
+            imm = SignExtend16(To16bitsWithSign(Param(ParamIndex.First, opCodeSize, DataSize.Byte)))
+        Else
+            imm = SignExtend16(Param(ParamIndex.First, opCodeSize, DataSize.Word))
+        End If
+
+        Dim product As Integer = src * imm
+        mRegisters.Val(addrMode.Register1) = product And &HFFFF
+        Dim overflow As Byte = If(product < -&H8000 OrElse product > &H7FFF, 1, 0)
+        mFlags.CF = overflow
+        mFlags.OF = overflow
+        clkCyc += If(addrMode.IsDirect, 22, 25)
+    End Sub
+
+    ' BOUND r16, m16&16: INT 5 when the signed index is below the lower or above the upper bound. It's a fault:
+    ' the return address pushed is the BOUND instruction itself, so the handler can fix the index and retry.
+    Private Sub Execute186Bound()
+        SetAddressing(DataSize.Word)
+        SetRegister1Alt(addrMode.Reg)
+        clkCyc += 33
+        If addrMode.IsDirect Then Exit Sub ' A register operand is undefined
+
+        Dim index As Integer = SignExtend16(mRegisters.Val(addrMode.Register1))
+        Dim lower As Integer = SignExtend16(addrMode.IndMem)
+        Dim upper As Integer = SignExtend16(RAM16(mRegisters.ActiveSegmentValue, addrMode.IndAdr, 2))
+        If index < lower OrElse index > upper Then
+            opCodeSize = 0
+            HandleInterrupt(5, False)
+        End If
+    End Sub
+
+    ' ENTER imm16, imm8: create a stack frame of imm16 bytes with nesting level imm8 (0-31)
+    Private Sub Execute186Enter()
+        Dim frameSize As UInt16 = Param(ParamIndex.First, , DataSize.Word)   ' Bytes 1-2
+        Dim level As Integer = Param(ParamIndex.First, 3, DataSize.Byte) And &H1F ' Byte 3
+
+        PushIntoStack(mRegisters.BP)
+        Dim frameTemp As UInt16 = mRegisters.SP
+        If level > 0 Then
+            ' Copy the enclosing frames' pointers, then point to this one
+            For i As Integer = 1 To level - 1
+                mRegisters.BP -= 2
+                PushIntoStack(RAM16(mRegisters.SS, mRegisters.BP))
+            Next
+            PushIntoStack(frameTemp)
+        End If
+        mRegisters.BP = frameTemp
+        mRegisters.SP -= frameSize
+
+        Select Case level
+            Case 0 : clkCyc += 15
+            Case 1 : clkCyc += 25
+            Case Else : clkCyc += 22 + 16 * (level - 1)
+        End Select
+    End Sub
+#End Region
+
     Private Sub HandleREPMode()
         tmpUVal1 = mRegisters.ActiveSegmentValue
         tmpUVal2 = If((opCode And 1) <> 0, 2, 1) * If(mFlags.DF <> 0, -1, 1)
@@ -2236,6 +2248,36 @@ Public Class X8086
                 mRegisters.DI += tmpUVal2
                 clkCyc += 15
                 Return True
+
+            ' 80186/V20 string I/O. INS always stores to ES:DI; OUTS reads from the (overridable) source segment.
+            ' Word transfers use two byte cycles, port DX then DX+1, like IN/OUT AX on the 8-bit bus.
+            Case &H6C ' INSB
+                RAM8(mRegisters.ES, mRegisters.DI) = ReceiveFromPort(mRegisters.DX)
+                mRegisters.DI += tmpUVal2
+                clkCyc += 8
+                Return False
+
+            Case &H6D ' INSW
+                Dim lo As UInt16 = ReceiveFromPort(mRegisters.DX)
+                Dim hi As UInt16 = ReceiveFromPort(CUShort((mRegisters.DX + 1) And &HFFFF))
+                RAM16(mRegisters.ES, mRegisters.DI) = lo Or (hi << 8)
+                mRegisters.DI += tmpUVal2
+                clkCyc += 8
+                Return False
+
+            Case &H6E ' OUTSB
+                SendToPort(mRegisters.DX, RAM8(tmpUVal1, mRegisters.SI))
+                mRegisters.SI += tmpUVal2
+                clkCyc += 8
+                Return False
+
+            Case &H6F ' OUTSW
+                Dim w As UInt16 = RAM16(tmpUVal1, mRegisters.SI)
+                SendToPort(mRegisters.DX, w And &HFF)
+                SendToPort(CUShort((mRegisters.DX + 1) And &HFFFF), w >> 8)
+                mRegisters.SI += tmpUVal2
+                clkCyc += 8
+                Return False
 
         End Select
 

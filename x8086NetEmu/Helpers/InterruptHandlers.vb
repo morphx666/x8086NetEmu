@@ -52,10 +52,12 @@ Partial Public Class X8086
             mRegisters.CS = RAM16(0, tmpUVal1, 2, True)
 
             If intNum = 0 Then ThrowException("Division By Zero")
-        End If
 
-        mFlags.IF = 0
-        mFlags.TF = 0
+            ' Entering the handler disables interrupts and single-stepping. When a hook services the interrupt
+            ' instead, the caller continues as if the handler's IRET had already restored its flags.
+            mFlags.IF = 0
+            mFlags.TF = 0
+        End If
 
         clkCyc += 51
     End Sub
