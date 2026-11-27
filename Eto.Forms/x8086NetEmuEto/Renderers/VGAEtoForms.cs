@@ -9,7 +9,7 @@ using x8086NetEmu;
 namespace x8086NetEmuEto.Renderers {
     // Eto presenter for the register-level VGAAdapter: the adapter generates complete frames (see
     // VGAAdapter.GetFrame); this class only copies them into a bitmap and paints it, scaled to the surface.
-    public class VGAEtoForms : VGAAdapter {
+    public class VGAEtoForms : VGAAdapter, IEtoVideoAdapter {
         private Drawable renderControl;
         private EtoVideoInputController inputController;
         private Bitmap[] videoBMP = [new(1, 1, PixelFormat.Format32bppRgb), new(1, 1, PixelFormat.Format32bppRgb)];
@@ -95,6 +95,13 @@ namespace x8086NetEmuEto.Renderers {
             OnPreRender(sender, ex);
             g.DrawImage(bmp, new RectangleF(PointF.Empty, renderControl.Size));
             OnPostRender(sender, ex);
+        }
+
+        EtoVideoInputController IEtoVideoAdapter.InputController => inputController;
+
+        int[] IEtoVideoAdapter.CaptureFrame(out int width, out int height) {
+            int[] frame = GetFrame(out width, out height);
+            return (int[])frame.Clone();
         }
 
         public override string Description => "VGA Eto.Forms Adapter";

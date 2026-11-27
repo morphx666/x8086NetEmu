@@ -32,6 +32,10 @@ namespace x8086NetEmuEto.Renderers {
         private MouseButtons pressedMouseButtons;
         private MouseButtons lastClickedMouseButtons;
         private readonly HashSet<Keys> heldKeys = [];
+        private bool suspended;
+
+        // Raised (on the UI thread) for the frontend's Shift+Alt+<key> hotkeys other than the menu (C, V)
+        public event Action<Keys> HotKeyPressed;
 
         public EtoVideoInputController(Drawable renderControl, CGAAdapter videoAdapter) {
             this.renderControl = renderControl;
@@ -60,7 +64,31 @@ namespace x8086NetEmuEto.Renderers {
             renderControl.MouseUp -= OnMouseUp;
         }
 
+        // While suspended (e.g. selecting text to copy) no keyboard or mouse input reaches the guest and the
+        // mouse is not captured, so the frontend can use the surface itself
+        public bool Suspended {
+            get => suspended;
+            set {
+                if(suspended == value) return;
+                suspended = value;
+                if(value) {
+                    ReleaseKeys();
+                    ReleaseMouse();
+                }
+            }
+        }
+
         private void OnKeyDown(object sender, KeyEventArgs e) {
+            if(suspended) return;
+
+            if(e.Shift && e.Alt && (e.Key == Keys.C || e.Key == Keys.V)) {
+                ReleaseKeys();
+                Keys key = e.Key;
+                Application.Instance.AsyncInvoke(() => HotKeyPressed?.Invoke(key));
+                e.Handled = true;
+                return;
+            }
+
             if(e.KeyData == (Keys.Shift | Keys.Alt | Keys.Home)
                 || e.KeyData == (Keys.Shift | Keys.Alt | Keys.Keypad7)
                 || (e.Shift && e.Alt && (e.Key == Keys.Home || e.Key == Keys.Keypad7))) {
@@ -80,6 +108,7 @@ namespace x8086NetEmuEto.Renderers {
         }
 
         private void OnKeyUp(object sender, KeyEventArgs e) {
+            if(suspended) return;
             heldKeys.Remove(e.Key);
             videoAdapter.HandleKeyUp(videoAdapter, new Adapter.XKeyEventArgs(KeyToInt(e.Key), KeyToInt(e.Modifiers)));
             e.Handled = true;
@@ -107,7 +136,7 @@ namespace x8086NetEmuEto.Renderers {
         }
 
         private void CaptureInput(PointF location) {
-            if(videoAdapter.CPU.Mouse == null) {
+            if(suspended || videoAdapter.CPU.Mouse == null) {
                 return;
             }
 
@@ -126,14 +155,14 @@ namespace x8086NetEmuEto.Renderers {
         }
 
         private void OnMouseDown(object sender, MouseEventArgs e) {
-            if(isMouseOver) {
+            if(isMouseOver && !suspended) {
                 SendMouseDown(e.Buttons);
                 e.Handled = true;
             }
         }
 
         private void OnMouseDoubleClick(object sender, MouseEventArgs e) {
-            if(isMouseOver) {
+            if(isMouseOver && !suspended) {
                 MouseButtons buttons = e.Buttons != MouseButtons.None
                     ? e.Buttons
                     : lastClickedMouseButtons;
@@ -169,6 +198,7 @@ namespace x8086NetEmuEto.Renderers {
         private void OnMouseMove(object sender, MouseEventArgs e) {
             // After the emulator menu closes the pointer may already be over the canvas, in which
             // case no MouseEnter is raised; re-capture on the first move instead.
+            if(suspended) return;
             if(!isMouseOver) {
                 CaptureInput(e.Location);
                 e.Handled = true;
@@ -286,7 +316,7 @@ namespace x8086NetEmuEto.Renderers {
         }
 
         private void OnMouseUp(object sender, MouseEventArgs e) {
-            if(isMouseOver) {
+            if(isMouseOver && !suspended) {
                 MouseButtons releasedButtons = e.Buttons != MouseButtons.None
                     ? e.Buttons
                     : pressedMouseButtons;

@@ -87,6 +87,14 @@ The repo is mid-upgrade. Guidance that overrides appearances in the tree:
   Shift+Alt+Home or by pushing the pointer firmly past any corner of the emulator surface.
 - **Mouse speed:** host pixels are divided by the video Zoom before being sent as mickeys, so the guest
   pointer tracks the host pointer's on-screen speed; `MOUSE_SPEED` in `EtoVideoInputController` scales it.
+- **Tool windows** live in `Eto.Forms/x8086NetEmuEto/Tools/` (Debugger, Console/log viewer, Media Manager,
+  Disk Explorer, text copy/paste helpers). The debugger captures CPU state on the emulation thread inside
+  `InstructionDecoded` (never decode from the UI while the CPU may be executing — `Decode` borrows CS:IP).
+  Text copy uses `ScreenText` (video memory in text modes, BIOS-font glyph matching in graphics modes);
+  paste uses `TextPaster`, which types through the keyboard path paced by `PPI8255.PendingKeyData`.
+  Video presenters expose input/frame access to these tools through `IEtoVideoAdapter`.
+- **Hard reset** in the Eto frontend rebuilds the whole machine through the `X8086` restart callback
+  (`MainForm.RestartEmulation`), re-attaching open tool windows to the new instance.
 
 ## Conventions
 

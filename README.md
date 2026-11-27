@@ -19,7 +19,7 @@ Although it still has some bugs, it is a fairly stable and capable 8088/86/186 e
 - Support for both Floppy and Hard Disk images
 - Hard disk and floppy images inspector / Disk Explorer (FAT12, FAT16, and FAT16B/BIGDOS support only)
 - Support to drag & drop files to/from the Disk Explorer and the host
-- Support to copy/paste text to/from the emulator and the host
+- Support to copy/paste text to/from the emulator and the host, in any video mode (Shift+Alt+C / Shift+Alt+V in the Eto.Forms frontends). Text is read from video memory in text modes and recognized from the BIOS font in graphics modes; pasted text is typed through the emulated keyboard
 - The Emulator's menu is opened with Shift+Alt+Home in the Eto.Forms frontends (RCtrl+Home in the WinForms frontend). No menu is available in the Console version: to change its settings, edit the `settings.dat` file using any text editor
 - The mouse is captured while the pointer is over the emulator; it's released with Shift+Alt+Home or by pushing the pointer firmly past any corner of the emulator's display
 - Text-mode characters come from the machine's own ROMs: the CGA font is built from the BIOS character set, and the VGA uses the font its video BIOS loads into video memory

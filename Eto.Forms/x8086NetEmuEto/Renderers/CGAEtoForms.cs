@@ -11,7 +11,7 @@ using Eto.Forms;
 using x8086NetEmu;
 
 namespace x8086NetEmuEto.Renderers {
-    public class CGAEtoForms : CGAAdapter {
+    public class CGAEtoForms : CGAAdapter, IEtoVideoAdapter {
         private int blinkCounter;
         private Drawable renderControl;
         private SizeF scale = new(1, 1);
@@ -136,6 +136,7 @@ namespace x8086NetEmuEto.Renderers {
             g.AntiAlias = false;
             g.ImageInterpolation = ImageInterpolation.None;
             g.PixelOffsetMode = PixelOffsetMode.None;
+            g.SaveTransform();
             g.ScaleTransform(scale.Width, scale.Height);
 
             XPaintEventArgs ex = new(g, new XRectangle((int)e.ClipRectangle.X,
@@ -146,6 +147,25 @@ namespace x8086NetEmuEto.Renderers {
             OnPreRender(sender, ex);
             g.DrawImage(videoBMP[bmpIndex], 0, 0);
             OnPostRender(sender, ex);
+
+            // Leave the surface unscaled for any other Paint handler (e.g. the text selection overlay)
+            g.RestoreTransform();
+        }
+
+        EtoVideoInputController IEtoVideoAdapter.InputController => inputController;
+
+        int[] IEtoVideoAdapter.CaptureFrame(out int width, out int height) {
+            Bitmap bmp = videoBMP[bmpIndex];
+            width = bmp.Width;
+            height = bmp.Height;
+            int[] frame = new int[width * height];
+
+            using BitmapData data = bmp.Lock();
+            for(int y = 0; y < height; y++) {
+                int row = data.Flipped ? height - 1 - y : y;
+                Marshal.Copy(IntPtr.Add(data.Data, row * data.ScanWidth), frame, y * width, width);
+            }
+            return frame;
         }
 
         protected override void Render() {

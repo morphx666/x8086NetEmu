@@ -1,11 +1,15 @@
-﻿using Eto.Forms;
+﻿using Eto.Drawing;
+using Eto.Forms;
 using Eto.Serialization.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using x8086NetEmu;
 using x8086NetEmuEto.Renderers;
+using x8086NetEmuEto.Tools;
 
 // http://pages.picoe.ca/docs/api/html/R_Project_EtoForms.htm
 
@@ -19,6 +23,18 @@ namespace x8086NetEmuEto {
         private readonly string basePath = AppContext.BaseDirectory;
         private string runningApp = "";
 
+        private DebuggerForm debugger;
+        private ConsoleForm console;
+        private bool isClosing;
+
+        // Text selection (Copy Text)
+        private ScreenText selectionText;
+        private bool isSelecting;
+        private bool isDraggingSelection;
+        private bool wasPausedBeforeSelection;
+        private Point selectionFrom;
+        private Point selectionTo;
+
         public MainForm() {
             JsonReader.Load(this);
 
@@ -26,12 +42,18 @@ namespace x8086NetEmuEto {
             // so the emulator's data folder is three levels up
             if(Platform.IsMac) basePath = System.IO.Path.GetFullPath(System.IO.Path.Combine(basePath, "../../../"));
 
+            Canvas.MouseDown += SelectionMouseDown;
+            Canvas.MouseMove += SelectionMouseMove;
+            Canvas.MouseUp += SelectionMouseUp;
+            Canvas.KeyDown += SelectionKeyDown;
+
             StartEmulation();
             BuildEmulatorMenu(); // After StartEmulation so menu check states reflect the loaded settings
+            RestoreToolWindows();
         }
 
         private void StartEmulation() {
-            cpu = new X8086(true, true, null, X8086.Models.IBMPC_5160, basePath);
+            cpu = new X8086(true, true, RestartEmulation, X8086.Models.IBMPC_5160, basePath);
 
             cpu.Adapters.Add(new FloppyControllerAdapter(cpu));
 
@@ -51,6 +73,48 @@ namespace x8086NetEmuEto {
             cpu.Run();
 
             AddCustomHooks();
+
+            // Drawn after (on top of) the video adapter's own Paint handler
+            Canvas.Paint -= PaintSelection;
+            Canvas.Paint += PaintSelection;
+        }
+
+        // Invoked by X8086.HardReset() once the old machine has been shut down: build a new one in its place
+        private void RestartEmulation() {
+            if(isClosing) return;
+            X8086 old = cpu;
+
+            Task.Run(async () => {
+                await Task.Delay(500);
+                Application.Instance.AsyncInvoke(() => {
+                    if(isClosing) return;
+                    EndTextSelection(false);
+                    for(int i = 0; i < 512; i++) old.FloppyController?.get_DiskImage(i)?.Close();
+
+                    runningApp = "";
+                    StartEmulation();
+                    BuildEmulatorMenu();
+                    debugger?.Attach(cpu);
+                    SetTitleText();
+                });
+            });
+        }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e) {
+            base.OnClosing(e);
+            if(e.Cancel) return;
+
+            isClosing = true;
+            SaveExtras(("consoleVisible", console != null), ("debuggerVisible", debugger != null));
+            EndTextSelection(false);
+            debugger?.Close();
+            console?.Close();
+
+            try {
+                cpu?.Close();
+            } catch {
+                // Shutting down anyway
+            }
         }
 
         protected override void OnShown(EventArgs e) {
@@ -125,8 +189,249 @@ namespace x8086NetEmuEto {
             }
 
             cpu.MIPsUpdated += () => SetTitleText();
-            //cpu.DebugModeChanged += () => Invoke(() => ShowDebugger());
+
+            // Something switched the CPU into debug mode (e.g. a breakpoint hook): bring up the debugger
+            X8086 thisCpu = cpu;
+            cpu.DebugModeChanged += (s, e) => Application.Instance.AsyncInvoke(() => {
+                if(thisCpu == cpu && cpu.DebugMode && !isClosing) ShowDebugger();
+            });
+
+            if(cpu.VideoAdapter is IEtoVideoAdapter eva && eva.InputController != null) {
+                eva.InputController.HotKeyPressed += key => {
+                    if(key == Keys.C) BeginTextSelection();
+                    else if(key == Keys.V) PasteText();
+                };
+            }
         }
+
+        #region Settings
+        private void SaveMediaSettings() {
+            string fileName = X8086.FixPath("settings.dat");
+            try {
+                XDocument xml = XDocument.Load(fileName);
+                XElement settings = xml.Element("settings");
+
+                XElement floppies = new("floppies");
+                XElement disks = new("disks");
+                for(int i = 0; i < 512; i++) {
+                    DiskImage di = cpu.FloppyController?.get_DiskImage(i);
+                    if(di == null) continue;
+
+                    string image = di.FileName;
+                    string root = Path.GetFullPath(X8086.BasePath ?? basePath);
+                    if(Path.GetFullPath(image).StartsWith(root, StringComparison.OrdinalIgnoreCase)) {
+                        image = "./" + Path.GetRelativePath(root, image).Replace('\\', '/');
+                    }
+
+                    XElement entry = new(di.IsHardDisk ? "disk" : "floppy",
+                        new XElement("letter", di.IsHardDisk ? (char)('C' + i - 128) : (char)('A' + i)),
+                        new XElement("index", i),
+                        new XElement("image", image),
+                        new XElement("readOnly", di.IsReadOnly.ToString()));
+                    (di.IsHardDisk ? disks : floppies).Add(entry);
+                }
+
+                settings.Element("floppies")?.Remove();
+                settings.Element("disks")?.Remove();
+                XElement anchor = settings.Element("videoZoom") ?? settings.Elements().LastOrDefault();
+                if(anchor != null) anchor.AddAfterSelf(floppies, disks); else settings.Add(floppies, disks);
+
+                xml.Save(fileName);
+            } catch(Exception ex) {
+                X8086.Notify($"Unable to save media settings: {ex.Message}", X8086.NotificationReasons.Err);
+            }
+        }
+
+        // Updates elements under <extras>, preserving the rest of settings.dat
+        private void SaveExtras(params (string Name, object Value)[] values) {
+            string fileName = X8086.FixPath("settings.dat");
+            try {
+                XDocument xml = XDocument.Load(fileName);
+                XElement settings = xml.Element("settings");
+                XElement extras = settings.Element("extras");
+                if(extras == null) settings.Add(extras = new XElement("extras"));
+
+                foreach((string name, object value) in values) {
+                    extras.SetElementValue(name, Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture).ToLowerInvariant());
+                }
+                xml.Save(fileName);
+            } catch(Exception ex) {
+                X8086.Notify($"Unable to save settings: {ex.Message}", X8086.NotificationReasons.Err);
+            }
+        }
+
+        private void RestoreToolWindows() {
+            try {
+                XElement extras = XDocument.Load(X8086.FixPath("settings.dat")).Element("settings")?.Element("extras");
+                if(bool.TryParse(extras?.Element("consoleVisible")?.Value, out bool c) && c) ShowConsole();
+                if(bool.TryParse(extras?.Element("debuggerVisible")?.Value, out bool d) && d) ShowDebugger();
+            } catch {
+                // No settings: nothing to restore
+            }
+        }
+        #endregion
+
+        #region Tools
+        private void ShowDebugger() {
+            if(debugger != null) {
+                debugger.BringToFront();
+                return;
+            }
+
+            debugger = new DebuggerForm(cpu);
+            debugger.Closed += (s, e) => {
+                debugger = null;
+                SetTitleText();
+            };
+            debugger.Show();
+        }
+
+        private void ShowConsole() {
+            if(console != null) {
+                console.BringToFront();
+                return;
+            }
+
+            console = new ConsoleForm();
+            console.Closed += (s, e) => console = null;
+            console.Show();
+        }
+
+        private void ShowMediaManager() {
+            bool wasPaused = cpu.IsPaused;
+            cpu.Pause();
+
+            bool reboot = new MediaManagerDialog(cpu).ShowModal(this);
+            SaveMediaSettings();
+
+            if(reboot) {
+                cpu.HardReset();
+            } else if(!wasPaused) {
+                cpu.Resume();
+            }
+        }
+
+        private void HardReset() {
+            EndTextSelection(false);
+            runningApp = "";
+            cpu.HardReset();
+        }
+
+        private void SoftReset() {
+            runningApp = "";
+            SetTitleText();
+            cpu.SoftReset();
+        }
+
+        private void PasteText() {
+            if(isSelecting || !Clipboard.Instance.ContainsText) return;
+            TextPaster.Paste(cpu, Clipboard.Instance.Text);
+            Canvas?.Focus();
+        }
+        #endregion
+
+        #region Text selection (Copy Text)
+        // Works in every video mode: see ScreenText. The machine is paused while selecting so the text doesn't
+        // change under the selection; drag over the text to copy it, Esc or the right button cancels.
+        private void BeginTextSelection() {
+            if(isSelecting || cpu?.VideoAdapter is not IEtoVideoAdapter eva) return;
+
+            wasPausedBeforeSelection = cpu.IsPaused;
+            cpu.Pause();
+
+            ScreenText text = ScreenText.Capture(cpu);
+            if(text == null || text.Columns == 0 || text.Rows == 0) {
+                if(!wasPausedBeforeSelection) cpu.Resume();
+                MessageBox.Show(this, "There is no text on the screen to copy.", MessageBoxType.Information);
+                return;
+            }
+
+            selectionText = text;
+            isSelecting = true;
+            isDraggingSelection = false;
+            eva.InputController.Suspended = true;
+            Canvas.Cursor = Cursors.IBeam;
+            Canvas.Focus();
+            SetTitleText();
+        }
+
+        private void EndTextSelection(bool copy) {
+            if(!isSelecting) return;
+
+            if(copy && selectionText != null) {
+                string text = selectionText.GetText(selectionFrom.X, selectionFrom.Y, selectionTo.X, selectionTo.Y);
+                if(text.Length > 0) Clipboard.Instance.Text = text;
+            }
+
+            isSelecting = false;
+            isDraggingSelection = false;
+            selectionText = null;
+            if(cpu?.VideoAdapter is IEtoVideoAdapter eva) eva.InputController.Suspended = false;
+            Canvas.Cursor = Cursors.Default;
+            if(!wasPausedBeforeSelection) cpu?.Resume();
+            Canvas.Invalidate();
+            SetTitleText();
+        }
+
+        private Point CellAt(PointF location) {
+            int col = (int)(location.X / Math.Max(1, Canvas.Width) * selectionText.Columns);
+            int row = (int)(location.Y / Math.Max(1, Canvas.Height) * selectionText.Rows);
+            return new Point(Math.Clamp(col, 0, selectionText.Columns - 1), Math.Clamp(row, 0, selectionText.Rows - 1));
+        }
+
+        private void SelectionMouseDown(object sender, MouseEventArgs e) {
+            if(!isSelecting) return;
+            if(e.Buttons == MouseButtons.Alternate) {
+                EndTextSelection(false);
+            } else if(e.Buttons == MouseButtons.Primary) {
+                selectionFrom = selectionTo = CellAt(e.Location);
+                isDraggingSelection = true;
+                Canvas.Invalidate();
+            }
+            e.Handled = true;
+        }
+
+        private void SelectionMouseMove(object sender, MouseEventArgs e) {
+            if(!isSelecting || !isDraggingSelection) return;
+            Point cell = CellAt(e.Location);
+            if(cell != selectionTo) {
+                selectionTo = cell;
+                Canvas.Invalidate();
+            }
+            e.Handled = true;
+        }
+
+        private void SelectionMouseUp(object sender, MouseEventArgs e) {
+            if(!isSelecting || !isDraggingSelection) return;
+            selectionTo = CellAt(e.Location);
+            EndTextSelection(true);
+            e.Handled = true;
+        }
+
+        private void SelectionKeyDown(object sender, KeyEventArgs e) {
+            if(isSelecting && e.Key == Keys.Escape) {
+                EndTextSelection(false);
+                e.Handled = true;
+            }
+        }
+
+        private void PaintSelection(object sender, PaintEventArgs e) {
+            if(!isSelecting || !isDraggingSelection || selectionText == null) return;
+
+            Point a = selectionFrom, b = selectionTo;
+            if(b.Y < a.Y || (b.Y == a.Y && b.X < a.X)) (a, b) = (b, a);
+
+            float cw = Canvas.Width / (float)selectionText.Columns;
+            float ch = Canvas.Height / (float)selectionText.Rows;
+            Color highlight = Color.FromArgb(72, 61, 139, 140);
+
+            for(int row = a.Y; row <= b.Y; row++) {
+                int c0 = row == a.Y ? a.X : 0;
+                int c1 = row == b.Y ? b.X : selectionText.Columns - 1;
+                e.Graphics.FillRectangle(highlight, c0 * cw, row * ch, (c1 - c0 + 1) * cw, ch);
+            }
+        }
+        #endregion
 
         private void ShowEmulatorMenu() {
             if(cpu?.Mouse != null) {
@@ -151,8 +456,9 @@ namespace x8086NetEmuEto {
                             cpu.MIPs,
                             (cpu.IsHalted ? "Halted" : (cpu.DebugMode ? "Debugging" : (cpu.IsPaused ? "Paused" : "Running"))),
                             (runningApp != "" ? $" | {runningApp}" : ""));
+            if(isSelecting) title = "Drag over the text to copy (Esc cancels) | " + title;
 
-            Application.Instance.Invoke(() => { this.Title = title; });
+            Application.Instance.AsyncInvoke(() => { this.Title = title; });
         }
 
         // Code demonstration on how to attach custom hooks
@@ -282,8 +588,8 @@ namespace x8086NetEmuEto {
 
                 emulator.Items.Add(new SeparatorMenuItem());
 
-                emulator.Items.Add(new ButtonMenuItem() { Text = "Soft Reset (CTRL+ALT+INS)" });
-                emulator.Items.Add(new ButtonMenuItem() { Text = "Hard Reset" });
+                emulator.Items.Add(new ButtonMenuItem() { Text = "Soft Reset (CTRL+ALT+DEL)", Command = new Command((s, e) => SoftReset()) });
+                emulator.Items.Add(new ButtonMenuItem() { Text = "Hard Reset", Command = new Command((s, e) => HardReset()) });
 
                 emulator.Items.Add(new SeparatorMenuItem());
 
@@ -296,7 +602,7 @@ namespace x8086NetEmuEto {
             }
             cm.Items.Add(emulator);
 
-            cm.Items.Add(new ButtonMenuItem() { Text = "Media..." });
+            cm.Items.Add(new ButtonMenuItem() { Text = "Media...", Command = new Command((s, e) => ShowMediaManager()) });
 
             ButtonMenuItem zoom = new() { Text = "Zoom" };
             {
@@ -311,13 +617,14 @@ namespace x8086NetEmuEto {
 
             ButtonMenuItem tools = new() { Text = "Tools" };
             {
-                tools.Items.Add(new ButtonMenuItem() { Text = "Debugger..." });
-                tools.Items.Add(new ButtonMenuItem() { Text = "Console..." });
+                tools.Items.Add(new ButtonMenuItem() { Text = "Debugger...", Command = new Command((s, e) => ShowDebugger()) });
+                tools.Items.Add(new ButtonMenuItem() { Text = "Console...", Command = new Command((s, e) => ShowConsole()) });
 
                 tools.Items.Add(new SeparatorMenuItem());
 
-                tools.Items.Add(new ButtonMenuItem() { Text = "Copy Text" });
-                tools.Items.Add(new ButtonMenuItem() { Text = "Paste Text" });
+                // AsyncInvoke: let the menu close (and the surface regain focus) first
+                tools.Items.Add(new ButtonMenuItem() { Text = "Copy Text (Shift+Alt+C)", Command = new Command((s, e) => Application.Instance.AsyncInvoke(BeginTextSelection)) });
+                tools.Items.Add(new ButtonMenuItem() { Text = "Paste Text (Shift+Alt+V)", Command = new Command((s, e) => Application.Instance.AsyncInvoke(PasteText)) });
 
                 cm.Items.Add(tools);
             }
