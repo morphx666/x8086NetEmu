@@ -3,9 +3,24 @@
 ' which results in a +2x performance improvement
 
 Module ModuleMain
-    Private Const relPath As String = "..\x8086NetEmu\"
+    Private relPath As String = "..\x8086NetEmu\"
 
-    Sub Main()
+    ' GenOpCodes                  interactive: asks for confirmation (only while debugging inside the IDE)
+    ' GenOpCodes --auto <dir>     unattended: regenerates <dir>\Helpers\OpCodes.vb from <dir>\x8086.vb
+    '                             (used by the Release build of x8086NetEmu, see x8086NetEmu.vbproj)
+    Function Main(args() As String) As Integer
+        If args.Length = 2 AndAlso args(0) = "--auto" Then
+            relPath = args(1).TrimEnd(""""c)
+            If Not relPath.EndsWith(IO.Path.DirectorySeparatorChar) Then relPath += IO.Path.DirectorySeparatorChar
+            Try
+                RunParser()
+                Return 0
+            Catch ex As Exception
+                Console.Error.WriteLine($"GenOpCodes: error : {ex.Message}")
+                Return 1
+            End Try
+        End If
+
         Dim abortMsg As String = "This tool can only be run in DEBUG mode while inside the IDE"
         If Debugger.IsAttached Then
             Console.WriteLine("Are you sure you want to parse the opcodes' emulation code? [y/N]")
@@ -22,10 +37,12 @@ Module ModuleMain
         Console.WriteLine("")
         Console.WriteLine("Press any key to exit")
         Console.ReadKey()
-    End Sub
+        Return 0
+    End Function
 
     Private Sub RunParser()
-        Dim src As String = IO.File.ReadAllText($"{relPath}x8086.vb")
+        Dim src As String = IO.File.ReadAllText(IO.Path.Combine(relPath, "x8086.vb"))
+        src = ToCrLf(src) ' The parser relies on CRLF line endings
         Dim trg As String = "Partial Public Class X8086
                                 Private Delegate Sub ExecOpcode()
                                 Private opCodes() As ExecOpcode = {
@@ -69,7 +86,6 @@ Module ModuleMain
                          End Sub
 
         Dim addSubCalls = Sub(fName As String, range As Boolean)
-                              'Dim subTokens() As String = fName.Split("_"c)
                               Dim subTokens() As String = subName.Split("_"c)
 
                               If range Then
@@ -170,14 +186,15 @@ Module ModuleMain
                 tmp = Join(subCalls.ToArray(), vbCrLf)
                 tmp = tmp.Substring(0, tmp.Length - 1)
                 trg = trg.Replace("%1", tmp).Replace("%2", subBody)
-                src = IO.File.ReadAllText($"{relPath}Helpers\OpCodes.vb")
+                trg = ToCrLf(trg)
+                src = ToCrLf(IO.File.ReadAllText(IO.Path.Combine(relPath, "Helpers", "OpCodes.vb")))
                 If src <> trg Then
-                    IO.File.WriteAllText($"{relPath}Helpers\OpCodes.vb", trg)
+                    IO.File.WriteAllText(IO.Path.Combine(relPath, "Helpers", "OpCodes.vb"), trg)
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.WriteLine("Changes successfully applied...")
+                    Console.WriteLine("GenOpCodes: OpCodes.vb regenerated from x8086.vb")
                 Else
                     Console.ForegroundColor = ConsoleColor.Red
-                    Console.WriteLine("No changes found...")
+                    Console.WriteLine("GenOpCodes: OpCodes.vb is up to date")
                 End If
                 Console.ForegroundColor = ConsoleColor.Gray
                 Exit Do
@@ -186,4 +203,8 @@ Module ModuleMain
             p1 = p2
         Loop
     End Sub
+
+    Private Function ToCrLf(text As String) As String
+        Return text.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
+    End Function
 End Module

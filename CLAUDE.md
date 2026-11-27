@@ -113,7 +113,10 @@ The repo is mid-upgrade. Guidance that overrides appearances in the tree:
 - Sound uses **ManagedBass** (cross-platform), with native `bass` libraries copied per-RID from
   `x8086NetEmu/Bass/`. A `Win32` compile constant (`Debug` config) historically gated the Windows-only
   audio path; when adding audio code keep it working with `Win32=False` for non-Windows builds.
-- Opcode dispatch tables can be regenerated with the `GenOpCodes` tool (`ModuleMain.vb`) — hand-edit
-  generated opcode code with care.
+- `Helpers/OpCodes.vb` (the delegate table Release builds execute) is **generated** from the `Select Case opCode`
+  in `x8086.vb` (`Execute_DEBUG`) by `GenOpCodes`. Every Release build of the core runs `GenOpCodes --auto` first
+  (see the `GenerateOpCodes` target in `x8086NetEmu.vbproj`), so edit opcodes in `x8086.vb` only. Inside that
+  Select Case, avoid the `:` statement separator (the generator splits it awkwardly) and keep each `Case &Hxx`
+  line's trailing comment, which becomes the table comment.
 - During the upgrade workflow: run the ProcessorTests before opening a PR, and do not merge/rebase the
   working branch back into its source branch automatically — open the PR and let a human merge.

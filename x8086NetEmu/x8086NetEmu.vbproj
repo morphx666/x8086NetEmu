@@ -139,5 +139,14 @@ if "$(ConfigurationName)" == "Release" powershell.exe -executionPolicy bypass -f
     <TargetFramework>net10.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+  <!-- Release builds execute the opcodes through the delegate table in Helpers\OpCodes.vb, which GenOpCodes generates
+       from the "Select Case opCode" in x8086.vb (Execute_DEBUG). Regenerate it before compiling so both always match.
+       GenOpCodes is built first (it is not linked into the library) and only rewrites OpCodes.vb when it changes. -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <ProjectReference Include="..\GenOpCodes\GenOpCodes.vbproj" ReferenceOutputAssembly="false" OutputItemType="GenOpCodesTool" Private="false" />
+  </ItemGroup>
+  <Target Name="GenerateOpCodes" BeforeTargets="CoreCompile" Condition="'$(Configuration)' == 'Release'">
+    <Exec Command="dotnet &quot;@(GenOpCodesTool)&quot; --auto &quot;$(MSBuildProjectDirectory)&quot;" />
+  </Target>
 </Project>
 
