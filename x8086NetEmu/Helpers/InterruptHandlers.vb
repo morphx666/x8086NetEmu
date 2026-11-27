@@ -7,7 +7,7 @@ Partial Public Class X8086
 
     Public Sub HandleHardwareInterrupt(intNum As Byte, Optional ignoreHooks As Boolean = False)
         HandleInterrupt(intNum, True, ignoreHooks)
-        mRegisters.IP = IPAddrOffet
+        mRegisters.IP = IPAddrOffset
     End Sub
 
     Private Sub HandlePendingInterrupt(Optional ignoreHooks As Boolean = False)
@@ -48,7 +48,7 @@ Partial Public Class X8086
             PushIntoStack(mRegisters.IP + If(isHard, -newPrefixLast, opCodeSize))
 
             tmpUVal1 = intNum * 4
-            IPAddrOffet = RAM16(0, tmpUVal1,, True)
+            IPAddrOffset = RAM16(0, tmpUVal1,, True)
             mRegisters.CS = RAM16(0, tmpUVal1, 2, True)
 
             If intNum = 0 Then ThrowException("Division By Zero")

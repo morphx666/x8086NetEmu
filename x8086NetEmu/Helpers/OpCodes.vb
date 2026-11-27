@@ -743,7 +743,7 @@ Private Sub _6C_6F' INSB/INSW/OUTSB/OUTSW (80186)
 
 Private Sub _70' JO Jb
                                     If mFlags.OF = 1 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -753,7 +753,7 @@ Private Sub _70' JO Jb
 
 Private Sub _71' JNO  Jb
                                     If mFlags.OF = 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -763,7 +763,7 @@ Private Sub _71' JNO  Jb
 
 Private Sub _72' JB/JNAE/JC Jb
                                     If mFlags.CF = 1 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -773,7 +773,7 @@ Private Sub _72' JB/JNAE/JC Jb
 
 Private Sub _73' JNB/JAE/JNC Jb
                                     If mFlags.CF = 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -783,7 +783,7 @@ Private Sub _73' JNB/JAE/JNC Jb
 
 Private Sub _74' JZ/JE Jb
                                     If mFlags.ZF = 1 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -793,7 +793,7 @@ Private Sub _74' JZ/JE Jb
 
 Private Sub _75' JNZ/JNE Jb
                                     If mFlags.ZF = 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -803,7 +803,7 @@ Private Sub _75' JNZ/JNE Jb
 
 Private Sub _76' JBE/JNA Jb
                                     If mFlags.CF = 1 OrElse mFlags.ZF = 1 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -813,7 +813,7 @@ Private Sub _76' JBE/JNA Jb
 
 Private Sub _77' JA/JNBE Jb
                                     If mFlags.CF = 0 AndAlso mFlags.ZF = 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -823,7 +823,7 @@ Private Sub _77' JA/JNBE Jb
 
 Private Sub _78' JS Jb
                                     If mFlags.SF = 1 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -833,7 +833,7 @@ Private Sub _78' JS Jb
 
 Private Sub _79' JNS Jb
                                     If mFlags.SF = 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -843,7 +843,7 @@ Private Sub _79' JNS Jb
 
 Private Sub _7A' JPE/JP Jb
                                     If mFlags.PF = 1 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -853,7 +853,7 @@ Private Sub _7A' JPE/JP Jb
 
 Private Sub _7B' JPO/JNP Jb
                                     If mFlags.PF = 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -863,7 +863,7 @@ Private Sub _7B' JPO/JNP Jb
 
 Private Sub _7C' JL/JNGE Jb
                                     If mFlags.SF <> mFlags.OF Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -873,7 +873,7 @@ Private Sub _7C' JL/JNGE Jb
 
 Private Sub _7D' JGE/JNL Jb
                                     If mFlags.SF = mFlags.OF Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -883,7 +883,7 @@ Private Sub _7D' JGE/JNL Jb
 
 Private Sub _7E' JLE/JNG Jb
                                     If mFlags.ZF = 1 OrElse (mFlags.SF <> mFlags.OF) Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -893,7 +893,7 @@ Private Sub _7E' JLE/JNG Jb
 
 Private Sub _7F' JG/JNLE Jb
                                     If mFlags.ZF = 0 AndAlso (mFlags.SF = mFlags.OF) Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 16
                 Else
                     opCodeSize += 1
@@ -1055,7 +1055,7 @@ Private Sub _99' CWD
                                  End Sub
 
 Private Sub _9A' CALL Ap
-                                    IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
+                                    IPAddrOffset = Param(ParamIndex.First, , DataSize.Word)
                 tmpUVal1 = Param(ParamIndex.Second, , DataSize.Word)
                 PushIntoStack(mRegisters.CS)
                 PushIntoStack(mRegisters.IP + opCodeSize)
@@ -1215,13 +1215,13 @@ Private Sub _C0_C1' GRP2 byte/word imm8/16 ??? (80186)
                                  End Sub
 
 Private Sub _C2' RET Iw
-                                    IPAddrOffet = PopFromStack()
+                                    IPAddrOffset = PopFromStack()
                 mRegisters.SP += Param(ParamIndex.First, , DataSize.Word)
                 clkCyc += 20
                                  End Sub
 
 Private Sub _C3' RET
-                                    IPAddrOffet = PopFromStack()
+                                    IPAddrOffset = PopFromStack()
                 clkCyc += 16
                                  End Sub
 
@@ -1273,14 +1273,14 @@ Private Sub _C9' LEAVE (80186)
 
 Private Sub _CA' RETF Iw
                                     tmpUVal1 = Param(ParamIndex.First, , DataSize.Word)
-                IPAddrOffet = PopFromStack()
+                IPAddrOffset = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 mRegisters.SP += tmpUVal1
                 clkCyc += 17
                                  End Sub
 
 Private Sub _CB' RETF
-                                    IPAddrOffet = PopFromStack()
+                                    IPAddrOffset = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 clkCyc += 18
                                  End Sub
@@ -1305,7 +1305,7 @@ Private Sub _CE' INTO
                                  End Sub
 
 Private Sub _CF' IRET
-                                    IPAddrOffet = PopFromStack()
+                                    IPAddrOffset = PopFromStack()
                 mRegisters.CS = PopFromStack()
                 mFlags.EFlags = PopFromStack()
                 clkCyc += 32
@@ -1366,7 +1366,7 @@ Private Sub _D8_DF' Ignore 8087 co-processor instructions
 Private Sub _E0' LOOPNE/LOOPNZ
                                     mRegisters.CX -= 1
                 If mRegisters.CX > 0 AndAlso mFlags.ZF = 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 19
                 Else
                     opCodeSize += 1
@@ -1377,7 +1377,7 @@ Private Sub _E0' LOOPNE/LOOPNZ
 Private Sub _E1' LOOPE/LOOPZ
                                     mRegisters.CX -= 1
                 If mRegisters.CX > 0 AndAlso mFlags.ZF = 1 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 18
                 Else
                     opCodeSize += 1
@@ -1388,7 +1388,7 @@ Private Sub _E1' LOOPE/LOOPZ
 Private Sub _E2' LOOP
                                     mRegisters.CX -= 1
                 If mRegisters.CX > 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 17
                 Else
                     opCodeSize += 1
@@ -1398,7 +1398,7 @@ Private Sub _E2' LOOP
 
 Private Sub _E3' JCXZ/JECXZ
                                     If mRegisters.CX = 0 Then
-                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                    IPAddrOffset = OffsetIP(DataSize.Byte)
                     clkCyc += 18
                 Else
                     opCodeSize += 1
@@ -1432,24 +1432,24 @@ Private Sub _E7' OUT Ib AX
                                  End Sub
 
 Private Sub _E8' CALL Jv
-                                    IPAddrOffet = OffsetIP(DataSize.Word)
+                                    IPAddrOffset = OffsetIP(DataSize.Word)
                 PushIntoStack(Registers.IP + opCodeSize)
                 clkCyc += 19
                                  End Sub
 
 Private Sub _E9' JMP Jv
-                                    IPAddrOffet = OffsetIP(DataSize.Word)
+                                    IPAddrOffset = OffsetIP(DataSize.Word)
                 clkCyc += 15
                                  End Sub
 
 Private Sub _EA' JMP Ap
-                                    IPAddrOffet = Param(ParamIndex.First, , DataSize.Word)
+                                    IPAddrOffset = Param(ParamIndex.First, , DataSize.Word)
                 mRegisters.CS = Param(ParamIndex.Second, , DataSize.Word)
                 clkCyc += 15
                                  End Sub
 
 Private Sub _EB' JMP Jb
-                                    IPAddrOffet = OffsetIP(DataSize.Byte)
+                                    IPAddrOffset = OffsetIP(DataSize.Byte)
                 clkCyc += 15
                                  End Sub
 
