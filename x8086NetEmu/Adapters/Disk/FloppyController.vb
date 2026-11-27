@@ -667,7 +667,10 @@
     End Function
 
     Public Overrides Sub CloseAdapter()
-
+        ' Release the image files when the machine shuts down (closing the window or a hard reset)
+        For i As Integer = 0 To diskimg.Length - 1
+            diskimg(i)?.Close()
+        Next
     End Sub
 
     Public Overrides ReadOnly Property Description As String

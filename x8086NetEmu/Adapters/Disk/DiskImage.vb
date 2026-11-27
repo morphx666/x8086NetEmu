@@ -310,6 +310,7 @@ Public Class DiskImage
         Try
             file.Seek(offset, IO.SeekOrigin.Begin)
             file.Write(data, 0, data.Length)
+            file.Flush() ' Hand every write to the OS right away: whatever the guest wrote must survive the emulator exiting
             Return 0
         Catch e As Exception
             Return EIO
