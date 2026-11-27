@@ -364,18 +364,23 @@ Public Class X8086
     End Property
 
     Private Sub FlushCycles()
+        ' Convert executed CPU cycles into simulated (scheduler) time using the *configured* clock,
+        ' so a faster clock packs more cycles into the same amount of simulated/wall time while
+        ' peripherals (PIT, video, etc.) keep running at their real rates.
         Dim t As Long = clkCyc * Scheduler.HOSTCLOCK + leftCycleFrags
-        Sched.AdvanceTime(t \ BASECLOCK)
-        leftCycleFrags = t Mod BASECLOCK
+        Sched.AdvanceTime(t \ mClock)
+        leftCycleFrags = t Mod mClock
 
         clkCyc = 0
         DoReschedule = True
     End Sub
 
     Private Sub SetSynchronization()
+        ' Emulation speed scales how much simulated time elapses per wall-clock millisecond,
+        ' which speeds up/slows down the whole machine (CPU and all devices) uniformly
         Sched.SetSynchronization(True,
                                 (Scheduler.HOSTCLOCK / 20),
-                                (Scheduler.HOSTCLOCK / 1000))
+                                (Scheduler.HOSTCLOCK / 1000) * mSimulationMultiplier)
 
         'PIT?.UpdateClock()
         'VideoAdapter?.UpdateClock()
@@ -386,7 +391,7 @@ Public Class X8086
 
         Dim maxRunTime As Long = Sched.GetTimeToNextEvent()
         If maxRunTime > Scheduler.HOSTCLOCK Then maxRunTime = Scheduler.HOSTCLOCK
-        Dim maxRunCycles As Long = (maxRunTime * BASECLOCK - leftCycleFrags + Scheduler.HOSTCLOCK - 1) \ Scheduler.HOSTCLOCK
+        Dim maxRunCycles As Long = (maxRunTime * mClock - leftCycleFrags + Scheduler.HOSTCLOCK - 1) \ Scheduler.HOSTCLOCK
 
         DoReschedule = False
 

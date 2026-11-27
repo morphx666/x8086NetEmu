@@ -46,7 +46,8 @@ Partial Public Class X8086
             Return mClock
         End Get
         Set(ByVal value As Double)
-            mClock = value
+            ' mClock is a divisor in FlushCycles; never let it reach zero
+            mClock = If(value >= 1, value, BASECLOCK)
             SetSynchronization()
         End Set
     End Property

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Eto;
 using Eto.Drawing;
 using Eto.Forms;
@@ -14,6 +15,7 @@ namespace x8086NetEmuEto.Renderers {
         private bool isMouseOver;
         private MouseButtons pressedMouseButtons;
         private MouseButtons lastClickedMouseButtons;
+        private readonly HashSet<Keys> heldKeys = [];
 
         public EtoVideoInputController(Drawable renderControl, CGAAdapter videoAdapter) {
             this.renderControl = renderControl;
@@ -23,6 +25,7 @@ namespace x8086NetEmuEto.Renderers {
         public void Attach() {
             renderControl.KeyDown += OnKeyDown;
             renderControl.KeyUp += OnKeyUp;
+            renderControl.LostFocus += OnLostFocus;
             renderControl.MouseEnter += OnMouseEnter;
             renderControl.MouseDown += OnMouseDown;
             renderControl.MouseDoubleClick += OnMouseDoubleClick;
@@ -33,6 +36,7 @@ namespace x8086NetEmuEto.Renderers {
         public void Detach() {
             renderControl.KeyDown -= OnKeyDown;
             renderControl.KeyUp -= OnKeyUp;
+            renderControl.LostFocus -= OnLostFocus;
             renderControl.MouseEnter -= OnMouseEnter;
             renderControl.MouseDown -= OnMouseDown;
             renderControl.MouseDoubleClick -= OnMouseDoubleClick;
@@ -44,28 +48,55 @@ namespace x8086NetEmuEto.Renderers {
             if(e.KeyData == (Keys.Shift | Keys.Alt | Keys.Home)
                 || e.KeyData == (Keys.Shift | Keys.Alt | Keys.Keypad7)
                 || (e.Shift && e.Alt && (e.Key == Keys.Home || e.Key == Keys.Keypad7))) {
+                // The menu takes keyboard focus, so the key-ups for Shift/Alt would never reach
+                // the guest, leaving them logically held down (every later keystroke then arrives
+                // as Shift+Alt+key and the machine appears frozen).
+                ReleaseKeys();
                 ReleaseMouse();
                 Application.Instance.AsyncInvoke(() => renderControl.ParentWindow?.ContextMenu?.Show(renderControl));
                 e.Handled = true;
                 return;
             }
 
+            heldKeys.Add(e.Key);
             videoAdapter.HandleKeyDown(videoAdapter, new Adapter.XKeyEventArgs(KeyToInt(e.Key), KeyToInt(e.Modifiers)));
             e.Handled = true;
         }
 
         private void OnKeyUp(object sender, KeyEventArgs e) {
+            heldKeys.Remove(e.Key);
             videoAdapter.HandleKeyUp(videoAdapter, new Adapter.XKeyEventArgs(KeyToInt(e.Key), KeyToInt(e.Modifiers)));
             e.Handled = true;
         }
 
+        private void OnLostFocus(object sender, EventArgs e) {
+            // Any key still down when focus leaves (menu, Alt+Tab, dialog) will never get its
+            // key-up delivered here, so release it in the guest now.
+            ReleaseKeys();
+        }
+
+        public void ReleaseKeys() {
+            if(heldKeys.Count == 0) return;
+
+            Keys[] keys = [.. heldKeys];
+            heldKeys.Clear();
+
+            foreach(Keys k in keys) {
+                videoAdapter.HandleKeyUp(videoAdapter, new Adapter.XKeyEventArgs(KeyToInt(k), 0));
+            }
+        }
+
         private void OnMouseEnter(object sender, MouseEventArgs e) {
+            CaptureInput(e.Location);
+        }
+
+        private void CaptureInput(PointF location) {
             if(videoAdapter.CPU.Mouse == null) {
                 return;
             }
 
             isMouseOver = true;
-            lastMouseLocation = e.Location;
+            lastMouseLocation = location;
             videoAdapter.CPU.Mouse.MidPointOffset = new Adapter.XPoint(0, 0);
             videoAdapter.CPU.Mouse.IsCaptured = true;
             renderControl.Cursor = HiddenCursor;
@@ -115,6 +146,14 @@ namespace x8086NetEmuEto.Renderers {
         }
 
         private void OnMouseMove(object sender, MouseEventArgs e) {
+            // After the emulator menu closes the pointer may already be over the canvas, in which
+            // case no MouseEnter is raised; re-capture on the first move instead.
+            if(!isMouseOver) {
+                CaptureInput(e.Location);
+                e.Handled = true;
+                return;
+            }
+
             if(isMouseOver && videoAdapter.CPU.Mouse?.IsCaptured == true) {
                 int deltaX = (int)(e.Location.X - lastMouseLocation.X);
                 int deltaY = (int)(e.Location.Y - lastMouseLocation.Y);

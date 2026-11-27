@@ -13,13 +13,17 @@ Public Class BassHelpers
             platform = "arm"
         End If
 
-        Dim path As String = IO.Path.GetFullPath(IO.Path.Combine("Bass", platform, architecture))
+        ' Resolve against the executable's folder (not the process working directory, which differs
+        ' between Visual Studio, dotnet run, shortcuts, etc.). The native library is copied next to
+        ' the executable, which is where the native loader looks for it.
+        Dim appPath As String = AppContext.BaseDirectory
+        Dim path As String = IO.Path.GetFullPath(IO.Path.Combine(appPath, "Bass", platform, architecture))
 
         Dim bassLib As FileInfo = Nothing
         Try
             bassLib = New DirectoryInfo(path).GetFiles()(0)
             If bassLib.Exists Then
-                Dim fileName As String = IO.Path.GetFullPath(IO.Path.Combine(bassLib.Name))
+                Dim fileName As String = IO.Path.GetFullPath(IO.Path.Combine(appPath, bassLib.Name))
                 If Not File.Exists(fileName) Then File.Copy(bassLib.FullName, fileName, False)
                 result = True
             Else

@@ -3,13 +3,12 @@
 Public MustInherit Class CGAAdapter
     Inherits VideoAdapter
 
-    Private Const BASECLOCK = 3_579_545 ' 3.579545 MHz
-
     Public Const VERTSYNC As Double = 60.0
     Public Const HORIZSYNC As Double = VERTSYNC * 262.5
 
-    Protected ht As ULong = (BASECLOCK * (Scheduler.HOSTCLOCK \ X8086.BASECLOCK)) \ HORIZSYNC
-    Protected vt As ULong = ht * (HORIZSYNC \ VERTSYNC)
+    ' Scanline and frame durations in scheduler time units (Scheduler.HOSTCLOCK per second)
+    Protected ht As ULong = Math.Round(Scheduler.HOSTCLOCK / HORIZSYNC)
+    Protected vt As ULong = Math.Round(Scheduler.HOSTCLOCK / VERTSYNC)
 
     Public Enum VideoModes
         Mode0_Text_BW_40x25 = &H4

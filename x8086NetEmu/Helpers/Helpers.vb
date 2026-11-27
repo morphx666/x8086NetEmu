@@ -454,7 +454,7 @@
     End Property
 
     Public Shared Function FixPath(fileName As String) As String
-        fileName = X8086.BasePath + fileName
+        If Not IO.Path.IsPathRooted(fileName) Then fileName = X8086.BasePath + fileName
         If HostRuntime.Platform = HostRuntime.Platforms.Windows Then
             Return fileName
         Else

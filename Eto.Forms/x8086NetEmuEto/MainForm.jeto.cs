@@ -2,6 +2,7 @@
 using Eto.Serialization.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using x8086NetEmu;
 using x8086NetEmuEto.Renderers;
@@ -12,16 +13,21 @@ namespace x8086NetEmuEto {
     public class MainForm : Form {
         private X8086 cpu;
         protected Drawable Canvas;
-        private readonly string basePath = @"";
+        // Resolve ROMs, fonts, settings.dat and disk images relative to the executable's folder,
+        // not the process working directory (which differs between Visual Studio, dotnet run,
+        // shortcuts, etc.)
+        private readonly string basePath = AppContext.BaseDirectory;
         private string runningApp = "";
 
         public MainForm() {
             JsonReader.Load(this);
 
-            if(Platform.IsMac) basePath = @"..\..\..\";
+            // On macOS the executable lives inside the .app bundle (App.app/Contents/MacOS),
+            // so the emulator's data folder is three levels up
+            if(Platform.IsMac) basePath = System.IO.Path.GetFullPath(System.IO.Path.Combine(basePath, "../../../"));
 
-            BuildEmulatorMenu();
             StartEmulation();
+            BuildEmulatorMenu(); // After StartEmulation so menu check states reflect the loaded settings
         }
 
         private void StartEmulation() {
@@ -81,6 +87,31 @@ namespace x8086NetEmuEto {
 
                 cpu.FloppyController.set_DiskImage(index, new DiskImage(image, readOnly, true));
             }
+        }
+
+        // Updates only the given top-level elements of settings.dat, preserving everything else
+        // (floppies, disks, extras) exactly as it is on disk.
+        private void SaveSettings(params (string Name, object Value)[] values) {
+            string fileName = X8086.FixPath("settings.dat");
+
+            try {
+                XDocument xml = XDocument.Load(fileName);
+                XElement settings = xml.Element("settings");
+
+                foreach((string name, object value) in values) {
+                    settings.SetElementValue(name, Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture));
+                }
+
+                xml.Save(fileName);
+            } catch(Exception ex) {
+                X8086.Notify($"Unable to save settings: {ex.Message}", X8086.NotificationReasons.Err);
+            }
+        }
+
+        private void SetCpuClock(long hz) {
+            cpu.Clock = hz;
+            SaveSettings(("clockSpeed", hz));
+            SetTitleText();
         }
 
         private void SetupCpuEventHandlers() {
@@ -224,12 +255,15 @@ namespace x8086NetEmuEto {
             ButtonMenuItem emulator = new() { Text = "Emulator" };
             {
                 ButtonMenuItem cpuClock = new() { Text = "CPU Clock" };
-                cpuClock.Items.AddRange(CreateRadioMenuItems(
-                    ("4.77 MHz", true),
-                    ("9.54 MHz", false),
-                    ("19.08 MHz", false),
-                    ("38.16 MHz", false),
-                    ("47.70 MHz", false)));
+                long[] clockSpeeds = [4_770_000, 9_540_000, 19_080_000, 38_160_000, 47_700_000];
+                int clockIndex = 0;
+                foreach(RadioMenuItem item in CreateRadioMenuItems([.. clockSpeeds.Select(hz => (
+                            $"{hz / (double)X8086.MHz:F2} MHz",
+                            Math.Abs(cpu.Clock - hz) < 10_000))])) { // 10KHz tolerance: the default clock is BASECLOCK (4.77273 MHz)
+                    long hz = clockSpeeds[clockIndex++];
+                    item.Click += (s, e) => SetCpuClock(hz);
+                    cpuClock.Items.Add(item);
+                }
                 emulator.Items.Add(cpuClock);
 
                 ButtonMenuItem emulationSpeed = new() { Text = "Emulation Speed" };
@@ -287,6 +321,9 @@ namespace x8086NetEmuEto {
 
                 cm.Items.Add(tools);
             }
+
+            // Hand keyboard focus back to the emulator surface once the menu is dismissed
+            cm.Closed += (s, e) => Application.Instance.AsyncInvoke(() => Canvas?.Focus());
 
             this.ContextMenu = cm;
         }
