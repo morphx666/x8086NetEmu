@@ -1,8 +1,6 @@
 # x8086NetEmu 
 A VB.NET implementation of an almost working 8086 emulator.
 
-[![Build Status](https://xfx.visualstudio.com/x8086NetEmu/_apis/build/status/morphx666.x8086NetEmu?branchName=master)](https://xfx.visualstudio.com/x8086NetEmu/_build/latest?definitionId=8&branchName=master)
-
 ![x8086NetEmu Showcase](https://xfx.net/stackoverflow/x8086netEmu/x8086NetEmu_01.gif)
 
 Although it still has some bugs, it is a fairly stable and capable 8088/86/186 emulator:
