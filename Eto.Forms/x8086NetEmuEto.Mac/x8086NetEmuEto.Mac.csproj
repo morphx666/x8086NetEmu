@@ -7,7 +7,10 @@
 		<AssemblyVersion>2026.11.27.227</AssemblyVersion>
 		<FileVersion>2026.11.27.227</FileVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<!-- Eto builds the .app once per runtime identifier (MacIsBuildingBundle) and merges them into a universal
+		     binary. Those builds need their own obj/bin folders, or the second one reuses the first one's native
+		     launcher (apphost) and lipo refuses to merge two executables of the same architecture. -->
+		<AppendRuntimeIdentifierToOutputPath Condition="'$(MacIsBuildingBundle)' != 'True'">false</AppendRuntimeIdentifierToOutputPath>
 		<OutputPath>..\..\Release\</OutputPath>
 		<!-- Run on a newer .NET when .NET 10 isn't installed (release packages bundle their own runtime) -->
 		<RollForward>Major</RollForward>
