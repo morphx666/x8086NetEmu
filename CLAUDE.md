@@ -82,8 +82,11 @@ The repo is mid-upgrade. Guidance that overrides appearances in the tree:
   canvas right-click/context behavior, so canvas mouse input stays available to the emulated machine.
 - **Eto mouse is hover-based and sticky:** while the cursor is over the emulator surface, hide the host
   cursor and forward all mouse events (including translating a host double-click into two full emulator
-  click cycles). Once captured, input stays captured — moving outside the window does not release it;
-  only Shift+Alt+Home does.
+  click cycles). Once captured, input stays captured — the hidden host cursor is re-centered so it never
+  hits a screen edge, and moving outside the window does not release it. It is released only by
+  Shift+Alt+Home or by pushing the pointer firmly past any corner of the emulator surface.
+- **Mouse speed:** host pixels are divided by the video Zoom before being sent as mickeys, so the guest
+  pointer tracks the host pointer's on-screen speed; `MOUSE_SPEED` in `EtoVideoInputController` scales it.
 
 ## Conventions
 

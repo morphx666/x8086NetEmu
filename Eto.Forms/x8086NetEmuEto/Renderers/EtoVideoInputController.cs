@@ -9,9 +9,25 @@ namespace x8086NetEmuEto.Renderers {
     internal sealed class EtoVideoInputController {
         private static readonly Cursor HiddenCursor = new(new Bitmap(16, 16, PixelFormat.Format32bppRgba, new int[16 * 16]), PointF.Empty);
 
+        // Mouse speed multiplier. At 1.0 the guest pointer moves the same distance on screen as the host
+        // pointer would (with the DOS driver's default mickey/pixel ratios); raise or lower to taste.
+        private const float MOUSE_SPEED = 1.0f;
+
+        // How far (in host pixels, per axis, as a fraction of the surface's smaller side) the pointer must
+        // be pushed past a corner of the emulator surface to release the mouse capture.
+        private const float CORNER_ESCAPE_PUSH = 1f / 12;
+
         private readonly Drawable renderControl;
         private readonly CGAAdapter videoAdapter;
         private PointF lastMouseLocation;
+        // Sub-pixel movement not yet sent (Eto reports fractional logical coordinates on scaled displays)
+        private float pendingDeltaX;
+        private float pendingDeltaY;
+        // Where the host pointer would be over the surface if it weren't being re-centered; used to detect
+        // the user pushing into a corner to escape the capture
+        private PointF virtualPointer;
+        private float pushX, pushY;  // Accumulated push beyond the left/right and top/bottom edges
+        private int pushDirX, pushDirY; // -1/+1 = pushing past the left/top or right/bottom edge, 0 = not
         private bool isMouseOver;
         private MouseButtons pressedMouseButtons;
         private MouseButtons lastClickedMouseButtons;
@@ -97,6 +113,11 @@ namespace x8086NetEmuEto.Renderers {
 
             isMouseOver = true;
             lastMouseLocation = location;
+            pendingDeltaX = 0;
+            pendingDeltaY = 0;
+            virtualPointer = location;
+            pushX = pushY = 0;
+            pushDirX = pushDirY = 0;
             videoAdapter.CPU.Mouse.MidPointOffset = new Adapter.XPoint(0, 0);
             videoAdapter.CPU.Mouse.IsCaptured = true;
             renderControl.Cursor = HiddenCursor;
@@ -155,12 +176,112 @@ namespace x8086NetEmuEto.Renderers {
             }
 
             if(isMouseOver && videoAdapter.CPU.Mouse?.IsCaptured == true) {
-                int deltaX = (int)(e.Location.X - lastMouseLocation.X);
-                int deltaY = (int)(e.Location.Y - lastMouseLocation.Y);
+                float hostDeltaX = e.Location.X - lastMouseLocation.X;
+                float hostDeltaY = e.Location.Y - lastMouseLocation.Y;
                 lastMouseLocation = e.Location;
 
-                videoAdapter.OnMouseMove(videoAdapter, new Adapter.XMouseEventArgs(MouseButtonsToInt(pressedMouseButtons), deltaX, deltaY));
+                if(TryCornerEscape(hostDeltaX, hostDeltaY)) {
+                    e.Handled = true;
+                    return;
+                }
+
+                // Host pixels -> mickeys. The surface is the guest screen scaled by Zoom, and DOS drivers map
+                // mickeys onto a 640x200 virtual screen (8 mickeys per 8 pixels horizontally, 16 per 8
+                // vertically), so dividing by Zoom makes the guest pointer track the host pointer's on-screen
+                // speed in every video mode (text included). Without it everything moved Zoom times too fast.
+                double zoom = videoAdapter.Zoom > 0 ? videoAdapter.Zoom : 1;
+                float scale = (float)(MOUSE_SPEED / zoom);
+
+                // Keep the fractional part for the next event instead of truncating it away, otherwise
+                // slow movements (and scaled displays) never add up to a single mickey
+                pendingDeltaX += hostDeltaX * scale;
+                pendingDeltaY += hostDeltaY * scale;
+
+                int deltaX = (int)pendingDeltaX;
+                int deltaY = (int)pendingDeltaY;
+                pendingDeltaX -= deltaX;
+                pendingDeltaY -= deltaY;
+
+                if(deltaX != 0 || deltaY != 0) {
+                    videoAdapter.OnMouseMove(videoAdapter, new Adapter.XMouseEventArgs(MouseButtonsToInt(pressedMouseButtons), deltaX, deltaY));
+                }
+
+                RecenterHostCursor(e.Location);
                 e.Handled = true;
+            }
+        }
+
+        // Tracks a virtual host pointer clamped to the surface and releases the capture when it is pushed
+        // firmly past any of the four corners. The real cursor is then placed just outside that corner so
+        // the user can carry on moving out of the window (moving back over the surface captures again).
+        private bool TryCornerEscape(float dx, float dy) {
+            SizeF size = renderControl.Size;
+            if(size.Width <= 0 || size.Height <= 0) return false;
+
+            float maxX = size.Width - 1;
+            float maxY = size.Height - 1;
+            float threshold = Math.Min(size.Width, size.Height) * CORNER_ESCAPE_PUSH;
+
+            virtualPointer.X = TrackEdge(virtualPointer.X + dx, dx, maxX, ref pushX, ref pushDirX);
+            virtualPointer.Y = TrackEdge(virtualPointer.Y + dy, dy, maxY, ref pushY, ref pushDirY);
+
+            if(pushDirX == 0 || pushDirY == 0 || pushX < threshold || pushY < threshold) return false;
+
+            int dirX = pushDirX;
+            int dirY = pushDirY;
+            ReleaseMouse();
+
+            try {
+                const float outside = 8;
+                PointF corner = new(dirX < 0 ? -outside : size.Width + outside,
+                                    dirY < 0 ? -outside : size.Height + outside);
+                Mouse.Position = renderControl.PointToScreen(corner);
+            } catch {
+                // Pointer warping not supported on this platform; the capture is released anyway
+            }
+
+            return true;
+        }
+
+        // Clamps one axis of the virtual pointer to [0, max] and accumulates how far it is being pushed past
+        // an edge. Moving back inwards (or away from the edge) resets the push.
+        private static float TrackEdge(float position, float delta, float max, ref float push, ref int pushDir) {
+            if(position < 0) {
+                push = (pushDir == -1 ? push : 0) - position;
+                pushDir = -1;
+                return 0;
+            }
+            if(position > max) {
+                push = (pushDir == 1 ? push : 0) + (position - max);
+                pushDir = 1;
+                return max;
+            }
+
+            // Still resting on the edge with no movement along this axis: keep the push
+            bool resting = delta == 0 && ((pushDir == -1 && position == 0) || (pushDir == 1 && position == max));
+            if(!resting) {
+                push = 0;
+                pushDir = 0;
+            }
+            return position;
+        }
+
+        // While captured the host cursor is hidden; if it were allowed to reach the edge of the screen,
+        // movement in that direction would silently stop. Warp it back to the center of the surface
+        // whenever it drifts too far (the warp's own move event then yields a zero delta).
+        private void RecenterHostCursor(PointF location) {
+            SizeF size = renderControl.Size;
+            if(size.Width <= 0 || size.Height <= 0) return;
+
+            PointF center = new(size.Width / 2, size.Height / 2);
+            float margin = Math.Min(size.Width, size.Height) / 4;
+            if(Math.Abs(location.X - center.X) < margin && Math.Abs(location.Y - center.Y) < margin) return;
+
+            try {
+                Mouse.Position = renderControl.PointToScreen(center);
+                lastMouseLocation = center;
+            } catch {
+                // Some platforms (e.g. Wayland) don't allow moving the pointer; keep the plain behavior
             }
         }
 

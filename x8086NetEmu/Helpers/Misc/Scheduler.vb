@@ -37,6 +37,7 @@ Public Class Scheduler
 
     ' Ordered list of pending asynchronous events (external input events)
     Public pendingInput As ArrayList
+    Private ReadOnly inputLock As New Object()
 
     ' The CPU component controlled by this Scheduler
     Private ReadOnly mCPU As X8086
@@ -342,9 +343,11 @@ Public Class Scheduler
             End If
 
             If pendingInput.Count > 0 Then
-                ' Fetch pending input events
-                inputBuf = pendingInput
-                pendingInput = cleanInputBuf
+                ' Fetch pending input events (swapped under the lock: HandleInput adds from the UI thread)
+                SyncLock inputLock
+                    inputBuf = pendingInput
+                    pendingInput = cleanInputBuf
+                End SyncLock
             ElseIf nextTime <= mCurrentTime Then
                 ' Fetch the next pending task
                 tsk = NextTask()
@@ -424,14 +427,21 @@ Public Class Scheduler
             End If
         End If
 
-        If pendingInput.Count = 0 Then
+        ' Called from the UI thread while the scheduler thread may be swapping the list out: without
+        ' the lock an event could be added to a list that is being processed/cleared and silently lost
+        ' (e.g. a mouse button release, leaving the button stuck)
+        Dim wasEmpty As Boolean
+        SyncLock inputLock
+            wasEmpty = pendingInput.Count = 0
+            pendingInput.Add(e)
+        End SyncLock
+
+        If wasEmpty Then
             ' Wake up the scheduler in case it is sleeping
             Notify()
             ' Kick the CPU simulation to make it yield
             mCPU.DoReschedule = True
         End If
-
-        pendingInput.Add(e)
     End Sub
 End Class
 
