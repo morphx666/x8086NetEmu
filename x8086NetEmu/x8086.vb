@@ -2167,70 +2167,72 @@ Public Class X8086
         End If
     End Sub
 
+    ' String instructions must go through the memory hooks like every other access: they are how
+    ' software fills and copies video memory (REP STOSW/MOVSW), which lives in the video adapter, not RAM
     Private Function ExecStringOpCode() As Boolean
         instructionsCounter += 1
 
         Select Case opCode
             Case &HA4 ' MOVSB
-                RAM8(mRegisters.ES, mRegisters.DI,, True) = RAM8(tmpUVal1, mRegisters.SI,, True)
+                RAM8(mRegisters.ES, mRegisters.DI) = RAM8(tmpUVal1, mRegisters.SI)
                 mRegisters.SI += tmpUVal2
                 mRegisters.DI += tmpUVal2
                 clkCyc += 18
                 Return False
 
             Case &HA5 ' MOVSW
-                RAM16(mRegisters.ES, mRegisters.DI,, True) = RAM16(tmpUVal1, mRegisters.SI,, True)
+                RAM16(mRegisters.ES, mRegisters.DI) = RAM16(tmpUVal1, mRegisters.SI)
                 mRegisters.SI += tmpUVal2
                 mRegisters.DI += tmpUVal2
                 clkCyc += 18
                 Return False
 
             Case &HA6 ' CMPSB
-                Eval(RAM8(tmpUVal1, mRegisters.SI,, True), RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
+                Eval(RAM8(tmpUVal1, mRegisters.SI), RAM8(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Byte)
                 mRegisters.SI += tmpUVal2
                 mRegisters.DI += tmpUVal2
                 clkCyc += 22
                 Return True
 
             Case &HA7 ' CMPSW
-                Eval(RAM16(tmpUVal1, mRegisters.SI,, True), RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
+                Eval(RAM16(tmpUVal1, mRegisters.SI), RAM16(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Word)
                 mRegisters.SI += tmpUVal2
                 mRegisters.DI += tmpUVal2
                 clkCyc += 22
                 Return True
 
             Case &HAA ' STOSB
-                RAM8(mRegisters.ES, mRegisters.DI,, True) = mRegisters.AL
+                RAM8(mRegisters.ES, mRegisters.DI) = mRegisters.AL
                 mRegisters.DI += tmpUVal2
                 clkCyc += 11
                 Return False
 
             Case &HAB ' STOSW
-                RAM16(mRegisters.ES, mRegisters.DI,, True) = mRegisters.AX
+                RAM16(mRegisters.ES, mRegisters.DI) = mRegisters.AX
                 mRegisters.DI += tmpUVal2
                 clkCyc += 11
                 Return False
 
             Case &HAC ' LODSB
-                mRegisters.AL = RAM8(tmpUVal1, mRegisters.SI,, True)
+                mRegisters.AL = RAM8(tmpUVal1, mRegisters.SI)
                 mRegisters.SI += tmpUVal2
                 clkCyc += 12
                 Return False
 
             Case &HAD ' LODSW
-                mRegisters.AX = RAM16(tmpUVal1, mRegisters.SI,, True)
+                mRegisters.AX = RAM16(tmpUVal1, mRegisters.SI)
                 mRegisters.SI += tmpUVal2
                 clkCyc += 16
                 Return False
 
             Case &HAE ' SCASB
-                Eval(mRegisters.AL, RAM8(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Byte)
+                Eval(mRegisters.AL, RAM8(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Byte)
                 mRegisters.DI += tmpUVal2
                 clkCyc += 15
                 Return True
 
             Case &HAF ' SCASW
-                Eval(mRegisters.AX, RAM16(mRegisters.ES, mRegisters.DI,, True), Operation.Compare, DataSize.Word)
+                Eval(mRegisters.AX, RAM16(mRegisters.ES, mRegisters.DI), Operation.Compare, DataSize.Word)
                 mRegisters.DI += tmpUVal2
                 clkCyc += 15
                 Return True
