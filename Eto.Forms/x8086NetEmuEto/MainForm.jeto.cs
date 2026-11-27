@@ -1,4 +1,4 @@
-﻿using Eto.Drawing;
+using Eto.Drawing;
 using Eto.Forms;
 using Eto.Serialization.Json;
 using System;
@@ -41,6 +41,9 @@ namespace x8086NetEmuEto {
             // On macOS the executable lives inside the .app bundle (App.app/Contents/MacOS),
             // so the emulator's data folder is three levels up
             if(Platform.IsMac) basePath = System.IO.Path.GetFullPath(System.IO.Path.Combine(basePath, "../../../"));
+
+            // Collect the emulator's log from the start, so the Console shows it whenever it's opened
+            ConsoleForm.LogStore.Start();
 
             Canvas.MouseDown += SelectionMouseDown;
             Canvas.MouseMove += SelectionMouseMove;
@@ -342,7 +345,7 @@ namespace x8086NetEmuEto {
             ScreenText text = ScreenText.Capture(cpu);
             if(text == null || text.Columns == 0 || text.Rows == 0) {
                 if(!wasPausedBeforeSelection) cpu.Resume();
-                MessageBox.Show(this, "There is no text on the screen to copy.", MessageBoxType.Information);
+                Prompt.Show(this, "There is no text on the screen to copy.", MessageBoxType.Information);
                 return;
             }
 

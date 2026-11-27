@@ -22,15 +22,18 @@ namespace x8086NetEmuEto.Tools {
         private const int MEM_ROWS = 16;
         private const int RUN_REFRESH_MS = 150;
 
-        private static readonly Color CodeBack = Color.FromArgb(34, 40, 42);
-        private static readonly Color CurrentBack = Color.FromArgb(65, 66, 96);
-        private static readonly Color BreakBack = Color.FromArgb(127, 54, 64);
-        private static readonly Color CurrentBreakBack = Color.FromArgb(117, 44, 96);
-        private static readonly Color AddressFore = Color.FromArgb(162, 100, 25);
-        private static readonly Color BytesFore = Color.FromArgb(128, 121, 104);
-        private static readonly Color MnemonicFore = Color.FromArgb(97, 175, 99);
-        private static readonly Color OperandsFore = Color.FromArgb(95, 150, 215);
-        private static readonly Color InvalidBack = Color.FromArgb(255, 160, 160);
+        // Disassembly palette (in the spirit of VS Code's Dark+)
+        private static readonly Color CurrentBack = Color.FromArgb(0x45, 0x45, 0x1E);
+        private static readonly Color BreakBack = Color.FromArgb(0x4B, 0x1E, 0x1E);
+        private static readonly Color CurrentBreakBack = Color.FromArgb(0x5C, 0x34, 0x1C);
+        private static readonly Color CurrentArrow = Color.FromArgb(0xFF, 0xCC, 0x00);
+        private static readonly Color AddressFore = Color.FromArgb(0x85, 0x85, 0x85);
+        private static readonly Color BytesFore = Color.FromArgb(0x6E, 0x6E, 0x6E);
+        private static readonly Color FlowFore = Color.FromArgb(0xC5, 0x86, 0xC0);     // Jumps, calls, returns, interrupts
+        private static readonly Color MoveFore = Color.FromArgb(0x56, 0x9C, 0xD6);     // Data movement and stack
+        private static readonly Color OtherFore = Color.FromArgb(0x4E, 0xC9, 0xB0);    // Arithmetic, logic, everything else
+        private static readonly Color OperandsFore = Color.FromArgb(0x9C, 0xDC, 0xFE);
+        private static readonly Color StackTopBack = Color.FromArgb(0x26, 0x4F, 0x78);
 
         public sealed class CodeLine {
             public uint Address { get; init; }
@@ -84,45 +87,50 @@ namespace x8086NetEmuEto.Tools {
         private readonly Dictionary<X8086.GPRegisters.RegistersTypes, TextBox> registerBoxes = [];
         private readonly Dictionary<string, CheckBox> flagBoxes = [];
         private readonly Label statusLabel = new();
-        private readonly Button runButton = new() { Text = "Run (F5)" };
-        private readonly TextBox memSegment = new() { Text = "0040", Width = 50 };
-        private readonly TextBox memOffset = new() { Text = "0000", Width = 50 };
-        private readonly TextBox breakCS = new() { Width = 50 };
-        private readonly TextBox breakIP = new() { Width = 50 };
-        private readonly TextBox searchBox = new() { PlaceholderText = "Search memory (text)" };
+        private readonly Label stateLabel = new();
+        private readonly Label breakpointsLabel = new();
+        private readonly Button runButton = new() { Text = "▶  Run", ToolTip = "Run until a breakpoint (F5)" };
+        private readonly TextBox memSegment = new() { Text = "0040", Width = 56 };
+        private readonly TextBox memOffset = new() { Text = "0000", Width = 56 };
+        private readonly TextBox breakCS = new() { Width = 56 };
+        private readonly TextBox breakIP = new() { Width = 56 };
+        private readonly TextBox searchBox = new() { PlaceholderText = "Find text in memory" };
         private readonly CheckBox searchVideo = new() { Text = "Text video memory" };
+        private readonly Font mono = Theme.Mono(10);
         private bool updatingUI;
+        private uint? currentAddress;                       // CS:IP shown as the current instruction
+        private X8086.GPRegisters previousRegisters;        // To highlight what the last step changed
+        private ushort previousFlags;
 
         public DebuggerForm(X8086 emulator) {
             Title = "x8086NetEmu Debugger";
-            ClientSize = new Size(1060, 780);
-
-            Font mono = Fonts.Monospace(10);
+            ClientSize = new Size(1120, 880);
+            MinimumSize = new Size(900, 600);
 
             // Disassembly
             codeGrid = new GridView {
-                ShowHeader = true,
                 GridLines = GridLines.None,
-                BackgroundColor = CodeBack,
+                RowHeight = 20,
                 Columns = {
-                    new GridColumn { HeaderText = "", Width = 22, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => IsBreakpoint(l.Address) ? "●" : "") } },
-                    new GridColumn { HeaderText = "Address", Width = 90, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => l.AddressText) } },
-                    new GridColumn { HeaderText = "Bytes", Width = 150, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => BytesText(l.Raw)) } },
-                    new GridColumn { HeaderText = "Instruction", Width = 70, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => l.Mnemonic) } },
+                    new GridColumn { HeaderText = "", Width = 34, Resizable = false, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => Gutter(l)), TextAlignment = TextAlignment.Center } },
+                    new GridColumn { HeaderText = "Address", Width = 96, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => l.AddressText) } },
+                    new GridColumn { HeaderText = "Bytes", Width = 160, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => BytesText(l.Raw)) } },
+                    new GridColumn { HeaderText = "Instruction", Width = 90, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => l.Mnemonic) } },
                     new GridColumn { HeaderText = "Operands", Expand = true, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => l.Operands) } }
                 }
             };
             codeGrid.CellFormatting += (s, e) => {
                 if(e.Item is not CodeLine line) return;
                 e.Font = mono;
-                bool current = lastSnapshot != null && e.Row == lastSnapshot.CurrentIndex;
+                bool current = currentAddress == line.Address;
                 bool bp = IsBreakpoint(line.Address);
-                e.BackgroundColor = current ? (bp ? CurrentBreakBack : CurrentBack) : (bp ? BreakBack : CodeBack);
+                // Always set the background (rows are recycled); transparent lets hover and selection show through
+                e.BackgroundColor = current ? (bp ? CurrentBreakBack : CurrentBack) : (bp ? BreakBack : Colors.Transparent);
                 e.ForegroundColor = e.Column.HeaderText switch {
-                    "" => Color.FromArgb(230, 80, 80),
-                    "Address" => AddressFore,
+                    "" => current ? CurrentArrow : Theme.Error,
+                    "Address" => current ? Theme.Text : AddressFore,
                     "Bytes" => BytesFore,
-                    "Instruction" => MnemonicFore,
+                    "Instruction" => MnemonicColor(line.Mnemonic),
                     _ => OperandsFore
                 };
             };
@@ -131,15 +139,15 @@ namespace x8086NetEmuEto.Tools {
             };
 
             ContextMenu codeMenu = new();
-            codeMenu.Items.Add(new ButtonMenuItem { Text = "Toggle Breakpoint (F9)", Command = new Command((s, e) => ToggleSelectedBreakpoint()) });
-            codeMenu.Items.Add(new ButtonMenuItem { Text = "Run to Here", Command = new Command((s, e) => RunToSelected()) });
-            codeMenu.Items.Add(new ButtonMenuItem { Text = "Set CS:IP Here", Command = new Command((s, e) => SetIPToSelected()) });
+            codeMenu.Items.Add(new ButtonMenuItem { Text = "Toggle Breakpoint", Shortcut = Keys.F9, Command = new Command((s, e) => ToggleSelectedBreakpoint()) });
+            codeMenu.Items.Add(new ButtonMenuItem { Text = "Run to Cursor", Shortcut = Keys.F4, Command = new Command((s, e) => RunToSelected()) });
+            codeMenu.Items.Add(new ButtonMenuItem { Text = "Set Next Instruction (CS:IP)", Command = new Command((s, e) => SetIPToSelected()) });
             codeMenu.Items.Add(new SeparatorMenuItem());
             codeMenu.Items.Add(new ButtonMenuItem { Text = "Clear All Breakpoints", Command = new Command((s, e) => ClearBreakpoints()) });
             codeGrid.ContextMenu = codeMenu;
 
             // Registers
-            TableLayout regs = new() { Spacing = new Size(4, 3) };
+            TableLayout regs = new() { Spacing = new Size(6, 4) };
             (string, X8086.GPRegisters.RegistersTypes)[][] regRows = [
                 [("AX", X8086.GPRegisters.RegistersTypes.AX), ("SI", X8086.GPRegisters.RegistersTypes.SI), ("CS", X8086.GPRegisters.RegistersTypes.CS)],
                 [("BX", X8086.GPRegisters.RegistersTypes.BX), ("DI", X8086.GPRegisters.RegistersTypes.DI), ("DS", X8086.GPRegisters.RegistersTypes.DS)],
@@ -147,58 +155,68 @@ namespace x8086NetEmuEto.Tools {
                 [("DX", X8086.GPRegisters.RegistersTypes.DX), ("SP", X8086.GPRegisters.RegistersTypes.SP), ("SS", X8086.GPRegisters.RegistersTypes.SS)],
                 [("IP", X8086.GPRegisters.RegistersTypes.IP)]
             ];
+            List<Label> dimLabels = [];
             foreach(var row in regRows) {
                 TableRow tr = new();
                 foreach((string name, X8086.GPRegisters.RegistersTypes reg) in row) {
-                    TextBox tb = new() { Width = 52, Font = mono };
+                    TextBox tb = new() { Width = 58, Font = mono };
                     X8086.GPRegisters.RegistersTypes r = reg;
                     tb.KeyDown += (s, e) => {
                         if(e.Key == Keys.Enter) { CommitRegister(r, tb); e.Handled = true; }
                     };
                     tb.LostFocus += (s, e) => CommitRegister(r, tb);
                     registerBoxes[reg] = tb;
-                    tr.Cells.Add(new Label { Text = name, VerticalAlignment = VerticalAlignment.Center });
+                    Label l = new() { Text = name, Font = mono, VerticalAlignment = VerticalAlignment.Center };
+                    dimLabels.Add(l);
+                    tr.Cells.Add(l);
                     tr.Cells.Add(tb);
                 }
+                tr.Cells.Add(null);
                 regs.Rows.Add(tr);
             }
 
-            // Flags
-            TableRow flagsRow = new();
-            foreach(string f in new[] { "OF", "DF", "IF", "TF", "SF", "ZF", "AF", "PF", "CF" }) {
-                CheckBox cb = new() { Text = f };
-                string flag = f;
-                cb.CheckedChanged += (s, e) => {
-                    if(updatingUI) return;
-                    SetFlag(flag, cb.Checked == true);
-                };
-                flagBoxes[f] = cb;
-                flagsRow.Cells.Add(cb);
+            // Flags, in two rows so they never get clipped
+            TableLayout flags = new() { Spacing = new Size(10, 4) };
+            foreach(string[] flagRow in new[] { new[] { "OF", "DF", "IF", "TF", "SF" }, new[] { "ZF", "AF", "PF", "CF" } }) {
+                TableRow tr = new();
+                foreach(string f in flagRow) {
+                    CheckBox cb = new() { Text = f, Font = mono };
+                    string flag = f;
+                    cb.CheckedChanged += (s, e) => {
+                        if(updatingUI) return;
+                        SetFlag(flag, cb.Checked == true);
+                    };
+                    flagBoxes[f] = cb;
+                    tr.Cells.Add(cb);
+                }
+                tr.Cells.Add(null);
+                flags.Rows.Add(tr);
             }
 
             // Stack
             stackGrid = new GridView {
-                ShowHeader = true,
                 GridLines = GridLines.None,
+                RowHeight = 20,
                 Columns = {
-                    new GridColumn { HeaderText = "SS:SP", Width = 110, DataCell = new TextBoxCell { Binding = Binding.Delegate((StackLine l) => l.Address) } },
-                    new GridColumn { HeaderText = "Value", Width = 80, DataCell = new TextBoxCell { Binding = Binding.Delegate((StackLine l) => l.Value) } }
+                    new GridColumn { HeaderText = "SS:SP", Width = 120, DataCell = new TextBoxCell { Binding = Binding.Delegate((StackLine l) => (l.IsTop ? "➜ " : "  ") + l.Address) } },
+                    new GridColumn { HeaderText = "Value", Expand = true, DataCell = new TextBoxCell { Binding = Binding.Delegate((StackLine l) => l.Value) } }
                 }
             };
             stackGrid.CellFormatting += (s, e) => {
+                if(e.Item is not StackLine line) return;
                 e.Font = mono;
-                if(e.Item is StackLine { IsTop: true }) {
-                    e.BackgroundColor = Color.FromArgb(72, 61, 139);
-                    e.ForegroundColor = Colors.White;
-                }
+                e.BackgroundColor = line.IsTop ? StackTopBack : Colors.Transparent;
+                e.ForegroundColor = line.IsTop ? Colors.White : (e.Column.HeaderText == "Value" ? Theme.Text : AddressFore);
             };
 
             // Memory
-            memoryView = new TextArea { ReadOnly = true, Wrap = false, Font = mono, Height = 270 };
-            Button memBack = new() { Text = "<", Width = 30 };
+            memoryView = new TextArea { ReadOnly = true, Wrap = false, Font = mono };
+            Button memBack = new() { Text = "◀", Width = 34, ToolTip = "Previous 256 bytes" };
             memBack.Click += (s, e) => MoveMemory(-0x100);
-            Button memForward = new() { Text = ">", Width = 30 };
+            Button memForward = new() { Text = "▶", Width = 34, ToolTip = "Next 256 bytes" };
             memForward.Click += (s, e) => MoveMemory(0x100);
+            memSegment.Font = mono;
+            memOffset.Font = mono;
             memSegment.KeyDown += (s, e) => { if(e.Key == Keys.Enter) { ApplyMemoryAddress(); e.Handled = true; } };
             memOffset.KeyDown += (s, e) => { if(e.Key == Keys.Enter) { ApplyMemoryAddress(); e.Handled = true; } };
             Button memGo = new() { Text = "Go" };
@@ -206,27 +224,31 @@ namespace x8086NetEmuEto.Tools {
             Button searchButton = new() { Text = "Find Next" };
             searchButton.Click += (s, e) => SearchMemory();
             searchBox.KeyDown += (s, e) => { if(e.Key == Keys.Enter) { SearchMemory(); e.Handled = true; } };
-            searchBox.TextChanged += (s, e) => searchBox.BackgroundColor = SystemColors.ControlBackground;
+            searchBox.TextChanged += (s, e) => searchBox.BackgroundColor = Theme.Input;
 
             // Toolbar
-            Button stepInto = new() { Text = "Step Into (F8)" };
+            Button stepInto = new() { Text = "↓  Step Into", ToolTip = "Execute one instruction (F8)" };
             stepInto.Click += (s, e) => StepInto();
-            Button stepOver = new() { Text = "Step Over (F10)" };
+            Button stepOver = new() { Text = "↷  Step Over", ToolTip = "Run calls, interrupts, loops and REP instructions to completion (F10)" };
             stepOver.Click += (s, e) => StepOver();
+            Button runToCursor = new() { Text = "⇥  Run to Cursor", ToolTip = "Run until the selected instruction (F4)" };
+            runToCursor.Click += (s, e) => RunToSelected();
             runButton.Click += (s, e) => ToggleRun();
-            Button refresh = new() { Text = "Refresh" };
+            Button refresh = new() { Text = "⟳  Refresh", ToolTip = "Disassemble again from CS:IP" };
             refresh.Click += (s, e) => RefreshNow(true);
-            Button decIP = new() { Text = "IP - 1" };
+            Button decIP = new() { Text = "IP − 1", ToolTip = "Move the instruction pointer back one byte" };
             decIP.Click += (s, e) => { if(!running) { cpu.Registers.IP--; RefreshNow(true); } };
-            Button reboot = new() { Text = "Reboot" };
+            Button reboot = new() { Text = "Reboot", ToolTip = "Hard reset the emulated machine" };
             reboot.Click += (s, e) => {
-                if(MessageBox.Show(this, "Hard reset the emulated machine?", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes) {
+                if(Prompt.Show(this, "Hard reset the emulated machine?", MessageBoxButtons.YesNo, MessageBoxType.Question) == DialogResult.Yes) {
                     StopRunning();
                     cpu.HardReset();
                 }
             };
-            CheckBox chars = new() { Text = "Bytes as chars" };
-            chars.CheckedChanged += (s, e) => { bytesAsChars = chars.Checked == true; codeGrid.Invalidate(); ReloadCode(); };
+            CheckBox chars = new() { Text = "Bytes as characters" };
+            chars.CheckedChanged += (s, e) => { bytesAsChars = chars.Checked == true; ReloadCode(); };
+            breakCS.Font = mono;
+            breakIP.Font = mono;
             breakCS.KeyDown += (s, e) => { if(e.Key == Keys.Enter) { UpdateRunTo(); e.Handled = true; } };
             breakIP.KeyDown += (s, e) => { if(e.Key == Keys.Enter) { UpdateRunTo(); e.Handled = true; } };
             breakCS.LostFocus += (s, e) => UpdateRunTo();
@@ -234,43 +256,66 @@ namespace x8086NetEmuEto.Tools {
 
             StackLayout toolbar = new() {
                 Orientation = Orientation.Horizontal,
-                Spacing = 4,
+                Spacing = 6,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Items = { runButton, stepInto, stepOver, refresh, decIP, reboot, chars }
+                Items = { runButton, stepInto, stepOver, runToCursor, new Panel { Width = 8 }, refresh, decIP, reboot }
             };
 
-            TableLayout breakAt = new(new TableRow(new Label { Text = "CS:IP", VerticalAlignment = VerticalAlignment.Center }, breakCS,
-                                                   new Label { Text = ":", VerticalAlignment = VerticalAlignment.Center }, breakIP, null)) { Spacing = new Size(4, 0) };
+            Label colon1 = new() { Text = ":", VerticalAlignment = VerticalAlignment.Center };
+            TableLayout breakAt = new(new TableRow(breakCS, colon1, breakIP, null)) { Spacing = new Size(4, 0) };
 
             TableLayout right = new() {
-                Width = 340,
-                Spacing = new Size(4, 6),
+                Padding = new Padding(8, 0, 0, 0),
+                Spacing = new Size(4, 10),
                 Rows = {
-                    new GroupBox { Text = "Registers", Content = regs, Padding = 4 },
-                    new GroupBox { Text = "Flags", Content = new TableLayout(flagsRow) { Spacing = new Size(2, 0) }, Padding = 4 },
-                    new GroupBox { Text = "Run until (Enter to set, empty to clear)", Content = breakAt, Padding = 4 },
-                    new TableRow(new GroupBox { Text = "Stack", Content = stackGrid, Padding = 2 }) { ScaleHeight = true }
+                    new GroupBox { Text = "Registers", Content = regs, Padding = 8 },
+                    new GroupBox { Text = "Flags", Content = flags, Padding = 8 },
+                    new GroupBox { Text = "Run Until CS:IP  (Enter sets, empty clears)", Content = breakAt, Padding = 8 },
+                    new TableRow(new GroupBox { Text = "Stack", Content = stackGrid, Padding = 0 }) { ScaleHeight = true }
                 }
             };
 
+            Label addressLabel = new() { Text = "Address", VerticalAlignment = VerticalAlignment.Center };
+            Label colon2 = new() { Text = ":", VerticalAlignment = VerticalAlignment.Center };
             TableLayout memory = new() {
-                Spacing = new Size(4, 4),
+                Spacing = new Size(4, 6),
                 Rows = {
-                    new TableLayout(new TableRow(new Label { Text = "Address", VerticalAlignment = VerticalAlignment.Center }, memSegment,
-                                                 new Label { Text = ":", VerticalAlignment = VerticalAlignment.Center }, memOffset, memGo, memBack, memForward,
-                                                 new TableCell(searchBox, true), searchVideo, searchButton)) { Spacing = new Size(4, 0) },
-                    memoryView
+                    new TableLayout(new TableRow(addressLabel, memSegment, colon2, memOffset, memGo, memBack, memForward, new Panel { Width = 12 },
+                                                 new TableCell(searchBox, true), searchVideo, searchButton)) { Spacing = new Size(6, 0) },
+                    new TableRow(memoryView) { ScaleHeight = true }
                 }
+            };
+
+            TableLayout statusBar = new(new TableRow(stateLabel, statusLabel, null, breakpointsLabel)) { Spacing = new Size(14, 0), Padding = new Padding(2, 0) };
+
+            // Resizable panes: disassembly | registers, flags and stack; memory below. The side and bottom panes keep
+            // their size when the window is resized.
+            Splitter top = new() {
+                Orientation = Orientation.Horizontal,
+                FixedPanel = SplitterFixedPanel.Panel2,
+                Panel1 = new GroupBox { Text = "Disassembly", Content = codeGrid, Padding = 0 },
+                Panel2 = right,
+                Panel1MinimumSize = 420,
+                Panel2MinimumSize = 300,
+                Position = 740
+            };
+            Splitter main = new() {
+                Orientation = Orientation.Vertical,
+                FixedPanel = SplitterFixedPanel.Panel2,
+                Panel1 = top,
+                Panel2 = new TableLayout { Padding = new Padding(0, 8, 0, 0), Rows = { new TableRow(new GroupBox { Text = "Memory", Content = memory, Padding = 8 }) { ScaleHeight = true } } },
+                Panel1MinimumSize = 260,
+                Panel2MinimumSize = 140,
+                Position = 520
             };
 
             Content = new TableLayout {
-                Padding = 6,
-                Spacing = new Size(6, 6),
+                Padding = new Padding(10, 8, 10, 6),
+                Spacing = new Size(10, 8),
                 Rows = {
-                    toolbar,
-                    new TableRow(new TableCell(codeGrid, true), new TableCell(right) ) { ScaleHeight = true },
-                    new GroupBox { Text = "Memory", Content = memory, Padding = 4 },
-                    statusLabel
+                    new TableLayout(new TableRow(toolbar, null, chars)) { Spacing = new Size(8, 0) },
+                    new TableRow(main) { ScaleHeight = true },
+                    statusBar
                 }
             };
 
@@ -279,13 +324,42 @@ namespace x8086NetEmuEto.Tools {
             debugMenu.Items.Add(new ButtonMenuItem { Text = "Run / Break", Shortcut = Keys.F5, Command = new Command((s, e) => ToggleRun()) });
             debugMenu.Items.Add(new ButtonMenuItem { Text = "Step Into", Shortcut = Keys.F8, Command = new Command((s, e) => StepInto()) });
             debugMenu.Items.Add(new ButtonMenuItem { Text = "Step Over", Shortcut = Keys.F10, Command = new Command((s, e) => StepOver()) });
-            debugMenu.Items.Add(new ButtonMenuItem { Text = "Step Over ", Shortcut = Keys.Shift | Keys.F8, Command = new Command((s, e) => StepOver()) });
+            debugMenu.Items.Add(new ButtonMenuItem { Text = "Step Over (alternate)", Shortcut = Keys.Shift | Keys.F8, Command = new Command((s, e) => StepOver()) });
+            debugMenu.Items.Add(new ButtonMenuItem { Text = "Run to Cursor", Shortcut = Keys.F4, Command = new Command((s, e) => RunToSelected()) });
             debugMenu.Items.Add(new ButtonMenuItem { Text = "Toggle Breakpoint", Shortcut = Keys.F9, Command = new Command((s, e) => ToggleSelectedBreakpoint()) });
+            debugMenu.Items.Add(new ButtonMenuItem { Text = "Clear All Breakpoints", Command = new Command((s, e) => ClearBreakpoints()) });
             debugMenu.Items.Add(new SeparatorMenuItem());
             debugMenu.Items.Add(new ButtonMenuItem { Text = "Close", Command = new Command((s, e) => Close()) });
             Menu = new MenuBar { Items = { debugMenu }, IncludeSystemItems = MenuBarSystemItems.None };
 
+            Theme.Apply(this);
+            foreach(Label l in dimLabels) l.TextColor = Theme.DimText;
+            foreach(Label l in new[] { colon1, colon2, addressLabel, statusLabel, breakpointsLabel }) l.TextColor = Theme.DimText;
+            UpdateBreakpointsLabel();
+
             Attach(emulator);
+        }
+
+        // Gutter: breakpoint dot and/or the current-instruction arrow
+        private string Gutter(CodeLine l) {
+            bool bp = IsBreakpoint(l.Address);
+            bool current = currentAddress == l.Address;
+            return bp && current ? "●➜" : bp ? "●" : current ? "➜" : "";
+        }
+
+        private static Color MnemonicColor(string mnemonic) {
+            string m = (mnemonic ?? "").Trim().ToUpperInvariant();
+            if(m.StartsWith('J') || m.StartsWith("CALL") || m.StartsWith("RET") || m.StartsWith("INT") || m == "IRET" ||
+               m.StartsWith("LOOP") || m == "HLT" || m == "INTO") return FlowFore;
+            if(m.StartsWith("MOV") || m.StartsWith("PUSH") || m.StartsWith("POP") || m == "XCHG" || m == "LEA" || m == "LDS" ||
+               m == "LES" || m.StartsWith("LODS") || m.StartsWith("STOS") || m == "XLAT" || m == "IN" || m == "OUT") return MoveFore;
+            return OtherFore;
+        }
+
+        private void UpdateBreakpointsLabel() {
+            int n;
+            lock(bpLock) n = breakpoints.Count;
+            breakpointsLabel.Text = n == 0 ? "No breakpoints" : $"{n} breakpoint{(n > 1 ? "s" : "")}";
         }
 
         // Connects the debugger to an emulator instance (also used after a hard reset creates a new one)
@@ -368,8 +442,8 @@ namespace x8086NetEmuEto.Tools {
         private void StartRunning() {
             if(running || cpu.IsHalted) return;
             running = true;
-            runButton.Text = "Break (F5)";
-            statusLabel.Text = "Running...";
+            runButton.Text = "⏸  Break";
+            SetState("RUNNING");
 
             X8086 target = cpu;
             runThread = new Thread(() => RunLoop(target)) { IsBackground = true, Name = "Debugger run loop" };
@@ -415,16 +489,21 @@ namespace x8086NetEmuEto.Tools {
             tempBreakpoint = null;
             if(closing || target != cpu) return;
             if(!done) { // The CPU left debug mode (or is shutting down): nothing safe to capture
-                Application.Instance.AsyncInvoke(() => runButton.Text = "Run (F5)");
+                Application.Instance.AsyncInvoke(() => { runButton.Text = "▶  Run"; SetState("RUNNING (NOT DEBUGGING)"); });
                 return;
             }
 
             Snapshot snap = Capture();
             Application.Instance.AsyncInvoke(() => {
-                runButton.Text = "Run (F5)";
+                runButton.Text = "▶  Run";
                 Apply(snap);
-                statusLabel.Text = reason;
+                statusLabel.Text = $"{reason}   ·   {statusLabel.Text}";
             });
+        }
+
+        private void SetState(string state) {
+            stateLabel.Text = "● " + state;
+            stateLabel.TextColor = state.StartsWith("PAUSED") ? Theme.Warning : state.StartsWith("HALTED") ? Theme.Error : Theme.Success;
         }
 
         private void RefreshNow(bool rebuildCode) {
@@ -517,6 +596,7 @@ namespace x8086NetEmuEto.Tools {
                 bool codeChanged = lastSnapshot == null || !ReferenceEquals(lastSnapshot.Code, s.Code);
                 int previousIndex = lastSnapshot?.CurrentIndex ?? -1;
                 lastSnapshot = s;
+                currentAddress = s.CurrentIndex < s.Code.Count ? s.Code[s.CurrentIndex].Address : null;
 
                 if(codeChanged) {
                     codeGrid.DataStore = s.Code;
@@ -532,14 +612,19 @@ namespace x8086NetEmuEto.Tools {
                     if(tb.HasFocus) continue;
                     ushort v = r.get_Val(reg);
                     tb.Text = v.ToString("X4");
-                    tb.BackgroundColor = SystemColors.ControlBackground;
+                    tb.BackgroundColor = Theme.Input;
+                    tb.TextColor = previousRegisters != null && previousRegisters.get_Val(reg) != v ? Theme.Changed : Theme.Text;
                     tb.ToolTip = $"{v}d\n{v:X4}h\n{Convert.ToString(v, 2).PadLeft(16, '0')}b";
                 }
 
                 string[] order = ["CF", "", "PF", "", "AF", "", "ZF", "SF", "TF", "IF", "DF", "OF"];
                 for(int bit = 0; bit < order.Length; bit++) {
-                    if(order[bit] != "") flagBoxes[order[bit]].Checked = (s.Flags & (1 << bit)) != 0;
+                    if(order[bit] == "") continue;
+                    flagBoxes[order[bit]].Checked = (s.Flags & (1 << bit)) != 0;
+                    flagBoxes[order[bit]].TextColor = previousRegisters != null && ((previousFlags ^ s.Flags) & (1 << bit)) != 0 ? Theme.Changed : Theme.Text;
                 }
+                previousRegisters = r;
+                previousFlags = s.Flags;
 
                 stackGrid.DataStore = s.Stack;
                 stackGrid.ScrollToRow(s.Stack.Length - 1);     // Scroll past SP first so it ends up near the top,
@@ -547,7 +632,8 @@ namespace x8086NetEmuEto.Tools {
 
                 memoryView.Text = FormatMemory(s.MemAddress, s.Memory);
 
-                statusLabel.Text = $"{(s.Halted ? "HALTED" : running ? "Running..." : "Paused")} | CS:IP {r.CS:X4}:{r.IP:X4} | Active segment: {s.ActiveSegment}";
+                SetState(s.Halted ? "HALTED" : running ? "RUNNING" : "PAUSED");
+                statusLabel.Text = $"CS:IP {r.CS:X4}:{r.IP:X4}   Active segment {s.ActiveSegment}";
             } finally {
                 updatingUI = false;
             }
@@ -559,6 +645,10 @@ namespace x8086NetEmuEto.Tools {
 
         private static string FormatMemory(uint address, byte[] data) {
             StringBuilder sb = new();
+            sb.Append("Address    ");
+            for(int k = 0; k < 16; k++) sb.Append(k == 8 ? $"- {k:X2} " : $"{k:X2} ");
+            sb.Append("  0123456789ABCDEF");
+            sb.AppendLine();
             for(int row = 0; row < data.Length / 16; row++) {
                 uint a = (address + (uint)row * 16) & 0xFFFFF;
                 sb.Append($"{X8086.AbsoluteToSegment(a):X4}:{X8086.AbsoluteToOffset(a):X4}  ");
@@ -594,6 +684,7 @@ namespace x8086NetEmuEto.Tools {
                 if(!breakpoints.Remove(line.Address)) breakpoints.Add(line.Address);
             }
             ReloadCode();
+            UpdateBreakpointsLabel();
         }
 
         private void ToggleSelectedBreakpoint() {
@@ -603,6 +694,7 @@ namespace x8086NetEmuEto.Tools {
         private void ClearBreakpoints() {
             lock(bpLock) breakpoints.Clear();
             ReloadCode();
+            UpdateBreakpointsLabel();
         }
 
         private void RunToSelected() {
@@ -625,8 +717,8 @@ namespace x8086NetEmuEto.Tools {
             }
             bool okCS = TryEvaluate(breakCS.Text, out int cs);
             bool okIP = TryEvaluate(breakIP.Text, out int ip);
-            breakCS.BackgroundColor = okCS ? SystemColors.ControlBackground : InvalidBack;
-            breakIP.BackgroundColor = okIP ? SystemColors.ControlBackground : InvalidBack;
+            breakCS.BackgroundColor = okCS ? Theme.Input : Theme.Invalid;
+            breakIP.BackgroundColor = okIP ? Theme.Input : Theme.Invalid;
             runToAddress = okCS && okIP ? X8086.SegmentOffsetToAbsolute((ushort)cs, (ushort)ip) : null;
         }
         #endregion
@@ -635,10 +727,10 @@ namespace x8086NetEmuEto.Tools {
         private void CommitRegister(X8086.GPRegisters.RegistersTypes reg, TextBox tb) {
             if(updatingUI || cpu == null) return;
             if(!TryEvaluate(tb.Text, out int value)) {
-                tb.BackgroundColor = InvalidBack;
+                tb.BackgroundColor = Theme.Invalid;
                 return;
             }
-            tb.BackgroundColor = SystemColors.ControlBackground;
+            tb.BackgroundColor = Theme.Input;
             if(running || cpu.Registers.get_Val(reg) == (ushort)value) return;
 
             cpu.Registers.set_Val(reg, (ushort)value);
@@ -665,8 +757,8 @@ namespace x8086NetEmuEto.Tools {
         private void ApplyMemoryAddress() {
             bool okSeg = TryEvaluate(memSegment.Text, out int seg);
             bool okOff = TryEvaluate(memOffset.Text, out int off);
-            memSegment.BackgroundColor = okSeg ? SystemColors.ControlBackground : InvalidBack;
-            memOffset.BackgroundColor = okOff ? SystemColors.ControlBackground : InvalidBack;
+            memSegment.BackgroundColor = okSeg ? Theme.Input : Theme.Invalid;
+            memOffset.BackgroundColor = okOff ? Theme.Input : Theme.Invalid;
             if(!okSeg || !okOff) return;
 
             memAddress = X8086.SegmentOffsetToAbsolute((ushort)seg, (ushort)off);
@@ -715,12 +807,12 @@ namespace x8086NetEmuEto.Tools {
                     if(b != needle[j]) { found = false; break; }
                 }
                 if(found) {
-                    searchBox.BackgroundColor = Color.FromArgb(170, 230, 170);
+                    searchBox.BackgroundColor = Theme.Valid;
                     ShowMemory((uint)i);
                     return;
                 }
             }
-            searchBox.BackgroundColor = Color.FromArgb(255, 180, 160);
+            searchBox.BackgroundColor = Theme.Invalid;
         }
 
         // Expressions: numbers are hexadecimal unless suffixed with 'd' (decimal), 'b' (binary) or 'o' (octal)

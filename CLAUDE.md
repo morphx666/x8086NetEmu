@@ -93,6 +93,11 @@ The repo is mid-upgrade. Guidance that overrides appearances in the tree:
   Text copy uses `ScreenText` (video memory in text modes, BIOS-font glyph matching in graphics modes);
   paste uses `TextPaster`, which types through the keyboard path paced by `PPI8255.PendingKeyData`.
   Video presenters expose input/frame access to these tools through `IEtoVideoAdapter`.
+- **Dark theme (default):** `x8086NetEmuEto/Theme.cs` holds the palette; call `Theme.Apply(window)` after building
+  a window's content (then set any special colors, or mark controls with `Theme.Keep`). Native chrome is themed
+  per launcher: `x8086NetEmuEto.Wpf/DarkTheme.cs` (WPF styles, including styles for Eto's control subclasses, and
+  dark title bars), GTK's prefer-dark setting, and macOS's DarkAqua appearance. Use `Tools/Prompt` instead of
+  `MessageBox`, which can't be themed. WPF's own Fluent dark theme conflicts with Eto's styling; don't use it.
 - **Hard reset** in the Eto frontend rebuilds the whole machine through the `X8086` restart callback
   (`MainForm.RestartEmulation`), re-attaching open tool windows to the new instance.
 

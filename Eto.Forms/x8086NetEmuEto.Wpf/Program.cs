@@ -5,7 +5,9 @@ namespace x8086NetEmuEto.Wpf {
     class Program {
         [STAThread]
         public static void Main(string[] args) {
-            new Application(Eto.Platforms.Wpf).Run(new MainForm());
+            Application app = new(Eto.Platforms.Wpf);
+            DarkTheme.Install();
+            app.Run(new MainForm());
         }
     }
 }

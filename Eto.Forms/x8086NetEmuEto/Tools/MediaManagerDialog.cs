@@ -43,10 +43,10 @@ namespace x8086NetEmuEto.Tools {
                 Spacing = new Size(6, 10),
                 Rows = {
                     drives,
-                    new Label {
+                    Theme.Keep(new Label {
                         Text = "Tip: drop an image file on a drive to mount it.\nAfter changing a mounted disk from the Disk Explorer, reboot so DOS doesn't keep using its cached copy.",
-                        TextColor = SystemColors.DisabledText
-                    },
+                        TextColor = Theme.DimText
+                    }),
                     null
                 }
             };
@@ -62,6 +62,7 @@ namespace x8086NetEmuEto.Tools {
             PositiveButtons.Add(ok);
 
             Content = layout;
+            Theme.Apply(this);
             UpdateRows();
         }
 
@@ -89,7 +90,7 @@ namespace x8086NetEmuEto.Tools {
                 try {
                     new DiskExplorerForm(di.FileName).ShowModal(this);
                 } catch(Exception ex) {
-                    MessageBox.Show(this, $"Unable to open the image: {ex.Message}", MessageBoxType.Error);
+                    Prompt.Show(this, $"Unable to open the image: {ex.Message}", MessageBoxType.Error);
                 }
             };
 
@@ -140,12 +141,12 @@ namespace x8086NetEmuEto.Tools {
                 DiskImage di = new(fileName, readOnly, row.HardDisk);
                 if(di.Status != DiskImage.ImageStatus.DiskLoaded) {
                     di.Close();
-                    MessageBox.Show(this, $"Unable to mount '{fileName}': {di.Status}", MessageBoxType.Error);
+                    Prompt.Show(this, $"Unable to mount '{fileName}': {di.Status}", MessageBoxType.Error);
                 } else {
                     cpu.FloppyController.set_DiskImage(row.Index, di);
                 }
             } catch(Exception ex) {
-                MessageBox.Show(this, $"Unable to mount '{fileName}': {ex.Message}", MessageBoxType.Error);
+                Prompt.Show(this, $"Unable to mount '{fileName}': {ex.Message}", MessageBoxType.Error);
             }
             UpdateRows();
         }

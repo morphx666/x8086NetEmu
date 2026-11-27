@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net10.0-windows7.0</TargetFramework>
+		<UseWPF>true</UseWPF>
 		<AssemblyVersion>2026.11.27.290</AssemblyVersion>
 		<FileVersion>2026.11.27.290</FileVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

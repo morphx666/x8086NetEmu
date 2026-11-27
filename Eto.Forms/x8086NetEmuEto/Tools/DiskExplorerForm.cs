@@ -67,7 +67,7 @@ namespace x8086NetEmuEto.Tools {
             }
             sdf = new StandardDiskFormat(stream);
 
-            Font mono = Fonts.Monospace(10);
+            Font mono = Theme.Mono(10);
 
             tree = new TreeGridView {
                 ShowHeader = false,
@@ -124,7 +124,10 @@ namespace x8086NetEmuEto.Tools {
                     new GridColumn { HeaderText = "Operands", Expand = true, DataCell = new TextBoxCell { Binding = Binding.Delegate((CodeLine l) => l.Operands) } }
                 }
             };
-            bootCode.CellFormatting += (s, e) => e.Font = mono;
+            bootCode.CellFormatting += (s, e) => {
+                e.Font = mono;
+                e.ForegroundColor = e.Column.HeaderText switch { "Address" => Theme.DimText, "Bytes" => Theme.FaintText, "Instruction" => Theme.Info, _ => Theme.Text };
+            };
 
             TabControl tabs = new() {
                 Pages = {
@@ -144,7 +147,7 @@ namespace x8086NetEmuEto.Tools {
             status.Text = writable
                 ? "Drag files out to extract them, drop host files in to copy them into the selected folder. Del deletes."
                 : "The image file is read only: files can only be extracted.";
-            status.TextColor = SystemColors.DisabledText;
+            
 
             Content = new TableLayout {
                 Spacing = new Size(6, 6),
@@ -155,6 +158,10 @@ namespace x8086NetEmuEto.Tools {
                     new TableLayout(new TableRow(new TableCell(status, true), close)) { Spacing = new Size(6, 0) }
                 }
             };
+
+            Theme.Apply(this);
+            status.TextColor = Theme.DimText;
+            info.TextColor = Theme.DimText;
 
             LoadPartitions();
         }
@@ -314,7 +321,7 @@ namespace x8086NetEmuEto.Tools {
                 DataObject data = new() { Uris = [.. paths.Select(p => new Uri(p))] };
                 files.DoDragDrop(data, DragEffects.Copy);
             } catch(Exception ex) {
-                MessageBox.Show(this, $"Unable to extract: {ex.Message}", MessageBoxType.Error);
+                Prompt.Show(this, $"Unable to extract: {ex.Message}", MessageBoxType.Error);
             }
         }
 
@@ -331,7 +338,7 @@ namespace x8086NetEmuEto.Tools {
                 string path = SaveFile(NewTempDirectory(), f.Entry);
                 Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
             } catch(Exception ex) {
-                MessageBox.Show(this, ex.Message, MessageBoxType.Warning);
+                Prompt.Show(this, ex.Message, MessageBoxType.Warning);
             }
         }
 
@@ -344,7 +351,7 @@ namespace x8086NetEmuEto.Tools {
             try {
                 Extract(dlg.Directory, selected);
             } catch(Exception ex) {
-                MessageBox.Show(this, $"Unable to extract: {ex.Message}", MessageBoxType.Error);
+                Prompt.Show(this, $"Unable to extract: {ex.Message}", MessageBoxType.Error);
             }
         }
         #endregion
@@ -353,7 +360,7 @@ namespace x8086NetEmuEto.Tools {
         private bool ConfirmWrite() {
             if(!writable) return false;
             if(confirmedWrite) return true;
-            confirmedWrite = MessageBox.Show(this,
+            confirmedWrite = Prompt.Show(this,
                 "Writing to disk images is still experimental and may corrupt the image (keep a backup).\n\n" +
                 "If the image is mounted, reboot the emulated machine afterwards so DOS doesn't overwrite the changes with its cached copy.\n\n" +
                 "Continue?",
@@ -373,7 +380,7 @@ namespace x8086NetEmuEto.Tools {
         private void DropIn(string[] paths) {
             if(paths.Length == 0 || !ConfirmWrite()) return;
             if(paths.Any(Directory.Exists)) {
-                MessageBox.Show(this, "Copying folders into an image is not supported yet; drop the files instead.", MessageBoxType.Warning);
+                Prompt.Show(this, "Copying folders into an image is not supported yet; drop the files instead.", MessageBoxType.Warning);
                 paths = [.. paths.Where(File.Exists)];
             }
 
@@ -387,12 +394,12 @@ namespace x8086NetEmuEto.Tools {
                     object[] existing = Entries(parent);
                     dynamic same = existing?.FirstOrDefault(e => !IsDeleted(e) && !IsDirectory(e) && string.Equals((string)((dynamic)e).FullFileName, shortName, StringComparison.OrdinalIgnoreCase));
                     if(same != null) {
-                        if(MessageBox.Show(this, $"{shortName} already exists. Replace it?", MessageBoxButtons.YesNo, MessageBoxType.Question) != DialogResult.Yes) continue;
+                        if(Prompt.Show(this, $"{shortName} already exists. Replace it?", MessageBoxButtons.YesNo, MessageBoxType.Question) != DialogResult.Yes) continue;
                         sdf.DeleteFile(partition, parent, same);
                     }
                     sdf.WriteFile(partition, parent, new FileInfo(path));
                 } catch(Exception ex) {
-                    MessageBox.Show(this, $"Unable to copy '{Path.GetFileName(path)}': {ex.Message}", MessageBoxType.Error);
+                    Prompt.Show(this, $"Unable to copy '{Path.GetFileName(path)}': {ex.Message}", MessageBoxType.Error);
                     break;
                 }
             }
@@ -409,17 +416,17 @@ namespace x8086NetEmuEto.Tools {
             List<FileItem> selected = [.. files.SelectedItems.OfType<FileItem>()];
             if(selected.Count == 0 || !writable) return;
             if(selected.Any(f => f.IsDirectory)) {
-                MessageBox.Show(this, "Deleting folders is not supported yet.", MessageBoxType.Warning);
+                Prompt.Show(this, "Deleting folders is not supported yet.", MessageBoxType.Warning);
                 return;
             }
             if(!ConfirmWrite()) return;
-            if(MessageBox.Show(this, $"Delete {selected.Count} file{(selected.Count > 1 ? "s" : "")}?", MessageBoxButtons.YesNo, MessageBoxType.Question) != DialogResult.Yes) return;
+            if(Prompt.Show(this, $"Delete {selected.Count} file{(selected.Count > 1 ? "s" : "")}?", MessageBoxButtons.YesNo, MessageBoxType.Question) != DialogResult.Yes) return;
 
             TreeGridItem node = CurrentNode;
             try {
                 foreach(FileItem f in selected) sdf.DeleteFile(partition, node?.Tag, f.Entry);
             } catch(Exception ex) {
-                MessageBox.Show(this, $"Unable to delete: {ex.Message}", MessageBoxType.Error);
+                Prompt.Show(this, $"Unable to delete: {ex.Message}", MessageBoxType.Error);
             }
             if(node != null) ShowDirectory(node);
         }
