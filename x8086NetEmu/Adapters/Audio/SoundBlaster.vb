@@ -32,6 +32,7 @@ Public Class SoundBlaster
     Private ReadOnly args As New List(Of Byte)()
     Private argsNeeded As Integer
     Private resetLatch As Boolean
+    Private writeStatusReads As Integer             ' Drives the toggling busy bit of the write-buffer status
     Private testRegister As Byte
     Private speakerOn As Boolean
     Private dacValue As Byte = 128                  ' Current output sample (unsigned 8-bit)
@@ -109,7 +110,14 @@ Public Class SoundBlaster
             Case &H1, &H3, &H9 : Return adLib.In(&H389)
             Case &H5 : Return mixerRegs(mixerIndex)
             Case &HA : Return If(readBuffer.Count > 0, readBuffer.Dequeue(), CByte(0))
-            Case &HC : Return &H7F ' Write buffer always ready (bit 7 clear)
+            Case &HC
+                ' Write-buffer status. On a real DSP bit 7 isn't a steady "ready": it flips between busy and ready
+                ' even when idle, as the DSP's firmware services its input latch. Software relies on seeing it
+                ' toggle (some sound drivers wait for a busy phase before sending a command), so flip it every 8
+                ' reads, as DOSBox does. While the DSP is held in reset it reads busy.
+                If resetLatch Then Return &HFF
+                writeStatusReads += 1
+                Return If((writeStatusReads And 8) <> 0, &HFF, &H7F)
             Case &HE
                 ' Reading the read-buffer status also acknowledges the 8-bit DMA interrupt
                 If irqPending Then
