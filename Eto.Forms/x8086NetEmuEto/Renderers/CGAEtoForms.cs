@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Eto;
 using Eto.Drawing;
@@ -19,7 +20,8 @@ namespace x8086NetEmuEto.Renderers {
         private int bmpIndex = 0;
 
         private readonly Color[] brushCache;
-        private readonly List<VideoChar> charsCache = [];
+        private int[] textScanline = [];
+        private int repaintPending;
         private readonly Dictionary<int, Size> charSizeCache = [];
         private readonly int[] paletteDataCache = new int[16];
         private int[] graphicsScanline = [];
@@ -69,15 +71,20 @@ namespace x8086NetEmuEto.Renderers {
         }
 
         public override void InitAdapter() {
-            if(!isInit) {
-                base.InitAdapter();
-                Task.Run(async () => {
-                    while(!X8086.IsClosing && renderControl != null && !renderControl.IsDisposed) {
-                        await Task.Delay((int)(2 * 1000 / VERTSYNC));
-                        Application.Instance.Invoke(() => renderControl.Invalidate());
-                    }
-                });
-            }
+            // Repaints are requested by Render() whenever a new frame is ready (see RequestRepaint),
+            // instead of polling on a timer that was not synchronized with frame production
+            if(!isInit) base.InitAdapter();
+        }
+
+        // Called from the emulation thread after each rendered frame. Coalesces requests so that,
+        // if the UI thread is busy, frames are skipped rather than queued up.
+        private void RequestRepaint() {
+            if(Interlocked.Exchange(ref repaintPending, 1) == 1) return;
+
+            Application.Instance.AsyncInvoke(() => {
+                Volatile.Write(ref repaintPending, 0);
+                if(renderControl != null && !renderControl.IsDisposed) renderControl.Invalidate();
+            });
         }
 
         public override void CloseAdapter() {
@@ -97,7 +104,6 @@ namespace x8086NetEmuEto.Renderers {
                     brushCache[i] = CGAPalette[i].ToColor();
                 }
 
-                charsCache.Clear();
                 paletteDataCacheDirty = true;
             }
         }
@@ -159,65 +165,86 @@ namespace x8086NetEmuEto.Renderers {
                         break;
                 }
                 bmpIndex = nextBmpIndex;
+                RequestRepaint();
             }
         }
 
+        // Text mode: expands each glyph straight from the font bitmap into the frame's pixel data,
+        // one scanline at a time (same approach as RenderGraphics). This replaced drawing 2000
+        // cached glyph images per frame through Eto's Graphics, which was too slow for 60 fps and
+        // ran on the emulation thread, taking ~25% of the emulated CPU's throughput.
         private void RenderText(int bmpIndex) {
-            int col = 0;
-            int row = 0;
+            int cw = CellSize.Width;
+            int ch = CellSize.Height;
+            int textCols = TextResolution.Width;
+            byte[] font = VideoChar.FontBitmaps;
 
-            // FIXME: This should be cached
-            Rectangle r = new(Point.Empty, CellSize.ToSize());
+            using BitmapData bitmapData = videoBMP[bmpIndex].Lock();
 
-            using(Graphics g = new(videoBMP[bmpIndex])) {
-                for(UInt32 address = StartTextVideoAddress; address < EndTextVideoAddress; address += 2) {
-                    byte chr = CPU.Memory[address];
-                    byte atr = CPU.Memory[address + 1];
+            // Clip to the bitmap, in case a mode's text grid doesn't fit its graphics resolution
+            int cols = Math.Min(textCols, GraphicsResolution.Width / cw);
+            int rows = Math.Min(TextResolution.Height, GraphicsResolution.Height / ch);
+            if(cols <= 0 || rows <= 0) return;
 
-                    if(BlinkCharOn && (atr & 0b1000_0000) != 0) {
-                        if(blinkCounter < BlinkRate) atr = 0;
-                    }
+            if(paletteDataCacheDirty) {
+                for(int i = 0; i < CGAPalette.Length; i++) {
+                    paletteDataCache[i] = bitmapData.TranslateArgbToData(unchecked((int)CGAPalette[i].ToArgb()));
+                }
+                paletteDataCacheDirty = false;
+            }
 
-                    RenderChar(g, chr, brushCache[atr & 0xF], brushCache[atr >> 4], r.Location);
+            int lineWidth = cols * cw;
+            if(textScanline.Length < lineWidth) textScanline = new int[lineWidth];
 
-                    if(CursorVisible && row == CursorRow && col == CursorCol) {
-                        if(blinkCounter < BlinkRate) {
-                            g.FillRectangle(brushCache[atr & 0xF],
-                                            r.X + 0, r.Y - 1 + mCellSize.Height - (CursorEnd - CursorStart) - 1,
-                                            CellSize.Width, CursorEnd - CursorStart + 1);
+            bool blinkFirstHalf = blinkCounter < BlinkRate;
+            int cursorHeight = CursorEnd - CursorStart + 1;
+            int cursorTop = ch - (CursorEnd - CursorStart) - 2; // same placement as the previous renderer
+            int cursorBottom = cursorTop + cursorHeight;
+
+            for(int row = 0; row < rows; row++) {
+                for(int y = 0; y < ch; y++) {
+                    int x = 0;
+                    for(int col = 0; col < cols; col++) {
+                        uint address = StartTextVideoAddress + (uint)((row * textCols + col) * 2);
+                        int fg = 0;
+                        int bg = 0;
+                        byte chr = 0;
+
+                        if(address + 1 < EndTextVideoAddress) {
+                            chr = CPU.Memory[address];
+                            byte atr = CPU.Memory[address + 1];
+
+                            if(BlinkCharOn && (atr & 0b1000_0000) != 0) {
+                                if(blinkFirstHalf) atr = 0;
+                            }
+
+                            fg = paletteDataCache[atr & 0xF];
+                            bg = paletteDataCache[atr >> 4];
+
+                            if(CursorVisible && blinkFirstHalf && row == CursorRow && col == CursorCol &&
+                               y >= cursorTop && y < cursorBottom) {
+                                bg = fg; // cursor scanline: solid foreground color
+                            }
                         }
 
-                        if(blinkCounter >= 2 * BlinkRate) {
-                            blinkCounter = 0;
+                        if(font == null) {
+                            for(int px = 0; px < cw; px++) textScanline[x++] = bg;
                         } else {
-                            blinkCounter++;
+                            int glyphRow = (chr * ch + y) * cw;
+                            for(int px = 0; px < cw; px++) {
+                                textScanline[x++] = font[glyphRow + px] == 1 ? fg : bg;
+                            }
                         }
                     }
 
-                    r.X += CellSize.Width;
-                    col++;
-                    if(col == TextResolution.Width) {
-                        col = 0;
-                        row++;
-                        if(row == TextResolution.Height) break;
-
-                        r.X = 0;
-                        r.Y += mCellSize.Height;
-
-                    }
+                    int pixelRow = row * ch + y;
+                    int rowIndex = bitmapData.Flipped ? GraphicsResolution.Height - 1 - pixelRow : pixelRow;
+                    Marshal.Copy(textScanline, 0, IntPtr.Add(bitmapData.Data, rowIndex * bitmapData.ScanWidth), lineWidth);
                 }
             }
-        }
 
-        private void RenderChar(Graphics g, byte c, Color fb, Color bb, Point p) {
-            VideoChar ccc = new(c, fb, bb);
-            int idx = charsCache.IndexOf(ccc);
-            if(idx == -1) {
-                ccc.Render(CellSize.Width, CellSize.Height);
-                charsCache.Add(ccc);
-                idx = charsCache.Count - 1;
-            }
-            charsCache[idx].Paint(g, p, scale);
+            // One blink cycle = BlinkRate frames on + BlinkRate frames off (60 Hz frames)
+            blinkCounter = blinkCounter >= 2 * BlinkRate ? 0 : blinkCounter + 1;
         }
 
         private void RenderGraphics(int bmpIndex) {

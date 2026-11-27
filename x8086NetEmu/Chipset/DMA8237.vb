@@ -1,6 +1,19 @@
 ﻿Public Class DMAI8237
     Inherits IOPortHandler
 
+    ' Controls the clock used to time DMA transfers (3 clocks per byte):
+    '   True:  the configured CPU clock (X8086.Clock) - DMA (and thus disk transfers) speeds up
+    '          together with the emulated CPU
+    '   False: the original 4.77 MHz (X8086.BASECLOCK) - like most turbo XT boards, where the
+    '          8237 kept running at the stock clock regardless of the CPU turbo speed
+    Private Const DMA_SCALES_WITH_CPU_CLOCK As Boolean = True
+
+    Private ReadOnly Property DMAClock As Double
+        Get
+            Return If(DMA_SCALES_WITH_CPU_CLOCK, cpu.Clock, X8086.BASECLOCK)
+        End Get
+    End Property
+
     ' Switches between low/high byte of address and count registers
     Private msbFlipFlop As Boolean
 
@@ -252,10 +265,14 @@
             ' Prepare for transfer
             Dim blockMode As Boolean = (mode And &HC0) = &H80
             Dim singleMode As Boolean = (mode And &HC0) = &H40
-            Dim currentCount As UInt16 = channel.CurrentCount
-            Dim maxLen As UInt16 = currentCount + 1
-            Dim currentAddress As UInt16 = channel.CurrentAddress
-            Dim addressStep As UInt16 = If((channel.Mode And &H20) = 0, 1, -1)
+            ' Signed Integer locals on purpose: the transfer length is CurrentCount + 1 (up to 65536,
+            ' which does not fit in a UInt16 and used to wrap to 0), and terminal count is detected
+            ' by the count going below zero (impossible to observe with an unsigned type, so TC was
+            ' never signaled: no mask/auto-init, no TC status bit, no EOP to the device).
+            Dim currentCount As Integer = channel.CurrentCount
+            Dim maxLen As Integer = currentCount + 1
+            Dim currentAddress As Integer = channel.CurrentAddress
+            Dim addressStep As Integer = If((channel.Mode And &H20) = 0, 1, -1)
             channel.ExternalEop = False
 
             ' Don't combine too much single transfers in one atomic action
@@ -267,7 +284,7 @@
                     ' DMA verify
                     currentCount -= maxLen
                     currentAddress = (currentAddress + maxLen * addressStep) And &HFFFF
-                    transferTime += 3 * maxLen * Scheduler.HOSTCLOCK \ cpu.Clock
+                    transferTime += 3 * maxLen * Scheduler.HOSTCLOCK \ DMAClock
                 Case &H4
                     ' DMA write
                     While (maxLen > 0) AndAlso (Not channel.ExternalEop) AndAlso (blockMode OrElse channel.PendingRequest)
@@ -275,7 +292,7 @@
                         maxLen -= 1
                         currentCount -= 1
                         currentAddress = (currentAddress + addressStep) And &HFFFF
-                        transferTime += 3 * Scheduler.HOSTCLOCK \ cpu.Clock
+                        transferTime += 3 * Scheduler.HOSTCLOCK \ DMAClock
                     End While
                 Case &H8
                     ' DMA read
@@ -284,7 +301,7 @@
                         maxLen -= 1
                         currentCount -= 1
                         currentAddress = (currentAddress + addressStep) And &HFFFF
-                        transferTime += 3 * Scheduler.HOSTCLOCK \ cpu.Clock
+                        transferTime += 3 * Scheduler.HOSTCLOCK \ DMAClock
                     End While
             End Select
 

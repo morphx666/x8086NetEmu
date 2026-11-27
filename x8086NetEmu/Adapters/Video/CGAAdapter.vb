@@ -125,7 +125,10 @@ Public MustInherit Class CGAAdapter
 
     Private curTick As Long
     Private lastTick As Long
-    Private frameTicks As Long = Scheduler.HOSTCLOCK / 5 ' ~60ms / 16fps
+    ' Render one frame per vertical refresh (60 Hz), in simulated time. This used to be
+    ' HOSTCLOCK / 5 (= 5 fps), which only looked smooth while simulated time was running
+    ' unthrottled, much faster than wall time.
+    Private ReadOnly frameTicks As Long = Math.Round(Scheduler.HOSTCLOCK / VERTSYNC)
 
     Private Class TaskSC
         Inherits Scheduler.SchTask
@@ -180,7 +183,10 @@ Public MustInherit Class CGAAdapter
         If curTick >= (lastTick + frameTicks) Then
             Render()
 
-            lastTick = curTick - (curTick - (lastTick + frameTicks))
+            ' Advance by exactly one frame; if we fell behind by more than a frame, drop the
+            ' missed frames instead of rendering them back-to-back to catch up
+            lastTick += frameTicks
+            If curTick - lastTick >= frameTicks Then lastTick = curTick
         End If
     End Sub
 
