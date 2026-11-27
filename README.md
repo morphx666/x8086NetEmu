@@ -18,12 +18,29 @@ A cycle-scheduled 8088/8086/80186 PC emulator written in VB.NET. It boots real R
 
 ## Building and running
 
-Everything targets .NET 10. Build outputs, ROMs, disk images and `settings.dat` live in the `Release` folder.
+Install the [.NET 10 SDK](https://dotnet.microsoft.com/download), then run one of these commands from the repository folder.
+
+### Windows
 
 ```
-dotnet build x8086NetEmu.sln -c Release
-dotnet run --project Eto.Forms/x8086NetEmuEto.Wpf    # Windows (use .Gtk on Linux, .Mac on macOS)
+dotnet run --project Eto.Forms/x8086NetEmuEto.Wpf
 ```
+
+### Linux
+
+Requires GTK 3, which most desktop distributions already include.
+
+```
+dotnet run --project Eto.Forms/x8086NetEmuEto.Gtk
+```
+
+### macOS
+
+```
+dotnet run --project Eto.Forms/x8086NetEmuEto.Mac
+```
+
+ROMs, disk images and `settings.dat` live in the `Release` folder.
 
 Precompiled binaries are available in [releases](https://github.com/morphx666/x8086NetEmu/releases).
 
