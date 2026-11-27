@@ -445,6 +445,8 @@ Public Class X8086
         instructionsCounter += 1
 
         opCode = RAM8(mRegisters.CS, mRegisters.IP)
+
+        If CrashCaptureEnabled Then CrashCaptureRecord() ' TEMPORARY: see Helpers/CrashCapture.vb
     End Sub
 
     Public Sub Execute_DEBUG()
