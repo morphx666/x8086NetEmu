@@ -60,7 +60,7 @@ namespace x8086NetEmuEto {
 
             cpu.Adapters.Add(new FloppyControllerAdapter(cpu));
 
-            cpu.Adapters.Add(new CGAEtoForms(cpu, Canvas));
+            cpu.Adapters.Add(new VGAEtoForms(cpu, Canvas));
 
             cpu.Adapters.Add(new KeyboardAdapter(cpu));
             cpu.Adapters.Add(new MouseAdapter(cpu));
