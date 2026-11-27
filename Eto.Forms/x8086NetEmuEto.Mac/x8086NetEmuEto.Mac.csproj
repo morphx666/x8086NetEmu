@@ -11,7 +11,9 @@
 		     binary. Those builds need their own obj/bin folders, or the second one reuses the first one's native
 		     launcher (apphost) and lipo refuses to merge two executables of the same architecture. -->
 		<AppendRuntimeIdentifierToOutputPath Condition="'$(MacIsBuildingBundle)' != 'True'">false</AppendRuntimeIdentifierToOutputPath>
-		<OutputPath>..\..\Release\</OutputPath>
+		<!-- Absolute: Eto derives the "dotnet run" launcher path from it, and dotnet run resolves a relative path
+		     against the current folder (e.g. the repo root) instead of the project folder -->
+		<OutputPath>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..', 'Release'))</OutputPath>
 		<!-- Run on a newer .NET when .NET 10 isn't installed (release packages bundle their own runtime) -->
 		<RollForward>Major</RollForward>
 	</PropertyGroup>
