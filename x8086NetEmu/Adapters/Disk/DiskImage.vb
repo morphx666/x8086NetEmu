@@ -116,10 +116,10 @@ Public Class DiskImage
 
             mFileLength = file.Length
             mIsHardDisk = isHardDisk
-            If isHardDisk Then mHardDiskCount += 1
 
             If MatchGeometry() Then
                 mStatus = ImageStatus.DiskLoaded
+                If isHardDisk Then mHardDiskCount += 1
             Else
                 mStatus = ImageStatus.UnsupportedImageFormat
             End If
@@ -272,7 +272,10 @@ Public Class DiskImage
 
     Public Sub Close()
         Try
-            If mStatus = ImageStatus.DiskLoaded Then file.Close()
+            If mStatus = ImageStatus.DiskLoaded Then
+                If mIsHardDisk AndAlso mHardDiskCount > 0 Then mHardDiskCount -= 1 ' Mounted disks are what INT 13h reports
+                file.Close()
+            End If
         Catch
         Finally
             mStatus = ImageStatus.NoDisk

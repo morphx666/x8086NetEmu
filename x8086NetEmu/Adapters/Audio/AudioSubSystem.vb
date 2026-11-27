@@ -56,13 +56,21 @@ Public Class AudioSubsystem
 
     Public Sub New(cpu As X8086)
         Me.cpu = cpu
+    End Sub
+
+    ' The output stream is opened when the machine starts running (not on construction), so an X8086 that is
+    ' never run (e.g. one used only to disassemble code) doesn't open the audio device
+    Private Sub OpenStream()
+        If handle <> 0 Then Exit Sub
         BassHelpers.Setup()
 
-        handle = Bass.CreateStream(SpeakerAdapter.SampleRate, 1, BassFlags.Byte, AddressOf FillAudioBuffer, IntPtr.Zero)
+        fillProc = AddressOf FillAudioBuffer ' Keep the delegate alive while native code holds it
+        handle = Bass.CreateStream(SpeakerAdapter.SampleRate, 1, BassFlags.Byte, fillProc, IntPtr.Zero)
         Bass.ChannelSetAttribute(handle, ChannelAttribute.Buffer, 0)
         Bass.ChannelSetAttribute(handle, ChannelAttribute.Volume, 1.0)
         Bass.ChannelPlay(handle)
     End Sub
+    Private fillProc As StreamProcedure
 
     ' Scheduler thread: mix one sample from all providers, then schedule the next one
     Public Overrides Sub Run()
@@ -128,6 +136,8 @@ Public Class AudioSubsystem
     End Function
 
     Public Sub Init()
+        OpenStream()
+
         SyncLock ringLock
             readPos = 0
             writePos = 0

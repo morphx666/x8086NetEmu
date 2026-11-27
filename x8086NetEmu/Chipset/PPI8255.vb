@@ -128,6 +128,13 @@
         End SyncLock
     End Sub
 
+    ' Scancode bytes waiting to be read by the keyboard interrupt handler
+    Public ReadOnly Property PendingKeyData As Integer
+        Get
+            Return keyBuf.Length
+        End Get
+    End Property
+
     ' Store a scancode byte in the buffer
     Public Sub PutKeyData(v As Integer, isKeyUp As Boolean)
         If keyBuf.Length = 16 Then TrimBuffer()
@@ -174,10 +181,10 @@
                 lastKeyCode = keyMap.GetScanCode(AscW(keyBuf(0))) And &HFF
                 If keyUpStates(0) Then lastKeyCode = lastKeyCode Or &H80
 
-                ' wait .5 msec before going to the next byte
+                ' wait .5 msec before going to the next byte (scheduler time is in host clock ticks)
                 If Not keyShiftPending Then
                     keyShiftPending = True
-                    sched.RunTaskAfter(sTask, 500_000)
+                    sched.RunTaskAfter(sTask, Scheduler.HOSTCLOCK \ 2000)
                 End If
             End If
         End SyncLock

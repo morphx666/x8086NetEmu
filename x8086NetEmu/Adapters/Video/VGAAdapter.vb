@@ -400,6 +400,13 @@ Public MustInherit Class VGAAdapter
 #Region "Display"
     ' Memory address for a CRTC character position, following byte/word/doubleword addressing and the
     ' CGA/Hercules-compatible scanline interleave (CRTC 17h bits 0-1)
+    ' Text lives in plane 0 (characters) and plane 1 (attributes), addressed exactly as the CRTC scans it
+    Public Overrides Function GetTextCharacter(col As Integer, row As Integer) As Byte
+        Dim startAddress As Integer = (CInt(crtc(&HC)) << 8) Or crtc(&HD)
+        Dim counter As Integer = startAddress + row * crtc(&H13) * 2 + col
+        Return planes(0)(DisplayAddress(counter, 0))
+    End Function
+
     Private Function DisplayAddress(counter As Integer, rowScan As Integer) As Integer
         Dim addr As Integer
         If (crtc(&H14) And &H40) <> 0 Then

@@ -356,7 +356,7 @@ Public Class StandardDiskFormat
                                            Return i
                                        End If
                                    Next
-                                   Return -1
+                                   Throw New IO.IOException("The disk image is full")
                                End Function
 
         ' Find empty directory entry
@@ -446,8 +446,7 @@ Public Class StandardDiskFormat
                 src.Close()
             End Using
         Else
-            ' TODO: Throw some error message...
-            Stop
+            Throw New IO.IOException("There are no free entries left in the destination directory")
         End If
     End Sub
 

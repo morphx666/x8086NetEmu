@@ -138,4 +138,10 @@
     Public Function ColRowToAddress(col As Integer, row As Integer) As Integer
         Return StartTextVideoAddress + row * TextResolution.Width * 2 + (col * 2)
     End Function
+
+    ' Character code displayed at (col, row) while in text mode. Adapters whose text lives outside the
+    ' CPU's memory array (e.g. the VGA, which keeps it in its own planes) override this.
+    Public Overridable Function GetTextCharacter(col As Integer, row As Integer) As Byte
+        Return CPU.Memory(ColRowToAddress(col, row))
+    End Function
 End Class

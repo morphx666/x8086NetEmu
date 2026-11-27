@@ -1,4 +1,4 @@
-﻿Imports System.Runtime.InteropServices
+Imports System.Runtime.InteropServices
 
 Public Class FAT12
     Public Enum EntryAttributes As Byte
@@ -113,8 +113,12 @@ Public Class FAT12
         Public ReadOnly Property CreationDateTime As DateTime
             Get
                 Dim t() As Integer = FSTimeToNative(CreationTime)
-                Dim d() As Integer = FSDateToNative(CreationTime)
-                Return New DateTime(d(2), d(1), d(0), t(2), t(1), t(0))
+                Dim d() As Integer = FSDateToNative(CreationDate)
+                Try
+                    Return New DateTime(d(0), d(1), d(2), t(0), t(1), t(2))
+                Catch
+                    Return New DateTime(1980, 1, 1, 0, 0, 0)
+                End Try
             End Get
         End Property
 
@@ -161,7 +165,7 @@ Public Class FAT12
         Private Function FSTimeFromNative(v As Date) As UInt16
             Dim h As Integer = (v.Hour << 11) And &HF800
             Dim m As Integer = (v.Minute << 5) And &H3E0
-            Dim s As Integer = (v.Second / 2) And &H1F
+            Dim s As Integer = (v.Second \ 2) And &H1F ' 2-second resolution
             Return h Or m Or s
         End Function
 
@@ -175,7 +179,7 @@ Public Class FAT12
         Private Function FSDateFromNative(v As Date) As UInt16
             Dim d As Integer = v.Day And &H1F
             Dim m As Integer = (v.Month << 5) And &H1E0
-            Dim y As Integer = (v.Year << 9) And &HFE00 + 1980
+            Dim y As Integer = ((v.Year - 1980) << 9) And &HFE00 ' Years since 1980
             Return y Or m Or d
         End Function
     End Structure
@@ -305,8 +309,12 @@ Public Class FAT32
         Public ReadOnly Property CreationDateTime As DateTime
             Get
                 Dim t() As Integer = FSTimeToNative(CreationTime)
-                Dim d() As Integer = FSDateToNative(CreationTime)
-                Return New DateTime(d(2), d(1), d(0), t(2), t(1), t(0))
+                Dim d() As Integer = FSDateToNative(CreationDate)
+                Try
+                    Return New DateTime(d(0), d(1), d(2), t(0), t(1), t(2))
+                Catch
+                    Return New DateTime(1980, 1, 1, 0, 0, 0)
+                End Try
             End Get
         End Property
 
@@ -354,7 +362,7 @@ Public Class FAT32
         Private Function FSTimeFromNative(v As Date) As UInt16
             Dim h As Integer = (v.Hour << 11) And &HF800
             Dim m As Integer = (v.Minute << 5) And &H3E0
-            Dim s As Integer = (v.Second / 2) And &H1F
+            Dim s As Integer = (v.Second \ 2) And &H1F ' 2-second resolution
             Return h Or m Or s
         End Function
 
@@ -368,7 +376,7 @@ Public Class FAT32
         Private Function FSDateFromNative(v As Date) As UInt16
             Dim d As Integer = v.Day And &H1F
             Dim m As Integer = (v.Month << 5) And &H1E0
-            Dim y As Integer = (v.Year << 9) And &HFE00 + 1980
+            Dim y As Integer = ((v.Year - 1980) << 9) And &HFE00 ' Years since 1980
             Return y Or m Or d
         End Function
     End Structure
