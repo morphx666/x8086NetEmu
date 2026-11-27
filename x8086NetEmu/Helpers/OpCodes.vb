@@ -1318,12 +1318,17 @@ Private Sub _D0_D3
 Private Sub _D4' AAM I0
                                     tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
                 If tmpUVal1 = 0 Then
+                    ' The 8088 updates the flags as for a zero result before taking the divide error
+                    SetSZPFlags(0, DataSize.Byte)
+                    mFlags.CF = 0
+                    mFlags.AF = 0
+                    mFlags.OF = 0
                     RaiseDivideError()
                     Exit Sub
                 End If
                 mRegisters.AH = mRegisters.AL \ tmpUVal1
                 mRegisters.AL = mRegisters.AL Mod tmpUVal1
-                SetSZPFlags(mRegisters.AX, DataSize.Word)
+                SetSZPFlags(mRegisters.AL, DataSize.Byte) ' SF, ZF and PF reflect AL
                 clkCyc += 83
                                  End Sub
 
@@ -1332,8 +1337,7 @@ Private Sub _D5' AAD I0
                 tmpUVal1 = tmpUVal1 * mRegisters.AH + mRegisters.AL
                 mRegisters.AL = tmpUVal1
                 mRegisters.AH = 0
-                SetSZPFlags(tmpUVal1, DataSize.Word)
-                mFlags.SF = 0
+                SetSZPFlags(mRegisters.AL, DataSize.Byte) ' SF, ZF and PF reflect AL
                 clkCyc += 60
                                  End Sub
 

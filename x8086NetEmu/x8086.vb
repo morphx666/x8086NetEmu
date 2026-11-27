@@ -1314,12 +1314,15 @@ Public Class X8086
             Case &HD4 ' AAM I0
                 tmpUVal1 = Param(ParamIndex.First, , DataSize.Byte)
                 If tmpUVal1 = 0 Then
+                    ' The 8088 updates the flags as for a zero result before taking the divide error
+                    SetSZPFlags(0, DataSize.Byte)
+                    mFlags.CF = 0 : mFlags.AF = 0 : mFlags.OF = 0
                     RaiseDivideError()
                     Exit Select
                 End If
                 mRegisters.AH = mRegisters.AL \ tmpUVal1
                 mRegisters.AL = mRegisters.AL Mod tmpUVal1
-                SetSZPFlags(mRegisters.AX, DataSize.Word)
+                SetSZPFlags(mRegisters.AL, DataSize.Byte) ' SF, ZF and PF reflect AL
                 clkCyc += 83
 
             Case &HD5 ' AAD I0
@@ -1327,8 +1330,7 @@ Public Class X8086
                 tmpUVal1 = tmpUVal1 * mRegisters.AH + mRegisters.AL
                 mRegisters.AL = tmpUVal1
                 mRegisters.AH = 0
-                SetSZPFlags(tmpUVal1, DataSize.Word)
-                mFlags.SF = 0
+                SetSZPFlags(mRegisters.AL, DataSize.Byte) ' SF, ZF and PF reflect AL
                 clkCyc += 60
 
             Case &HD6 ' XLAT for V20 / SALC
@@ -1870,13 +1872,16 @@ Public Class X8086
                     End If
                 End If
 
-                If If(addrMode.Size = DataSize.Byte, mRegisters.AH, mRegisters.DX) <> 0 Then
-                    mFlags.CF = 1
-                    mFlags.OF = 1
+                ' CF = OF = 1 when the upper half isn't just the sign extension of the lower half
+                ' (i.e. the signed result doesn't fit in AL / AX)
+                Dim fits As Boolean
+                If addrMode.Size = DataSize.Byte Then
+                    fits = mRegisters.AH = If((mRegisters.AL And &H80) <> 0, &HFF, 0)
                 Else
-                    mFlags.CF = 0
-                    mFlags.OF = 0
+                    fits = mRegisters.DX = If((mRegisters.AX And &H8000) <> 0, &HFFFF, 0)
                 End If
+                mFlags.CF = If(fits, 0, 1)
+                mFlags.OF = mFlags.CF
                 If Not mV20 Then mFlags.ZF = 0
 
             Case 6 ' DIV
