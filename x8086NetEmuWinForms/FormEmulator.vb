@@ -86,8 +86,7 @@ Public Class FormEmulator
         'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, True))
         'cpu.Adapters.Add(New CGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM))
 
-        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.BitmapFile, False)) ' WebUI is not fully supported under VGA emulation
-        'cpu.Adapters.Add(New VGAWinForms(cpu, videoPort, VideoAdapter.FontSources.ROM))
+        cpu.Adapters.Add(New VGAWinForms(cpu, videoPort))
 
         cpu.Adapters.Add(New KeyboardAdapter(cpu))
         cpu.Adapters.Add(New MouseAdapter(cpu))

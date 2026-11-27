@@ -1,1255 +1,606 @@
-﻿' http://www.osdever.net/FreeVGA/home.htm
-' https://pdos.csail.mit.edu/6.828/2007/readings/hardware/vgadoc/VGABIOS.TXT
-' http://stanislavs.org/helppc/ports.html
-
-Imports x8086NetEmu.Scheduler
-
+﻿' IBM VGA, emulated at the register level, with a Tseng ET4000 video BIOS (loaded at C000:0000).
+'
+' Written from the documented VGA hardware programming model (sequencer, CRT controller, graphics controller,
+' attribute controller, DAC, and the four 64 KB memory planes). There is no INT 10h interception: the video
+' BIOS programs the registers exactly as it would on a real card, and everything the adapter shows is
+' derived from those registers.
+'
+' Memory: 4 planes x 64 KB, CPU access through the graphics controller's memory map (A0000h-BFFFFh), with
+' chain-4, odd/even and planar addressing, read modes 0-1, write modes 0-3, latches, data rotate, logical
+' operations, set/reset and bit mask.
+'
+' Display: a complete ARGB frame is generated from the registers (text from the font in plane 2 with 8/9-dot
+' cells, cursor and blink; 16-color planar; CGA-compatible 2bpp and 1bpp modes including their scanline
+' interleave; 256-color chain-4 and unchained; double scanning; line compare). Host renderers only need to
+' display it: see GetFrame.
+'
+' Tseng extension registers that the BIOS probes are stored and read back, but SVGA modes are not emulated.
 Public MustInherit Class VGAAdapter
     Inherits CGAAdapter
 
-    Private ReadOnly VGABasePalette() As XColor = {
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, &HAA),
-        XColor.FromArgb(0, &HAA, 0),
-        XColor.FromArgb(0, &HAA, &HAA),
-        XColor.FromArgb(&HAA, 0, 0),
-        XColor.FromArgb(&HAA, 0, &HAA),
-        XColor.FromArgb(&HAA, &H55, 0),
-        XColor.FromArgb(&HAA, &HAA, &HAA),
-        XColor.FromArgb(&H55, &H55, &H55),
-        XColor.FromArgb(&H55, &H55, &HFF),
-        XColor.FromArgb(&H55, &HFF, &H55),
-        XColor.FromArgb(&H55, &HFF, &HFF),
-        XColor.FromArgb(&HFF, &H55, &H55),
-        XColor.FromArgb(&HFF, &H55, &HFF),
-        XColor.FromArgb(&HFF, &HFF, &H55),
-        XColor.FromArgb(&HFF, &HFF, &HFF),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 169),
-        XColor.FromArgb(0, 169, 0),
-        XColor.FromArgb(0, 169, 169),
-        XColor.FromArgb(169, 0, 0),
-        XColor.FromArgb(169, 0, 169),
-        XColor.FromArgb(169, 169, 0),
-        XColor.FromArgb(169, 169, 169),
-        XColor.FromArgb(0, 0, 84),
-        XColor.FromArgb(0, 0, 255),
-        XColor.FromArgb(0, 169, 84),
-        XColor.FromArgb(0, 169, 255),
-        XColor.FromArgb(169, 0, 84),
-        XColor.FromArgb(169, 0, 255),
-        XColor.FromArgb(169, 169, 84),
-        XColor.FromArgb(169, 169, 255),
-        XColor.FromArgb(0, 84, 0),
-        XColor.FromArgb(0, 84, 169),
-        XColor.FromArgb(0, 255, 0),
-        XColor.FromArgb(0, 255, 169),
-        XColor.FromArgb(169, 84, 0),
-        XColor.FromArgb(169, 84, 169),
-        XColor.FromArgb(169, 255, 0),
-        XColor.FromArgb(169, 255, 169),
-        XColor.FromArgb(0, 84, 84),
-        XColor.FromArgb(0, 84, 255),
-        XColor.FromArgb(0, 255, 84),
-        XColor.FromArgb(0, 255, 255),
-        XColor.FromArgb(169, 84, 84),
-        XColor.FromArgb(169, 84, 255),
-        XColor.FromArgb(169, 255, 84),
-        XColor.FromArgb(169, 255, 255),
-        XColor.FromArgb(84, 0, 0),
-        XColor.FromArgb(84, 0, 169),
-        XColor.FromArgb(84, 169, 0),
-        XColor.FromArgb(84, 169, 169),
-        XColor.FromArgb(255, 0, 0),
-        XColor.FromArgb(255, 0, 169),
-        XColor.FromArgb(255, 169, 0),
-        XColor.FromArgb(255, 169, 169),
-        XColor.FromArgb(84, 0, 84),
-        XColor.FromArgb(84, 0, 255),
-        XColor.FromArgb(84, 169, 84),
-        XColor.FromArgb(84, 169, 255),
-        XColor.FromArgb(255, 0, 84),
-        XColor.FromArgb(255, 0, 255),
-        XColor.FromArgb(255, 169, 84),
-        XColor.FromArgb(255, 169, 255),
-        XColor.FromArgb(84, 84, 0),
-        XColor.FromArgb(84, 84, 169),
-        XColor.FromArgb(84, 255, 0),
-        XColor.FromArgb(84, 255, 169),
-        XColor.FromArgb(255, 84, 0),
-        XColor.FromArgb(255, 84, 169),
-        XColor.FromArgb(255, 255, 0),
-        XColor.FromArgb(255, 255, 169),
-        XColor.FromArgb(84, 84, 84),
-        XColor.FromArgb(84, 84, 255),
-        XColor.FromArgb(84, 255, 84),
-        XColor.FromArgb(84, 255, 255),
-        XColor.FromArgb(255, 84, 84),
-        XColor.FromArgb(255, 84, 255),
-        XColor.FromArgb(255, 255, 84),
-        XColor.FromArgb(255, 255, 255),
-        XColor.FromArgb(255, 125, 125),
-        XColor.FromArgb(255, 157, 125),
-        XColor.FromArgb(255, 190, 125),
-        XColor.FromArgb(255, 222, 125),
-        XColor.FromArgb(255, 255, 125),
-        XColor.FromArgb(222, 255, 125),
-        XColor.FromArgb(190, 255, 125),
-        XColor.FromArgb(157, 255, 125),
-        XColor.FromArgb(125, 255, 125),
-        XColor.FromArgb(125, 255, 157),
-        XColor.FromArgb(125, 255, 190),
-        XColor.FromArgb(125, 255, 222),
-        XColor.FromArgb(125, 255, 255),
-        XColor.FromArgb(125, 222, 255),
-        XColor.FromArgb(125, 190, 255),
-        XColor.FromArgb(125, 157, 255),
-        XColor.FromArgb(182, 182, 255),
-        XColor.FromArgb(198, 182, 255),
-        XColor.FromArgb(218, 182, 255),
-        XColor.FromArgb(234, 182, 255),
-        XColor.FromArgb(255, 182, 255),
-        XColor.FromArgb(255, 182, 234),
-        XColor.FromArgb(255, 182, 218),
-        XColor.FromArgb(255, 182, 198),
-        XColor.FromArgb(255, 182, 182),
-        XColor.FromArgb(255, 198, 182),
-        XColor.FromArgb(255, 218, 182),
-        XColor.FromArgb(255, 234, 182),
-        XColor.FromArgb(255, 255, 182),
-        XColor.FromArgb(234, 255, 182),
-        XColor.FromArgb(218, 255, 182),
-        XColor.FromArgb(198, 255, 182),
-        XColor.FromArgb(182, 255, 182),
-        XColor.FromArgb(182, 255, 198),
-        XColor.FromArgb(182, 255, 218),
-        XColor.FromArgb(182, 255, 234),
-        XColor.FromArgb(182, 255, 255),
-        XColor.FromArgb(182, 234, 255),
-        XColor.FromArgb(182, 218, 255),
-        XColor.FromArgb(182, 198, 255),
-        XColor.FromArgb(0, 0, 113),
-        XColor.FromArgb(28, 0, 113),
-        XColor.FromArgb(56, 0, 113),
-        XColor.FromArgb(84, 0, 113),
-        XColor.FromArgb(113, 0, 113),
-        XColor.FromArgb(113, 0, 84),
-        XColor.FromArgb(113, 0, 56),
-        XColor.FromArgb(113, 0, 28),
-        XColor.FromArgb(113, 0, 0),
-        XColor.FromArgb(113, 28, 0),
-        XColor.FromArgb(113, 56, 0),
-        XColor.FromArgb(113, 84, 0),
-        XColor.FromArgb(113, 113, 0),
-        XColor.FromArgb(84, 113, 0),
-        XColor.FromArgb(56, 113, 0),
-        XColor.FromArgb(28, 113, 0),
-        XColor.FromArgb(0, 113, 0),
-        XColor.FromArgb(0, 113, 28),
-        XColor.FromArgb(0, 113, 56),
-        XColor.FromArgb(0, 113, 84),
-        XColor.FromArgb(0, 113, 113),
-        XColor.FromArgb(0, 84, 113),
-        XColor.FromArgb(0, 56, 113),
-        XColor.FromArgb(0, 28, 113),
-        XColor.FromArgb(56, 56, 113),
-        XColor.FromArgb(68, 56, 113),
-        XColor.FromArgb(84, 56, 113),
-        XColor.FromArgb(97, 56, 113),
-        XColor.FromArgb(113, 56, 113),
-        XColor.FromArgb(113, 56, 97),
-        XColor.FromArgb(113, 56, 84),
-        XColor.FromArgb(113, 56, 68),
-        XColor.FromArgb(113, 56, 56),
-        XColor.FromArgb(113, 68, 56),
-        XColor.FromArgb(113, 84, 56),
-        XColor.FromArgb(113, 97, 56),
-        XColor.FromArgb(113, 113, 56),
-        XColor.FromArgb(97, 113, 56),
-        XColor.FromArgb(84, 113, 56),
-        XColor.FromArgb(68, 113, 56),
-        XColor.FromArgb(56, 113, 56),
-        XColor.FromArgb(56, 113, 68),
-        XColor.FromArgb(56, 113, 84),
-        XColor.FromArgb(56, 113, 97),
-        XColor.FromArgb(56, 113, 113),
-        XColor.FromArgb(56, 97, 113),
-        XColor.FromArgb(56, 84, 113),
-        XColor.FromArgb(56, 68, 113),
-        XColor.FromArgb(80, 80, 113),
-        XColor.FromArgb(89, 80, 113),
-        XColor.FromArgb(97, 80, 113),
-        XColor.FromArgb(105, 80, 113),
-        XColor.FromArgb(113, 80, 113),
-        XColor.FromArgb(113, 80, 105),
-        XColor.FromArgb(113, 80, 97),
-        XColor.FromArgb(113, 80, 89),
-        XColor.FromArgb(113, 80, 80),
-        XColor.FromArgb(113, 89, 80),
-        XColor.FromArgb(113, 97, 80),
-        XColor.FromArgb(113, 105, 80),
-        XColor.FromArgb(113, 113, 80),
-        XColor.FromArgb(105, 113, 80),
-        XColor.FromArgb(97, 113, 80),
-        XColor.FromArgb(89, 113, 80),
-        XColor.FromArgb(80, 113, 80),
-        XColor.FromArgb(80, 113, 89),
-        XColor.FromArgb(80, 113, 97),
-        XColor.FromArgb(80, 113, 105),
-        XColor.FromArgb(80, 113, 113),
-        XColor.FromArgb(80, 105, 113),
-        XColor.FromArgb(80, 97, 113),
-        XColor.FromArgb(80, 89, 113),
-        XColor.FromArgb(0, 0, 64),
-        XColor.FromArgb(16, 0, 64),
-        XColor.FromArgb(32, 0, 64),
-        XColor.FromArgb(48, 0, 64),
-        XColor.FromArgb(64, 0, 64),
-        XColor.FromArgb(64, 0, 48),
-        XColor.FromArgb(64, 0, 32),
-        XColor.FromArgb(64, 0, 16),
-        XColor.FromArgb(64, 0, 0),
-        XColor.FromArgb(64, 16, 0),
-        XColor.FromArgb(64, 32, 0),
-        XColor.FromArgb(64, 48, 0),
-        XColor.FromArgb(64, 64, 0),
-        XColor.FromArgb(48, 64, 0),
-        XColor.FromArgb(32, 64, 0),
-        XColor.FromArgb(16, 64, 0),
-        XColor.FromArgb(0, 64, 0),
-        XColor.FromArgb(0, 64, 16),
-        XColor.FromArgb(0, 64, 32),
-        XColor.FromArgb(0, 64, 48),
-        XColor.FromArgb(0, 64, 64),
-        XColor.FromArgb(0, 48, 64),
-        XColor.FromArgb(0, 32, 64),
-        XColor.FromArgb(0, 16, 64),
-        XColor.FromArgb(32, 32, 64),
-        XColor.FromArgb(40, 32, 64),
-        XColor.FromArgb(48, 32, 64),
-        XColor.FromArgb(56, 32, 64),
-        XColor.FromArgb(64, 32, 64),
-        XColor.FromArgb(64, 32, 56),
-        XColor.FromArgb(64, 32, 48),
-        XColor.FromArgb(64, 32, 40),
-        XColor.FromArgb(64, 32, 32),
-        XColor.FromArgb(64, 40, 32),
-        XColor.FromArgb(64, 48, 32),
-        XColor.FromArgb(64, 56, 32),
-        XColor.FromArgb(64, 64, 32),
-        XColor.FromArgb(56, 64, 32),
-        XColor.FromArgb(48, 64, 32),
-        XColor.FromArgb(40, 64, 32),
-        XColor.FromArgb(32, 64, 32),
-        XColor.FromArgb(32, 64, 40),
-        XColor.FromArgb(32, 64, 48),
-        XColor.FromArgb(32, 64, 56),
-        XColor.FromArgb(32, 64, 64),
-        XColor.FromArgb(32, 56, 64),
-        XColor.FromArgb(32, 48, 64),
-        XColor.FromArgb(32, 40, 64),
-        XColor.FromArgb(44, 44, 64),
-        XColor.FromArgb(48, 44, 64),
-        XColor.FromArgb(52, 44, 64),
-        XColor.FromArgb(60, 44, 64),
-        XColor.FromArgb(64, 44, 64),
-        XColor.FromArgb(64, 44, 60),
-        XColor.FromArgb(64, 44, 52),
-        XColor.FromArgb(64, 44, 48),
-        XColor.FromArgb(64, 44, 44),
-        XColor.FromArgb(64, 48, 44),
-        XColor.FromArgb(64, 52, 44),
-        XColor.FromArgb(64, 60, 44),
-        XColor.FromArgb(64, 64, 44),
-        XColor.FromArgb(60, 64, 44),
-        XColor.FromArgb(52, 64, 44),
-        XColor.FromArgb(48, 64, 44),
-        XColor.FromArgb(44, 64, 44),
-        XColor.FromArgb(44, 64, 48),
-        XColor.FromArgb(44, 64, 52),
-        XColor.FromArgb(44, 64, 60),
-        XColor.FromArgb(44, 64, 64),
-        XColor.FromArgb(44, 60, 64),
-        XColor.FromArgb(44, 52, 64),
-        XColor.FromArgb(44, 48, 64),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0)
-        }
+    Private Const PLANE_SIZE As Integer = &H10000
+    Private Const H_FREQUENCY As Double = 31_469 ' Horizontal scan rate of standard VGA modes (Hz)
+    Private Shared ReadOnly fontMapOffsets() As Integer = {&H0, &H4000, &H8000, &HC000, &H2000, &H6000, &HA000, &HE000}
 
-    Private ReadOnly VGABasePalette2() As XColor = {
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 169),
-        XColor.FromArgb(0, 169, 0),
-        XColor.FromArgb(0, 169, 169),
-        XColor.FromArgb(169, 0, 0),
-        XColor.FromArgb(169, 0, 169),
-        XColor.FromArgb(169, 169, 0),
-        XColor.FromArgb(169, 169, 169),
-        XColor.FromArgb(0, 0, 84),
-        XColor.FromArgb(0, 0, 255),
-        XColor.FromArgb(0, 169, 84),
-        XColor.FromArgb(0, 169, 255),
-        XColor.FromArgb(169, 0, 84),
-        XColor.FromArgb(169, 0, 255),
-        XColor.FromArgb(169, 169, 84),
-        XColor.FromArgb(169, 169, 255),
-        XColor.FromArgb(0, 84, 0),
-        XColor.FromArgb(0, 84, 169),
-        XColor.FromArgb(0, 255, 0),
-        XColor.FromArgb(0, 255, 169),
-        XColor.FromArgb(169, 84, 0),
-        XColor.FromArgb(169, 84, 169),
-        XColor.FromArgb(169, 255, 0),
-        XColor.FromArgb(169, 255, 169),
-        XColor.FromArgb(0, 84, 84),
-        XColor.FromArgb(0, 84, 255),
-        XColor.FromArgb(0, 255, 84),
-        XColor.FromArgb(0, 255, 255),
-        XColor.FromArgb(169, 84, 84),
-        XColor.FromArgb(169, 84, 255),
-        XColor.FromArgb(169, 255, 84),
-        XColor.FromArgb(169, 255, 255),
-        XColor.FromArgb(84, 0, 0),
-        XColor.FromArgb(84, 0, 169),
-        XColor.FromArgb(84, 169, 0),
-        XColor.FromArgb(84, 169, 169),
-        XColor.FromArgb(255, 0, 0),
-        XColor.FromArgb(255, 0, 169),
-        XColor.FromArgb(255, 169, 0),
-        XColor.FromArgb(255, 169, 169),
-        XColor.FromArgb(84, 0, 84),
-        XColor.FromArgb(84, 0, 255),
-        XColor.FromArgb(84, 169, 84),
-        XColor.FromArgb(84, 169, 255),
-        XColor.FromArgb(255, 0, 84),
-        XColor.FromArgb(255, 0, 255),
-        XColor.FromArgb(255, 169, 84),
-        XColor.FromArgb(255, 169, 255),
-        XColor.FromArgb(84, 84, 0),
-        XColor.FromArgb(84, 84, 169),
-        XColor.FromArgb(84, 255, 0),
-        XColor.FromArgb(84, 255, 169),
-        XColor.FromArgb(255, 84, 0),
-        XColor.FromArgb(255, 84, 169),
-        XColor.FromArgb(255, 255, 0),
-        XColor.FromArgb(255, 255, 169),
-        XColor.FromArgb(84, 84, 84),
-        XColor.FromArgb(84, 84, 255),
-        XColor.FromArgb(84, 255, 84),
-        XColor.FromArgb(84, 255, 255),
-        XColor.FromArgb(255, 84, 84),
-        XColor.FromArgb(255, 84, 255),
-        XColor.FromArgb(255, 255, 84),
-        XColor.FromArgb(255, 255, 255),
-        XColor.FromArgb(255, 125, 125),
-        XColor.FromArgb(255, 157, 125),
-        XColor.FromArgb(255, 190, 125),
-        XColor.FromArgb(255, 222, 125),
-        XColor.FromArgb(255, 255, 125),
-        XColor.FromArgb(222, 255, 125),
-        XColor.FromArgb(190, 255, 125),
-        XColor.FromArgb(157, 255, 125),
-        XColor.FromArgb(125, 255, 125),
-        XColor.FromArgb(125, 255, 157),
-        XColor.FromArgb(125, 255, 190),
-        XColor.FromArgb(125, 255, 222),
-        XColor.FromArgb(125, 255, 255),
-        XColor.FromArgb(125, 222, 255),
-        XColor.FromArgb(125, 190, 255),
-        XColor.FromArgb(125, 157, 255),
-        XColor.FromArgb(182, 182, 255),
-        XColor.FromArgb(198, 182, 255),
-        XColor.FromArgb(218, 182, 255),
-        XColor.FromArgb(234, 182, 255),
-        XColor.FromArgb(255, 182, 255),
-        XColor.FromArgb(255, 182, 234),
-        XColor.FromArgb(255, 182, 218),
-        XColor.FromArgb(255, 182, 198),
-        XColor.FromArgb(255, 182, 182),
-        XColor.FromArgb(255, 198, 182),
-        XColor.FromArgb(255, 218, 182),
-        XColor.FromArgb(255, 234, 182),
-        XColor.FromArgb(255, 255, 182),
-        XColor.FromArgb(234, 255, 182),
-        XColor.FromArgb(218, 255, 182),
-        XColor.FromArgb(198, 255, 182),
-        XColor.FromArgb(182, 255, 182),
-        XColor.FromArgb(182, 255, 198),
-        XColor.FromArgb(182, 255, 218),
-        XColor.FromArgb(182, 255, 234),
-        XColor.FromArgb(182, 255, 255),
-        XColor.FromArgb(182, 234, 255),
-        XColor.FromArgb(182, 218, 255),
-        XColor.FromArgb(182, 198, 255),
-        XColor.FromArgb(0, 0, 113),
-        XColor.FromArgb(28, 0, 113),
-        XColor.FromArgb(56, 0, 113),
-        XColor.FromArgb(84, 0, 113),
-        XColor.FromArgb(113, 0, 113),
-        XColor.FromArgb(113, 0, 84),
-        XColor.FromArgb(113, 0, 56),
-        XColor.FromArgb(113, 0, 28),
-        XColor.FromArgb(113, 0, 0),
-        XColor.FromArgb(113, 28, 0),
-        XColor.FromArgb(113, 56, 0),
-        XColor.FromArgb(113, 84, 0),
-        XColor.FromArgb(113, 113, 0),
-        XColor.FromArgb(84, 113, 0),
-        XColor.FromArgb(56, 113, 0),
-        XColor.FromArgb(28, 113, 0),
-        XColor.FromArgb(0, 113, 0),
-        XColor.FromArgb(0, 113, 28),
-        XColor.FromArgb(0, 113, 56),
-        XColor.FromArgb(0, 113, 84),
-        XColor.FromArgb(0, 113, 113),
-        XColor.FromArgb(0, 84, 113),
-        XColor.FromArgb(0, 56, 113),
-        XColor.FromArgb(0, 28, 113),
-        XColor.FromArgb(56, 56, 113),
-        XColor.FromArgb(68, 56, 113),
-        XColor.FromArgb(84, 56, 113),
-        XColor.FromArgb(97, 56, 113),
-        XColor.FromArgb(113, 56, 113),
-        XColor.FromArgb(113, 56, 97),
-        XColor.FromArgb(113, 56, 84),
-        XColor.FromArgb(113, 56, 68),
-        XColor.FromArgb(113, 56, 56),
-        XColor.FromArgb(113, 68, 56),
-        XColor.FromArgb(113, 84, 56),
-        XColor.FromArgb(113, 97, 56),
-        XColor.FromArgb(113, 113, 56),
-        XColor.FromArgb(97, 113, 56),
-        XColor.FromArgb(84, 113, 56),
-        XColor.FromArgb(68, 113, 56),
-        XColor.FromArgb(56, 113, 56),
-        XColor.FromArgb(56, 113, 68),
-        XColor.FromArgb(56, 113, 84),
-        XColor.FromArgb(56, 113, 97),
-        XColor.FromArgb(56, 113, 113),
-        XColor.FromArgb(56, 97, 113),
-        XColor.FromArgb(56, 84, 113),
-        XColor.FromArgb(56, 68, 113),
-        XColor.FromArgb(80, 80, 113),
-        XColor.FromArgb(89, 80, 113),
-        XColor.FromArgb(97, 80, 113),
-        XColor.FromArgb(105, 80, 113),
-        XColor.FromArgb(113, 80, 113),
-        XColor.FromArgb(113, 80, 105),
-        XColor.FromArgb(113, 80, 97),
-        XColor.FromArgb(113, 80, 89),
-        XColor.FromArgb(113, 80, 80),
-        XColor.FromArgb(113, 89, 80),
-        XColor.FromArgb(113, 97, 80),
-        XColor.FromArgb(113, 105, 80),
-        XColor.FromArgb(113, 113, 80),
-        XColor.FromArgb(105, 113, 80),
-        XColor.FromArgb(97, 113, 80),
-        XColor.FromArgb(89, 113, 80),
-        XColor.FromArgb(80, 113, 80),
-        XColor.FromArgb(80, 113, 89),
-        XColor.FromArgb(80, 113, 97),
-        XColor.FromArgb(80, 113, 105),
-        XColor.FromArgb(80, 113, 113),
-        XColor.FromArgb(80, 105, 113),
-        XColor.FromArgb(80, 97, 113),
-        XColor.FromArgb(80, 89, 113),
-        XColor.FromArgb(0, 0, 64),
-        XColor.FromArgb(16, 0, 64),
-        XColor.FromArgb(32, 0, 64),
-        XColor.FromArgb(48, 0, 64),
-        XColor.FromArgb(64, 0, 64),
-        XColor.FromArgb(64, 0, 48),
-        XColor.FromArgb(64, 0, 32),
-        XColor.FromArgb(64, 0, 16),
-        XColor.FromArgb(64, 0, 0),
-        XColor.FromArgb(64, 16, 0),
-        XColor.FromArgb(64, 32, 0),
-        XColor.FromArgb(64, 48, 0),
-        XColor.FromArgb(64, 64, 0),
-        XColor.FromArgb(48, 64, 0),
-        XColor.FromArgb(32, 64, 0),
-        XColor.FromArgb(16, 64, 0),
-        XColor.FromArgb(0, 64, 0),
-        XColor.FromArgb(0, 64, 16),
-        XColor.FromArgb(0, 64, 32),
-        XColor.FromArgb(0, 64, 48),
-        XColor.FromArgb(0, 64, 64),
-        XColor.FromArgb(0, 48, 64),
-        XColor.FromArgb(0, 32, 64),
-        XColor.FromArgb(0, 16, 64),
-        XColor.FromArgb(32, 32, 64),
-        XColor.FromArgb(40, 32, 64),
-        XColor.FromArgb(48, 32, 64),
-        XColor.FromArgb(56, 32, 64),
-        XColor.FromArgb(64, 32, 64),
-        XColor.FromArgb(64, 32, 56),
-        XColor.FromArgb(64, 32, 48),
-        XColor.FromArgb(64, 32, 40),
-        XColor.FromArgb(64, 32, 32),
-        XColor.FromArgb(64, 40, 32),
-        XColor.FromArgb(64, 48, 32),
-        XColor.FromArgb(64, 56, 32),
-        XColor.FromArgb(64, 64, 32),
-        XColor.FromArgb(56, 64, 32),
-        XColor.FromArgb(48, 64, 32),
-        XColor.FromArgb(40, 64, 32),
-        XColor.FromArgb(32, 64, 32),
-        XColor.FromArgb(32, 64, 40),
-        XColor.FromArgb(32, 64, 48),
-        XColor.FromArgb(32, 64, 56),
-        XColor.FromArgb(32, 64, 64),
-        XColor.FromArgb(32, 56, 64),
-        XColor.FromArgb(32, 48, 64),
-        XColor.FromArgb(32, 40, 64),
-        XColor.FromArgb(44, 44, 64),
-        XColor.FromArgb(48, 44, 64),
-        XColor.FromArgb(52, 44, 64),
-        XColor.FromArgb(60, 44, 64),
-        XColor.FromArgb(64, 44, 64),
-        XColor.FromArgb(64, 44, 60),
-        XColor.FromArgb(64, 44, 52),
-        XColor.FromArgb(64, 44, 48),
-        XColor.FromArgb(64, 44, 44),
-        XColor.FromArgb(64, 48, 44),
-        XColor.FromArgb(64, 52, 44),
-        XColor.FromArgb(64, 60, 44),
-        XColor.FromArgb(64, 64, 44),
-        XColor.FromArgb(60, 64, 44),
-        XColor.FromArgb(52, 64, 44),
-        XColor.FromArgb(48, 64, 44),
-        XColor.FromArgb(44, 64, 44),
-        XColor.FromArgb(44, 64, 48),
-        XColor.FromArgb(44, 64, 52),
-        XColor.FromArgb(44, 64, 60),
-        XColor.FromArgb(44, 64, 64),
-        XColor.FromArgb(44, 60, 64),
-        XColor.FromArgb(44, 52, 64),
-        XColor.FromArgb(44, 48, 64),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0),
-        XColor.FromArgb(0, 0, 0)
-    }
+    ' ---- Video memory ----
+    Private ReadOnly planes(4 - 1)() As Byte
+    Private ReadOnly latch(4 - 1) As Byte
 
-    Protected VGA_SC(&HFF) As UInt16 ' Sequencer Registers
-    Protected VGA_CRTC(&HFF) As UInt16 ' CRT Controller Registers
-    Protected VGA_ATTR(&HFF) As UInt16 ' Attribute Controller Registers
-    Private ReadOnly VGA_GC(&HFF) As UInt16 ' Graphics Controller Registers
-    Private ReadOnly VGA_Latch(4 - 1) As Byte
+    ' ---- Registers ----
+    Private miscOutput As Byte
+    Private featureControl As Byte
+    Private seqIndex As Byte
+    Private ReadOnly seq(256 - 1) As Byte
+    Private crtcIndex As Byte
+    Private ReadOnly crtc(256 - 1) As Byte
+    Private gcIndex As Byte
+    Private ReadOnly gc(256 - 1) As Byte
+    Private attrIndex As Byte          ' Includes the palette address source bit (20h)
+    Private attrFlipFlop As Boolean    ' False: the next write to 3C0h is an index
+    Private ReadOnly attr(32 - 1) As Byte
+    Private dacMask As Byte = &HFF
+    Private dacReadIndex As Integer
+    Private dacWriteIndex As Integer
+    Private dacComponent As Integer
+    Private dacReadMode As Boolean
+    Private ReadOnly dac(256 * 3 - 1) As Byte      ' 6-bit R, G, B
+    Private ReadOnly dacColor(256 - 1) As Integer  ' Cached ARGB
+    Private ReadOnly extraPorts As New Dictionary(Of UInt16, Byte)()
 
-    Private flip3C0 As Boolean = False
-    Private stateDAC As Byte
-    Private latchReadRGB As Integer
-    Private latchReadPal As Integer
-    Private latchWriteRGB As Integer
-    Private latchWritePal As Integer
+    ' ---- Frame output ----
+    Private frontBuffer As Integer() = New Integer(0) {}
+    Private backBuffer As Integer() = New Integer(0) {}
+    Private mFrameWidth As Integer = 1
+    Private mFrameHeight As Integer = 1
+    Private ReadOnly frameLock As New Object()
+    Private frameCount As Integer
+    Private ReadOnly pal16(16 - 1) As Integer
 
-    Protected portRAM(&HFFF) As Byte
-    Protected vgaPalette(VGABasePalette.Length - 1) As XColor
+    Private Class FrameTaskSC
+        Inherits Scheduler.SchTask
 
-    Protected Const MEMSIZE As UInt32 = &H40000 ' 256KB
-    Protected vRAM(MEMSIZE - 1) As Byte
+        Public Sub New(owner As IOPortHandler)
+            MyBase.New(owner)
+        End Sub
 
-    Private Const planeSize As UInt32 = &H10000 ' 4HB
-    Private tmpRGB As UInt32
-    Private tmpVal As Byte
+        Public Overrides Sub Run()
+            Owner.Run()
+        End Sub
 
-    Private activeStartAddress As UInt32
-    Private activeEndAddress As UInt32
-
-    Private curScanLine As Integer = 0
-
-    Private mCPU As X8086
-
-    Private curTick As Long
-    Private lastTick As Long
-    ' Render one frame per vertical refresh (60 Hz), in simulated time. This used to be
-    ' HOSTCLOCK / 5 (= 5 fps), which only looked smooth while simulated time was running
-    ' unthrottled, much faster than wall time.
-    Private ReadOnly frameTicks As Long = Math.Round(HOSTCLOCK / VERTSYNC)
-
-    ' Video Modes: http://www.columbia.edu/~em36/wpdos/videomodes.txt
-    '              http://webpages.charter.net/danrollins/techhelp/0114.HTM
-    ' Ports: http://stanislavs.org/helppc/ports.html
+        Public Overrides ReadOnly Property Name As String
+            Get
+                Return Owner.Name
+            End Get
+        End Property
+    End Class
+    Private ReadOnly frameTask As New FrameTaskSC(Me)
 
     Public Sub New(cpu As X8086, Optional useInternalTimer As Boolean = True)
         MyBase.New(cpu, useInternalTimer)
-        mCPU = cpu
-        mCellSize = New XSize(8, 16) ' Temporary hack until we can stretch the fonts' bitmaps
 
-        mCPU.LoadBIN("roms\et4000(4-7-93).BIN", &HC000, &H0)
+        For p As Integer = 0 To 3
+            planes(p) = New Byte(PLANE_SIZE - 1) {}
+        Next
+        For i As Integer = 0 To dacColor.Length - 1
+            dacColor(i) = &HFF000000 ' Opaque black until the BIOS loads the DAC
+        Next
+        mCellSize = New XSize(8, 16)
 
+        cpu.LoadBIN("roms\et4000(4-7-93).BIN", &HC000, &H0)
+
+        ' VGA registers plus the Tseng ports the BIOS uses (3BFh/3D8h KEY, 3CDh segment select). 3BCh-3BEh are
+        ' left alone: that's the MDA parallel port, which the system BIOS probes
         RegisteredPorts.Clear()
-        For i As UInt16 = &H3C0 To &H3CF ' EGA/VGA
+        For Each p As UInt16 In New UInt16() {&H3B4, &H3B5, &H3BA, &H3BF, &H3D4, &H3D5, &H3D8, &H3DA}
+            RegisteredPorts.Add(p)
+        Next
+        For i As UInt16 = &H3C0 To &H3CF
             RegisteredPorts.Add(i)
         Next
-        RegisteredPorts.Add(&H3B4)
-        RegisteredPorts.Add(&H3D4)
-        RegisteredPorts.Add(&H3B5)
-        RegisteredPorts.Add(&H3D5)
 
-        RegisteredPorts.Add(&H3D8)
-
-        RegisteredPorts.Add(&H3BA)
-        RegisteredPorts.Add(&H3DA)
-
-        'RegisteredPorts.Add(&H3B8) ' Hercules
-
-        Array.Copy(VGABasePalette, vgaPalette, VGABasePalette.Length)
-
-        mCPU.TryAttachHook(New X8086.MemHandler(Function(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
-                                                    If address >= activeStartAddress AndAlso address < activeEndAddress Then
-                                                        Select Case mode
-                                                            Case X8086.MemHookMode.Read
-                                                                If address < activeStartAddress Then Stop
-                                                                value = VideoRAM(address)
-                                                            Case X8086.MemHookMode.Write
-                                                                VideoRAM(address) = value
-                                                        End Select
-                                                        Return True
-                                                    End If
-
-                                                    Return False
-                                                End Function))
-
-        mCPU.TryAttachHook(&H10, New X8086.IntHandler(Function() As Boolean
-                                                          Return SetVideoMode()
-                                                      End Function))
+        cpu.TryAttachHook(New X8086.MemHandler(AddressOf MemoryHook))
     End Sub
 
-    Public Overrides Sub Run()
-        curScanLine = (curScanLine + 1) Mod 525
-        If curScanLine > 479 Then
-            portRAM(&H3DA) = portRAM(&H3DA) Or &B0000_1000
-        Else
-            portRAM(&H3DA) = portRAM(&H3DA) And &B1111_0110
-        End If
-        If (curScanLine And 1) <> 0 Then portRAM(&H3DA) = portRAM(&H3DA) Or &H1
-
-        curTick = CPU.Sched.CurrentTime
-        If curTick >= (lastTick + frameTicks) Then
-            Render()
-
-            ' Advance by exactly one frame; if we fell behind by more than a frame, drop the
-            ' missed frames instead of rendering them back-to-back to catch up
-            lastTick += frameTicks
-            If curTick - lastTick >= frameTicks Then lastTick = curTick
+    Public Overrides Sub InitAdapter()
+        If Not isInit Then
+            CPU.Sched.RunTaskEach(frameTask, CLng(Scheduler.HOSTCLOCK) \ CLng(VERTSYNC))
+            isInit = True
         End If
     End Sub
 
-    Public Property VideoRAM(address As UInt32) As Byte
-        Get
-            If mVideoMode = &HD OrElse mVideoMode = &HE OrElse mVideoMode = &H10 OrElse mVideoMode = &H12 Then Return Read(address - mStartGraphicsVideoAddress)
-            If mVideoMode <> &H13 AndAlso mVideoMode <> &H12 AndAlso mVideoMode <> &HD Then Return mCPU.Memory(address)
-            If (VGA_SC(4) And 6) = 0 Then
-                Return mCPU.Memory(address)
-            Else
-                Return Read(address - mStartGraphicsVideoAddress)
-            End If
-        End Get
-        Set(value As Byte)
-            If mVideoMode <> &H13 AndAlso mVideoMode <> &H12 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 Then
-                mCPU.Memory(address) = value
-            ElseIf (VGA_SC(4) And 6) = 0 AndAlso mVideoMode <> &HD AndAlso mVideoMode <> &H10 AndAlso mVideoMode <> &H12 Then
-                mCPU.Memory(address) = value
-            Else
-                Write(address - mStartGraphicsVideoAddress, value)
-            End If
-        End Set
-    End Property
+    Public Overrides Sub CloseAdapter()
+        frameTask.Cancel()
+        MyBase.CloseAdapter()
+    End Sub
 
+    ' Called by the CGA base constructor (before this class' fields exist) and on resets: the registers'
+    ' power-on state is undefined; the video BIOS programs them
+    Public Overrides Sub Reset()
+    End Sub
+
+    Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
+    End Sub
+
+    ' The current BIOS video mode, as recorded by the video BIOS in the BIOS data area
     Public Overrides Property VideoMode As UInt32
         Get
-            Return mVideoMode
+            Return CPU.Memory(&H449)
         End Get
         Set(value As UInt32)
-            Dim oldAX As UInt16 = mCPU.Registers.AX
-            mCPU.Registers.AX = value
-            SetVideoMode()
-            mCPU.Registers.AX = oldAX
         End Set
     End Property
 
-    Private Function SetVideoMode() As Boolean
-        Select Case mCPU.Registers.AH
-            Case &H0
-                For i As Integer = 0 To VGABasePalette.Length - 1
-                    vgaPalette(i) = VGABasePalette(i)
-                Next
+    ' Frame task (one per vertical refresh): generate the frame and let the host present it
+    Public Overrides Sub Run()
+        frameCount += 1
+        GenerateFrame()
+        Render()
+    End Sub
 
-                VGA_SC(4) = 0
-                mVideoMode = mCPU.Registers.AL And &H7F ' http://stanislavs.org/helppc/ports.html
-                X8086.Notify($"VGA Video Mode: {CShort(mVideoMode):X2}", X8086.NotificationReasons.Info)
-
-                ' http://www.o3one.org/hwdocs/vga/vga_app.html
-                Select Case mVideoMode
-                    Case 0 ' TEXT 40x25 Mono Text
-                        mStartTextVideoAddress = &HB8000
-                        mStartGraphicsVideoAddress = &HB8000
-                        mTextResolution = New XSize(40, 25)
-                        mGraphicsResolution = New XSize(360, 400)
-                        'mCellSize = New Size(9, 16)
-                        mMainMode = MainModes.Text
-                        mPixelsPerByte = 1
-
-                    Case 1 ' TEXT 40x25 Color Text
-                        mStartTextVideoAddress = &HB8000
-                        mStartGraphicsVideoAddress = &HB8000
-                        mTextResolution = New XSize(40, 25)
-                        mGraphicsResolution = New XSize(360, 400)
-                        'mCellSize = New Size(9, 16)
-                        mMainMode = MainModes.Text
-                        mPixelsPerByte = 4
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                    Case 2 ' TEXT 80x25 Mono Text
-                        mStartTextVideoAddress = &HB8000
-                        mStartGraphicsVideoAddress = &HB8000
-                        mTextResolution = New XSize(80, 25)
-                        mGraphicsResolution = New XSize(640, 400)
-                        'mCellSize = New Size(9, 16)
-                        mMainMode = MainModes.Text
-                        mPixelsPerByte = 1
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                    Case 3 ' TEXT 80x25 Color Text
-                        mStartTextVideoAddress = &HB8000
-                        mStartGraphicsVideoAddress = &HB8000
-                        mTextResolution = New XSize(80, 25)
-                        mGraphicsResolution = New XSize(720, 400)
-                        'mCellSize = New Size(9, 16)
-                        mMainMode = MainModes.Text
-                        mPixelsPerByte = 4
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                    Case 4, 5 ' CGA 320x200 4 Colors
-                        mStartTextVideoAddress = &HB8000
-                        mStartGraphicsVideoAddress = &HB8000
-                        mTextResolution = New XSize(40, 25)
-                        mGraphicsResolution = New XSize(320, 200)
-                        'mCellSize = New Size(8, 8)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 4
-                        'portRAM(&H3D9) = If(value And &HF = 4, 48, 0)
-                        If mCPU.Registers.AL = 4 Then
-                            portRAM(&H3D9) = 48
-                        Else
-                            portRAM(&H3D9) = 0
-                        End If
-
-                    Case 6 ' CGA 640x200 2 Colors (double scan)
-                        mStartTextVideoAddress = &HB8000
-                        mStartGraphicsVideoAddress = &HB8000
-                        mTextResolution = New XSize(80, 25)
-                        mGraphicsResolution = New XSize(640, 400)
-                        'mCellSize = New Size(8, 8)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 2
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                    Case 7 ' MDA 640x200 2 Colors
-                        'mStartTextVideoAddress = &HB0000
-                        'mStartGraphicsVideoAddress = &HB0000
-                        mStartTextVideoAddress = &HB8000
-                        mStartGraphicsVideoAddress = &HB8000
-                        mTextResolution = New XSize(80, 25)
-                        mGraphicsResolution = New XSize(720, 400)
-                        'mCellSize = New Size(9, 16)
-                        mMainMode = MainModes.Text
-                        mPixelsPerByte = 1
-
-                    Case 9 ' PCjr 320x200 16 Colors
-                        mStartTextVideoAddress = &HB8000
-                        mStartGraphicsVideoAddress = &HB8000
-                        mTextResolution = New XSize(40, 25)
-                        mGraphicsResolution = New XSize(320, 200)
-                        'mCellSize = New Size(8, 8)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 4
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                    Case &HD ' EGA/VGA 320x200 16 Colors
-                        mStartTextVideoAddress = &HA0000
-                        mStartGraphicsVideoAddress = &HA0000
-                        mTextResolution = New XSize(40, 25)
-                        mGraphicsResolution = New XSize(320, 200)
-                        'mCellSize = New Size(8, 8)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 4
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                    Case &HE ' EGA/VGA 640x200 16 Colors
-                        mStartTextVideoAddress = &HA0000
-                        mStartGraphicsVideoAddress = &HA0000
-                        mTextResolution = New XSize(80, 25)
-                        mGraphicsResolution = New XSize(640, 200)
-                        'mCellSize = New Size(8, 8)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 4
-
-                    Case &HF ' EGA/VGA 640x350 3 Colors
-                        mStartTextVideoAddress = &HA0000
-                        mStartGraphicsVideoAddress = &HA0000
-                        mTextResolution = New XSize(80, 25)
-                        mGraphicsResolution = New XSize(640, 350)
-                        'mCellSize = New Size(8, 8)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 4
-
-                    Case &H10 ' EGA/VGA 640x350 16 Colors
-                        mStartTextVideoAddress = &HA0000
-                        mStartGraphicsVideoAddress = &HA0000
-                        mTextResolution = New XSize(80, 25)
-                        mGraphicsResolution = New XSize(640, 350)
-                        'mCellSize = New Size(8, 14)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 1
-
-                    Case &H11 ' VGA 640*480 2 Colors
-                        mStartTextVideoAddress = &HA0000
-                        mStartGraphicsVideoAddress = &HA0000
-                        mTextResolution = New XSize(80, 25)
-                        mGraphicsResolution = New XSize(640, 480)
-                        'mCellSize = New Size(8, 14)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 1
-
-                    Case &H12 ' VGA 640x480 16 Colors
-                        mStartTextVideoAddress = &HA0000
-                        mStartGraphicsVideoAddress = &HA0000
-                        mTextResolution = New XSize(40, 25)
-                        mGraphicsResolution = New XSize(640, 480)
-                        'mCellSize = New Size(8, 16)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 4
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                    Case &H13 ' VGA 320x200 256 Colors
-                        mStartTextVideoAddress = &HA0000
-                        mStartGraphicsVideoAddress = &HA0000
-                        mTextResolution = New XSize(40, 25)
-                        mGraphicsResolution = New XSize(320, 200)
-                        'mCellSize = New Size(8, 8)
-                        mMainMode = MainModes.Graphics
-                        mPixelsPerByte = 4
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                    Case 127 ' 90x25 Mono Text
-                        mStartTextVideoAddress = &HB0000
-                        mStartGraphicsVideoAddress = &HB0000
-                        mTextResolution = New XSize(90, 25)
-                        mGraphicsResolution = New XSize(720, 400)
-                        'mCellSize = New Size(8, 16)
-                        mMainMode = MainModes.Text
-                        mPixelsPerByte = 1
-                        portRAM(&H3D8) = portRAM(&H3D8) And &HFE
-
-                End Select
-
-                mCPU.Memory(&H449) = mVideoMode
-                mCPU.Memory(&H44A) = mTextResolution.Width
-                mCPU.Memory(&H44B) = 0
-                mCPU.Memory(&H484) = mTextResolution.Height - 1
-
-                InitVideoMemory(False)
-
-            Case &H10
-                Select Case mCPU.Registers.AL
-                    Case &H10 ' Set individual DAC register
-                        vgaPalette(mCPU.Registers.BX Mod 256) = XColor.FromArgb(CUInt(mCPU.Registers.DH And &H3F) << 2,
-                                                                               CUInt(mCPU.Registers.CH And &H3F) << 2,
-                                                                               CUInt(mCPU.Registers.CL And &H3F) << 2)
-
-                    Case &H12 ' Set block of DAC registers
-                        Dim addr As Integer = mCPU.Registers.ES * 16UI + mCPU.Registers.DX
-                        For n As Integer = mCPU.Registers.BX To mCPU.Registers.BX + mCPU.Registers.CX - 1
-                            vgaPalette(n) = XColor.FromArgb(mCPU.Memory(addr + 0) << 2,
-                                                           mCPU.Memory(addr + 1) << 2,
-                                                           mCPU.Memory(addr + 2) << 2)
-                            addr += 3
-                        Next
-                End Select
-                Return True
-
-            Case &H1A
-                mCPU.Registers.AL = &H1A ' http://stanislavs.org/helppc/int_10-1a.html
-                mCPU.Registers.BL = &H8
-                Return True
-
-        End Select
-
-        Return False
+    ''' <summary>
+    ''' Returns the most recent complete frame (ARGB, row-major) and its size. Thread-safe; the returned array
+    ''' is not modified afterwards.
+    ''' </summary>
+    Public Function GetFrame(<Runtime.InteropServices.Out> ByRef width As Integer, <Runtime.InteropServices.Out> ByRef height As Integer) As Integer()
+        SyncLock frameLock
+            width = mFrameWidth
+            height = mFrameHeight
+            Return frontBuffer
+        End SyncLock
     End Function
+
+#Region "Ports"
+    Private ReadOnly Property ColorEmulation As Boolean
+        Get
+            Return (miscOutput And 1) <> 0 ' 3Dxh (color) vs 3Bxh (monochrome) CRTC/status addresses
+        End Get
+    End Property
 
     Public Overrides Function [In](port As UInt16) As Byte
         Select Case port
-            Case &H3C1 : Return VGA_ATTR(portRAM(&H3C0))
-
-            Case &H3C5 : Return VGA_SC(portRAM(&H3C4))
-
-            Case &H3B5 : Return VGA_CRTC(portRAM(&H3D4))
-            Case &H3D5 : Return VGA_CRTC(portRAM(&H3D4))
-
-            Case &H3C7 : Return stateDAC
-
-            Case &H3C8 : Return latchReadPal
-
+            Case &H3C0 : Return attrIndex
+            Case &H3C1 : Return attr(attrIndex And &H1F)
+            Case &H3C2 : Return 0 ' Input status 0 (switch sense / vertical retrace interrupt)
+            Case &H3C4 : Return seqIndex
+            Case &H3C5 : Return seq(seqIndex)
+            Case &H3C6 : Return dacMask
+            Case &H3C7 : Return If(dacReadMode, CByte(3), CByte(0))
+            Case &H3C8 : Return CByte(dacWriteIndex)
             Case &H3C9
-                Select Case latchReadRGB
-                    Case 0 ' R
-                        tmpRGB = (vgaPalette(latchReadPal).ToArgb() >> 18) And &H3F
-                    Case 1 ' G
-                        tmpRGB = (vgaPalette(latchReadPal).ToArgb() >> 10) And &H3F
-                    Case 2 ' B
-                        tmpRGB = (vgaPalette(latchReadPal).ToArgb() >> 2) And &H3F
-                        latchReadPal += 1
-                        latchReadRGB = -1
-                End Select
-                latchReadRGB += 1
-                Return tmpRGB And &H3F
+                Dim v As Byte = dac(dacReadIndex * 3 + dacComponent)
+                dacComponent += 1
+                If dacComponent = 3 Then
+                    dacComponent = 0
+                    dacReadIndex = (dacReadIndex + 1) And &HFF
+                End If
+                Return v
+            Case &H3CA : Return featureControl
+            Case &H3CC : Return miscOutput
+            Case &H3CE : Return gcIndex
+            Case &H3CF : Return gc(gcIndex)
 
+            Case &H3B4, &H3D4
+                If ColorEmulation = (port = &H3D4) Then Return crtcIndex
+            Case &H3B5, &H3D5
+                If ColorEmulation = (port = &H3D5) Then Return crtc(crtcIndex)
             Case &H3BA, &H3DA
-                flip3C0 = True ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
-                Return portRAM(&H3DA)
-
-            Case Else
-                Return portRAM(port)
-
+                If ColorEmulation = (port = &H3DA) Then
+                    attrFlipFlop = False ' Reading input status 1 resets the attribute controller flip-flop
+                    Return InputStatus1()
+                End If
         End Select
+
+        Dim v2 As Byte
+        If extraPorts.TryGetValue(port, v2) Then Return v2
+        Return &HFF
     End Function
 
     Public Overrides Sub Out(port As UInt16, value As Byte)
         Select Case port
-            Case &H3B8
-                If ((value & 2) = 2) AndAlso (mVideoMode <> 127) Then
-                    'Dim oldAX As UInt16 = mCPU.Registers.AX
-                    'mCPU.Registers.AH = 0
-                    'mCPU.Registers.AL = 127
-                    'mCPU.intHooks(&H10).Invoke()
-                    'mCPU.HandleInterrupt(&H10, False)
-                    'SetVideoMode()
-                    'mCPU.Registers.AX = oldAX
-                End If
-                If (value And &H80) <> 0 Then
-                    mStartTextVideoAddress = &HB8000
+            Case &H3C0
+                If Not attrFlipFlop Then
+                    attrIndex = value And &H3F
                 Else
-                    mStartTextVideoAddress = &HB0000
+                    attr(attrIndex And &H1F) = value
                 End If
-                InitVideoMemory(False)
-
-            Case &H3C0 ' https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
-                If flip3C0 Then
-                    portRAM(&H3C0) = value
-                Else
-                    VGA_ATTR(portRAM(&H3C0)) = value
+                attrFlipFlop = Not attrFlipFlop
+            Case &H3C2 : miscOutput = value
+            Case &H3C4 : seqIndex = value
+            Case &H3C5 : seq(seqIndex) = value
+            Case &H3C6 : dacMask = value
+            Case &H3C7
+                dacReadIndex = value
+                dacComponent = 0
+                dacReadMode = True
+            Case &H3C8
+                dacWriteIndex = value
+                dacComponent = 0
+                dacReadMode = False
+            Case &H3C9
+                dac(dacWriteIndex * 3 + dacComponent) = value And &H3F
+                dacComponent += 1
+                If dacComponent = 3 Then
+                    UpdateDacColor(dacWriteIndex)
+                    dacComponent = 0
+                    dacWriteIndex = (dacWriteIndex + 1) And &HFF
                 End If
-                flip3C0 = Not flip3C0
+            Case &H3CE : gcIndex = value
+            Case &H3CF : gc(gcIndex) = value
 
-            Case &H3C4 ' Sequence controller index
-                portRAM(&H3C4) = value Mod 4
-
-            Case &H3C5 ' Sequence controller data
-                VGA_SC(portRAM(&H3C4)) = value
-
-            Case &H3C7 ' Color index register (read operations)
-                latchReadPal = value
-                latchReadRGB = 0
-                stateDAC = 0
-
-            Case &H3C8 ' Color index register (write operations)
-                latchWritePal = value
-                latchWriteRGB = 0
-                tmpRGB = 0
-                stateDAC = 3
-
-            Case &H3C9 ' RGB data register
-                Dim cv As UInt32 = value And &H3F
-                Select Case latchWriteRGB
-                    Case 0 ' R
-                        tmpRGB = cv << 18
-                    Case 1 ' G
-                        tmpRGB = tmpRGB Or (cv << 10)
-                    Case 2 ' B
-                        tmpRGB = tmpRGB Or (cv << 2)
-                        vgaPalette(latchWritePal) = XColor.FromArgb(tmpRGB)
-                        latchWritePal += 1
-                End Select
-                latchWriteRGB = (latchWriteRGB + 1) Mod 3
-
-            Case &H3B4, &H3D4 ' CRT Controller index register
-                portRAM(&H3D4) = value Mod &H18
-
-            Case &H3B5, &H3D5 ' CRT Controller data register
-                'If VGA_CRTC(&H11) And &B1000_0000 Then
-                '    If value < &H7 Then Return
-                '    If value = &H7 Then
-                '        VGA_CRTC(portRAM(&H3D5)) = VGA_CRTC(portRAM(&H3D5)) Or (value And &B0001_0000)
-                '    End If
-                'End If
-
-                VGA_CRTC(portRAM(&H3D4)) = value
-
-                UpdateCursor()
-
-            'Case &H3BA, &H3DA
-            '    portRAM(&H3DA) = value Or (portRAM(&H3DA) And &B0000_1001)
-
-            Case &H3CE ' Graphics Registers index
-                portRAM(&H3CE) = value Mod 8
-
-            Case &H3CF ' Graphics Registers
-                VGA_GC(portRAM(&H3CE)) = value
+            Case &H3B4, &H3D4
+                If ColorEmulation = (port = &H3D4) Then crtcIndex = value
+            Case &H3B5, &H3D5
+                If ColorEmulation = (port = &H3D5) Then WriteCrtc(value)
+            Case &H3BA, &H3DA
+                If ColorEmulation = (port = &H3DA) Then featureControl = value
 
             Case Else
-                portRAM(port) = value
-
+                extraPorts(port) = value ' Tseng extensions (KEY, segment select, ...) and unused ports
         End Select
     End Sub
 
-    Private Sub UpdateCursor()
-        ' https://www.scs.stanford.edu/22wi-cs212/pintos/specs/freevga/vga/crtcreg.htm#0C
-        mCursorVisible = (VGA_CRTC(&HA) And &B0010_0000) = 0
-        mCursorStart = VGA_CRTC(&HA) And &B0001_1111
-        mCursorEnd = VGA_CRTC(&HB) And &B0001_1111
-
-        Dim startOffset As Integer = ((VGA_CRTC(&HC) And &H3F) << 8) Or (VGA_CRTC(&HD) And &HFF)
-        Dim p As Integer = (VGA_CRTC(&HE) << 8) Or VGA_CRTC(&HF)
-        p = (p - startOffset) And &H1FFF
-        mCursorCol = p Mod mTextResolution.Width
-        mCursorRow = p \ mTextResolution.Width
-    End Sub
-
-    Public Overrides Sub Reset()
-        MyBase.Reset()
-        InitVideoMemory(False)
-    End Sub
-
-    Protected Overrides Sub InitVideoMemory(clearScreen As Boolean)
-        If Not isInit OrElse mStartGraphicsVideoAddress = 0 Then Exit Sub
-
-        MyBase.InitVideoMemory(clearScreen)
-
-        mEndTextVideoAddress = mStartTextVideoAddress + &H4000
-        mEndGraphicsVideoAddress = &HC0000
-
-        Select Case mMainMode
-            Case MainModes.Text
-                activeStartAddress = mStartTextVideoAddress
-                activeEndAddress = mEndTextVideoAddress
-            Case MainModes.Graphics
-                activeStartAddress = mStartGraphicsVideoAddress
-                activeEndAddress = mEndGraphicsVideoAddress
-        End Select
-
-        If clearScreen Then
-            Select Case mMainMode
-                Case MainModes.Text
-                    For i As Integer = mStartTextVideoAddress To mEndTextVideoAddress - 2 Step 2
-                        CPU.Memory(i) = 0
-                        CPU.Memory(i + 1) = 7
-                    Next
-
-                Case MainModes.Graphics
-                    Array.Clear(vRAM, 0, vRAM.Length)
-            End Select
+    Private Sub WriteCrtc(value As Byte)
+        ' CRTC 11h bit 7 write-protects registers 0-7 (except the line compare bit 4 of register 7)
+        If (crtc(&H11) And &H80) <> 0 AndAlso crtcIndex <= 7 Then
+            If crtcIndex = 7 Then crtc(7) = (crtc(7) And Not &H10) Or (value And &H10)
+            Exit Sub
         End If
-
-        AutoSize()
+        crtc(crtcIndex) = value
     End Sub
 
-    Public Overrides Sub Write(address As UInt32, value As Byte)
-        Dim curValue As Byte
-
-        Select Case VGA_GC(5) And 3
-            Case 0
-                ShiftVGA(value)
-
-                If (VGA_SC(2) And 1) <> 0 Then
-                    If (VGA_GC(1) And 1) <> 0 Then
-                        curValue = If((VGA_GC(0) And 1) <> 0, 255, 0)
-                    Else
-                        curValue = value
-                    End If
-                    LogicVGA(curValue, VGA_Latch(0))
-                    vRAM(address + planeSize * 0) = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(0))
-                End If
-
-                If (VGA_SC(2) And 2) <> 0 Then
-                    If (VGA_GC(1) And 2) <> 0 Then
-                        curValue = If((VGA_GC(0) And 2) <> 0, 255, 0)
-                    Else
-                        curValue = value
-                    End If
-                    LogicVGA(curValue, VGA_Latch(1))
-                    vRAM(address + planeSize * 1) = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(1))
-                End If
-
-                If (VGA_SC(2) And 4) <> 0 Then
-                    If (VGA_GC(1) And 4) <> 0 Then
-                        curValue = If((VGA_GC(0) And 4) <> 0, 255, 0)
-                    Else
-                        curValue = value
-                    End If
-                    LogicVGA(curValue, VGA_Latch(2))
-                    vRAM(address + planeSize * 2) = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(2))
-                End If
-
-                If (VGA_SC(2) And 8) <> 0 Then
-                    If (VGA_GC(1) And 8) <> 0 Then
-                        curValue = If((VGA_GC(0) And 8) <> 0, 255, 0)
-                    Else
-                        curValue = value
-                    End If
-                    LogicVGA(curValue, VGA_Latch(3))
-                    vRAM(address + planeSize * 3) = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(3))
-                End If
-
-            Case 1
-                If (VGA_SC(2) And 1) <> 0 Then vRAM(address + planeSize * 0) = VGA_Latch(0)
-                If (VGA_SC(2) And 2) <> 0 Then vRAM(address + planeSize * 1) = VGA_Latch(1)
-                If (VGA_SC(2) And 4) <> 0 Then vRAM(address + planeSize * 2) = VGA_Latch(2)
-                If (VGA_SC(2) And 8) <> 0 Then vRAM(address + planeSize * 3) = VGA_Latch(3)
-
-            Case 2
-                If (VGA_SC(2) And 1) <> 0 Then
-                    If (VGA_GC(1) And 1) <> 0 Then
-                        curValue = If((value And 1) <> 0, 255, 0)
-                    Else
-                        curValue = value
-                    End If
-                    LogicVGA(curValue, VGA_Latch(0))
-                    curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(0))
-                    vRAM(address + planeSize * 0) = curValue
-                End If
-
-                If (VGA_SC(2) And 2) <> 0 Then
-                    If (VGA_GC(1) And 2) <> 0 Then
-                        curValue = If((value And 2) <> 0, 255, 0)
-                    Else
-                        curValue = value
-                    End If
-                    LogicVGA(curValue, VGA_Latch(1))
-                    curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(1))
-                    vRAM(address + planeSize * 1) = curValue
-                End If
-
-                If (VGA_SC(2) And 4) <> 0 Then
-                    If (VGA_GC(1) And 4) <> 0 Then
-                        curValue = If((value And 4) <> 0, 255, 0)
-                    Else
-                        curValue = value
-                    End If
-                    LogicVGA(curValue, VGA_Latch(2))
-                    curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(2))
-                    vRAM(address + planeSize * 2) = curValue
-                End If
-
-                If (VGA_SC(2) And 8) <> 0 Then
-                    If (VGA_GC(1) And 8) <> 0 Then
-                        curValue = If((value And 8) <> 0, 255, 0)
-                    Else
-                        curValue = value
-                    End If
-                    LogicVGA(curValue, VGA_Latch(3))
-                    curValue = ((Not VGA_GC(8)) And curValue) Or (VGA_SC(8) And VGA_Latch(3))
-                    vRAM(address + planeSize * 3) = curValue
-                End If
-
-            Case 3
-                tmpVal = value And VGA_GC(8)
-                ShiftVGA(value)
-
-                If (VGA_SC(2) And 1) <> 0 Then
-                    If (VGA_GC(0) And 1) <> 0 Then
-                        If (value And 1) <> 0 Then
-                            curValue = 255
-                        Else
-                            curValue = 0
-                        End If
-                    End If
-                    LogicVGA(curValue, VGA_Latch(0))
-                    curValue = ((Not tmpVal) And curValue) Or (tmpVal And VGA_Latch(0))
-                    vRAM(address + planeSize * 0) = curValue
-                End If
-
-                If (VGA_SC(2) And 2) <> 0 Then
-                    If (VGA_GC(0) And 2) <> 0 Then
-                        If (value And 2) <> 0 Then
-                            curValue = 255
-                        Else
-                            curValue = 0
-                        End If
-                    End If
-                    LogicVGA(curValue, VGA_Latch(1))
-                    curValue = ((Not tmpVal) And curValue) Or (tmpVal And VGA_Latch(1))
-                    vRAM(address + planeSize * 1) = curValue
-                End If
-
-                If (VGA_SC(2) And 4) <> 0 Then
-                    If (VGA_GC(0) And 4) <> 0 Then
-                        If (value And 4) <> 0 Then
-                            curValue = 255
-                        Else
-                            curValue = 0
-                        End If
-                    End If
-                    LogicVGA(curValue, VGA_Latch(2))
-                    curValue = ((Not tmpVal) And curValue) Or (tmpVal And VGA_Latch(2))
-                    vRAM(address + planeSize * 2) = curValue
-                End If
-
-                If (VGA_SC(2) And 8) <> 0 Then
-                    If (VGA_GC(0) And 8) <> 0 Then
-                        If (value And 8) <> 0 Then
-                            curValue = 255
-                        Else
-                            curValue = 0
-                        End If
-                    End If
-                    LogicVGA(curValue, VGA_Latch(3))
-                    curValue = ((Not tmpVal) And curValue) Or (tmpVal And VGA_Latch(3))
-                    vRAM(address + planeSize * 3) = curValue
-                End If
-        End Select
+    Private Sub UpdateDacColor(index As Integer)
+        Dim r As Integer = dac(index * 3), g As Integer = dac(index * 3 + 1), b As Integer = dac(index * 3 + 2)
+        ' 6-bit to 8-bit: replicate the top bits into the low bits
+        dacColor(index) = &HFF000000 Or (((r << 2) Or (r >> 4)) << 16) Or (((g << 2) Or (g >> 4)) << 8) Or ((b << 2) Or (b >> 4))
     End Sub
 
-    Public Overrides Function Read(address As UInt32) As Byte
-        VGA_Latch(0) = vRAM(address + planeSize * 0)
-        VGA_Latch(1) = vRAM(address + planeSize * 1)
-        VGA_Latch(2) = vRAM(address + planeSize * 2)
-        VGA_Latch(3) = vRAM(address + planeSize * 3)
+    ' Input status 1: bit 0 = display disabled (horizontal or vertical blanking), bit 3 = vertical retrace.
+    ' Timed from emulated time using the programmed CRTC geometry at the standard VGA line rate.
+    Private Function InputStatus1() As Byte
+        Dim vde As Integer = VerticalDisplayEnd()
+        Dim vTotal As Integer = crtc(6) Or ((crtc(7) And 1) << 8) Or ((crtc(7) And &H20) << 4)
+        vTotal += 2
+        If vTotal <= vde Then vTotal = vde + 45
 
-        If (VGA_SC(2) And 1) <> 0 Then Return VGA_Latch(0)
-        If (VGA_SC(2) And 2) <> 0 Then Return VGA_Latch(1)
-        If (VGA_SC(2) And 4) <> 0 Then Return VGA_Latch(2)
-        If (VGA_SC(2) And 8) <> 0 Then Return VGA_Latch(3)
+        Dim lineTime As Double = CPU.Sched.CurrentTime * H_FREQUENCY / Scheduler.HOSTCLOCK
+        Dim line As Long = CLng(Math.Floor(lineTime)) Mod vTotal
+        Dim linePos As Double = lineTime - Math.Floor(lineTime)
 
-        Return 0
+        Dim vrs As Integer = crtc(&H10) Or ((crtc(7) And 4) << 6) Or ((crtc(7) And &H80) << 2)
+        Dim vrLength As Integer = ((crtc(&H11) And &HF) - (vrs And &HF)) And &HF
+        If vrLength = 0 Then vrLength = 16
+
+        Dim hTotal As Integer = crtc(0) + 5
+        Dim hde As Integer = crtc(1) + 1
+        Dim hBlank As Boolean = hTotal > hde AndAlso linePos * hTotal >= hde
+
+        Dim status As Byte = 0
+        If line >= vde OrElse hBlank Then status = status Or &H1
+        If line >= vrs AndAlso line < vrs + vrLength Then status = status Or &H8
+        Return status
     End Function
 
-    Private Sub ShiftVGA(ByRef value As Byte)
-        For i As Integer = 0 To (VGA_GC(3) And 7) - 1
-            value = (value >> 1) Or ((value And 1) << 7)
+    Private Function VerticalDisplayEnd() As Integer
+        Return (crtc(&H12) Or ((crtc(7) And 2) << 7) Or ((crtc(7) And &H40) << 3)) + 1
+    End Function
+#End Region
+
+#Region "CPU memory access (A0000h-BFFFFh)"
+    Private Function MemoryHook(address As UInt32, ByRef value As UInt16, mode As X8086.MemHookMode) As Boolean
+        If address < &HA0000UI OrElse address >= &HC0000UI Then Return False
+
+        Dim base As UInt32, size As UInt32
+        Select Case (gc(6) >> 2) And 3
+            Case 0 : base = &HA0000UI : size = &H20000UI
+            Case 1 : base = &HA0000UI : size = &H10000UI
+            Case 2 : base = &HB0000UI : size = &H8000UI
+            Case Else : base = &HB8000UI : size = &H8000UI
+        End Select
+        If address < base OrElse address >= base + size Then Return False
+
+        Dim offset As Integer = CInt(address - base) And &HFFFF
+        If mode = X8086.MemHookMode.Read Then
+            value = ReadMemory(offset)
+        Else
+            WriteMemory(offset, CByte(value And &HFF))
+        End If
+        Return True
+    End Function
+
+    Private Function ReadMemory(offset As Integer) As Byte
+        Dim addr As Integer
+        Dim plane As Integer
+
+        If (seq(4) And 8) <> 0 Then
+            ' Chain-4: the low two address bits select the plane
+            plane = offset And 3
+            addr = offset And &HFFFC
+        ElseIf (gc(5) And &H10) <> 0 Then
+            ' Odd/even: even addresses in planes 0/2, odd in planes 1/3
+            plane = (offset And 1) Or (gc(4) And 2)
+            addr = offset And &HFFFE
+        Else
+            plane = gc(4) And 3
+            addr = offset
+        End If
+
+        For p As Integer = 0 To 3
+            latch(p) = planes(p)(addr)
+        Next
+
+        If (gc(5) And 8) = 0 OrElse (seq(4) And 8) <> 0 Then Return latch(plane) ' Read mode 0
+
+        ' Read mode 1: color compare, ignoring planes cleared in "color don't care"
+        Dim diff As Integer = 0
+        For p As Integer = 0 To 3
+            If ((gc(7) >> p) And 1) <> 0 Then
+                diff = diff Or (latch(p) Xor If(((gc(2) >> p) And 1) <> 0, &HFF, 0))
+            End If
+        Next
+        Return CByte((Not diff) And &HFF)
+    End Function
+
+    Private Sub WriteMemory(offset As Integer, value As Byte)
+        Dim mapMask As Integer = seq(2) And &HF
+        Dim addr As Integer
+
+        If (seq(4) And 8) <> 0 Then
+            ' Chain-4
+            Dim plane As Integer = offset And 3
+            If ((mapMask >> plane) And 1) <> 0 Then planes(plane)(offset And &HFFFC) = value
+            Exit Sub
+        ElseIf (seq(4) And 4) = 0 Then
+            ' Odd/even
+            addr = offset And &HFFFE
+            mapMask = mapMask And If((offset And 1) <> 0, &HA, &H5)
+        Else
+            addr = offset
+        End If
+
+        Dim writeMode As Integer = gc(5) And 3
+        Dim rotateCount As Integer = gc(3) And 7
+        Dim rotated As Integer = ((value >> rotateCount) Or (value << (8 - rotateCount))) And &HFF
+        Dim logicOp As Integer = (gc(3) >> 3) And 3
+
+        For p As Integer = 0 To 3
+            If ((mapMask >> p) And 1) = 0 Then Continue For
+
+            If writeMode = 1 Then
+                planes(p)(addr) = latch(p)
+                Continue For
+            End If
+
+            Dim data As Integer
+            Dim bitMask As Integer = gc(8)
+            Select Case writeMode
+                Case 0
+                    If ((gc(1) >> p) And 1) <> 0 Then
+                        data = If(((gc(0) >> p) And 1) <> 0, &HFF, 0)
+                    Else
+                        data = rotated
+                    End If
+                Case 2
+                    data = If(((value >> p) And 1) <> 0, &HFF, 0)
+                Case Else ' 3
+                    bitMask = rotated And gc(8)
+                    data = If(((gc(0) >> p) And 1) <> 0, &HFF, 0)
+            End Select
+
+            Select Case logicOp
+                Case 1 : data = data And latch(p)
+                Case 2 : data = data Or latch(p)
+                Case 3 : data = data Xor latch(p)
+            End Select
+
+            planes(p)(addr) = CByte((data And bitMask) Or (latch(p) And (Not bitMask) And &HFF))
+        Next
+    End Sub
+#End Region
+
+#Region "Display"
+    ' Memory address for a CRTC character position, following byte/word/doubleword addressing and the
+    ' CGA/Hercules-compatible scanline interleave (CRTC 17h bits 0-1)
+    Private Function DisplayAddress(counter As Integer, rowScan As Integer) As Integer
+        Dim addr As Integer
+        If (crtc(&H14) And &H40) <> 0 Then
+            addr = (counter << 2) Or ((counter >> 14) And 3)
+        ElseIf (crtc(&H17) And &H40) = 0 Then
+            addr = (counter << 1) Or ((counter >> If((crtc(&H17) And &H20) <> 0, 15, 13)) And 1)
+        Else
+            addr = counter
+        End If
+        If (crtc(&H17) And 1) = 0 Then addr = (addr And Not &H2000) Or ((rowScan And 1) << 13)
+        If (crtc(&H17) And 2) = 0 Then addr = (addr And Not &H4000) Or ((rowScan And 2) << 13)
+        Return addr And &HFFFF
+    End Function
+
+    ' 4-bit attribute -> ARGB, through the color plane enable, the attribute controller palette, the color
+    ' select register and the DAC
+    Private Function AttributeColor(index As Integer) As Integer
+        Dim p As Integer = attr((index And attr(&H12)) And &HF) And &H3F
+        Dim dacIndex As Integer
+        If (attr(&H10) And &H80) <> 0 Then
+            dacIndex = (p And &HF) Or ((attr(&H14) And &HF) << 4)
+        Else
+            dacIndex = p Or ((attr(&H14) And &HC) << 4)
+        End If
+        Return dacColor(dacIndex And dacMask)
+    End Function
+
+    Private Sub GenerateFrame()
+        Dim hde As Integer = crtc(1) + 1
+        Dim vde As Integer = VerticalDisplayEnd()
+        Dim isGraphics As Boolean = (attr(&H10) And 1) <> 0
+        Dim nineDots As Boolean = Not isGraphics AndAlso (seq(1) And 1) = 0
+        Dim dotsPerChar As Integer = If(nineDots, 9, 8)
+        Dim dotScale As Integer = If((seq(1) And 8) <> 0, 2, 1) ' Dot clock / 2 doubles every pixel
+        Dim width As Integer = hde * dotsPerChar * dotScale
+        Dim height As Integer = vde
+        If width < 8 OrElse height < 8 OrElse width > 2048 OrElse height > 1024 Then Exit Sub
+
+        If backBuffer.Length <> width * height Then backBuffer = New Integer(width * height - 1) {}
+        Dim buf As Integer() = backBuffer
+
+        Dim blanked As Boolean = (seq(1) And &H20) <> 0 OrElse (attrIndex And &H20) = 0
+        If blanked Then
+            Array.Fill(buf, &HFF000000)
+        Else
+            For i As Integer = 0 To 15
+                pal16(i) = AttributeColor(i)
+            Next
+
+            Dim startAddress As Integer = (CInt(crtc(&HC)) << 8) Or crtc(&HD)
+            Dim rowAdvance As Integer = crtc(&H13) * 2
+            Dim maxScan As Integer = crtc(9) And &H1F
+            Dim doubleScan As Boolean = (crtc(9) And &H80) <> 0
+            Dim lineCompare As Integer = crtc(&H18) Or ((crtc(7) And &H10) << 4) Or ((crtc(9) And &H40) << 3)
+
+            Dim rowCounter As Integer = startAddress
+            Dim rowScan As Integer = 0
+            For y As Integer = 0 To height - 1
+                If y = lineCompare Then ' Split screen: restart from address 0
+                    rowCounter = 0
+                    rowScan = 0
+                End If
+
+                Dim line As Integer = y * width
+                If isGraphics Then
+                    GraphicsScanline(buf, line, hde, rowCounter, rowScan, dotScale)
+                Else
+                    TextScanline(buf, line, hde, rowCounter, rowScan, dotsPerChar, dotScale)
+                End If
+
+                If Not doubleScan OrElse (y And 1) = 1 Then
+                    If rowScan >= maxScan Then
+                        rowScan = 0
+                        rowCounter += rowAdvance
+                    Else
+                        rowScan += 1
+                    End If
+                End If
+            Next
+        End If
+
+        SyncLock frameLock
+            Dim t As Integer() = frontBuffer
+            frontBuffer = buf
+            backBuffer = If(t.Length = buf.Length, t, New Integer(buf.Length - 1) {})
+            mFrameWidth = width
+            mFrameHeight = height
+        End SyncLock
+
+        ' Expose the mode geometry through the common VideoAdapter properties
+        mMainMode = If(isGraphics, MainModes.Graphics, MainModes.Text)
+        mGraphicsResolution = New XSize(width, height)
+        mTextResolution = New XSize(hde, Math.Max(1, height \ (maxScanOrOne())))
+        mCellSize = New XSize(dotsPerChar, maxScanOrOne())
+    End Sub
+
+    Private Function maxScanOrOne() As Integer
+        Return (crtc(9) And &H1F) + 1
+    End Function
+
+    Private Sub TextScanline(buf As Integer(), line As Integer, hde As Integer, rowCounter As Integer, rowScan As Integer, dotsPerChar As Integer, dotScale As Integer)
+        Dim blinkEnabled As Boolean = (attr(&H10) And 8) <> 0
+        Dim blinkOff As Boolean = (frameCount And 32) <> 0          ' Characters blink every 32 frames
+        Dim cursorPhaseOn As Boolean = (frameCount And 16) = 0      ' The cursor every 16
+        Dim lineGraphics As Boolean = (attr(&H10) And 4) <> 0
+
+        Dim cursorEnabled As Boolean = (crtc(&HA) And &H20) = 0
+        Dim cursorStartLine As Integer = crtc(&HA) And &H1F
+        Dim cursorEndLine As Integer = crtc(&HB) And &H1F
+        Dim cursorAddress As Integer = (CInt(crtc(&HE)) << 8) Or crtc(&HF)
+
+        Dim charMapSelect As Integer = seq(3)
+        Dim mapA As Integer = fontMapOffsets(((charMapSelect >> 2) And 3) Or ((charMapSelect >> 3) And 4))
+        Dim mapB As Integer = fontMapOffsets((charMapSelect And 3) Or ((charMapSelect >> 2) And 4))
+
+        Dim plane0 As Byte() = planes(0), plane1 As Byte() = planes(1), plane2 As Byte() = planes(2)
+        Dim x As Integer = line
+
+        For col As Integer = 0 To hde - 1
+            Dim counter As Integer = rowCounter + col
+            Dim addr As Integer = DisplayAddress(counter, rowScan)
+            Dim ch As Integer = plane0(addr)
+            Dim at As Integer = plane1(addr)
+
+            Dim fg As Integer = at And &HF
+            Dim bg As Integer = at >> 4
+            If blinkEnabled Then
+                bg = bg And 7
+                If (at And &H80) <> 0 AndAlso blinkOff Then fg = bg
+            End If
+
+            Dim fontBase As Integer = If((at And 8) <> 0, mapA, mapB)
+            Dim glyph As Integer = plane2((fontBase + ch * 32 + rowScan) And &HFFFF)
+
+            If cursorEnabled AndAlso cursorPhaseOn AndAlso (counter And &HFFFF) = cursorAddress AndAlso
+               rowScan >= cursorStartLine AndAlso rowScan <= cursorEndLine Then glyph = &HFF
+
+            Dim fgColor As Integer = pal16(fg)
+            Dim bgColor As Integer = pal16(bg)
+
+            For b As Integer = 0 To 7
+                Dim c As Integer = If((glyph And (&H80 >> b)) <> 0, fgColor, bgColor)
+                For s As Integer = 1 To dotScale
+                    buf(x) = c : x += 1
+                Next
+            Next
+
+            If dotsPerChar = 9 Then
+                ' 9th column: repeats the 8th for the line-drawing characters, background otherwise
+                Dim c As Integer = If(lineGraphics AndAlso ch >= &HC0 AndAlso ch <= &HDF AndAlso (glyph And 1) <> 0, fgColor, bgColor)
+                For s As Integer = 1 To dotScale
+                    buf(x) = c : x += 1
+                Next
+            End If
         Next
     End Sub
 
-    Private Sub LogicVGA(ByRef curValue As Byte, latchValue As Byte)
-        Select Case (VGA_GC(3) >> 3) And 3 ' Raster Op
-            Case 1 : curValue = curValue And latchValue
-            Case 2 : curValue = curValue Or latchValue
-            Case 3 : curValue = curValue Xor latchValue
-        End Select
+    Private Sub GraphicsScanline(buf As Integer(), line As Integer, hde As Integer, rowCounter As Integer, rowScan As Integer, dotScale As Integer)
+        Dim color256 As Boolean = (gc(5) And &H40) <> 0
+        Dim interleave As Boolean = (gc(5) And &H20) <> 0
+        Dim p0 As Byte() = planes(0), p1 As Byte() = planes(1), p2 As Byte() = planes(2), p3 As Byte() = planes(3)
+        Dim mask As Integer = dacMask
+        Dim x As Integer = line
+
+        For col As Integer = 0 To hde - 1
+            Dim addr As Integer = DisplayAddress(rowCounter + col, rowScan)
+
+            If color256 Then
+                ' One byte per pixel, four pixels (one per plane) per character clock, each two dots wide
+                Dim w As Integer = 2 * dotScale
+                Dim c As Integer
+                c = dacColor(p0(addr) And mask) : For s As Integer = 1 To w : buf(x) = c : x += 1 : Next
+                c = dacColor(p1(addr) And mask) : For s As Integer = 1 To w : buf(x) = c : x += 1 : Next
+                c = dacColor(p2(addr) And mask) : For s As Integer = 1 To w : buf(x) = c : x += 1 : Next
+                c = dacColor(p3(addr) And mask) : For s As Integer = 1 To w : buf(x) = c : x += 1 : Next
+
+            ElseIf interleave Then
+                ' CGA-compatible 2 bits per pixel: four pixels from plane 0, then four from plane 1
+                Dim b0 As Integer = p0(addr), b1 As Integer = p1(addr)
+                For i As Integer = 0 To 7
+                    Dim src As Integer = If(i < 4, b0, b1)
+                    Dim c As Integer = pal16((src >> (6 - 2 * (i And 3))) And 3)
+                    For s As Integer = 1 To dotScale
+                        buf(x) = c : x += 1
+                    Next
+                Next
+
+            Else
+                ' Planar: one bit per plane per pixel
+                Dim b0 As Integer = p0(addr), b1 As Integer = p1(addr), b2 As Integer = p2(addr), b3 As Integer = p3(addr)
+                For i As Integer = 7 To 0 Step -1
+                    Dim idx As Integer = ((b0 >> i) And 1) Or (((b1 >> i) And 1) << 1) Or (((b2 >> i) And 1) << 2) Or (((b3 >> i) And 1) << 3)
+                    Dim c As Integer = pal16(idx)
+                    For s As Integer = 1 To dotScale
+                        buf(x) = c : x += 1
+                    Next
+                Next
+            End If
+        Next
     End Sub
+#End Region
 
     Public Overrides ReadOnly Property Name As String
         Get
@@ -1259,13 +610,13 @@ Public MustInherit Class VGAAdapter
 
     Public Overrides ReadOnly Property Description As String
         Get
-            Return "VGA Video Adapter"
+            Return "Video Graphics Array"
         End Get
     End Property
 
     Public Overrides ReadOnly Property VersionMajor As Integer
         Get
-            Return 0
+            Return 2
         End Get
     End Property
 
@@ -1277,7 +628,7 @@ Public MustInherit Class VGAAdapter
 
     Public Overrides ReadOnly Property VersionRevision As Integer
         Get
-            Return 1
+            Return 0
         End Get
     End Property
 End Class
