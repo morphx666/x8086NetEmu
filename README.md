@@ -47,6 +47,8 @@ dotnet run --project Eto.Forms/x8086NetEmuEto.Gtk
 dotnet run --project Eto.Forms/x8086NetEmuEto.Mac
 ```
 
+The bundled BASS sound library is Intel-only, so on Apple Silicon the emulator runs without sound. To enable it, download the macOS BASS package from [un4seen](https://www.un4seen.com/) and copy its `libbass.dylib` to `x8086NetEmu/Bass/macosx/arm64/`.
+
 ROMs, disk images and `settings.dat` live in the `Release` folder.
 
 Precompiled binaries are available in [releases](https://github.com/morphx666/x8086NetEmu/releases).

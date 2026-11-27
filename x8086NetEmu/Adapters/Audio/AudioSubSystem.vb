@@ -62,13 +62,20 @@ Public Class AudioSubsystem
     ' never run (e.g. one used only to disassemble code) doesn't open the audio device
     Private Sub OpenStream()
         If handle <> 0 Then Exit Sub
-        BassHelpers.Setup()
+        ' Without a usable BASS library (none for this platform/architecture, or no audio device) the machine
+        ' runs without sound: samples are still produced, they just aren't played
+        If Not BassHelpers.Setup() Then Exit Sub
 
-        fillProc = AddressOf FillAudioBuffer ' Keep the delegate alive while native code holds it
-        handle = Bass.CreateStream(SpeakerAdapter.SampleRate, 1, BassFlags.Byte, fillProc, IntPtr.Zero)
-        Bass.ChannelSetAttribute(handle, ChannelAttribute.Buffer, 0)
-        Bass.ChannelSetAttribute(handle, ChannelAttribute.Volume, 1.0)
-        Bass.ChannelPlay(handle)
+        Try
+            fillProc = AddressOf FillAudioBuffer ' Keep the delegate alive while native code holds it
+            handle = Bass.CreateStream(SpeakerAdapter.SampleRate, 1, BassFlags.Byte, fillProc, IntPtr.Zero)
+            Bass.ChannelSetAttribute(handle, ChannelAttribute.Buffer, 0)
+            Bass.ChannelSetAttribute(handle, ChannelAttribute.Volume, 1.0)
+            Bass.ChannelPlay(handle)
+        Catch ex As Exception When TypeOf ex Is DllNotFoundException OrElse TypeOf ex Is BadImageFormatException OrElse TypeOf ex Is EntryPointNotFoundException
+            handle = 0
+            X8086.Notify($"Sound disabled: unable to use the BASS library ({ex.Message})", X8086.NotificationReasons.Warn)
+        End Try
     End Sub
     Private fillProc As StreamProcedure
 
