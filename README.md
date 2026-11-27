@@ -18,7 +18,14 @@ A cycle-scheduled 8088/8086/80186 PC emulator written in VB.NET. It boots real R
 
 ## Building and running
 
-Install the [.NET 10 SDK](https://dotnet.microsoft.com/download), then run one of these commands from the repository folder.
+Install [Git](https://git-scm.com/downloads) and the [.NET 10 SDK](https://dotnet.microsoft.com/download), then get the source:
+
+```
+git clone https://github.com/morphx666/x8086NetEmu.git
+cd x8086NetEmu
+```
+
+Then run the command for your OS.
 
 ### Windows
 

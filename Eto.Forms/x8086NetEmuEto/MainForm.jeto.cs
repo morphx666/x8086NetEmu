@@ -129,13 +129,40 @@ namespace x8086NetEmuEto {
             Canvas?.Focus();
         }
 
+        // settings.dat isn't part of the repository: a fresh clone (or a deleted file) starts from these defaults
+        private const string DefaultSettings = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <settings>
+              <simulationMultiplier>1</simulationMultiplier>
+              <clockSpeed>4770000</clockSpeed>
+              <videoZoom>2</videoZoom>
+              <floppies />
+              <disks />
+              <extras>
+                <consoleVisible>false</consoleVisible>
+                <debuggerVisible>false</debuggerVisible>
+              </extras>
+            </settings>
+            """;
+
         private void LoadSettings() {
-            XDocument xml = XDocument.Load(X8086.FixPath("settings.dat"));
+            string fileName = X8086.FixPath("settings.dat");
+            if(!System.IO.File.Exists(fileName)) {
+                try {
+                    System.IO.File.WriteAllText(fileName, DefaultSettings);
+                } catch(Exception ex) {
+                    X8086.Notify($"Unable to create settings.dat: {ex.Message}", X8086.NotificationReasons.Err);
+                }
+            }
+
+            XDocument xml = System.IO.File.Exists(fileName) ? XDocument.Load(fileName) : XDocument.Parse(DefaultSettings);
             XElement settings = xml.Element("settings");
 
-            cpu.SimulationMultiplier = int.Parse(settings.Element("simulationMultiplier").Value);
-            cpu.Clock = double.Parse(settings.Element("clockSpeed").Value);
-            cpu.VideoAdapter.Zoom = double.Parse(settings.Element("videoZoom").Value);
+            // Numbers are stored culture-invariant (see SaveSettings)
+            System.Globalization.CultureInfo inv = System.Globalization.CultureInfo.InvariantCulture;
+            cpu.SimulationMultiplier = int.Parse(settings.Element("simulationMultiplier").Value, inv);
+            cpu.Clock = double.Parse(settings.Element("clockSpeed").Value, inv);
+            cpu.VideoAdapter.Zoom = double.Parse(settings.Element("videoZoom").Value, inv);
 
             XElement floppies = settings.Element("floppies");
             foreach(XElement floppy in floppies.Elements("floppy")) {

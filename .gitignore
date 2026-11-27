@@ -256,6 +256,7 @@ ModelManifest.xml
 /Release/roms/*
 !/Release/roms/BASICC11.BIN
 !/Release/roms/pcxtbios.rom
+!/Release/roms/et4000(4-7-93).bin
 
 # Non-source resource and crash output
 **/80186_tests/
