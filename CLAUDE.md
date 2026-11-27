@@ -25,7 +25,12 @@ dotnet run --project x8086NetEmuConsole             # run the console frontend
 
 Build outputs go **directly to `Release/`**, not framework subfolders — the core `.vbproj` sets
 `AppendTargetFrameworkToOutputPath=false` and `OutputPath=..\Release\`. Do not "fix" paths to expect
-`Release/net10.0/`. The running emulator resolves ROMs, fonts, `settings.dat`, and disk images relative
+`Release/net10.0/`. **Never `dotnet publish -r <rid>` with the default output path:** the publish's build step
+writes the self-contained runtime (`hostfxr.dll`, `coreclr.dll`, ...) into `Release/`, after which the normal
+framework-dependent `Release\x8086NetEmuEto.Wpf.exe` treats that folder as its .NET install and fails with "You must
+install or update .NET". Publish with `-p:OutputPath=<some temp folder>\` (plus `-o` for the publish folder).
+The launchers set `RollForward=Major`, so dev builds also run where only a newer .NET is installed.
+The running emulator resolves ROMs, fonts, `settings.dat`, and disk images relative
 to this folder via `X8086.BasePath` + `X8086.FixPath(...)`; ROMs are expected under `Release\roms\`.
 
 ## Running the CPU conformance tests

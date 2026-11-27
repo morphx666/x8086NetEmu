@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net10.0</TargetFramework>
@@ -7,6 +7,8 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 		<OutputPath>..\..\Release\</OutputPath>
+		<!-- Run on a newer .NET when .NET 10 isn't installed (release packages bundle their own runtime) -->
+		<RollForward>Major</RollForward>
 	</PropertyGroup>
 
 	<ItemGroup>
