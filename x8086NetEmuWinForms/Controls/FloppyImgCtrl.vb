@@ -35,7 +35,7 @@ Public Class FloppyImgCtrl
                 TextBoxImageFileName.Text = dlg.FileName
 
                 Try
-                    mEmulator.FloppyContoller.DiskImage(mIndex) = New DiskImage(dlg.FileName, ro)
+                    mEmulator.FloppyController.DiskImage(mIndex) = New DiskImage(dlg.FileName, ro)
                 Catch ex As Exception
                     MsgBox("Unable to mount image: " + ex.Message, MsgBoxStyle.Critical)
                     Eject()
@@ -51,9 +51,9 @@ Public Class FloppyImgCtrl
     End Sub
 
     Private Sub Eject()
-        If mEmulator.FloppyContoller.DiskImage(mIndex) IsNot Nothing Then
-            mEmulator.FloppyContoller.DiskImage(mIndex).Close()
-            mEmulator.FloppyContoller.DiskImage(mIndex) = Nothing
+        If mEmulator.FloppyController.DiskImage(mIndex) IsNot Nothing Then
+            mEmulator.FloppyController.DiskImage(mIndex).Close()
+            mEmulator.FloppyController.DiskImage(mIndex) = Nothing
         End If
 
         UpdateUI()
@@ -64,14 +64,14 @@ Public Class FloppyImgCtrl
 
         Label1.Text = "Floppy " + Chr(65 + mIndex) + ":"
 
-        If mEmulator.FloppyContoller.DiskImage(mIndex) Is Nothing Then
+        If mEmulator.FloppyController.DiskImage(mIndex) Is Nothing Then
             TextBoxImageFileName.Text = ""
 
             ButtonEject.Enabled = False
             ButtonLoad.Enabled = True
         Else
-            TextBoxImageFileName.Text = mEmulator.FloppyContoller.DiskImage(mIndex).FileName
-            CheckBoxReadOnly.Checked = mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly
+            TextBoxImageFileName.Text = mEmulator.FloppyController.DiskImage(mIndex).FileName
+            CheckBoxReadOnly.Checked = mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly
 
             ButtonEject.Enabled = True
             ButtonLoad.Enabled = False

@@ -109,7 +109,11 @@ Public Class Scheduler
     Private ReadOnly Property CurrentTimeMs As Long
         Get
             ' Watch: https://www.youtube.com/watch?v=Lvdyi5DWNm4
-            Return Stopwatch.GetTimestamp()
+            ' Stopwatch.GetTimestamp() is in timer ticks (Stopwatch.Frequency per
+            ' second), but the synchronization math and Thread.Sleep/Wait below all
+            ' expect wall time in MILLISECONDS. Convert here so syncSimTimePerWallMs
+            ' (sim-units per wall ms) and the sleep durations stay consistent.
+            Return Stopwatch.GetTimestamp() * 1000 \ Stopwatch.Frequency
         End Get
     End Property
 
@@ -312,7 +316,12 @@ Public Class Scheduler
 
     Public Sub Start()
         mCurrentTime = 0
-        nextTime = NOTASK
+        ' Prime from the queue: adapters (e.g. the video timer) schedule tasks in
+        ' InitAdapter() BEFORE Start() is called, so seeding nextTime with NOTASK
+        ' would hide them until the next scheduling call. MinPriority() returns
+        ' Long.MaxValue (= NOTASK) when the queue is empty, so this is equivalent
+        ' to the old behavior in that case.
+        nextTime = pq.MinPriority()
         syncWallTimeMs = CurrentTimeMs
         syncTimeSaldo = 0
 

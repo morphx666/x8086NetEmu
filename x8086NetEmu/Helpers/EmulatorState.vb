@@ -48,10 +48,10 @@ Public Class EmulatorState
         Dim curPath = GetCurrentBasePath()
         Dim xml = <floppies></floppies>
 
-        If mCPU.FloppyContoller IsNot Nothing Then
+        If mCPU.FloppyController IsNot Nothing Then
             For i As Integer = 0 To 128 - 1
-                If mCPU.FloppyContoller.DiskImage(i) IsNot Nothing Then
-                    Dim di = mCPU.FloppyContoller.DiskImage(i)
+                If mCPU.FloppyController.DiskImage(i) IsNot Nothing Then
+                    Dim di = mCPU.FloppyController.DiskImage(i)
 
                     If Not di.IsHardDisk Then
                         xml.Add(<floppy>
@@ -73,8 +73,8 @@ Public Class EmulatorState
         Dim xml = <disks></disks>
 
         For i As Integer = 128 To 1000 - 1
-            If mCPU.FloppyContoller.DiskImage(i) IsNot Nothing Then
-                Dim di = mCPU.FloppyContoller.DiskImage(i)
+            If mCPU.FloppyController.DiskImage(i) IsNot Nothing Then
+                Dim di = mCPU.FloppyController.DiskImage(i)
 
                 If di.IsHardDisk Then
                     xml.Add(<disk>

@@ -1,4 +1,5 @@
 using System;
+using Eto;
 using Eto.Drawing;
 using Eto.Forms;
 using x8086NetEmu;

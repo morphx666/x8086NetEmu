@@ -4,8 +4,8 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<RuntimeIdentifiers Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx-x64;osx-arm64</RuntimeIdentifiers>
 		<RuntimeIdentifiers Condition="!$([MSBuild]::IsOSPlatform('OSX'))">osx-x64</RuntimeIdentifiers>
-		<AssemblyVersion>2026.7.22.223</AssemblyVersion>
-		<FileVersion>2026.7.22.223</FileVersion>
+		<AssemblyVersion>2026.11.27.227</AssemblyVersion>
+		<FileVersion>2026.11.27.227</FileVersion>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 		<OutputPath>..\..\Release\</OutputPath>

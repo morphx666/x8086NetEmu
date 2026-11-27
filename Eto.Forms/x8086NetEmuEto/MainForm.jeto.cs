@@ -47,6 +47,15 @@ namespace x8086NetEmuEto {
             AddCustomHooks();
         }
 
+        protected override void OnShown(EventArgs e) {
+            base.OnShown(e);
+
+            // Ensure the render surface starts with keyboard focus so the Shift+Alt+Home
+            // handler in EtoVideoInputController receives keys without requiring the pointer
+            // to hover over the Canvas first.
+            Canvas?.Focus();
+        }
+
         private void LoadSettings() {
             XDocument xml = XDocument.Load(X8086.FixPath("settings.dat"));
             XElement settings = xml.Element("settings");
@@ -61,7 +70,7 @@ namespace x8086NetEmuEto {
                 string image = floppy.Element("image").Value;
                 bool readOnly = bool.Parse(floppy.Element("readOnly").Value);
 
-                cpu.FloppyContoller.set_DiskImage(index, new DiskImage(image, readOnly, false));
+                cpu.FloppyController.set_DiskImage(index, new DiskImage(image, readOnly, false));
             }
 
             XElement disks = settings.Element("disks");
@@ -70,7 +79,7 @@ namespace x8086NetEmuEto {
                 string image = disk.Element("image").Value;
                 bool readOnly = bool.Parse(disk.Element("readOnly").Value);
 
-                cpu.FloppyContoller.set_DiskImage(index, new DiskImage(image, readOnly, true));
+                cpu.FloppyController.set_DiskImage(index, new DiskImage(image, readOnly, true));
             }
         }
 
@@ -78,17 +87,7 @@ namespace x8086NetEmuEto {
             if(cpu.VideoAdapter != null) {
                 cpu.VideoAdapter.KeyDown += (object s1, Adapter.XKeyEventArgs e1) => {
                     if(e1.Shift && e1.Alt && e1.KeyValue == (int)Adapter.XEventArgs.Keys.Home) {
-                        if(cpu.Mouse != null) {
-                            cpu.Mouse.IsCaptured = false;
-                        }
-
-                        Application.Instance.Invoke(() => {
-                            if(Canvas.IsMouseCaptured) {
-                                Canvas.ReleaseMouseCapture();
-                            }
-
-                            ContextMenu?.Show();
-                        });
+                        ShowEmulatorMenu();
                         e1.Handled = true;
                     }
                 };
@@ -96,6 +95,20 @@ namespace x8086NetEmuEto {
 
             cpu.MIPsUpdated += () => SetTitleText();
             //cpu.DebugModeChanged += () => Invoke(() => ShowDebugger());
+        }
+
+        private void ShowEmulatorMenu() {
+            if(cpu?.Mouse != null) {
+                cpu.Mouse.IsCaptured = false;
+            }
+
+            Application.Instance.Invoke(() => {
+                if(Canvas.IsMouseCaptured) {
+                    Canvas.ReleaseMouseCapture();
+                }
+
+                ContextMenu?.Show();
+            });
         }
 
         private void SetTitleText() {

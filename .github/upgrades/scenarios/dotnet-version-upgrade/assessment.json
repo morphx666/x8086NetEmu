@@ -63504,12 +63504,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "MountImage(mEmulator.FloppyContoller.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)",
+              "unrestricted": "MountImage(mEmulator.FloppyController.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)",
               "protected": "T:System.Windows.Forms.CheckBox"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "MountImage(mEmulator.FloppyContoller.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)",
+            "snippet": "MountImage(mEmulator.FloppyController.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)",
             "protectedSnippet": "T:System.Windows.Forms.CheckBox",
             "label": "T:System.Windows.Forms.CheckBox",
             "line": 113,
@@ -63524,12 +63524,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "MountImage(mEmulator.FloppyContoller.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)",
+              "unrestricted": "MountImage(mEmulator.FloppyController.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)",
               "protected": "P:System.Windows.Forms.CheckBox.Checked"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "MountImage(mEmulator.FloppyContoller.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)",
+            "snippet": "MountImage(mEmulator.FloppyController.DiskImage(mIndex).FileName, CheckBoxReadOnly.Checked)",
             "protectedSnippet": "P:System.Windows.Forms.CheckBox.Checked",
             "label": "P:System.Windows.Forms.CheckBox.Checked",
             "line": 113,
@@ -63544,12 +63544,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "If mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly \u003C\u003E CheckBoxReadOnly.Checked Then",
+              "unrestricted": "If mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly \u003C\u003E CheckBoxReadOnly.Checked Then",
               "protected": "T:System.Windows.Forms.CheckBox"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "If mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly \u003C\u003E CheckBoxReadOnly.Checked Then",
+            "snippet": "If mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly \u003C\u003E CheckBoxReadOnly.Checked Then",
             "protectedSnippet": "T:System.Windows.Forms.CheckBox",
             "label": "T:System.Windows.Forms.CheckBox",
             "line": 112,
@@ -63564,12 +63564,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "If mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly \u003C\u003E CheckBoxReadOnly.Checked Then",
+              "unrestricted": "If mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly \u003C\u003E CheckBoxReadOnly.Checked Then",
               "protected": "P:System.Windows.Forms.CheckBox.Checked"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "If mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly \u003C\u003E CheckBoxReadOnly.Checked Then",
+            "snippet": "If mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly \u003C\u003E CheckBoxReadOnly.Checked Then",
             "protectedSnippet": "P:System.Windows.Forms.CheckBox.Checked",
             "label": "P:System.Windows.Forms.CheckBox.Checked",
             "line": 112,
@@ -63584,12 +63584,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyContoller.DiskImage(mIndex).FileName)",
+              "unrestricted": "ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyController.DiskImage(mIndex).FileName)",
               "protected": "P:System.Windows.Forms.Control.Enabled"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyContoller.DiskImage(mIndex).FileName)",
+            "snippet": "ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyController.DiskImage(mIndex).FileName)",
             "protectedSnippet": "P:System.Windows.Forms.Control.Enabled",
             "label": "P:System.Windows.Forms.Control.Enabled",
             "line": 108,
@@ -63604,12 +63604,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyContoller.DiskImage(mIndex).FileName)",
+              "unrestricted": "ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyController.DiskImage(mIndex).FileName)",
               "protected": "P:System.Windows.Forms.Control.Enabled"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyContoller.DiskImage(mIndex).FileName)",
+            "snippet": "ButtonView.Enabled = ButtonEject.Enabled AndAlso IO.File.Exists(mEmulator.FloppyController.DiskImage(mIndex).FileName)",
             "protectedSnippet": "P:System.Windows.Forms.Control.Enabled",
             "label": "P:System.Windows.Forms.Control.Enabled",
             "line": 108,
@@ -63684,12 +63684,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "CheckBoxReadOnly.Checked = mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly",
+              "unrestricted": "CheckBoxReadOnly.Checked = mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly",
               "protected": "T:System.Windows.Forms.CheckBox"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "CheckBoxReadOnly.Checked = mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly",
+            "snippet": "CheckBoxReadOnly.Checked = mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly",
             "protectedSnippet": "T:System.Windows.Forms.CheckBox",
             "label": "T:System.Windows.Forms.CheckBox",
             "line": 103,
@@ -63704,12 +63704,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "CheckBoxReadOnly.Checked = mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly",
+              "unrestricted": "CheckBoxReadOnly.Checked = mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly",
               "protected": "P:System.Windows.Forms.CheckBox.Checked"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "CheckBoxReadOnly.Checked = mEmulator.FloppyContoller.DiskImage(mIndex).IsReadOnly",
+            "snippet": "CheckBoxReadOnly.Checked = mEmulator.FloppyController.DiskImage(mIndex).IsReadOnly",
             "protectedSnippet": "P:System.Windows.Forms.CheckBox.Checked",
             "label": "P:System.Windows.Forms.CheckBox.Checked",
             "line": 103,
@@ -63724,12 +63724,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "TextBoxImageFileName.Text = mEmulator.FloppyContoller.DiskImage(mIndex).FileName",
+              "unrestricted": "TextBoxImageFileName.Text = mEmulator.FloppyController.DiskImage(mIndex).FileName",
               "protected": "T:System.Windows.Forms.TextBox"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "TextBoxImageFileName.Text = mEmulator.FloppyContoller.DiskImage(mIndex).FileName",
+            "snippet": "TextBoxImageFileName.Text = mEmulator.FloppyController.DiskImage(mIndex).FileName",
             "protectedSnippet": "T:System.Windows.Forms.TextBox",
             "label": "T:System.Windows.Forms.TextBox",
             "line": 102,
@@ -63744,12 +63744,12 @@
           "state": "Active",
           "location": {
             "snippetModel": {
-              "unrestricted": "TextBoxImageFileName.Text = mEmulator.FloppyContoller.DiskImage(mIndex).FileName",
+              "unrestricted": "TextBoxImageFileName.Text = mEmulator.FloppyController.DiskImage(mIndex).FileName",
               "protected": "P:System.Windows.Forms.TextBox.Text"
             },
             "kind": "File",
             "path": "x8086NetEmuWinForms\\Controls\\DiskImgCtrl.vb",
-            "snippet": "TextBoxImageFileName.Text = mEmulator.FloppyContoller.DiskImage(mIndex).FileName",
+            "snippet": "TextBoxImageFileName.Text = mEmulator.FloppyController.DiskImage(mIndex).FileName",
             "protectedSnippet": "P:System.Windows.Forms.TextBox.Text",
             "label": "P:System.Windows.Forms.TextBox.Text",
             "line": 102,

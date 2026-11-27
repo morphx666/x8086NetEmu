@@ -75,7 +75,7 @@ Partial Public Class X8086
         End Get
     End Property
 
-    Public ReadOnly Property FloppyContoller As FloppyControllerAdapter
+    Public ReadOnly Property FloppyController As FloppyControllerAdapter
         Get
             Return mFloppyController
         End Get
