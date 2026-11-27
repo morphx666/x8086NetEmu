@@ -186,7 +186,8 @@
 
     Private Sub DoICW2(v As Byte)
         baseVector = v And &HF8
-        state = If(expectICW3, If(expectICW4, States.ICW4, States.Ready), States.ICW3)
+        ' ICW3 only follows in cascade mode (SNGL = 0); a single 8259, like the PC/XT's, goes straight to ICW4
+        state = If(expectICW3, States.ICW3, If(expectICW4, States.ICW4, States.Ready))
     End Sub
 
     Private Sub DoICW3(v As Byte)
