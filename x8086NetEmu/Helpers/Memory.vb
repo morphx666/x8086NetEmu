@@ -370,8 +370,11 @@ Partial Public Class X8086
     Public Property RAM(address As UInt32, Optional ignoreHooks As Boolean = False) As Byte
         Get
             If Not ignoreHooks Then
+                ' Use a local for the hook's result: tmpUVal1 is CPU-wide scratch state (e.g. the string
+                ' instructions keep their source segment in it), so reading through a hook must not clobber it
+                Dim hookValue As UInt16
                 For i As Integer = 0 To memHooks.Count - 1
-                    If memHooks(i).Invoke(address, tmpUVal1, MemHookMode.Read) Then Return tmpUVal1
+                    If memHooks(i).Invoke(address, hookValue, MemHookMode.Read) Then Return hookValue
                 Next
             End If
 
