@@ -1316,7 +1316,9 @@ Public Class X8086
                 If tmpUVal1 = 0 Then
                     ' The 8088 updates the flags as for a zero result before taking the divide error
                     SetSZPFlags(0, DataSize.Byte)
-                    mFlags.CF = 0 : mFlags.AF = 0 : mFlags.OF = 0
+                    mFlags.CF = 0
+                    mFlags.AF = 0
+                    mFlags.OF = 0
                     RaiseDivideError()
                     Exit Select
                 End If
@@ -1345,15 +1347,11 @@ Public Class X8086
                 mRegisters.AL = RAM8(mRegisters.ActiveSegmentValue, mRegisters.BX + mRegisters.AL)
                 clkCyc += 11
 
-            Case &HD8 To &HDF ' Ignore 8087 co-processor instructions
+            Case &HD8 To &HDF ' ESC: 8087 co-processor instructions
+                ' Without a co-processor the CPU only decodes the ModRM byte (and displacement) and moves on:
+                ' nothing is written and no exception is raised. Software detects the missing 8087 precisely
+                ' because FNINIT/FNSTSW/FNSTCW leave their destinations untouched.
                 SetAddressing()
-                'FPU.Execute(opCode, addrMode)
-
-                ' Lesson 2
-                ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
-
-                'HandleInterrupt(7, False)
-                OpCodeNotImplemented("FPU Not Available")
                 clkCyc += 2
 
             Case &HE0 ' LOOPNE/LOOPNZ

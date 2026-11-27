@@ -106,13 +106,13 @@ AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf OpCodeNotImplemented,
 AddressOf _68,' PUSH Iv (80186)
-AddressOf _69,' IMUL (80186)
+AddressOf _69,' IMUL Gv Ev Iv (80186)
 AddressOf _6A,' PUSH Ib (80186)
-AddressOf _6B,' IMUL (80186)
-AddressOf _6C_6F,' Ignore 80186/V20 port operations... for now...
-AddressOf _6C_6F,' Ignore 80186/V20 port operations... for now...
-AddressOf _6C_6F,' Ignore 80186/V20 port operations... for now...
-AddressOf _6C_6F,' Ignore 80186/V20 port operations... for now...
+AddressOf _6B,' IMUL Gv Ev Ib (80186)
+AddressOf _6C_6F,' INSB/INSW/OUTSB/OUTSW (80186)
+AddressOf _6C_6F,' INSB/INSW/OUTSB/OUTSW (80186)
+AddressOf _6C_6F,' INSB/INSW/OUTSB/OUTSW (80186)
+AddressOf _6C_6F,' INSB/INSW/OUTSB/OUTSW (80186)
 AddressOf _70,' JO Jb
 AddressOf _71,' JNO  Jb
 AddressOf _72,' JB/JNAE/JC Jb
@@ -217,14 +217,14 @@ AddressOf _D4,' AAM I0
 AddressOf _D5,' AAD I0
 AddressOf _D6,' XLAT for V20 / SALC
 AddressOf _D7,' XLATB
-AddressOf _D8_DF,' Ignore 8087 co-processor instructions
-AddressOf _D8_DF,' Ignore 8087 co-processor instructions
-AddressOf _D8_DF,' Ignore 8087 co-processor instructions
-AddressOf _D8_DF,' Ignore 8087 co-processor instructions
-AddressOf _D8_DF,' Ignore 8087 co-processor instructions
-AddressOf _D8_DF,' Ignore 8087 co-processor instructions
-AddressOf _D8_DF,' Ignore 8087 co-processor instructions
-AddressOf _D8_DF,' Ignore 8087 co-processor instructions
+AddressOf _D8_DF,' ESC: 8087 co-processor instructions
+AddressOf _D8_DF,' ESC: 8087 co-processor instructions
+AddressOf _D8_DF,' ESC: 8087 co-processor instructions
+AddressOf _D8_DF,' ESC: 8087 co-processor instructions
+AddressOf _D8_DF,' ESC: 8087 co-processor instructions
+AddressOf _D8_DF,' ESC: 8087 co-processor instructions
+AddressOf _D8_DF,' ESC: 8087 co-processor instructions
+AddressOf _D8_DF,' ESC: 8087 co-processor instructions
 AddressOf _E0,' LOOPNE/LOOPNZ
 AddressOf _E1,' LOOPE/LOOPZ
 AddressOf _E2,' LOOP
@@ -1355,15 +1355,11 @@ Private Sub _D7' XLATB
                 clkCyc += 11
                                  End Sub
 
-Private Sub _D8_DF' Ignore 8087 co-processor instructions
-                                    SetAddressing()
-                'FPU.Execute(opCode, addrMode)
-
-                ' Lesson 2
-                ' http://ntsecurity.nu/onmymind/2007/2007-08-22.html
-
-                'HandleInterrupt(7, False)
-                OpCodeNotImplemented("FPU Not Available")
+Private Sub _D8_DF' ESC: 8087 co-processor instructions
+                                    ' Without a co-processor the CPU only decodes the ModRM byte (and displacement) and moves on:
+                ' nothing is written and no exception is raised. Software detects the missing 8087 precisely
+                ' because FNINIT/FNSTSW/FNSTCW leave their destinations untouched.
+                SetAddressing()
                 clkCyc += 2
                                  End Sub
 
