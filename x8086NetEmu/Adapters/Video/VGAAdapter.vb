@@ -86,7 +86,7 @@ Public MustInherit Class VGAAdapter
         Next
         mCellSize = New XSize(8, 16)
 
-        cpu.LoadBIN("roms\et4000(4-7-93).BIN", &HC000, &H0)
+        cpu.LoadBIN("roms\et4000(4-7-93).bin", &HC000, &H0) ' Exact case: Linux file systems are case-sensitive
 
         ' VGA registers plus the Tseng ports the BIOS uses (3BFh/3D8h KEY, 3CDh segment select). 3BCh-3BEh are
         ' left alone: that's the MDA parallel port, which the system BIOS probes
