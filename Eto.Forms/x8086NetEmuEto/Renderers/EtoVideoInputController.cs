@@ -327,8 +327,29 @@ namespace x8086NetEmuEto.Renderers {
             }
         }
 
-        private int KeyToInt(Keys k) {
-            return (int)(Adapter.XEventArgs.Keys)Enum.Parse(typeof(Adapter.XEventArgs.Keys), k.ToString());
+        // Eto keys whose emulator (Windows virtual-key) name differs. Eto's Slash is the main keyboard's '/' while
+        // the emulator's Slash is the keypad's (an alias of Divide).
+        private static readonly Dictionary<Keys, Adapter.XEventArgs.Keys> keyTranslation = new() {
+            [Keys.Slash] = Adapter.XEventArgs.Keys.OemQuestion,
+            [Keys.ScrollLock] = Adapter.XEventArgs.Keys.Scroll,
+            [Keys.ContextMenu] = Adapter.XEventArgs.Keys.Apps,
+        };
+
+        // Eto key (and/or modifiers) -> emulator key value. Keys the PC keyboard doesn't have (the Mac's Command key,
+        // the keypad '=', ...) translate to no key, which the keyboard ignores; they must never throw: this runs
+        // inside the native key event handler, where an exception takes the whole application down.
+        private static int KeyToInt(Keys k) {
+            int result = 0;
+            if((k & Keys.Shift) != 0) result |= (int)Adapter.XEventArgs.Keys.Shift;
+            if((k & Keys.Control) != 0) result |= (int)Adapter.XEventArgs.Keys.Control;
+            if((k & Keys.Alt) != 0) result |= (int)Adapter.XEventArgs.Keys.Alt;
+
+            Keys key = k & Keys.KeyMask;
+            if(key == Keys.None) return result;
+            if(keyTranslation.TryGetValue(key, out Adapter.XEventArgs.Keys translated)) return result | (int)translated;
+            string name = key.ToString();
+            if(!char.IsDigit(name[0]) && Enum.TryParse(name, out Adapter.XEventArgs.Keys parsed)) return result | (int)parsed;
+            return result;
         }
 
         private int MouseButtonsToInt(MouseButtons buttons) {
