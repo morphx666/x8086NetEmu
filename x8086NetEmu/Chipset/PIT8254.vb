@@ -1,4 +1,4 @@
-Public Class PIT8254
+﻿Public Class PIT8254
     Inherits IOPortHandler
 
     Public Class Counter
