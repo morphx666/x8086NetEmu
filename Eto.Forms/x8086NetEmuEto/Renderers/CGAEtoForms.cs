@@ -28,17 +28,12 @@ namespace x8086NetEmuEto.Renderers {
         private bool paletteDataCacheDirty = true;
         private EtoVideoInputController inputController;
 
-        public CGAEtoForms(X8086 cpu,
-                            Drawable renderControl,
-                            FontSources fontSource = FontSources.BitmapFile,
-                            string bitmapFontFile = "asciivga.dat") : base(cpu) {
+        public CGAEtoForms(X8086 cpu, Drawable renderControl) : base(cpu) {
             RenderControl = renderControl;
 
-            string fontCGAPath = X8086.FixPath(@"misc\" + bitmapFontFile);
-            if(File.Exists(fontCGAPath)) {
-                VideoChar.FontBitmaps = File.ReadAllBytes(fontCGAPath);
-                CellSize = new XSize(8, 16);
-            }
+            // Text-mode font built from the BIOS ROM's character set (see TextFont)
+            VideoChar.FontBitmaps = TextFont.Build(cpu);
+            CellSize = new XSize(TextFont.CharWidth, TextFont.CharHeight);
 
             brushCache = new Color[CGAPalette.Length];
 

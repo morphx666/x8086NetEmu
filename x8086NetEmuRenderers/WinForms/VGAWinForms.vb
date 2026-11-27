@@ -25,7 +25,7 @@ Public Class VGAWinForms
 
     Protected wui As WebUI
 
-    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional bitmapFontFile As String = "", Optional enableWebUI As Boolean = False)
+    Public Sub New(cpu As X8086, renderControl As Control, Optional fontSource As FontSources = FontSources.BitmapFile, Optional enableWebUI As Boolean = False)
         MyBase.New(cpu)
         fontSourceMode = fontSource
 
@@ -55,22 +55,10 @@ Public Class VGAWinForms
                                              End Sub
         AddHandler mRenderControl.MouseUp, Sub(sender As Object, e As MouseEventArgs) OnMouseUp(Me, New XMouseEventArgs(e.Button, e.X, e.Y))
 
-        Dim fontCGAPath As String = X8086.FixPath("misc\" + bitmapFontFile)
-        Dim fontCGAError As String = ""
-
         Select Case fontSource
             Case FontSources.BitmapFile
-                If IO.File.Exists(fontCGAPath) Then
-                    Try
-                        VideoChar.FontBitmaps = IO.File.ReadAllBytes(fontCGAPath)
-                    Catch ex As Exception
-                        fontCGAError = ex.Message
-                        fontSourceMode = FontSources.TrueType
-                    End Try
-                Else
-                    fontCGAError = "File not found"
-                    fontSourceMode = FontSources.TrueType
-                End If
+                ' Text-mode font built from the BIOS ROM's character set (see TextFont)
+                VideoChar.FontBitmaps = TextFont.Build(cpu)
             Case FontSources.ROM
                 CellSize = New XSize(8, 14)
                 VideoChar.BuildFontBitmapsFromROM(8, 14, 14, &HC0000 + &H3310, cpu.Memory)
@@ -78,9 +66,7 @@ Public Class VGAWinForms
 
         If fontSourceMode = FontSources.TrueType Then
             If mFont.Name <> preferredFont Then
-                MsgBox(If(fontSource = FontSources.BitmapFile, "ASCII VGA Font Data not found at '" + fontCGAPath + "'" + If(fontCGAError <> "", ": " + fontCGAError, "") +
-                       vbCrLf + vbCrLf, "") +
-                       "CGAWinForms requires the '" + preferredFont + "' font. Please install it before using this adapter", MsgBoxStyle.Information Or MsgBoxStyle.OkOnly)
+                MsgBox("CGAWinForms requires the '" + preferredFont + "' font. Please install it before using this adapter", MsgBoxStyle.Information Or MsgBoxStyle.OkOnly)
                 mFont = New Font("Consolas", 16, FontStyle.Regular, GraphicsUnit.Pixel)
                 If mFont.Name <> "Consolas" Then
                     mFont = New Font("Andale Mono", 16, FontStyle.Regular, GraphicsUnit.Pixel)
